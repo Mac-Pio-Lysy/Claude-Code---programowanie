@@ -201,7 +201,7 @@
 <script>
   const STORAGE_KEY  = 'wedding-planner-v2';
   const EMAILJS_SVC  = 'service_8y44w48';
-  const EMAILJS_TPL  = 'template_8ppmica';
+  const EMAILJS_TPL  = 'template_1so5ltg';
   const ORGANIZER    = 'macholak.piotr@gmail.com';
 
   let selectedStatus          = null;
@@ -212,7 +212,38 @@
   let pairAnswer              = null;
 
   // ── Inicjalizacja EmailJS ──
-  emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });
+  let _ejsReady = false;
+  try {
+    if (typeof emailjs === 'undefined') {
+      console.error('[EmailJS] BŁĄD: SDK nie załadowany. Sprawdź script tag i połączenie z internetem.');
+    } else {
+      emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });
+      _ejsReady = true;
+      console.log('[EmailJS] Zainicjalizowany. Service:', 'service_8y44w48', '| Template:', 'template_1so5ltg');
+    }
+  } catch (e) {
+    console.error('[EmailJS] Błąd inicjalizacji:', e);
+  }
+
+  async function _sendEmail(toEmail, params) {
+    if (!_ejsReady) {
+      console.error('[EmailJS] Nie jest zainicjalizowany — pomijam wysyłkę do:', toEmail);
+      return false;
+    }
+    const fullParams = { ...params, to_email: toEmail };
+    console.log('[EmailJS] Wysyłam do:', toEmail, '\nParametry:', JSON.stringify(fullParams, null, 2));
+    try {
+      const res = await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, fullParams);
+      console.log('[EmailJS] Sukces →', toEmail, '| status:', res.status, '| text:', res.text);
+      return true;
+    } catch (e) {
+      console.error('[EmailJS] BŁĄD wysyłki do:', toEmail);
+      console.error('  HTTP status:', e.status);
+      console.error('  Treść odpowiedzi:', e.text);
+      console.error('  Pełny obiekt błędu:', e);
+      return false;
+    }
+  }
 
   // ── Inicjalizacja Firebase ──
   window.addEventListener('DOMContentLoaded', () => {
@@ -469,22 +500,11 @@
       companion_name: companionName || '—',
     };
 
-    let emailOk = true;
-    try {
-      // Email do gościa
-      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
-        ...emailParams,
-        to_email: email,
-      });
-      // Powiadomienie do organizatora
-      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
-        ...emailParams,
-        to_email: ORGANIZER,
-      });
-    } catch (e) {
-      console.warn('EmailJS:', e);
-      emailOk = false;
-    }
+    const [guestOk, orgOk] = await Promise.all([
+      _sendEmail(email,     emailParams),
+      _sendEmail(ORGANIZER, emailParams),
+    ]);
+    const emailOk = guestOk && orgOk;
 
     // ── Pokaż potwierdzenie ──
     const labels = {
