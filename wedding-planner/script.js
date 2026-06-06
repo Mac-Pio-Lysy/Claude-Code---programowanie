@@ -1826,9 +1826,10 @@ function renderExpenseTile(e, isDrag) {
   const pct       = effective > 0 ? Math.min(100, (paid / effective) * 100) : 0;
   const diff      = plan > 0 && est > 0 ? plan - est : null;
   const diffHtml  = diff !== null
-    ? `<span class="exp-est-diff ${diff < 0 ? 'eed-over' : 'eed-under'}">${diff > 0 ? '−' : '+'}${fmt(Math.abs(diff))} zł</span>`
+    ? `<span class="exp-est-diff ${diff < 0 ? 'eed-over' : 'eed-under'}">${diff > 0 ? '−' : '+'}${fmt(Math.abs(diff))}&nbsp;zł</span>`
     : '';
 
+  const catDef = EXPENSE_CATEGORIES.find(c => c.name === e.category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
   const selectedCatOpts = EXPENSE_CATEGORIES.map(c =>
     `<option value="${esc(c.name)}" ${c.name===e.category?'selected':''}>${c.icon} ${esc(c.name)}</option>`
   ).join('');
@@ -1842,22 +1843,17 @@ function renderExpenseTile(e, isDrag) {
   const n1 = esc(budgetData.coupleNames[0] || 'Osoba 1');
   const n2 = esc(budgetData.coupleNames[1] || 'Osoba 2');
 
-  const catEl = e.category !== 'Inne'
-    ? `<div class="exp-cat-wrap" id="exp-cat-wrap-${e.id}">
-         <select class="exp-cat-select" onchange="updateExpenseCat(${e.id},this.value)">${selectedCatOpts}</select>
-       </div>`
-    : `<div class="exp-cat-wrap exp-cat-custom" id="exp-cat-wrap-${e.id}">
-         <span class="exp-cat-icon">&#128230;</span>
-         <input class="exp-cat-inne-input" type="text"
-                value="${esc(e.customName||'Inne')}" placeholder="Własna nazwa…"
-                onchange="updateExpense(${e.id},'customName',this.value)">
-         <button class="exp-cat-change-btn" title="Zmień kategorię"
-                 onclick="openExpCatPicker(${e.id})">&#9660;</button>
-       </div>`;
+  const catCtrl = e.category !== 'Inne'
+    ? `<select class="exp-h-cat-select" id="exp-cat-wrap-${e.id}" onchange="updateExpenseCat(${e.id},this.value)">${selectedCatOpts}</select>`
+    : `<span class="exp-cat-icon">&#128230;</span>
+       <input class="exp-cat-inne-input exp-h-inne" type="text"
+              value="${esc(e.customName||'Inne')}" placeholder="Własna nazwa…"
+              onchange="updateExpense(${e.id},'customName',this.value)">
+       <button class="exp-cat-change-btn" title="Zmień kategorię"
+               onclick="openExpCatPicker(${e.id})">&#9660;</button>`;
 
   const dragHandle = isDrag
-    ? `<div class="exp-drag-handle" title="Przeciągnij, aby zmienić kolejność">&#8801;</div>`
-    : '';
+    ? `<div class="exp-drag-handle" title="Przeciągnij, aby zmienić kolejność">&#8801;</div>` : '';
 
   const dragAttrs = isDrag
     ? `draggable="true"
@@ -1865,77 +1861,83 @@ function renderExpenseTile(e, isDrag) {
        ondragover="onExpTileDragOver(event,${e.id})"
        ondragleave="onExpTileDragLeave(event)"
        ondrop="onExpTileDrop(event,${e.id})"
-       ondragend="onExpTileDragEnd()"`
-    : '';
+       ondragend="onExpTileDragEnd()"` : '';
 
   return `<div class="expense-row ${statusCls}${isDrag?' exp-draggable':''}" id="exp-${e.id}" ${dragAttrs}>
-    <div class="exp-top">
+    <div class="exp-h-main">
       ${dragHandle}
-      ${catEl}
-      <span class="exp-status-badge ${badgeCls}">${badgeTxt}</span>
-      <button class="btn-row-edit" onclick="openEditModal('expense',${e.id})" title="Edytuj">&#9998;</button>
-      <button class="btn-exp-del" onclick="deleteExpense(${e.id})" title="Usuń">&#128465;</button>
-    </div>
-    <div class="exp-amounts">
-      <div class="exp-amount-col">
-        <label>Ostateczna:</label>
-        <div class="exp-input-wrap">
-          <input type="number" value="${plan||''}" min="0" step="0.01" placeholder="—"
-                 onchange="updateExpense(${e.id},'planned',parseFloat(this.value)||0)">
-          <span class="currency-sm">zł</span>
+      <div class="exp-h-cat">${catCtrl}</div>
+      <div class="exp-h-mid">
+        <div class="exp-h-amt">
+          <label>Ostateczna</label>
+          <div class="exp-input-wrap">
+            <input type="number" value="${plan||''}" min="0" step="0.01" placeholder="—"
+                   onchange="updateExpense(${e.id},'planned',parseFloat(this.value)||0)">
+            <span class="currency-sm">zł</span>
+          </div>
+        </div>
+        <div class="exp-h-amt">
+          <label><span class="exp-tilde">~</span>&nbsp;Przewid.${diffHtml}</label>
+          <div class="exp-input-wrap">
+            <input type="number" value="${est||''}" min="0" step="0.01" placeholder="—"
+                   class="exp-est-input${isPred ? ' exp-est-only' : ''}"
+                   onchange="updateExpense(${e.id},'estimatedAmount',parseFloat(this.value)||0)">
+            <span class="currency-sm">zł</span>
+          </div>
+        </div>
+        <div class="exp-h-amt">
+          <label>Opłacono</label>
+          <div class="exp-input-wrap">
+            <input type="number" value="${paid||''}" min="0" step="0.01" placeholder="—"
+                   onchange="updateExpense(${e.id},'paid',parseFloat(this.value)||0)">
+            <span class="currency-sm">zł</span>
+          </div>
         </div>
       </div>
-      <div class="exp-amount-col exp-est-col">
-        <label><span class="exp-tilde">~</span> Przewidywana:${diffHtml}</label>
-        <div class="exp-input-wrap">
-          <input type="number" value="${est||''}" min="0" step="0.01" placeholder="—"
-                 class="exp-est-input${isPred ? ' exp-est-only' : ''}"
-                 onchange="updateExpense(${e.id},'estimatedAmount',parseFloat(this.value)||0)">
-          <span class="currency-sm">zł</span>
-        </div>
-      </div>
-      <div class="exp-amount-col">
-        <label>Opłacono:</label>
-        <div class="exp-input-wrap">
-          <input type="number" value="${paid||''}" min="0" step="0.01" placeholder="—"
-                 onchange="updateExpense(${e.id},'paid',parseFloat(this.value)||0)">
-          <span class="currency-sm">zł</span>
-        </div>
-      </div>
-      <div class="exp-amount-col">
-        <label>Data płatności:</label>
-        <input type="date" value="${esc(e.paymentDate||'')}"
+      <div class="exp-h-right">
+        <span class="exp-status-badge ${badgeCls}">${badgeTxt}</span>
+        <input type="date" class="exp-h-date" value="${esc(e.paymentDate||'')}"
                onchange="updateExpense(${e.id},'paymentDate',this.value)">
-      </div>
-    </div>
-    <div class="exp-note-row">
-      <input type="text" class="exp-note" placeholder="Notatka…" value="${esc(e.note||'')}"
-             onchange="updateExpense(${e.id},'note',this.value)">
-    </div>
-    <div class="exp-split-section">
-      <div class="exp-split-hdr">Podział kosztów</div>
-      <div class="exp-split-row">
-        <div class="exp-split-col">
-          <label>${n1}:</label>
-          <div class="exp-input-wrap">
-            <input type="number" value="${sp1}" min="0" step="0.01"
-                   onchange="updateExpense(${e.id},'splitP1',parseFloat(this.value)||0)">
-            <span class="currency-sm">zł</span>
-          </div>
-        </div>
-        <div class="exp-split-col">
-          <label>${n2}:</label>
-          <div class="exp-input-wrap">
-            <input type="number" value="${sp2}" min="0" step="0.01"
-                   onchange="updateExpense(${e.id},'splitP2',parseFloat(this.value)||0)">
-            <span class="currency-sm">zł</span>
-          </div>
-        </div>
-        ${splitTxt ? `<div class="exp-split-col"><div style="height:19px"></div><span class="exp-split-badge ${splitCls}">${splitTxt}</span></div>` : ''}
+        <button class="btn-row-edit" onclick="openEditModal('expense',${e.id})" title="Edytuj">&#9998;</button>
+        <button class="btn-exp-expand" id="exp-expand-btn-${e.id}" onclick="toggleExpDetail(${e.id})" title="Notatka / podział">&#8942;</button>
+        <button class="btn-exp-del" onclick="deleteExpense(${e.id})" title="Usuń">&#128465;</button>
       </div>
     </div>
     ${effective > 0 ? `<div class="exp-mini-bar${isPred ? ' exp-mini-bar-est' : ''}"><div class="exp-mini-fill" style="width:${pct}%"></div></div>` : ''}
+    <div class="exp-h-detail" id="exp-detail-${e.id}">
+      <input type="text" class="exp-note" placeholder="Notatka…" value="${esc(e.note||'')}"
+             onchange="updateExpense(${e.id},'note',this.value)">
+      <div class="exp-split-section">
+        <div class="exp-split-hdr">Podział kosztów${splitTxt ? ` &nbsp;<span class="exp-split-badge ${splitCls}">${splitTxt}</span>` : ''}</div>
+        <div class="exp-split-row">
+          <div class="exp-split-col">
+            <label>${n1}:</label>
+            <div class="exp-input-wrap">
+              <input type="number" value="${sp1}" min="0" step="0.01"
+                     onchange="updateExpense(${e.id},'splitP1',parseFloat(this.value)||0)">
+              <span class="currency-sm">zł</span>
+            </div>
+          </div>
+          <div class="exp-split-col">
+            <label>${n2}:</label>
+            <div class="exp-input-wrap">
+              <input type="number" value="${sp2}" min="0" step="0.01"
+                     onchange="updateExpense(${e.id},'splitP2',parseFloat(this.value)||0)">
+              <span class="currency-sm">zł</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>`;
+}
+
+function toggleExpDetail(id) {
+  const panel = document.getElementById('exp-detail-' + id);
+  const btn   = document.getElementById('exp-expand-btn-' + id);
+  if (!panel) return;
+  const open = panel.classList.toggle('exp-detail-open');
+  if (btn) btn.classList.toggle('exp-expand-active', open);
 }
 
 function renderExpenses() {
