@@ -154,6 +154,9 @@
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
   const STORAGE_KEY = 'wedding-planner-v2';
   let selectedStatus   = null;
@@ -197,13 +200,18 @@
     return bestScore <= threshold ? best : null;
   }
 
-  // ── Wczytaj dane z localStorage ──
+  // ── Wczytaj dane (localStorage + Firestore) ──
   function loadAppData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : {};
     } catch (_) { return {}; }
   }
+
+  // Inicjuj Firebase — synchronizuje dane gości z Firestore przy ładowaniu
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof initFirebaseSync === 'function') initFirebaseSync();
+  });
 
   // ── Sprawdź parę dla dopasowanego gościa ──
   function detectPartner(guestId) {
@@ -379,7 +387,10 @@
         });
       }
 
+      state._savedAt = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      // Natychmiastowa synchronizacja RSVP do Firestore
+      if (typeof firestoreSaveNow === 'function') firestoreSaveNow(state);
     } catch (_) {}
 
     const labels = {

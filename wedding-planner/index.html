@@ -5,12 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Moje Wesele</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body>
 
 <header>
   <h1>&#9834; Impreza Weselna Piotra i Patrycji  &#9834;</h1>
   <p>Planowanie</p>
+  <div id="syncStatusBadge" class="sync-badge sync-offline">
+    <span class="sync-icon">○</span><span class="sync-label">Tryb offline</span>
+  </div>
 </header>
 
 <!-- NAVIGATION -->
@@ -278,7 +285,9 @@
         </div>
       </div>
       <div class="bstats">
-        <div class="bstat"><div class="bstat-val" id="bstatPlanned">0,00 zł</div><div class="bstat-lbl">Zaplanowano</div></div>
+        <div class="bstat"><div class="bstat-val" id="bstatPlanned">0,00 zł</div><div class="bstat-lbl">Potwierdzone</div></div>
+        <div class="bstat-sep bstat-sep-est" style="display:none"></div>
+        <div class="bstat bstat-est" style="display:none"><div class="bstat-val bval-est" id="bstatEstimated">0,00 zł</div><div class="bstat-lbl">&#126; Orientacyjnie</div></div>
         <div class="bstat-sep"></div>
         <div class="bstat"><div class="bstat-val" id="bstatCatering">0,00 zł</div><div class="bstat-lbl">Catering</div></div>
         <div class="bstat-sep"></div>
@@ -286,7 +295,7 @@
         <div class="bstat-sep"></div>
         <div class="bstat"><div class="bstat-val bval-orange" id="bstatRemaining">0,00 zł</div><div class="bstat-lbl">Pozostało</div></div>
         <div class="bstat-sep"></div>
-        <div class="bstat"><div class="bstat-val" id="bstatDiff">0,00 zł</div><div class="bstat-lbl">Budżet ‒ planowane</div></div>
+        <div class="bstat"><div class="bstat-val" id="bstatDiff">0,00 zł</div><div class="bstat-lbl">Budżet ‒ plan</div></div>
       </div>
       <div class="budget-prog-wrap">
         <div class="budget-prog-labels">
@@ -294,8 +303,9 @@
           <span id="budgetProgBudget">Budżet: 0 zł</span>
         </div>
         <div class="budget-prog-bg">
-          <div class="budget-prog-planned" id="budgetProgPlanned" style="width:0%"></div>
-          <div class="budget-prog-paid"    id="budgetProgPaid"    style="width:0%"></div>
+          <div class="budget-prog-planned"   id="budgetProgPlanned"   style="width:0%"></div>
+          <div class="budget-prog-estimated" id="budgetProgEstimated" style="width:0%;left:0%"></div>
+          <div class="budget-prog-paid"      id="budgetProgPaid"      style="width:0%"></div>
         </div>
       </div>
     </div>
@@ -541,5 +551,6 @@
 </div>
 
 <script src="script.js"></script>
+
 </body>
 </html>

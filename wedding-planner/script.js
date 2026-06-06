@@ -720,8 +720,9 @@ function calcCateringTotal() {
   return calcCateringBase() + calcVirtualGuestsCost() + calcStaffCost() + calcMenuAddonsTotal() + calcTableDecoTotal();
 }
 
-function calcExpensesPlanned() { return budgetData.expenses.reduce((s, e) => s + (e.planned || 0), 0); }
-function calcExpensesPaid()    { return budgetData.expenses.reduce((s, e) => s + (e.paid    || 0), 0); }
+function calcExpensesPlanned()   { return budgetData.expenses.reduce((s, e) => s + (e.planned || 0), 0); }
+function calcExpensesPaid()      { return budgetData.expenses.reduce((s, e) => s + (e.paid    || 0), 0); }
+function calcExpensesEffective() { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0); }
 
 // ── BUDGET VIEW ──
 function renderBudget() {
@@ -736,31 +737,55 @@ function renderBudget() {
 }
 
 function renderBudgetOverview() {
-  const catering       = calcCateringTotal();
-  const expPlan        = calcExpensesPlanned();
-  const expPaid        = calcExpensesPaid();
-  const honeymoonTotal = (budgetData.honeymoon || {}).totalAmount || 0;
-  const honeymoonPaid  = calcHoneymoonPaid();
-  const totalPlan      = catering + expPlan + honeymoonTotal;
-  const totalPaid      = expPaid + honeymoonPaid;
-  const remaining      = totalPlan - totalPaid;
-  const budget         = budgetData.total || 0;
-  const diff           = budget - totalPlan;
+  const catering         = calcCateringTotal();
+  const h                = budgetData.honeymoon || {};
+  const expConfirmed     = calcExpensesPlanned();
+  const expEffective     = calcExpensesEffective();
+  const expPaid          = calcExpensesPaid();
+  const hmConfirmed      = h.totalAmount || 0;
+  const hmEffective      = _payEffective(h.totalAmount || 0, h.estimatedAmount || 0);
+  const honeymoonPaid    = calcHoneymoonPaid();
+  const totalConfirmed   = catering + expConfirmed + hmConfirmed;
+  const totalEffective   = catering + expEffective + hmEffective;
+  const totalPaid        = expPaid + honeymoonPaid;
+  const hasEstimates     = totalEffective > totalConfirmed;
+  const planForCalc      = hasEstimates ? totalEffective : totalConfirmed;
+  const remaining        = Math.max(0, planForCalc - totalPaid);
+  const budget           = budgetData.total || 0;
+  const diff             = budget - planForCalc;
 
-  document.getElementById('bstatPlanned').textContent   = fmt(totalPlan) + ' zł';
-  document.getElementById('bstatCatering').textContent  = fmt(catering)  + ' zł';
+  document.getElementById('bstatPlanned').textContent   = fmt(totalConfirmed) + ' zł';
+  document.getElementById('bstatCatering').textContent  = fmt(catering) + ' zł';
   document.getElementById('bstatPaid').textContent      = fmt(totalPaid) + ' zł';
-  document.getElementById('bstatRemaining').textContent = fmt(Math.max(0, remaining)) + ' zł';
+  document.getElementById('bstatRemaining').textContent = fmt(remaining) + ' zł';
+
+  const estEl  = document.getElementById('bstatEstimated');
+  const estRow = estEl?.closest('.bstat');
+  const estSep = estRow?.previousElementSibling;
+  if (estEl) {
+    estEl.textContent = '~ ' + fmt(totalEffective) + ' zł';
+    const show = hasEstimates;
+    if (estRow) estRow.style.display = show ? '' : 'none';
+    if (estSep) estSep.style.display = show ? '' : 'none';
+  }
 
   const diffEl = document.getElementById('bstatDiff');
   diffEl.textContent = (diff >= 0 ? '+' : '') + fmt(diff) + ' zł';
   diffEl.className = 'bstat-val ' + (diff >= 0 ? 'bval-green' : 'bval-red');
 
-  const base = Math.max(budget, totalPlan, 1);
-  document.getElementById('budgetProgPlanned').style.width = Math.min(100, totalPlan / base * 100) + '%';
-  document.getElementById('budgetProgPaid').style.width    = Math.min(100, totalPaid / base * 100) + '%';
-  document.getElementById('budgetProgLabel').textContent   = Math.round(totalPaid / base * 100) + '% opłacono';
-  document.getElementById('budgetProgBudget').textContent  = 'Budżet: ' + fmt(budget) + ' zł';
+  const base      = Math.max(budget, totalEffective, 1);
+  const confPct   = Math.min(100, totalConfirmed / base * 100);
+  const effPct    = Math.min(100, totalEffective / base * 100);
+  const paidPct   = Math.min(100, totalPaid / base * 100);
+  document.getElementById('budgetProgPlanned').style.width   = confPct + '%';
+  document.getElementById('budgetProgPaid').style.width      = paidPct + '%';
+  const estProg = document.getElementById('budgetProgEstimated');
+  if (estProg) {
+    estProg.style.left  = confPct + '%';
+    estProg.style.width = Math.max(0, effPct - confPct) + '%';
+  }
+  document.getElementById('budgetProgLabel').textContent  = Math.round(totalPaid / Math.max(planForCalc, 1) * 100) + '% opłacono';
+  document.getElementById('budgetProgBudget').textContent = 'Budżet: ' + fmt(budget) + ' zł';
 }
 
 function onBudgetTotalChange(val) {
@@ -1648,11 +1673,17 @@ function renderExpenseFilters() {
 }
 
 function renderExpenseTile(e, isDrag) {
-  const paid = e.paid || 0, plan = e.planned || 0;
-  const statusCls = paid >= plan && plan > 0 ? 'exp-paid' : paid > 0 ? 'exp-partial' : 'exp-unpaid';
-  const badgeCls  = paid >= plan && plan > 0 ? 'exp-badge-paid' : paid > 0 ? 'exp-badge-partial' : 'exp-badge-unpaid';
-  const badgeTxt  = paid >= plan && plan > 0 ? '✓ Opłacone' : paid > 0 ? '⚡ Częściowo' : '✗ Nieopłacone';
-  const pct       = plan > 0 ? Math.min(100, (paid / plan) * 100) : 0;
+  const paid = e.paid || 0, plan = e.planned || 0, est = e.estimatedAmount || 0;
+  const effective = _payEffective(plan, est);
+  const isPred    = plan === 0 && est > 0;
+  const statusCls = paid >= effective && effective > 0 ? 'exp-paid' : paid > 0 ? 'exp-partial' : 'exp-unpaid';
+  const badgeCls  = paid >= effective && effective > 0 ? 'exp-badge-paid' : paid > 0 ? 'exp-badge-partial' : 'exp-badge-unpaid';
+  const badgeTxt  = paid >= effective && effective > 0 ? '✓ Opłacone' : paid > 0 ? '⚡ Częściowo' : '✗ Nieopłacone';
+  const pct       = effective > 0 ? Math.min(100, (paid / effective) * 100) : 0;
+  const diff      = plan > 0 && est > 0 ? plan - est : null;
+  const diffHtml  = diff !== null
+    ? `<span class="exp-est-diff ${diff < 0 ? 'eed-over' : 'eed-under'}">${diff > 0 ? '−' : '+'}${fmt(Math.abs(diff))} zł</span>`
+    : '';
 
   const selectedCatOpts = EXPENSE_CATEGORIES.map(c =>
     `<option value="${esc(c.name)}" ${c.name===e.category?'selected':''}>${c.icon} ${esc(c.name)}</option>`
@@ -1703,17 +1734,26 @@ function renderExpenseTile(e, isDrag) {
     </div>
     <div class="exp-amounts">
       <div class="exp-amount-col">
-        <label>Planowane:</label>
+        <label>Ostateczna:</label>
         <div class="exp-input-wrap">
-          <input type="number" value="${plan}" min="0" step="0.01"
+          <input type="number" value="${plan||''}" min="0" step="0.01" placeholder="—"
                  onchange="updateExpense(${e.id},'planned',parseFloat(this.value)||0)">
+          <span class="currency-sm">zł</span>
+        </div>
+      </div>
+      <div class="exp-amount-col exp-est-col">
+        <label><span class="exp-tilde">~</span> Przewidywana:${diffHtml}</label>
+        <div class="exp-input-wrap">
+          <input type="number" value="${est||''}" min="0" step="0.01" placeholder="—"
+                 class="exp-est-input${isPred ? ' exp-est-only' : ''}"
+                 onchange="updateExpense(${e.id},'estimatedAmount',parseFloat(this.value)||0)">
           <span class="currency-sm">zł</span>
         </div>
       </div>
       <div class="exp-amount-col">
         <label>Opłacono:</label>
         <div class="exp-input-wrap">
-          <input type="number" value="${paid}" min="0" step="0.01"
+          <input type="number" value="${paid||''}" min="0" step="0.01" placeholder="—"
                  onchange="updateExpense(${e.id},'paid',parseFloat(this.value)||0)">
           <span class="currency-sm">zł</span>
         </div>
@@ -1750,7 +1790,7 @@ function renderExpenseTile(e, isDrag) {
         ${splitTxt ? `<div class="exp-split-col"><div style="height:19px"></div><span class="exp-split-badge ${splitCls}">${splitTxt}</span></div>` : ''}
       </div>
     </div>
-    ${plan > 0 ? `<div class="exp-mini-bar"><div class="exp-mini-fill" style="width:${pct}%"></div></div>` : ''}
+    ${effective > 0 ? `<div class="exp-mini-bar${isPred ? ' exp-mini-bar-est' : ''}"><div class="exp-mini-fill" style="width:${pct}%"></div></div>` : ''}
   </div>`;
 }
 
@@ -3508,7 +3548,11 @@ function renderHoneymoon() {
   const inst = h.installments || [];
   const paid = inst.filter(i => i.status === 'paid').reduce((s, i) => s + (i.amount || 0), 0);
   const total = h.totalAmount || 0;
-  const remaining = Math.max(0, total - paid);
+  const estAmt = h.estimatedAmount || 0;
+  const effective = _payEffective(total, estAmt);
+  const isPred = total === 0 && estAmt > 0;
+  const remaining = Math.max(0, effective - paid);
+  const hmDiff = total > 0 && estAmt > 0 ? total - estAmt : null;
 
   const rLabels = { groom:'Pan Młody', bride:'Panna Młoda', both:'Oboje' };
 
@@ -3540,15 +3584,23 @@ function renderHoneymoon() {
         <input class="hm-link-input" type="url" value="${esc(h.link||'')}" placeholder="Link do oferty (opcjonalnie)…"
                onchange="updateHoneymoon('link',this.value)">
       </div>
-      <div class="hm-total-row">
-        <label>Łączna kwota wyjazdu:</label>
-        <input type="number" class="hm-total-input" value="${total||''}" min="0" placeholder="0"
-               onchange="updateHoneymoon('totalAmount',parseFloat(this.value)||0)">
-        <span class="currency-sm">zł</span>
+      <div class="hm-amounts-row">
+        <div class="hm-total-row">
+          <label>Kwota ostateczna:</label>
+          <input type="number" class="hm-total-input" value="${total||''}" min="0" placeholder="—"
+                 onchange="updateHoneymoon('totalAmount',parseFloat(this.value)||0)">
+          <span class="currency-sm">zł</span>
+        </div>
+        <div class="hm-total-row hm-est-row">
+          <label><span class="exp-tilde">~</span> Przewidywana:${hmDiff !== null ? `<span class="exp-est-diff ${hmDiff < 0 ? 'eed-over' : 'eed-under'}">${hmDiff > 0 ? '−' : '+'}${fmt(Math.abs(hmDiff))} zł</span>` : ''}</label>
+          <input type="number" class="hm-total-input${isPred ? ' exp-est-only' : ''}" value="${estAmt||''}" min="0" placeholder="—"
+                 onchange="updateHoneymoon('estimatedAmount',parseFloat(this.value)||0)">
+          <span class="currency-sm">zł</span>
+        </div>
       </div>
       <div class="hm-summary-row">
         <span class="hm-sum-item"><span>Zapłacono:</span> <strong class="bval-green">${fmt(paid)} zł</strong></span>
-        <span class="hm-sum-item"><span>Pozostało:</span> <strong class="bval-orange">${fmt(remaining)} zł</strong></span>
+        <span class="hm-sum-item"><span>Pozostało:</span> <strong class="bval-orange">${fmt(remaining)} zł${isPred ? ' <span class="hm-est-badge">~</span>' : ''}</strong></span>
       </div>
       <div class="hm-insts">${instHtml || '<div class="hm-no-inst">Brak rat — dodaj harmonogram płatności.</div>'}</div>
       <button class="btn btn-sm btn-outline" onclick="addHoneymoonInst()" style="margin-top:8px">+ Dodaj ratę</button>
@@ -3972,7 +4024,7 @@ const STORAGE_KEY = 'wedding-planner-v2';
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    const _state = {
       guests, tables, pairs, staffTables,
       nextGuestId, nextTableId, nextPairId,
       nextAddonId, nextMenuAddonId, nextExpenseId,
@@ -3982,7 +4034,10 @@ function saveState() {
       roomName, budgetData, weddingDate,
       scheduleEvents, tasks, vendors, rsvpEntries, gifts,
       vehicles, hotels, payments, transportNotes,
-    }));
+      _savedAt: Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
+    if (typeof firestoreSave === 'function') firestoreSave(_state);
   } catch (_) {}
 }
 
@@ -4116,3 +4171,4 @@ try { loadState(); } catch(e) { console.error('loadState:', e); }
 try { renderAll(); } catch(e) { console.error('renderAll:', e); }
 switchView('dashboard');
 startCountdown();
+if (typeof initFirebaseSync === 'function') initFirebaseSync();
