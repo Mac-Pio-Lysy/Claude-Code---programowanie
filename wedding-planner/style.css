@@ -1694,12 +1694,43 @@ input:focus, select:focus {
   overflow: hidden;
 }
 .table-seat-slot:hover { border-color: var(--blue-light); background: var(--blue-pale); }
-.table-seat-slot.occupied { border: 2px solid var(--blue-light); background: var(--white); }
+.table-seat-slot.occupied {
+  border: 2px solid var(--blue-light);
+  background: var(--white);
+  cursor: grab;
+}
+.table-seat-slot.occupied:active { cursor: grabbing; }
+.table-seat-slot.occupied[draggable="true"]:hover {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,0.18);
+  transform: scale(1.12);
+  z-index: 10;
+}
 .table-seat-slot.drag-over-seat {
   border: 2.5px solid var(--blue);
   border-style: solid;
   background: var(--blue-pale);
   box-shadow: 0 0 0 3px rgba(26,86,219,0.18);
+}
+
+/* Table-to-table drag states */
+.table-card.tv-drag-src {
+  opacity: 0.55;
+  box-shadow: none !important;
+}
+.table-card.tv-drag-src .table-visual { opacity: 0.6; }
+.table-card.tv-drop-ok {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.3) !important;
+}
+.table-card.tv-drop-full {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.2) !important;
+  opacity: 0.65;
+}
+.table-card.drag-over {
+  border-color: #16a34a !important;
+  box-shadow: 0 0 0 4px rgba(34,197,94,0.45), 0 6px 20px rgba(34,197,94,0.25) !important;
 }
 
 .seat-photo { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; position: absolute; top: 0; left: 0; }

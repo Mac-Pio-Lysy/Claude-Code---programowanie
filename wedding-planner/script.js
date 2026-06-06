@@ -6,6 +6,7 @@ let nextGuestId = 1;
 let nextTableId = 1;
 let nextPairId  = 1;
 let draggedGuestId = null;
+let tvGuestDrag    = null; // { guestId, srcTableId } — table-view seat drag
 let pairingGuestId = null;
 let currentView          = 'dashboard';
 let currentBudgetTab     = 'summary';
@@ -471,15 +472,32 @@ function renderTableVisual(t) {
       ? `<span style="font-size:0.6rem;font-weight:700;position:relative;z-index:1">${esc(initials(g))}</span>${photoTag}`
       : `<span style="font-size:0.6rem;color:#94a3b8">${i+1}</span>`;
 
-    html += `<div class="table-seat-slot${gId!==null?' occupied':''} ${catCls}"
-      style="left:${pos.x}px;top:${pos.y}px;"
-      data-table="${t.id}" data-seat="${i}"
-      ondragover="onSeatDragOver(event)"
-      ondragleave="onSeatDragLeave(event)"
-      ondrop="onSeatDrop(event)"
-      title="${g ? esc(fullName(g)) : `Miejsce ${i+1}`}">
-      ${label}
-    </div>`;
+    if (g) {
+      // Occupied slot — draggable to move guest between tables
+      html += `<div class="table-seat-slot occupied ${catCls}"
+        style="left:${pos.x}px;top:${pos.y}px;"
+        data-table="${t.id}" data-seat="${i}"
+        draggable="true"
+        ondragstart="tvSeatDragStart(event,${gId},${t.id})"
+        ondragend="tvSeatDragEnd()"
+        ondragover="onSeatDragOver(event)"
+        ondragleave="onSeatDragLeave(event)"
+        ondrop="onSeatDrop(event)"
+        title="${esc(fullName(g))}">
+        ${label}
+      </div>`;
+    } else {
+      // Empty slot — receive-only drop target
+      html += `<div class="table-seat-slot ${catCls}"
+        style="left:${pos.x}px;top:${pos.y}px;"
+        data-table="${t.id}" data-seat="${i}"
+        ondragover="onSeatDragOver(event)"
+        ondragleave="onSeatDragLeave(event)"
+        ondrop="onSeatDrop(event)"
+        title="Miejsce ${i+1}">
+        ${label}
+      </div>`;
+    }
   });
 
   // Pair connectors (hearts between paired guests at same table)
@@ -540,6 +558,38 @@ function renderTables() {
 }
 
 // ── DRAG & DROP ──
+
+// Table-view seat drag (occupied avatar → another table)
+function tvSeatDragStart(event, guestId, srcTableId) {
+  tvGuestDrag    = { guestId, srcTableId };
+  draggedGuestId = guestId;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', String(guestId));
+
+  setTimeout(() => {
+    if (!tvGuestDrag) return;
+    tables.forEach(t => {
+      const card = document.getElementById(`table-card-${t.id}`);
+      if (!card) return;
+      if (t.id === srcTableId) {
+        card.classList.add('tv-drag-src');
+      } else {
+        const free = t.seats - t.seatsData.filter(x => x !== null).length;
+        card.classList.add(free > 0 ? 'tv-drop-ok' : 'tv-drop-full');
+      }
+    });
+  }, 0);
+}
+
+function tvSeatDragEnd() {
+  tvGuestDrag    = null;
+  draggedGuestId = null;
+  document.querySelectorAll('.table-card')
+    .forEach(el => el.classList.remove('tv-drag-src', 'tv-drop-ok', 'tv-drop-full', 'drag-over'));
+  document.querySelectorAll('.table-seat-slot')
+    .forEach(el => el.classList.remove('drag-over-seat'));
+}
+
 function onGuestDragStart(event, guestId) {
   draggedGuestId = guestId;
   event.dataTransfer.effectAllowed = 'move';
@@ -564,9 +614,16 @@ function onGuestDragEnd() {
 }
 
 function onTableDragOver(event, tableId) {
+  // Block if dragging between tables and this is the source table
+  if (tvGuestDrag && tableId === tvGuestDrag.srcTableId) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'none';
+    return;
+  }
   event.preventDefault();
   const t = tables.find(x => x.id === tableId);
-  if (!t || t.seatsData.filter(x=>x!==null).length >= t.seats) { event.dataTransfer.dropEffect='none'; return; }
+  const free = t ? t.seats - t.seatsData.filter(x => x !== null).length : 0;
+  if (!t || free === 0) { event.dataTransfer.dropEffect = 'none'; return; }
   event.dataTransfer.dropEffect = 'move';
   document.getElementById(`table-card-${tableId}`)?.classList.add('drag-over');
 }
