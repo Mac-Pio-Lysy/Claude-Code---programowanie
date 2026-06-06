@@ -989,6 +989,11 @@ input.uni-pay-name:focus  { border-color: var(--blue); background: var(--white);
 /* Prevent body scroll when drawer open */
 body.mob-nav-open { overflow: hidden; }
 
+/* ── Przycisk zwijania sekcji mobilnych — domyślnie ukryty na desktop ── */
+.mob-toggle-btn { display: none; }
+/* ── Strzałka rozwijania karty gościa — domyślnie ukryta na desktop ── */
+.guest-expand-btn { display: none; }
+
 /* ══════════════════════════════════════════════════════
    RESPONSIVE — max-width: 768px
    ══════════════════════════════════════════════════════ */
@@ -1012,8 +1017,70 @@ body.mob-nav-open { overflow: hidden; }
   .main-nav > .nav-group-label,
   .main-nav > .nav-user-panel { display: none !important; }
 
-  /* ── Views container height ── */
-  .views-container { height: calc(100vh - 90px); }
+  /* ── Scrollowanie — usuń wszystkie blokady height/overflow ── */
+  .views-container         { height: auto !important; overflow: visible !important; }
+  .view-panel              { overflow: visible !important; flex: none !important; min-height: 0; }
+  .view-panel .section-container { overflow-y: visible !important; height: auto !important; max-height: none !important; }
+  .budget-scroll           { overflow-y: visible !important; height: auto !important; flex: none !important; }
+  #viewTables .main        { flex-direction: column !important; height: auto !important; overflow: visible !important; }
+  .panel-guests            { width: 100% !important; height: auto !important; max-height: 60vh !important; overflow-y: auto !important; border-right: none !important; border-bottom: 2px solid var(--border) !important; }
+  .panel-tables            { flex: none !important; height: auto !important; overflow-x: auto !important; overflow-y: visible !important; -webkit-overflow-scrolling: touch; }
+  .panel-pairs             { display: none !important; }
+
+  /* ── Budget: taby zamienione na sekcje liniowe ── */
+  .budget-tab-bar          { display: none !important; }
+  .btab-panel              { display: block !important; border-bottom: 2px solid var(--border); padding-bottom: 4px; margin-bottom: 4px; }
+  .budget-view             { flex: none !important; overflow: visible !important; }
+  .budget-overview         { position: sticky; top: 46px; z-index: 50; }
+  .expenses-layout         { flex-direction: column !important; }
+  .expenses-main-col       { max-width: 100% !important; }
+  .expenses-alcohol-col    { position: static !important; width: 100% !important; max-width: 100% !important; }
+
+  /* ── Zwijalne sekcje — przyciski ── */
+  .mob-toggle-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--white);
+    color: var(--blue);
+    font-size: 0.75rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+    font-family: inherit;
+    padding: 0;
+    line-height: 1;
+  }
+  .mob-toggle-btn:hover { background: var(--blue-pale); border-color: var(--blue); }
+  .panel-title .mob-toggle-btn {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.45);
+    color: var(--white);
+  }
+  .panel-title .mob-toggle-btn:hover {
+    background: rgba(255,255,255,0.32);
+    border-color: var(--white);
+  }
+  .section-header .mob-toggle-btn { flex-shrink: 0; }
+  .kanban-col-hdr .mob-toggle-btn { margin-left: 6px; }
+  .mob-section-hdr {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--blue-pale);
+    border-bottom: 2px solid var(--blue-light);
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 46px;
+    z-index: 10;
+    margin: 0 -8px;
+  }
+  .mob-section-hdr-title { font-weight: 700; font-size: 0.9rem; color: var(--blue-dark); flex: 1; }
 
   /* ── Global helpers ── */
   .section-container { padding: 10px 8px !important; }
@@ -1029,10 +1096,32 @@ body.mob-nav-open { overflow: hidden; }
 
   /* ── Stoły i goście ── */
   .tables-grid        { grid-template-columns: 1fr !important; }
-  .guest-actions      { flex-wrap: wrap; gap: 6px; }
-  .guest-actions button { min-height: 40px; }
   .gf-row             { gap: 4px; }
   .gf-btn             { padding: 6px 10px; font-size: 0.8rem; min-height: 36px; }
+
+  /* Karta gościa: zwijana na mobile */
+  .guest-item .guest-top-row { cursor: pointer; user-select: none; align-items: center; }
+  .guest-item.pairing-target .guest-top-row { cursor: pointer; }
+  .guest-item .guest-meta    { display: none !important; }
+  .guest-item .guest-actions { display: none !important; }
+  .guest-item.mob-expanded .guest-meta    { display: flex !important; }
+  .guest-item.mob-expanded .guest-actions { display: flex !important; flex-wrap: wrap; gap: 6px; }
+  .guest-item.mob-expanded .guest-actions button { min-height: 40px; }
+  .guest-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--blue-pale);
+    color: var(--blue);
+    font-size: 0.6rem;
+    flex-shrink: 0;
+    margin-left: auto;
+    pointer-events: none;
+  }
+  .guest-item.pairing-target .guest-expand-btn { display: none; }
 
   /* ── Plan sali ── */
   .room-canvas {

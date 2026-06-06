@@ -100,6 +100,22 @@ function renderAll() {
 }
 
 // ── GUESTS ──
+function openGuestForm() {
+  const modal = document.getElementById('guestFormModal');
+  if (modal) modal.style.display = 'flex';
+  setTimeout(() => document.getElementById('guestFirstName')?.focus(), 50);
+}
+
+function closeGuestForm(e) {
+  if (e && e.target !== e.currentTarget) return;
+  closeGuestFormDirect();
+}
+
+function closeGuestFormDirect() {
+  const modal = document.getElementById('guestFormModal');
+  if (modal) modal.style.display = 'none';
+}
+
 function addGuest() {
   const first = document.getElementById('guestFirstName').value.trim();
   const last  = document.getElementById('guestLastName').value.trim();
@@ -133,8 +149,10 @@ function addGuest() {
   if (document.getElementById('guestWitness'))   document.getElementById('guestWitness').value   = '';
   if (document.getElementById('guestDiet'))      document.getElementById('guestDiet').value      = 'standard';
   if (document.getElementById('guestDietOther')) document.getElementById('guestDietOther').value = '';
+  closeGuestFormDirect();
   renderGuests();
   updateStats();
+  saveState();
   showToast(`${first} ${last} dodany/a do listy`);
 }
 
@@ -251,7 +269,7 @@ function renderGuests() {
          ondragstart="onGuestDragStart(event,${g.id})"
          ondragend="onGuestDragEnd()"
          ${isTarget ? `onclick="completePairing(${g.id})"` : ''}>
-      <div class="guest-top-row">
+      <div class="guest-top-row"${!isTarget ? ` onclick="toggleGuestCard(${g.id})"` : ''}>
         ${avatarHtml(g)}
         <div class="guest-info">
           <div class="guest-name">${esc(fullName(g))}</div>
@@ -267,6 +285,7 @@ function renderGuests() {
             ${g.needsAccommodation ? `<span class="badge badge-accom">&#127968;</span>` : ''}
           </div>
         </div>
+        <span class="guest-expand-btn" aria-hidden="true">&#9660;</span>
       </div>
       <div class="guest-actions">
         <button class="btn btn-sm btn-edit" onclick="openEditModal('guest',${g.id})" title="Edytuj gościa">&#9998; Edytuj</button>
@@ -281,6 +300,15 @@ function renderGuests() {
       </div>
     </div>`;
   }).join('');
+}
+
+function toggleGuestCard(id) {
+  if (window.innerWidth > 768) return;
+  const item = document.getElementById('guest-item-' + id);
+  if (!item) return;
+  const expanded = item.classList.toggle('mob-expanded');
+  const btn = item.querySelector('.guest-expand-btn');
+  if (btn) btn.innerHTML = expanded ? '&#9650;' : '&#9660;';
 }
 
 // ── PAIRING ──
@@ -862,6 +890,7 @@ function renderBudget() {
   renderCostPerTable();
   renderBudgetOverview();
   renderCharts();
+  setTimeout(initMobileCollapse, 0);
 }
 
 function renderBudgetOverview() {
@@ -1196,6 +1225,7 @@ function renderTableCosts() {
 
   const addonsColsRow = `<div class="addons-cols-row">${menuAddonsCard}${tableDecoCard}</div>`;
   container.innerHTML = formulaCard + virtualCard + staffCard + addonsColsRow + addonsSummaryCard + summaryFooter;
+  setTimeout(initMobileCollapse, 0);
 }
 
 function _stoliczkLabel(n) {
@@ -2443,6 +2473,172 @@ function renderProgressChart() {
 }
 
 // ── ROOM PLAN ──
+// ══════════════════════════════════════════════
+//  MOBILE COLLAPSIBLE SECTIONS
+// ══════════════════════════════════════════════
+
+const MOB_COLLAPSE_KEY = 'mob-collapse-v2';
+
+const MOB_SECTION_LABELS = {
+  'btabPanel-catering':  '🍽 Koszty stołów',
+  'btabPanel-expenses':  '📋 Wydatki i Alkohol',
+  'btabPanel-honeymoon': '✈️ Podróż poślubna',
+  'btabPanel-payments':  '💳 Harmonogram płatności',
+  'btabPanel-summary':   '📊 Podsumowanie',
+};
+
+const MOB_CARD_TARGETS = [
+  { sel: '.menu-addons-card:not(.table-deco-card)', hdrSel: '.menu-addons-header', key: 'menuAddons' },
+  { sel: '.table-deco-card',                         hdrSel: '.menu-addons-header', key: 'tableDeco'  },
+  { sel: '.vguests-card',                            hdrSel: '.vguests-header',     key: 'vguests'    },
+  { sel: '.staff-budget-card',                       hdrSel: '.staff-budget-header',key: 'staff'      },
+  { sel: '.alcohol-section',                         hdrSel: '.alcohol-section-hdr',key: 'alcohol'    },
+];
+
+function _getMobState() {
+  try { return JSON.parse(localStorage.getItem(MOB_COLLAPSE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function _saveMobState(state) {
+  try { localStorage.setItem(MOB_COLLAPSE_KEY, JSON.stringify(state)); } catch {}
+}
+
+function toggleMobSection(key, btn) {
+  // btn lives inside the header element; header lives inside the wrapper
+  const hdrEl  = btn.parentElement;
+  const wrapper = hdrEl.parentElement;
+  if (!wrapper) return;
+
+  const nowCollapsed = !wrapper.classList.contains('mob-collapsed');
+  wrapper.classList.toggle('mob-collapsed', nowCollapsed);
+
+  Array.from(wrapper.children).forEach(child => {
+    if (child !== hdrEl) child.style.display = nowCollapsed ? 'none' : '';
+  });
+
+  btn.textContent = nowCollapsed ? '▼' : '▲';
+  const state = _getMobState();
+  state[key] = nowCollapsed;
+  _saveMobState(state);
+}
+
+function initMobileCollapse() {
+  if (window.innerWidth > 768) return;
+  const state = _getMobState();
+
+  // 1. Budget tab panels → mobile section headers
+  document.querySelectorAll('.btab-panel').forEach(panel => {
+    if (panel.querySelector(':scope > .mob-section-hdr')) return; // already done
+
+    const key   = panel.id;
+    const title = MOB_SECTION_LABELS[key] || key;
+    const collapsed = !!state[key];
+
+    const hdr = document.createElement('div');
+    hdr.className = 'mob-section-hdr';
+    hdr.innerHTML = `<span class="mob-section-hdr-title">${title}</span>
+      <button class="mob-toggle-btn" onclick="toggleMobSection('${key}',this)">${collapsed ? '▼' : '▲'}</button>`;
+    panel.insertBefore(hdr, panel.firstChild);
+
+    if (collapsed) {
+      Array.from(panel.children).forEach((child, i) => {
+        if (i > 0) child.style.display = 'none';
+      });
+    }
+  });
+
+  // 2. Specific cards with their own headers
+  MOB_CARD_TARGETS.forEach(({ sel, hdrSel, key }) => {
+    document.querySelectorAll(sel).forEach(card => {
+      if (card.querySelector('.mob-toggle-btn')) return;
+      const hdr = card.querySelector(hdrSel);
+      if (!hdr) return;
+
+      const collapsed = !!state[key];
+      const btn = document.createElement('button');
+      btn.className = 'mob-toggle-btn';
+      btn.textContent = collapsed ? '▼' : '▲';
+      btn.onclick = () => toggleMobSection(key, btn);
+      hdr.appendChild(btn);
+
+      if (collapsed) {
+        Array.from(card.children).forEach(child => {
+          if (child !== hdr) child.style.display = 'none';
+        });
+      }
+    });
+  });
+
+  // 3. View section-containers (RSVP, Harmonogram, Zadania, Dostawcy, Transport, Noclegi, Prezenty)
+  [
+    ['viewRsvp',          'rsvp'],
+    ['viewSchedule',      'schedule'],
+    ['viewTasks',         'tasks'],
+    ['viewVendors',       'vendors'],
+    ['viewTransport',     'transport'],
+    ['viewAccommodation', 'accommodation'],
+    ['viewGifts',         'gifts'],
+  ].forEach(([viewId, key]) => {
+    const view = document.getElementById(viewId);
+    if (!view) return;
+    const container = view.querySelector('.section-container');
+    if (!container) return;
+    const hdr = container.querySelector('.section-header');
+    if (!hdr || hdr.querySelector('.mob-toggle-btn')) return;
+    const collapsed = !!state[key];
+    const btn = document.createElement('button');
+    btn.className = 'mob-toggle-btn';
+    btn.textContent = collapsed ? '▼' : '▲';
+    btn.onclick = () => toggleMobSection(key, btn);
+    hdr.appendChild(btn);
+    if (collapsed) {
+      Array.from(container.children).forEach(child => {
+        if (child !== hdr) child.style.display = 'none';
+      });
+    }
+  });
+
+  // 4. Tables view panels (Lista Gości, Plan Stołów)
+  [
+    ['panelGuests', '.panel-title', 'panelGuests'],
+    ['panelTables', '.panel-title', 'panelTables'],
+  ].forEach(([panelId, hdrSel, key]) => {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    const hdr = panel.querySelector(hdrSel);
+    if (!hdr || hdr.querySelector('.mob-toggle-btn')) return;
+    const collapsed = !!state[key];
+    const btn = document.createElement('button');
+    btn.className = 'mob-toggle-btn';
+    btn.textContent = collapsed ? '▼' : '▲';
+    btn.onclick = () => toggleMobSection(key, btn);
+    hdr.appendChild(btn);
+    if (collapsed) {
+      Array.from(panel.children).forEach(child => {
+        if (child !== hdr) child.style.display = 'none';
+      });
+    }
+  });
+
+  // 5. Kanban columns (Zadania)
+  document.querySelectorAll('.kanban-col').forEach((col, i) => {
+    const hdr = col.querySelector('.kanban-col-hdr');
+    if (!hdr || hdr.querySelector('.mob-toggle-btn')) return;
+    const key = `kanban-${i}`;
+    const collapsed = !!state[key];
+    const btn = document.createElement('button');
+    btn.className = 'mob-toggle-btn';
+    btn.textContent = collapsed ? '▼' : '▲';
+    btn.onclick = () => toggleMobSection(key, btn);
+    hdr.appendChild(btn);
+    if (collapsed) {
+      Array.from(col.children).forEach(child => {
+        if (child !== hdr) child.style.display = 'none';
+      });
+    }
+  });
+}
+
 function toggleMobileNav() {
   const drawer   = document.getElementById('mobileDrawer');
   const backdrop = document.getElementById('mobileBackdrop');
@@ -2482,7 +2678,7 @@ function switchView(view) {
   const panelId = viewIds[view];
   if (panelId) {
     const el = document.getElementById(panelId);
-    if (el) el.style.display = 'flex';   // explicit value overrides CSS rule
+    if (el) el.style.display = window.innerWidth <= 768 ? 'block' : 'flex';
   }
 
   // Activate nav button
@@ -2519,6 +2715,7 @@ function switchView(view) {
     case 'accommodation': renderAccommodation(); break;
     // payments is now a sub-tab inside budget view
   }
+  if (window.innerWidth <= 768) setTimeout(initMobileCollapse, 0);
 }
 
 function updateRoomName(val) {
@@ -3147,6 +3344,7 @@ function renderTasks() {
       </div>
     </div>`;
   }).join('');
+  setTimeout(initMobileCollapse, 0);
 }
 
 function kanbanDragStart(event, taskId) {
@@ -3527,6 +3725,7 @@ function renderTransport() {
     </div>`;
   }).join('')+'</div>';
   c.innerHTML=html;
+  setTimeout(initMobileCollapse, 0);
 }
 
 // ── ACCOMMODATION ──
@@ -3609,6 +3808,7 @@ function renderAccommodation() {
     </div>`;
   }).join('')+'</div>';
   c.innerHTML=html;
+  setTimeout(initMobileCollapse, 0);
 }
 
 // ── PAYMENTS ──
@@ -4233,11 +4433,12 @@ function renderCostBreakdown() {
 
 // ── BUDGET SUB-TABS ──
 function switchBudgetTab(tab) {
+  const isMobile = window.innerWidth <= 768;
   const tabs = ['catering', 'expenses', 'honeymoon', 'payments', 'summary'];
   tabs.forEach(t => {
     const panel = document.getElementById('btabPanel-' + t);
     const btn   = document.getElementById('btab-' + t);
-    if (panel) panel.style.display = (t === tab) ? 'flex' : 'none';
+    if (panel) panel.style.display = isMobile ? '' : (t === tab ? 'flex' : 'none');
     if (btn)   btn.classList.toggle('active', t === tab);
   });
   currentBudgetTab = tab;

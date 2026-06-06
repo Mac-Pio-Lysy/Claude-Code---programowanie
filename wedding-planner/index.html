@@ -174,53 +174,9 @@
     <div class="main">
       <!-- LEFT: LISTA GOŚCI -->
       <div class="panel-guests" id="panelGuests">
-        <div class="panel-title"><span>&#128101;</span> Lista Gości</div>
-        <div class="guest-add">
-          <h3>Dodaj gościa</h3>
-          <div class="form-row">
-            <input type="text" id="guestFirstName" placeholder="Imię">
-            <input type="text" id="guestLastName" placeholder="Nazwisko">
-          </div>
-          <div class="form-row">
-            <select id="guestCategory">
-              <option value="Państwo Młodzi">Państwo Młodzi</option>
-              <option value="Świadkowie">Świadkowie</option>
-              <option value="Rodzice">Rodzice</option>
-              <option value="Rodzina" selected>Rodzina</option>
-              <option value="Znajomi">Znajomi</option>
-              <option value="Praca">Praca</option>
-            </select>
-            <select id="guestGender">
-              <option value="K">&#9792; Kobieta</option>
-              <option value="M">&#9794; Mężczyzna</option>
-            </select>
-            <select id="guestInvitedBy">
-              <option value="">Zaproszony przez...</option>
-              <option value="groom">&#129309; Pan Młody</option>
-              <option value="bride">&#128144; Panna Młoda</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <select id="guestDiet" style="flex:1">
-              <option value="standard">Standardowa</option>
-              <option value="vegetarian">Wegetariańska</option>
-              <option value="vegan">Wegańska</option>
-              <option value="glutenfree">Bezglutenowa</option>
-              <option value="other">Inne</option>
-            </select>
-            <select id="guestWitness" style="flex:1">
-              <option value="">Brak roli</option>
-              <option value="witness_groom">Świadek Pana</option>
-              <option value="witness_bride">Świadkowa Panny</option>
-            </select>
-          </div>
-          <div class="form-row" id="dietOtherRow" style="display:none">
-            <input type="text" id="guestDietOther" placeholder="Opis diety..." style="flex:1">
-          </div>
-          <div class="form-row">
-            <input type="url" id="guestPhoto" placeholder="URL zdjęcia (opcjonalne)" style="flex:1">
-            <button class="btn btn-primary" onclick="addGuest()">+ Dodaj</button>
-          </div>
+        <div class="panel-title">
+          <span>&#128101;</span> Lista Gości
+          <button class="btn btn-primary btn-sm" onclick="openGuestForm()" style="margin-left:auto;font-size:0.8rem">+ Dodaj gościa</button>
         </div>
         <div class="guest-filters">
           <div class="gf-row" id="gfRow1">
@@ -242,7 +198,7 @@
           <input type="hidden" id="filterCat"   value="">
         </div>
         <div class="guest-list" id="guestList">
-          <div class="empty-list">Brak gości. Dodaj pierwszego gościa powyżej.</div>
+          <div class="empty-list">Brak gości. Kliknij „+ Dodaj gościa", aby dodać pierwszego gościa.</div>
         </div>
       </div>
 
@@ -627,6 +583,65 @@
       <button class="btn-modal-close" onclick="closeChartModalDirect()">&#10005;</button>
     </div>
     <div class="chart-modal-body" id="chartModalBody"></div>
+  </div>
+</div>
+
+<!-- GUEST FORM MODAL -->
+<div class="modal-overlay" id="guestFormModal" style="display:none" onclick="closeGuestForm(event)">
+  <div class="edit-modal-box" style="max-width:480px">
+    <div class="edit-modal-header">
+      <span>&#128101; Dodaj gościa</span>
+      <button class="btn-modal-close" onclick="closeGuestFormDirect()">&#10005;</button>
+    </div>
+    <div class="edit-modal-body">
+      <div class="form-row">
+        <input type="text" id="guestFirstName" placeholder="Imię">
+        <input type="text" id="guestLastName" placeholder="Nazwisko">
+      </div>
+      <div class="form-row">
+        <select id="guestCategory">
+          <option value="Państwo Młodzi">Państwo Młodzi</option>
+          <option value="Świadkowie">Świadkowie</option>
+          <option value="Rodzice">Rodzice</option>
+          <option value="Rodzina" selected>Rodzina</option>
+          <option value="Znajomi">Znajomi</option>
+          <option value="Praca">Praca</option>
+        </select>
+        <select id="guestGender">
+          <option value="K">&#9792; Kobieta</option>
+          <option value="M">&#9794; Mężczyzna</option>
+        </select>
+        <select id="guestInvitedBy">
+          <option value="">Zaproszony przez...</option>
+          <option value="groom">&#129309; Pan Młody</option>
+          <option value="bride">&#128144; Panna Młoda</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <select id="guestDiet" style="flex:1">
+          <option value="standard">Standardowa</option>
+          <option value="vegetarian">Wegetariańska</option>
+          <option value="vegan">Wegańska</option>
+          <option value="glutenfree">Bezglutenowa</option>
+          <option value="other">Inne</option>
+        </select>
+        <select id="guestWitness" style="flex:1">
+          <option value="">Brak roli</option>
+          <option value="witness_groom">Świadek Pana</option>
+          <option value="witness_bride">Świadkowa Panny</option>
+        </select>
+      </div>
+      <div class="form-row" id="dietOtherRow" style="display:none">
+        <input type="text" id="guestDietOther" placeholder="Opis diety..." style="flex:1">
+      </div>
+      <div class="form-row">
+        <input type="url" id="guestPhoto" placeholder="URL zdjęcia (opcjonalne)" style="flex:1">
+      </div>
+    </div>
+    <div class="edit-modal-footer">
+      <button class="btn btn-primary" onclick="addGuest()">+ Dodaj gościa</button>
+      <button class="btn" onclick="closeGuestFormDirect()" style="background:var(--bg);border:1.5px solid var(--border)">Anuluj</button>
+    </div>
   </div>
 </div>
 
