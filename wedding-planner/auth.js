@@ -113,23 +113,20 @@ function _updateNavUser(user) {
   const panel = document.getElementById('navUserPanel');
   const photo = document.getElementById('navUserPhoto');
   const name  = document.getElementById('navUserName');
-  if (!panel) return;
-
-  if (!user) {
-    panel.style.display = 'none';
-    return;
-  }
-
-  panel.style.display = 'flex';
-  if (photo) {
-    if (user.photoURL) {
-      photo.src = user.photoURL;
-      photo.style.display = '';
+  if (panel) {
+    if (!user) {
+      panel.style.display = 'none';
     } else {
-      photo.style.display = 'none';
+      panel.style.display = 'flex';
+      if (photo) { photo.src = user.photoURL || ''; photo.style.display = user.photoURL ? '' : 'none'; }
+      if (name)  name.textContent = user.displayName || user.email;
     }
   }
-  if (name) name.textContent = user.displayName || user.email;
+  // Mobile drawer user panel
+  const mobPanel = document.getElementById('mobNavUserPanel');
+  const mobName  = document.getElementById('mobNavUserName');
+  if (mobPanel) mobPanel.style.display = user ? 'flex' : 'none';
+  if (mobName && user) mobName.textContent = user.displayName || user.email;
 }
 
 function _setBtnLoading(loading) {

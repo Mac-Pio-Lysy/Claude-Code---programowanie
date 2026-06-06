@@ -2443,7 +2443,25 @@ function renderProgressChart() {
 }
 
 // ── ROOM PLAN ──
+function toggleMobileNav() {
+  const drawer   = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('mobileBackdrop');
+  if (!drawer) return;
+  const open = drawer.classList.toggle('mob-open');
+  if (backdrop) backdrop.classList.toggle('mob-open', open);
+  document.body.classList.toggle('mob-nav-open', open);
+}
+
+function closeMobileNav() {
+  const drawer   = document.getElementById('mobileDrawer');
+  const backdrop = document.getElementById('mobileBackdrop');
+  if (drawer)   drawer.classList.remove('mob-open');
+  if (backdrop) backdrop.classList.remove('mob-open');
+  document.body.classList.remove('mob-nav-open');
+}
+
 function switchView(view) {
+  closeMobileNav();
   currentView = view;
 
   // Hide all view panels with explicit display:none

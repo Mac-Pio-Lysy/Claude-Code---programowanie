@@ -47,6 +47,8 @@
 
 <!-- NAVIGATION -->
 <nav class="main-nav">
+  <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
+  <span class="nav-mob-title">&#9834; Wesele</span>
   <button class="nav-btn active" id="navDashboard" onclick="switchView('dashboard')">&#127968; Dashboard</button>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Goście:</span>
@@ -72,6 +74,40 @@
     <button class="nav-logout-btn" onclick="authSignOut()">&#x2197; Wyloguj</button>
   </div>
 </nav>
+
+<!-- MOBILE BACKDROP -->
+<div id="mobileBackdrop" class="mob-backdrop" onclick="closeMobileNav()"></div>
+
+<!-- MOBILE DRAWER -->
+<div id="mobileDrawer" class="mob-drawer">
+  <div class="mob-drawer-hdr">
+    <span>&#9834; Menu</span>
+    <button class="mob-drawer-close" onclick="closeMobileNav()">&#10005;</button>
+  </div>
+  <div class="mob-drawer-body">
+    <button class="mob-nav-btn" onclick="switchView('dashboard')">&#127968; Dashboard</button>
+    <div class="mob-nav-sep">Goście</div>
+    <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
+    <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
+    <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; RSVP</button>
+    <div class="mob-nav-sep">Budżet</div>
+    <button class="mob-nav-btn" onclick="switchView('budget')">&#128176; Budżet</button>
+    <div class="mob-nav-sep">Organizacja</div>
+    <button class="mob-nav-btn" onclick="switchView('schedule')">&#128197; Harmonogram</button>
+    <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
+    <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
+    <div class="mob-nav-sep">Logistyka</div>
+    <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
+    <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
+    <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
+    <div class="mob-drawer-footer">
+      <div id="mobNavUserPanel" style="display:none">
+        <span id="mobNavUserName" class="mob-user-name"></span>
+        <button class="mob-logout-btn" onclick="authSignOut()">&#x2197; Wyloguj</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- STATS BAR (only for tables view) -->
 <div class="stats-bar" id="statsBar" style="display:none">
