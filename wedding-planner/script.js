@@ -26,9 +26,8 @@ const PAY_SOURCES = {
   honeymoon: { label: 'Podr&#243;&#380; poślubna', icon: '&#9992;',   color: '#7c3aed', light: '#f5f3ff' },
 };
 let roomName = 'Sala weselna';
-let roomDrag = null; // { tableId, startMouseX, startMouseY, startPosX, startPosY }
-let roomDragGuestId      = null;
-let roomDragSrcTableId   = null;
+let roomDrag      = null; // { tableId, startMouseX, startMouseY, startPosX, startPosY }
+let roomGuestDrag = null; // { guestId, srcTableId }
 
 const CANVAS_W = 1400;
 const CANVAS_H = 760;
@@ -2525,8 +2524,10 @@ function renderRoomTable(t) {
     const g   = gId !== null ? guests.find(x => x.id === gId) : null;
     if (g) {
       return `<div class="rt-dot rt-dot-occupied"
-        style="left:${pos.x}px;top:${pos.y}px"
         draggable="true"
+        data-guest-id="${g.id}"
+        data-table-id="${t.id}"
+        style="left:${pos.x}px;top:${pos.y}px"
         onmousedown="event.stopPropagation()"
         ondragstart="roomGuestDragStart(event,${g.id},${t.id})"
         ondragend="roomGuestDragEnd()"
@@ -2538,25 +2539,22 @@ function renderRoomTable(t) {
 
   return `<div class="rt-wrap" data-id="${t.id}"
     style="left:${t.posX}px;top:${t.posY}px;width:${wrapW}px;height:${wrapH}px"
-    onmousedown="startRoomTableDrag(event,${t.id})"
-    ondragover="roomTableDragOver(event,${t.id})"
-    ondragleave="roomTableDragLeave(event,${t.id})"
-    ondrop="roomTableDrop(event,${t.id})">
+    onmousedown="startRoomTableDrag(event,${t.id})">
     ${shapeHtml}
     ${dotsHtml}
     <div class="rt-delete" onclick="event.stopPropagation();deleteTable(${t.id})" title="Usuń stół">&#10005;</div>
   </div>`;
 }
 
-// ── ROOM GUEST DRAG & DROP ──
+// ── ROOM GUEST DRAG & DROP (event delegation on #roomCanvas) ──
 function roomGuestDragStart(event, guestId, srcTableId) {
-  event.stopPropagation();
-  roomDragGuestId    = guestId;
-  roomDragSrcTableId = srcTableId;
-  event.dataTransfer.setData('roomGuestId', String(guestId));
+  roomGuestDrag = { guestId, srcTableId };
   event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', String(guestId));
 
+  // Highlight tables after the drag-image is captured (requires setTimeout)
   setTimeout(() => {
+    if (!roomGuestDrag) return;
     tables.forEach(t => {
       const wrap = document.querySelector(`.rt-wrap[data-id="${t.id}"]`);
       if (!wrap) return;
@@ -2571,37 +2569,66 @@ function roomGuestDragStart(event, guestId, srcTableId) {
 }
 
 function roomGuestDragEnd() {
-  roomDragGuestId    = null;
-  roomDragSrcTableId = null;
+  roomGuestDrag = null;
   document.querySelectorAll('.rt-wrap').forEach(el =>
-    el.classList.remove('rt-drag-src', 'rt-drop-ok', 'rt-drop-full', 'rt-drop-hover')
+    el.classList.remove('rt-drag-src', 'rt-drop-ok', 'rt-drop-full', 'rt-drop-over')
   );
 }
 
-function roomTableDragOver(event, tableId) {
-  if (!roomDragGuestId || tableId === roomDragSrcTableId) return;
-  const t = tables.find(x => x.id === tableId);
-  if (!t) return;
-  const free = t.seats - t.seatsData.filter(x => x !== null).length;
-  if (free === 0) { event.dataTransfer.dropEffect = 'none'; return; }
-  event.preventDefault();
-  event.dataTransfer.dropEffect = 'move';
-  document.querySelector(`.rt-wrap[data-id="${tableId}"]`)?.classList.add('rt-drop-hover');
+// All three handlers delegated on the #roomCanvas element
+function roomCanvasDragOver(event) {
+  if (!roomGuestDrag) return;
+  const wrap = event.target.closest('.rt-wrap');
+  if (!wrap) return;
+  event.preventDefault(); // must call to allow drop on this canvas
+
+  const tableId = parseInt(wrap.dataset.id);
+  if (tableId === roomGuestDrag.srcTableId) {
+    event.dataTransfer.dropEffect = 'none';
+    document.querySelectorAll('.rt-wrap.rt-drop-over').forEach(el => el.classList.remove('rt-drop-over'));
+    return;
+  }
+
+  const t    = tables.find(x => x.id === tableId);
+  const free = t ? t.seats - t.seatsData.filter(x => x !== null).length : 0;
+
+  if (free > 0) {
+    event.dataTransfer.dropEffect = 'move';
+    if (!wrap.classList.contains('rt-drop-over')) {
+      document.querySelectorAll('.rt-wrap.rt-drop-over').forEach(el => el.classList.remove('rt-drop-over'));
+      wrap.classList.add('rt-drop-over');
+    }
+  } else {
+    event.dataTransfer.dropEffect = 'none';
+    document.querySelectorAll('.rt-wrap.rt-drop-over').forEach(el => el.classList.remove('rt-drop-over'));
+  }
 }
 
-function roomTableDragLeave(event, tableId) {
-  const wrap = document.querySelector(`.rt-wrap[data-id="${tableId}"]`);
-  if (wrap && !wrap.contains(event.relatedTarget)) wrap.classList.remove('rt-drop-hover');
+function roomCanvasDragLeave(event) {
+  if (!roomGuestDrag) return;
+  const canvas = document.getElementById('roomCanvas');
+  if (canvas && !canvas.contains(event.relatedTarget)) {
+    document.querySelectorAll('.rt-wrap.rt-drop-over').forEach(el => el.classList.remove('rt-drop-over'));
+  }
 }
 
-function roomTableDrop(event, tableId) {
+function roomCanvasDrop(event) {
+  if (!roomGuestDrag) return;
   event.preventDefault();
-  event.stopPropagation();
-  document.querySelector(`.rt-wrap[data-id="${tableId}"]`)?.classList.remove('rt-drop-hover');
-  const gId = roomDragGuestId || parseInt(event.dataTransfer.getData('roomGuestId'));
+
+  const wrap = event.target.closest('.rt-wrap');
+  const { guestId, srcTableId } = roomGuestDrag;
   roomGuestDragEnd();
-  if (!gId || tableId === roomDragSrcTableId) return;
-  _assignToTable(tableId, gId);
+
+  if (!wrap) return;
+  const tableId = parseInt(wrap.dataset.id);
+  if (tableId === srcTableId) return;
+
+  const t    = tables.find(x => x.id === tableId);
+  const free = t ? t.seats - t.seatsData.filter(x => x !== null).length : 0;
+  if (!t || free === 0) { showToast('Brak wolnych miejsc przy tym stoliku!'); return; }
+
+  _assignToTable(tableId, guestId);
 }
 
 function renderRoom() {
@@ -2650,6 +2677,7 @@ function hideGuestTooltip() {
 // ── ROOM TABLE DRAG ──
 function startRoomTableDrag(e, tableId) {
   if (e.button !== 0) return;
+  if (roomGuestDrag) return; // guest drag in progress — don't move table
   e.preventDefault();
   const t = tables.find(x => x.id === tableId);
   if (!t) return;

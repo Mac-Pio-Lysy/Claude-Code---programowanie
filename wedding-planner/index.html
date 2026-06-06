@@ -297,7 +297,10 @@
         <span class="room-hint">Przeciągnij stoły, aby ustawić rozmieszczenie &nbsp;·&nbsp; Najechaj na stół, aby usunąć</span>
       </div>
       <div class="room-canvas-wrapper" id="roomCanvasWrapper">
-        <div class="room-canvas" id="roomCanvas">
+        <div class="room-canvas" id="roomCanvas"
+          ondragover="roomCanvasDragOver(event)"
+          ondragleave="roomCanvasDragLeave(event)"
+          ondrop="roomCanvasDrop(event)">
           <div class="room-canvas-label" id="roomCanvasLabel">Sala weselna</div>
         </div>
       </div>
