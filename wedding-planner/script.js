@@ -4317,3 +4317,4 @@ try { renderAll(); } catch(e) { console.error('renderAll:', e); }
 switchView('dashboard');
 startCountdown();
 if (typeof initFirebaseSync === 'function') initFirebaseSync();
+if (typeof initAuth === 'function') initAuth();
