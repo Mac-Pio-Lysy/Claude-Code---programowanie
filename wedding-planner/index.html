@@ -335,17 +335,34 @@
 
       <!-- TAB: WYDATKI -->
       <div id="btabPanel-expenses" class="btab-panel" style="display:none">
-        <div class="budget-col-hdr">
-          <span>&#128203;</span> Moje wydatki
-          <button class="btn btn-primary btn-sm" onclick="addExpense()">+ Dodaj</button>
+        <div class="expenses-layout">
+          <!-- LEWA KOLUMNA: Wydatki (2/3) -->
+          <div class="expenses-main-col">
+            <div class="budget-col-hdr">
+              <span>&#128203;</span> Moje wydatki
+              <button class="btn btn-primary btn-sm" onclick="addExpense()">+ Dodaj</button>
+            </div>
+            <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
+            <div class="exp-summary" id="expSummary" style="display:none">
+              <div class="exp-sum-row"><span>Zaplanowano:</span><span id="expSumPlanned" class="exp-sum-val">0,00 zł</span></div>
+              <div class="exp-sum-row"><span>Opłacono:</span><span id="expSumPaid" class="exp-sum-val bval-green">0,00 zł</span></div>
+              <div class="exp-sum-row exp-sum-total"><span>Pozostało:</span><span id="expSumRem" class="exp-sum-val bval-orange">0,00 zł</span></div>
+            </div>
+            <div id="expensesList"><div class="empty-list">Brak wydatków. Kliknij + Dodaj.</div></div>
+          </div>
+          <!-- PRAWA KOLUMNA: Alkohol (1/3) -->
+          <div class="expenses-alcohol-col">
+            <div class="alcohol-section">
+              <div class="alcohol-section-hdr">
+                <span class="alcohol-section-icon">&#127870;</span>
+                <span class="alcohol-section-title">Alkohol</span>
+                <button class="btn btn-primary btn-sm" onclick="addAlcohol()">+ Dodaj</button>
+              </div>
+              <div id="alcoholList" class="alcohol-list"></div>
+              <div id="alcoholSummary"></div>
+            </div>
+          </div>
         </div>
-        <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
-        <div class="exp-summary" id="expSummary" style="display:none">
-          <div class="exp-sum-row"><span>Zaplanowano:</span><span id="expSumPlanned" class="exp-sum-val">0,00 zł</span></div>
-          <div class="exp-sum-row"><span>Opłacono:</span><span id="expSumPaid" class="exp-sum-val bval-green">0,00 zł</span></div>
-          <div class="exp-sum-row exp-sum-total"><span>Pozostało:</span><span id="expSumRem" class="exp-sum-val bval-orange">0,00 zł</span></div>
-        </div>
-        <div id="expensesList"><div class="empty-list">Brak wydatków. Kliknij + Dodaj.</div></div>
       </div>
 
       <!-- TAB: PODRÓŻ POŚLUBNA -->

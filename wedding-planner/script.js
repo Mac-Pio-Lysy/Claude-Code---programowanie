@@ -642,6 +642,7 @@ const EXPENSE_CATEGORIES = [
   { name: 'Uroda',              icon: '💄', color: '#f472b6' },
   { name: 'Transport',          icon: '🚗', color: '#94a3b8' },
   { name: 'Podróż poślubna',    icon: '✈️', color: '#4ade80' },
+  { name: 'Alkohol',            icon: '🍾', color: '#7c3aed' },
   { name: 'Inne',               icon: '📦', color: '#cbd5e1' },
 ];
 
@@ -720,14 +721,18 @@ function calcCateringTotal() {
   return calcCateringBase() + calcVirtualGuestsCost() + calcStaffCost() + calcMenuAddonsTotal() + calcTableDecoTotal();
 }
 
-function calcExpensesPlanned()   { return budgetData.expenses.reduce((s, e) => s + (e.planned || 0), 0); }
+function calcAlcoholTotal()   { return (budgetData.alcoholItems || []).reduce((s, i) => s + (i.bottles || 0) * (i.pricePerBottle || 0), 0); }
+function calcAlcoholBottles() { return (budgetData.alcoholItems || []).reduce((s, i) => s + (i.bottles || 0), 0); }
+
+function calcExpensesPlanned()   { return budgetData.expenses.reduce((s, e) => s + (e.planned || 0), 0) + calcAlcoholTotal(); }
 function calcExpensesPaid()      { return budgetData.expenses.reduce((s, e) => s + (e.paid    || 0), 0); }
-function calcExpensesEffective() { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0); }
+function calcExpensesEffective() { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0) + calcAlcoholTotal(); }
 
 // ── BUDGET VIEW ──
 function renderBudget() {
   renderTableCosts();
   renderExpenses();
+  renderAlcohol();
   renderHoneymoon();
   renderCostBreakdown();
   renderCoupleSummary();
@@ -1479,12 +1484,19 @@ function addExpense() {
     splitP2: 0,
   });
   expenseOrder.push(newId);
+  expenseFilters = { status: 'all', person: 'all', category: 'all' };
   renderExpenses();
   renderCoupleSummary();
   renderCostPerTable();
   renderBudgetOverview();
   renderCharts();
   saveState();
+  const newTile = document.getElementById('exp-' + newId);
+  if (newTile) {
+    newTile.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    newTile.classList.add('exp-highlight');
+    setTimeout(() => newTile.classList.remove('exp-highlight'), 1200);
+  }
 }
 
 function updateExpenseCat(expId, value) {
@@ -1826,6 +1838,128 @@ function renderExpenses() {
   if (summary) summary.style.display = 'block';
 }
 
+// ── ALKOHOL ──────────────────────────────────────────────────────────────
+
+const ALCOHOL_TYPES = ['Wódka','Wino','Piwo','Szampan','Whisky','Nalewka','Gin','Rum','Inne'];
+
+function addAlcohol() {
+  if (!budgetData.alcoholItems) budgetData.alcoholItems = [];
+  budgetData.alcoholItems.push({
+    id: budgetData.nextAlcoholId = (budgetData.nextAlcoholId || 0) + 1,
+    type: 'Wódka', name: '', bottles: 0, pricePerBottle: 0,
+  });
+  renderAlcohol(); renderBudgetOverview(); renderCharts(); saveState();
+}
+
+function updateAlcohol(id, field, value) {
+  const item = (budgetData.alcoholItems || []).find(i => i.id === id);
+  if (!item) return;
+  item[field] = value;
+  renderAlcohol(); renderBudgetOverview(); renderCharts(); saveState();
+}
+
+function updateAlcoholSplit(field, value) {
+  budgetData[field] = value;
+  renderAlcohol(); saveState();
+}
+
+function deleteAlcohol(id) {
+  budgetData.alcoholItems = (budgetData.alcoholItems || []).filter(i => i.id !== id);
+  renderAlcohol(); renderBudgetOverview(); renderCharts(); saveState();
+}
+
+function renderAlcohol() {
+  const listEl    = document.getElementById('alcoholList');
+  const summaryEl = document.getElementById('alcoholSummary');
+  if (!listEl || !summaryEl) return;
+
+  const items = budgetData.alcoholItems || [];
+
+  if (!items.length) {
+    listEl.innerHTML    = '<div class="alcohol-empty">Kliknij + Dodaj, aby dodać pozycje alkoholu.</div>';
+    summaryEl.innerHTML = '';
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => {
+    const total    = (item.bottles || 0) * (item.pricePerBottle || 0);
+    const typeOpts = ALCOHOL_TYPES.map(t =>
+      `<option value="${t}"${item.type === t ? ' selected' : ''}>${t}</option>`).join('');
+    return `
+    <div class="alcohol-item-row" id="alc-${item.id}">
+      <div class="alc-row-top">
+        <select class="alc-type-sel" onchange="updateAlcohol(${item.id},'type',this.value)">${typeOpts}</select>
+        <input type="text" class="alc-name-inp" value="${esc(item.name||'')}" placeholder="Marka / nazwa (opcjonalnie)"
+               onchange="updateAlcohol(${item.id},'name',this.value)">
+        <button class="btn-alc-del" onclick="deleteAlcohol(${item.id})" title="Usuń">&#128465;</button>
+      </div>
+      <div class="alc-row-bottom">
+        <div class="alc-field">
+          <label>Butelki</label>
+          <input type="number" class="alc-num-inp" value="${item.bottles||''}" min="0" step="1" placeholder="0"
+                 onchange="updateAlcohol(${item.id},'bottles',parseFloat(this.value)||0)">
+        </div>
+        <div class="alc-operator">×</div>
+        <div class="alc-field">
+          <label>Cena/szt. (zł)</label>
+          <input type="number" class="alc-num-inp" value="${item.pricePerBottle||''}" min="0" step="0.01" placeholder="0,00"
+                 onchange="updateAlcohol(${item.id},'pricePerBottle',parseFloat(this.value)||0)">
+        </div>
+        <div class="alc-operator">=</div>
+        <div class="alc-total-wrap">
+          <label>Łącznie</label>
+          <span class="alc-total-val">${fmt(total)} zł</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const totalBottles = calcAlcoholBottles();
+  const totalCost    = calcAlcoholTotal();
+  const [p1Name, p2Name] = budgetData.coupleNames || ['Osoba 1', 'Osoba 2'];
+  const splitP1 = budgetData.alcoholSplitP1 || 0;
+  const splitP2 = budgetData.alcoholSplitP2 || 0;
+  const splitSum = splitP1 + splitP2;
+  const overWarn = splitSum > totalCost + 0.01 && totalCost > 0;
+
+  summaryEl.innerHTML = `
+  <div class="alcohol-summary">
+    <div class="alc-sum-stats">
+      <div class="alc-sum-stat">
+        <div class="alc-sum-stat-val">${totalBottles}</div>
+        <div class="alc-sum-stat-lbl">butelek łącznie</div>
+      </div>
+      <div class="alc-sum-stat-sep"></div>
+      <div class="alc-sum-stat">
+        <div class="alc-sum-stat-val alc-cost-val">${fmt(totalCost)} zł</div>
+        <div class="alc-sum-stat-lbl">łączny koszt</div>
+      </div>
+    </div>
+    <div class="alc-split-section">
+      <div class="alc-split-title">&#9878; Podział kosztów</div>
+      <div class="alc-split-row">
+        <div class="alc-split-col">
+          <label>${esc(p1Name)}</label>
+          <div class="exp-input-wrap">
+            <input type="number" value="${splitP1||''}" min="0" step="0.01" placeholder="0,00"
+                   onchange="updateAlcoholSplit('alcoholSplitP1',parseFloat(this.value)||0)">
+            <span class="currency-sm">zł</span>
+          </div>
+        </div>
+        <div class="alc-split-col">
+          <label>${esc(p2Name)}</label>
+          <div class="exp-input-wrap">
+            <input type="number" value="${splitP2||''}" min="0" step="0.01" placeholder="0,00"
+                   onchange="updateAlcoholSplit('alcoholSplitP2',parseFloat(this.value)||0)">
+            <span class="currency-sm">zł</span>
+          </div>
+        </div>
+      </div>
+      ${overWarn ? `<div class="alc-split-warn">&#9888; Suma podziału (${fmt(splitSum)} zł) przekracza łączny koszt (${fmt(totalCost)} zł)</div>` : ''}
+    </div>
+  </div>`;
+}
+
 // ── EXPENSE TILE DRAG & DROP ──
 function onExpTileDragStart(event, id) {
   expTileDragId = id;
@@ -2078,6 +2212,9 @@ function renderPieChart() {
       items.push({ label: cat, value: val, color: cfg?.color || '#94a3b8' });
     }
   });
+
+  const alcoholTotal = calcAlcoholTotal();
+  if (alcoholTotal > 0) items.push({ label: 'Alkohol', value: alcoholTotal, color: '#7c3aed' });
 
   if (!items.length) {
     container.innerHTML = '<div class="chart-empty">Brak danych</div>';
@@ -3628,6 +3765,10 @@ function renderCostBreakdown() {
     }
   });
 
+  // Alkohol
+  const alcTotal = calcAlcoholTotal();
+  if (alcTotal > 0) planned.push({ name: '🍾 Alkohol', amount: alcTotal });
+
   // Raty podróży
   ((budgetData.honeymoon || {}).installments || []).forEach(i => {
     if (i.status === 'paid') {
@@ -4137,6 +4278,10 @@ function loadState() {
       if (t.includeInCost === undefined) t.includeInCost = false;
     });
 
+    if (!budgetData.alcoholItems)                    budgetData.alcoholItems    = [];
+    if (!budgetData.nextAlcoholId)                   budgetData.nextAlcoholId   = 1;
+    if (budgetData.alcoholSplitP1 === undefined)     budgetData.alcoholSplitP1  = 0;
+    if (budgetData.alcoholSplitP2 === undefined)     budgetData.alcoholSplitP2  = 0;
     if (!budgetData.tableDeco) budgetData.tableDeco = { honorAddons: [], regularAddons: [] };
     if (budgetData.includeStaffInCalc === undefined) budgetData.includeStaffInCalc = false;
     if (!budgetData.tableDeco.honorAddons)   budgetData.tableDeco.honorAddons   = [];

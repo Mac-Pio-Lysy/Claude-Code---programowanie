@@ -42,27 +42,24 @@
     .att-no.selected   { border-color: var(--red);   background: #fff5f5; color: var(--red); }
     .att-icon { font-size: 1.4rem; display: block; margin-bottom: 5px; }
 
-    /* Companion / pair section */
+    /* Companion toggle section */
     .companion-section {
       margin-top: 4px; padding: 14px 16px;
       background: var(--blue-pale); border: 1.5px solid var(--border);
       border-radius: 12px; display: none;
     }
     .companion-section.show { display: block; }
-    .companion-section h3 { font-size: 0.82rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .pair-question {
-      background: var(--white); border: 2px solid var(--blue); border-radius: 10px;
-      padding: 12px 14px; margin-bottom: 12px; display: none;
+    .companion-section h3 { font-size: 0.8rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .company-toggle { display: flex; gap: 8px; }
+    .company-btn {
+      flex: 1; padding: 11px 8px; border-radius: 9px; border: 2px solid var(--border);
+      font-size: 0.84rem; font-weight: 600; font-family: inherit; cursor: pointer;
+      background: var(--white); transition: all 0.18s; text-align: center; color: var(--text);
     }
-    .pair-question.show { display: block; }
-    .pair-question p { font-size: 0.85rem; color: var(--blue-dark); margin-bottom: 10px; }
-    .pair-btns { display: flex; gap: 8px; }
-    .pair-btn { flex: 1; padding: 8px; border-radius: 8px; border: 2px solid var(--border); font-size: 0.82rem; font-weight: 600; font-family: inherit; cursor: pointer; background: var(--white); transition: all 0.15s; }
-    .pair-btn.yes { border-color: var(--green); color: var(--green); }
-    .pair-btn.yes.sel { background: #f0fdf4; }
-    .pair-btn.no  { border-color: var(--red); color: var(--red); }
-    .pair-btn.no.sel  { background: #fff5f5; }
-    .companion-name-wrap { display: none; }
+    .company-btn:hover { border-color: var(--blue); }
+    .company-solo.selected { border-color: var(--blue); background: var(--blue-pale); color: var(--blue-dark); }
+    .company-duo.selected  { border-color: var(--green); background: #f0fdf4; color: var(--green); }
+    .companion-name-wrap { margin-top: 12px; display: none; }
     .companion-name-wrap.show { display: block; }
 
     .error-msg { color: var(--red); font-size: 0.78rem; margin-top: 4px; display: none; }
@@ -129,11 +126,6 @@
     </div>
 
     <div class="field">
-      <label>Imię i nazwisko osoby towarzyszącej (opcjonalnie)</label>
-      <input type="text" id="rsvpCompanion" placeholder="np. Anna Kowalska" autocomplete="off">
-    </div>
-
-    <div class="field">
       <label>Twoja odpowiedź *</label>
       <div class="attendance-row">
         <div class="att-btn att-yes" id="btnYes" onclick="selectAttendance('attending')">
@@ -148,22 +140,16 @@
 
     <!-- Sekcja osoby towarzyszącej (widoczna po wybraniu "Przyjdę") -->
     <div class="companion-section" id="companionSection">
-      <h3>&#128100; Osoba towarzysząca</h3>
-
-      <!-- Pytanie o parę z systemu -->
-      <div class="pair-question" id="pairQuestion">
-        <p id="pairQuestionText">Czy Twoja para <strong id="pairName"></strong> również przyjdzie?</p>
-        <div class="pair-btns">
-          <button class="pair-btn yes" id="pairYes" onclick="setPairAnswer('attending')">&#10003; Tak, razem</button>
-          <button class="pair-btn no"  id="pairNo"  onclick="setPairAnswer('not_attending')">&#10007; Nie, osobno</button>
-        </div>
+      <h3>&#128100; Czy przyjdziesz sam/a czy we dwoje?</h3>
+      <div class="company-toggle">
+        <button class="company-btn company-solo" id="btnSolo" onclick="setCompanyMode('solo')">&#128100; Przychodzę sam/a</button>
+        <button class="company-btn company-duo"  id="btnDuo"  onclick="setCompanyMode('duo')">&#128145; Przychodzimy we dwoje</button>
       </div>
-
-      <!-- Pole dla gościa bez pary w systemie -->
       <div class="companion-name-wrap" id="companionNameWrap">
-        <div class="field" style="margin-bottom:0">
-          <label>Imię i nazwisko osoby towarzyszącej / z pary (opcjonalnie)</label>
-          <input type="text" id="companionName" placeholder="np. Anna Kowalska">
+        <div class="field" style="margin-bottom:0; margin-top:12px">
+          <label>Imię i nazwisko osoby towarzyszącej *</label>
+          <input type="text" id="rsvpCompanion" placeholder="np. Anna Kowalska" autocomplete="off">
+          <div class="error-msg" id="companionError">Podaj imię i nazwisko osoby towarzyszącej</div>
         </div>
       </div>
     </div>
@@ -200,11 +186,13 @@
 
 <script>
   const STORAGE_KEY  = 'wedding-planner-v2';
-  const EMAILJS_SVC  = 'service_8y44w48';
-  const EMAILJS_TPL  = 'template_1so5ltg';
-  const ORGANIZER    = 'macholak.piotr@gmail.com';
+  const EMAILJS_SVC       = 'service_8y44w48';
+  const EMAILJS_TPL_YES   = 'template_1so5ltg';   // Przyjdę
+  const EMAILJS_TPL_NO    = 'template_zpg16jc';   // Nie przyjdę
+  const ORGANIZER         = 'macholak.piotr@gmail.com';
 
   let selectedStatus          = null;
+  let companyMode             = null; // 'solo' | 'duo'
   let matchedGuestId          = null;
   let pendingSuggestedGuestId = null;
   let partnerGuestId          = null;
@@ -219,21 +207,21 @@
     } else {
       emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });
       _ejsReady = true;
-      console.log('[EmailJS] Zainicjalizowany. Service:', 'service_8y44w48', '| Template:', 'template_1so5ltg');
+      console.log('[EmailJS] Zainicjalizowany. Service:', EMAILJS_SVC, '| Szablony: TAK→', EMAILJS_TPL_YES, '| NIE→', EMAILJS_TPL_NO);
     }
   } catch (e) {
     console.error('[EmailJS] Błąd inicjalizacji:', e);
   }
 
-  async function _sendEmail(toEmail, params) {
+  async function _sendEmail(toEmail, templateId, params) {
     if (!_ejsReady) {
       console.error('[EmailJS] Nie jest zainicjalizowany — pomijam wysyłkę do:', toEmail);
       return false;
     }
     const fullParams = { ...params, to_email: toEmail };
-    console.log('[EmailJS] Wysyłam do:', toEmail, '\nParametry:', JSON.stringify(fullParams, null, 2));
+    console.log('[EmailJS] Wysyłam do:', toEmail, '| Szablon:', templateId, '\nParametry:', JSON.stringify(fullParams, null, 2));
     try {
-      const res = await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, fullParams);
+      const res = await emailjs.send(EMAILJS_SVC, templateId, fullParams);
       console.log('[EmailJS] Sukces →', toEmail, '| status:', res.status, '| text:', res.text);
       return true;
     } catch (e) {
@@ -314,37 +302,30 @@
     matchedGuestId = null;
     pendingSuggestedGuestId = null;
     document.getElementById('matchBox').classList.remove('show');
-    pairAnswer = null;
-    updatePairButtons();
     const compSection = document.getElementById('companionSection');
     if (status === 'attending') {
       compSection.classList.add('show');
-      refreshCompanionUI();
+      // Zachowaj wybrany tryb jeśli był już ustawiony
+      if (companyMode) setCompanyMode(companyMode);
     } else {
       compSection.classList.remove('show');
+      companyMode = null;
+      document.getElementById('btnSolo').classList.remove('selected');
+      document.getElementById('btnDuo').classList.remove('selected');
+      document.getElementById('companionNameWrap').classList.remove('show');
     }
   }
 
-  function refreshCompanionUI() {
-    const pairQ     = document.getElementById('pairQuestion');
-    const compNameW = document.getElementById('companionNameWrap');
-    if (partnerGuestId) {
-      pairQ.classList.add('show');
-      compNameW.classList.remove('show');
-      document.getElementById('pairName').textContent = partnerGuestName;
-    } else {
-      pairQ.classList.remove('show');
-      compNameW.classList.add('show');
+  function setCompanyMode(mode) {
+    companyMode = mode;
+    document.getElementById('btnSolo').classList.toggle('selected', mode === 'solo');
+    document.getElementById('btnDuo').classList.toggle('selected',  mode === 'duo');
+    const wrap = document.getElementById('companionNameWrap');
+    wrap.classList.toggle('show', mode === 'duo');
+    if (mode !== 'duo') {
+      document.getElementById('rsvpCompanion').value = '';
+      document.getElementById('companionError').classList.remove('show');
     }
-  }
-
-  function setPairAnswer(ans) {
-    pairAnswer = ans;
-    updatePairButtons();
-  }
-  function updatePairButtons() {
-    document.getElementById('pairYes').classList.toggle('sel', pairAnswer === 'attending');
-    document.getElementById('pairNo').classList.toggle('sel',  pairAnswer === 'not_attending');
   }
 
   // ── Wykrywanie pary podczas wpisywania nazwy ──
@@ -365,7 +346,6 @@
     } else {
       partnerGuestId = null; partnerGuestName = '';
     }
-    if (selectedStatus === 'attending') refreshCompanionUI();
   }
 
   // ── Fuzzy match confirm/deny ──
@@ -376,7 +356,6 @@
       if (partner) {
         partnerGuestId   = partner.id;
         partnerGuestName = ((partner.firstName || '') + ' ' + (partner.lastName || '')).trim();
-        if (selectedStatus === 'attending') refreshCompanionUI();
       }
       pendingSuggestedGuestId = null;
       document.getElementById('matchBox').classList.remove('show');
@@ -410,6 +389,12 @@
     if (!selectedStatus) { document.getElementById('attError').classList.add('show'); valid = false; }
     else document.getElementById('attError').classList.remove('show');
 
+    if (selectedStatus === 'attending' && companyMode === 'duo') {
+      const comp = document.getElementById('rsvpCompanion').value.trim();
+      if (comp.length < 2) { document.getElementById('companionError').classList.add('show'); valid = false; }
+      else document.getElementById('companionError').classList.remove('show');
+    }
+
     if (!valid) return;
 
     let guests = [];
@@ -440,16 +425,12 @@
     spinner.classList.add('show');
     btnText.textContent = 'Wysyłanie…';
 
-    const name          = document.getElementById('rsvpName').value.trim();
-    const email         = document.getElementById('rsvpEmail').value.trim();
-    const message       = document.getElementById('rsvpMessage').value.trim();
-    const companionRaw  = document.getElementById('companionName').value.trim();
-    const companionForm = document.getElementById('rsvpCompanion').value.trim();
-
-    // Dla EmailJS: użyj pola z formularza; fallback do pary ze systemu
-    const companionName = companionForm
-      || (partnerGuestId && pairAnswer === 'attending' ? partnerGuestName : '')
-      || companionRaw;
+    const name         = document.getElementById('rsvpName').value.trim();
+    const email        = document.getElementById('rsvpEmail').value.trim();
+    const message      = document.getElementById('rsvpMessage').value.trim();
+    const companionName = (selectedStatus === 'attending' && companyMode === 'duo')
+      ? document.getElementById('rsvpCompanion').value.trim()
+      : '';
 
     // ── Zapis do localStorage i Firestore ──
     try {
@@ -493,16 +474,18 @@
     } catch (_) {}
 
     // ── Wysyłka emaili przez EmailJS ──
-    const rsvpStatus  = selectedStatus === 'attending' ? 'Przyjdę ✅' : 'Nie przyjdę ❌';
+    const isAttending = selectedStatus === 'attending';
+    const templateId  = isAttending ? EMAILJS_TPL_YES : EMAILJS_TPL_NO;
+    const rsvpStatus  = isAttending ? 'Przyjdę ✅' : 'Nie przyjdę ❌';
     const emailParams = {
       guest_name:     name,
       rsvp_status:    rsvpStatus,
-      companion_name: companionName || '—',
+      companion_name: companionName || '',
     };
 
     const [guestOk, orgOk] = await Promise.all([
-      _sendEmail(email,     emailParams),
-      _sendEmail(ORGANIZER, emailParams),
+      _sendEmail(email,     templateId, emailParams),
+      _sendEmail(ORGANIZER, templateId, emailParams),
     ]);
     const emailOk = guestOk && orgOk;
 
