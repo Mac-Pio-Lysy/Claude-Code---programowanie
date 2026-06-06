@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(run)",
+      "Bash(node *)",
+      "Bash(python -m http.server 7771)",
+      "Bash(start *)",
+      "Bash(Select-String -Path \"D:\\\\Claude Code - programowanie\\\\wedding-planner\\\\script.js\" -Pattern \"loadState\\\\\\(\\\\\\)\")",
+      "Bash(Select-Object -Last 5)",
+      "Bash(git stash *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}

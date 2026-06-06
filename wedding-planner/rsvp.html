@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Potwierdzenie Obecności — Wesele Piotra i Patrycji</title>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #f0f5ff; --text: #1a2744; --border: #c5d8f6;
+      --green: #16a34a; --red: #dc2626; --shadow: rgba(26,86,219,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+    header { background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff; text-align: center; padding: 28px 20px; }
+    header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
+    header p  { opacity: 0.8; margin-top: 6px; font-size: 0.9rem; }
+    .container { max-width: 540px; margin: 32px auto; padding: 0 16px 40px; }
+    .card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px var(--shadow); }
+    .card h2 { font-size: 1.1rem; color: var(--blue-dark); margin-bottom: 20px; text-align: center; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="text"], textarea {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 14px;
+      font-size: 0.92rem; font-family: inherit; color: var(--text); background: var(--white);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Attendance buttons — only two */
+    .attendance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .att-btn { border: 2px solid var(--border); border-radius: 10px; padding: 14px 6px; cursor: pointer; text-align: center; font-size: 0.85rem; font-weight: 600; background: var(--white); transition: all 0.18s; user-select: none; }
+    .att-btn:hover { border-color: var(--blue-dark); }
+    .att-yes.selected  { border-color: var(--green); background: #f0fdf4; color: var(--green); }
+    .att-no.selected   { border-color: var(--red);   background: #fff5f5; color: var(--red); }
+    .att-icon { font-size: 1.4rem; display: block; margin-bottom: 5px; }
+
+    /* Companion / pair section */
+    .companion-section {
+      margin-top: 4px; padding: 14px 16px;
+      background: var(--blue-pale); border: 1.5px solid var(--border);
+      border-radius: 12px; display: none;
+    }
+    .companion-section.show { display: block; }
+    .companion-section h3 { font-size: 0.82rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .pair-question {
+      background: var(--white); border: 2px solid var(--blue); border-radius: 10px;
+      padding: 12px 14px; margin-bottom: 12px; display: none;
+    }
+    .pair-question.show { display: block; }
+    .pair-question p { font-size: 0.85rem; color: var(--blue-dark); margin-bottom: 10px; }
+    .pair-btns { display: flex; gap: 8px; }
+    .pair-btn { flex: 1; padding: 8px; border-radius: 8px; border: 2px solid var(--border); font-size: 0.82rem; font-weight: 600; font-family: inherit; cursor: pointer; background: var(--white); transition: all 0.15s; }
+    .pair-btn.yes { border-color: var(--green); color: var(--green); }
+    .pair-btn.yes.sel { background: #f0fdf4; }
+    .pair-btn.no  { border-color: var(--red); color: var(--red); }
+    .pair-btn.no.sel  { background: #fff5f5; }
+    .companion-name-wrap { display: none; }
+    .companion-name-wrap.show { display: block; }
+
+    .error-msg { color: var(--red); font-size: 0.78rem; margin-top: 4px; display: none; }
+    .error-msg.show { display: block; }
+    .submit-btn {
+      width: 100%; padding: 13px; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; font-family: inherit; margin-top: 8px;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(26,86,219,0.35); }
+    .submit-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .confirm-box { background: #f0fdf4; border: 2px solid #86efac; border-radius: 12px; padding: 18px; margin-top: 14px; display: none; }
+    .confirm-box.show { display: block; }
+    .confirm-box h3 { color: var(--green); margin-bottom: 8px; font-size: 1rem; }
+    .confirm-box p { font-size: 0.85rem; color: #166534; }
+    .match-box { background: var(--blue-pale); border: 2px solid var(--blue); border-radius: 12px; padding: 14px; margin-top: 12px; display: none; }
+    .match-box.show { display: block; }
+    .match-box p { font-size: 0.85rem; color: var(--blue-dark); margin-bottom: 10px; }
+    .match-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-yes-me { background: var(--blue); color: #fff; border: none; border-radius: 7px; padding: 7px 16px; cursor: pointer; font-size: 0.82rem; font-family: inherit; font-weight: 600; }
+    .btn-yes-me:hover { background: var(--blue-dark); }
+    .btn-no-me  { background: var(--white); color: var(--text); border: 1.5px solid var(--border); border-radius: 7px; padding: 6px 14px; cursor: pointer; font-size: 0.82rem; font-family: inherit; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>&#128149; Potwierdzenie Obecności</h1>
+  <p>Prosimy o potwierdzenie swojego udziału w naszym weselu</p>
+</header>
+
+<div class="container">
+  <div class="card" id="formCard">
+    <h2>&#10084; Czy będziesz z nami?</h2>
+
+    <div class="field">
+      <label>Twoje imię i nazwisko *</label>
+      <input type="text" id="rsvpName" placeholder="np. Jan Kowalski" autocomplete="name" oninput="onNameInput()">
+      <div class="error-msg" id="nameError">Podaj imię i nazwisko (min. 3 znaki)</div>
+    </div>
+
+    <div class="field">
+      <label>Twoja odpowiedź *</label>
+      <div class="attendance-row">
+        <div class="att-btn att-yes" id="btnYes" onclick="selectAttendance('attending')">
+          <span class="att-icon">&#10003;</span>Przyjdę
+        </div>
+        <div class="att-btn att-no" id="btnNo" onclick="selectAttendance('not_attending')">
+          <span class="att-icon">&#10007;</span>Nie przyjdę
+        </div>
+      </div>
+      <div class="error-msg" id="attError">Wybierz odpowiedź</div>
+    </div>
+
+    <!-- Sekcja osoby towarzyszącej (widoczna po wybraniu "Przyjdę") -->
+    <div class="companion-section" id="companionSection">
+      <h3>&#128100; Osoba towarzysząca</h3>
+
+      <!-- Pytanie o parę z systemu -->
+      <div class="pair-question" id="pairQuestion">
+        <p id="pairQuestionText">Czy Twoja para <strong id="pairName"></strong> również przyjdzie?</p>
+        <div class="pair-btns">
+          <button class="pair-btn yes" id="pairYes" onclick="setPairAnswer('attending')">&#10003; Tak, razem</button>
+          <button class="pair-btn no"  id="pairNo"  onclick="setPairAnswer('not_attending')">&#10007; Nie, osobno</button>
+        </div>
+      </div>
+
+      <!-- Manualne pole dla gościa bez pary w systemie -->
+      <div class="companion-name-wrap" id="companionNameWrap">
+        <div class="field" style="margin-bottom:0">
+          <label>Imię i nazwisko osoby towarzyszącej (opcjonalnie)</label>
+          <input type="text" id="companionName" placeholder="np. Anna Kowalska">
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:12px">
+      <label>Wiadomość dla Pary Młodej (opcjonalnie)</label>
+      <textarea id="rsvpMessage" placeholder="Możesz napisać krótką wiadomość…"></textarea>
+    </div>
+
+    <div class="match-box" id="matchBox">
+      <p id="matchText">Czy chodziło Ci o <strong id="matchName"></strong>?</p>
+      <div class="match-btns">
+        <button class="btn-yes-me" id="btnYesMe" onclick="confirmMatch()">Tak, to ja</button>
+        <button class="btn-no-me" onclick="denyMatch()">Nie, to nie ja</button>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitRsvp()">Wyślij potwierdzenie</button>
+  </div>
+
+  <div class="confirm-box" id="confirmBox">
+    <h3>&#127881; Dziękujemy za potwierdzenie!</h3>
+    <p id="confirmText">Twoja odpowiedź została zapisana.</p>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'wedding-planner-v2';
+  let selectedStatus   = null;
+  let matchedGuestId   = null;
+  let pendingSuggestedGuestId = null;
+  let partnerGuestId   = null;   // id gościa-pary z systemu
+  let partnerGuestName = '';
+  let pairAnswer       = null;   // 'attending' | 'not_attending' | null
+
+  // ── Normalizacja i Levenshtein (niezmienione) ──
+  function normalizePL(str) {
+    return (str || '').toLowerCase()
+      .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l')
+      .replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z')
+      .replace(/\s+/g,' ').trim();
+  }
+  function levenshtein(a, b) {
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const dp = Array.from({length: a.length + 1}, (_, i) =>
+      Array.from({length: b.length + 1}, (_, j) => i ? (j ? 0 : i) : j));
+    for (let i = 1; i <= a.length; i++)
+      for (let j = 1; j <= b.length; j++)
+        dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    return dp[a.length][b.length];
+  }
+  function findMatch(input, guests) {
+    const norm = normalizePL(input);
+    if (norm.length < 2) return null;
+    let best = null, bestScore = 999;
+    for (const g of guests) {
+      const fn = (g.firstName || '') + ' ' + (g.lastName || '');
+      const score = Math.min(
+        levenshtein(norm, normalizePL(fn)),
+        levenshtein(norm, normalizePL(g.firstName || '')),
+        levenshtein(norm, normalizePL(g.lastName  || ''))
+      );
+      if (score < bestScore) { bestScore = score; best = g; }
+    }
+    const threshold = Math.max(2, Math.floor(norm.length / 3));
+    return bestScore <= threshold ? best : null;
+  }
+
+  // ── Wczytaj dane z localStorage ──
+  function loadAppData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (_) { return {}; }
+  }
+
+  // ── Sprawdź parę dla dopasowanego gościa ──
+  function detectPartner(guestId) {
+    const data   = loadAppData();
+    const guests = data.guests || [];
+    const pairs  = data.pairs  || [];
+    const g = guests.find(x => x.id === guestId);
+    if (!g || g.pairId === null) return null;
+    const pair = pairs.find(p => p.id === g.pairId);
+    if (!pair) return null;
+    const partnerId = pair.g1 === guestId ? pair.g2 : pair.g1;
+    return guests.find(x => x.id === partnerId) || null;
+  }
+
+  // ── Wybór odpowiedzi ──
+  function selectAttendance(status) {
+    selectedStatus = status;
+    document.getElementById('btnYes').classList.toggle('selected', status === 'attending');
+    document.getElementById('btnNo').classList.toggle('selected',  status === 'not_attending');
+    document.getElementById('attError').classList.remove('show');
+    matchedGuestId = null;
+    pendingSuggestedGuestId = null;
+    document.getElementById('matchBox').classList.remove('show');
+    pairAnswer = null;
+    updatePairButtons();
+
+    // Sekcja towarzysząca
+    const compSection = document.getElementById('companionSection');
+    if (status === 'attending') {
+      compSection.classList.add('show');
+      // Pokaż właściwą pod-sekcję
+      refreshCompanionUI();
+    } else {
+      compSection.classList.remove('show');
+    }
+  }
+
+  function refreshCompanionUI() {
+    const pairQ      = document.getElementById('pairQuestion');
+    const compNameW  = document.getElementById('companionNameWrap');
+    if (partnerGuestId) {
+      pairQ.classList.add('show');
+      compNameW.classList.remove('show');
+      document.getElementById('pairName').textContent = partnerGuestName;
+    } else {
+      pairQ.classList.remove('show');
+      compNameW.classList.add('show');
+    }
+  }
+
+  function setPairAnswer(ans) {
+    pairAnswer = ans;
+    updatePairButtons();
+  }
+  function updatePairButtons() {
+    document.getElementById('pairYes').classList.toggle('sel', pairAnswer === 'attending');
+    document.getElementById('pairNo').classList.toggle('sel',  pairAnswer === 'not_attending');
+  }
+
+  // ── Nazwa gościa — wykrywanie pary na bieżąco ──
+  function onNameInput() {
+    const name = document.getElementById('rsvpName').value.trim();
+    if (name.length < 3) { partnerGuestId = null; partnerGuestName = ''; return; }
+    const data   = loadAppData();
+    const guests = data.guests || [];
+    const match  = findMatch(name, guests);
+    if (match) {
+      const partner = detectPartner(match.id);
+      if (partner) {
+        partnerGuestId   = partner.id;
+        partnerGuestName = ((partner.firstName || '') + ' ' + (partner.lastName || '')).trim();
+      } else {
+        partnerGuestId = null; partnerGuestName = '';
+      }
+    } else {
+      partnerGuestId = null; partnerGuestName = '';
+    }
+    if (selectedStatus === 'attending') refreshCompanionUI();
+  }
+
+  // ── Fuzzy match confirm/deny ──
+  function confirmMatch() {
+    if (pendingSuggestedGuestId) {
+      matchedGuestId = pendingSuggestedGuestId;
+      // Re-check partner for newly confirmed match
+      const partner = detectPartner(matchedGuestId);
+      if (partner) {
+        partnerGuestId   = partner.id;
+        partnerGuestName = ((partner.firstName || '') + ' ' + (partner.lastName || '')).trim();
+        if (selectedStatus === 'attending') refreshCompanionUI();
+      }
+      pendingSuggestedGuestId = null;
+      document.getElementById('matchBox').classList.remove('show');
+      doSubmit(true);
+    }
+  }
+  function denyMatch() {
+    pendingSuggestedGuestId = null;
+    matchedGuestId = null;
+    document.getElementById('matchBox').classList.remove('show');
+    doSubmit(false);
+  }
+
+  // ── Submit ──
+  function submitRsvp() {
+    const name = document.getElementById('rsvpName').value.trim();
+    let valid = true;
+    if (name.length < 3) { document.getElementById('nameError').classList.add('show'); valid = false; }
+    else document.getElementById('nameError').classList.remove('show');
+    if (!selectedStatus) { document.getElementById('attError').classList.add('show'); valid = false; }
+    else document.getElementById('attError').classList.remove('show');
+    if (!valid) return;
+
+    let guests = [];
+    try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) guests = JSON.parse(raw).guests || []; } catch (_) {}
+    const match = findMatch(name, guests);
+    const normInput = normalizePL(name);
+    if (match && matchedGuestId === null) {
+      const fullN = ((match.firstName || '') + ' ' + (match.lastName || '')).trim();
+      if (normalizePL(fullN) === normInput) {
+        matchedGuestId = match.id;
+        doSubmit(true);
+      } else {
+        pendingSuggestedGuestId = match.id;
+        document.getElementById('matchName').textContent = fullN;
+        document.getElementById('matchBox').classList.add('show');
+      }
+      return;
+    }
+    doSubmit(matchedGuestId !== null);
+  }
+
+  function doSubmit(matched) {
+    const name         = document.getElementById('rsvpName').value.trim();
+    const message      = document.getElementById('rsvpMessage').value.trim();
+    const companionName= document.getElementById('companionName').value.trim();
+
+    try {
+      const raw   = localStorage.getItem(STORAGE_KEY);
+      const state = raw ? JSON.parse(raw) : {};
+      if (!state.rsvpEntries) state.rsvpEntries = [];
+      if (!state.nextRsvpId)  state.nextRsvpId  = 1;
+
+      // Usuń poprzednią odpowiedź tego gościa
+      if (matchedGuestId) {
+        state.rsvpEntries = state.rsvpEntries.filter(e => e.guestId !== matchedGuestId);
+      }
+
+      // Wpis główny
+      state.rsvpEntries.push({
+        id: state.nextRsvpId++,
+        rawName: name,
+        status: selectedStatus,
+        message,
+        guestId: matchedGuestId || null,
+        manual: false,
+        timestamp: new Date().toISOString(),
+        companionName: selectedStatus === 'attending' && !partnerGuestId ? companionName : '',
+      });
+
+      // Wpis dla pary jeśli udzielono odpowiedzi
+      if (partnerGuestId && pairAnswer) {
+        state.rsvpEntries = state.rsvpEntries.filter(e => e.guestId !== partnerGuestId);
+        state.rsvpEntries.push({
+          id: state.nextRsvpId++,
+          rawName: partnerGuestName,
+          status: pairAnswer,
+          message: '',
+          guestId: partnerGuestId,
+          manual: false,
+          timestamp: new Date().toISOString(),
+          companionName: '',
+        });
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (_) {}
+
+    const labels = {
+      attending: 'Cieszymy się, że będziesz z nami! &#127881;',
+      not_attending: 'Szkoda, że nie dasz rady. Dziękujemy za odpowiedź.',
+    };
+    let extra = '';
+    if (partnerGuestId && pairAnswer === 'attending') extra = `<br>Potwierdzono też obecność: <strong>${partnerGuestName}</strong> &#10003;`;
+    if (partnerGuestId && pairAnswer === 'not_attending') extra = `<br>${partnerGuestName} nie przyjdzie.`;
+
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('confirmText').innerHTML = (labels[selectedStatus] || 'Dziękujemy!') + extra;
+    document.getElementById('confirmBox').classList.add('show');
+  }
+</script>
+</body>
+</html>

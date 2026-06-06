@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje Wesele</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>&#9834; Impreza Weselna Piotra i Patrycji  &#9834;</h1>
+  <p>Planowanie</p>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="main-nav">
+  <button class="nav-btn active" id="navDashboard" onclick="switchView('dashboard')">&#127968; Dashboard</button>
+  <span class="nav-sep">|</span>
+  <span class="nav-group-label">Goście:</span>
+  <button class="nav-btn" id="navTables" onclick="switchView('tables')">&#128101; Stoły i goście</button>
+  <button class="nav-btn" id="navRoom" onclick="switchView('room')">&#127963; Plan sali</button>
+  <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')">&#128203; RSVP</button>
+  <span class="nav-sep">|</span>
+  <span class="nav-group-label">Budżet:</span>
+  <button class="nav-btn" id="navBudget" onclick="switchView('budget')">&#128176; Budżet</button>
+  <span class="nav-sep">|</span>
+  <span class="nav-group-label">Organizacja:</span>
+  <button class="nav-btn" id="navSchedule" onclick="switchView('schedule')">&#128197; Harmonogram</button>
+  <button class="nav-btn" id="navTasks" onclick="switchView('tasks')">&#9989; Zadania</button>
+  <button class="nav-btn" id="navVendors" onclick="switchView('vendors')">&#128203; Dostawcy</button>
+  <span class="nav-sep">|</span>
+  <span class="nav-group-label">Logistyka:</span>
+  <button class="nav-btn" id="navTransport" onclick="switchView('transport')">&#128663; Transport</button>
+  <button class="nav-btn" id="navAccommodation" onclick="switchView('accommodation')">&#127968; Noclegi</button>
+  <button class="nav-btn" id="navGifts" onclick="switchView('gifts')">&#127873; Prezenty</button>
+</nav>
+
+<!-- STATS BAR (only for tables view) -->
+<div class="stats-bar" id="statsBar" style="display:none">
+  <div class="stat">
+    <div class="stat-dot dot-total"></div>
+    <div class="stat-num" id="statTotal">0</div>
+    <div class="stat-label">Gości</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot dot-seated"></div>
+    <div class="stat-num" id="statSeated">0</div>
+    <div class="stat-label">Przypisanych</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot dot-unassigned"></div>
+    <div class="stat-num" id="statUnassigned">0</div>
+    <div class="stat-label">Nieprzypisanych</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot" style="background:#7ab4f7"></div>
+    <div class="stat-num" id="statTables">0</div>
+    <div class="stat-label">Stołów</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot" style="background:#a0b8d8"></div>
+    <div class="stat-num" id="statSeats">0</div>
+    <div class="stat-label">Miejsc</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot dot-pairs"></div>
+    <div class="stat-num" id="statPairs">0</div>
+    <div class="stat-label">Par</div>
+  </div>
+</div>
+
+<!-- ALL VIEWS -->
+<div class="views-container">
+
+  <!-- ══ DASHBOARD VIEW ══ -->
+  <div id="viewDashboard" class="view-panel active-view">
+    <div class="dashboard-hero">
+      <div class="dashboard-title">&#128149; Do Waszego Ślubu</div>
+      <div class="countdown-wrapper">
+        <div class="countdown-date-row">
+          <label>Data ślubu:</label>
+          <input type="date" id="weddingDate" onchange="updateCountdown()" class="wedding-date-input">
+        </div>
+        <div class="countdown-display" id="countdownDisplay">
+          <div class="countdown-unit"><span class="cd-num" id="cdDays">--</span><span class="cd-lbl">dni</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit"><span class="cd-num" id="cdHours">--</span><span class="cd-lbl">godz</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit"><span class="cd-num" id="cdMins">--</span><span class="cd-lbl">min</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit"><span class="cd-num" id="cdSecs">--</span><span class="cd-lbl">sek</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-cards" id="dashboardCards"></div>
+  </div>
+
+  <!-- ══ TABLES VIEW ══ -->
+  <div id="viewTables" class="view-panel" style="display:none">
+    <div class="main">
+      <!-- LEFT: LISTA GOŚCI -->
+      <div class="panel-guests" id="panelGuests">
+        <div class="panel-title"><span>&#128101;</span> Lista Gości</div>
+        <div class="guest-add">
+          <h3>Dodaj gościa</h3>
+          <div class="form-row">
+            <input type="text" id="guestFirstName" placeholder="Imię">
+            <input type="text" id="guestLastName" placeholder="Nazwisko">
+          </div>
+          <div class="form-row">
+            <select id="guestCategory">
+              <option value="Państwo Młodzi">Państwo Młodzi</option>
+              <option value="Świadkowie">Świadkowie</option>
+              <option value="Rodzice">Rodzice</option>
+              <option value="Rodzina" selected>Rodzina</option>
+              <option value="Znajomi">Znajomi</option>
+            </select>
+            <select id="guestGender">
+              <option value="K">&#9792; Kobieta</option>
+              <option value="M">&#9794; Mężczyzna</option>
+            </select>
+            <select id="guestInvitedBy">
+              <option value="">Zaproszony przez...</option>
+              <option value="groom">&#129309; Pan Młody</option>
+              <option value="bride">&#128144; Panna Młoda</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <select id="guestDiet" style="flex:1">
+              <option value="standard">Standardowa</option>
+              <option value="vegetarian">Wegetariańska</option>
+              <option value="vegan">Wegańska</option>
+              <option value="glutenfree">Bezglutenowa</option>
+              <option value="other">Inne</option>
+            </select>
+            <select id="guestWitness" style="flex:1">
+              <option value="">Brak roli</option>
+              <option value="witness_groom">Świadek Pana</option>
+              <option value="witness_bride">Świadkowa Panny</option>
+            </select>
+          </div>
+          <div class="form-row" id="dietOtherRow" style="display:none">
+            <input type="text" id="guestDietOther" placeholder="Opis diety..." style="flex:1">
+          </div>
+          <div class="form-row">
+            <input type="url" id="guestPhoto" placeholder="URL zdjęcia (opcjonalne)" style="flex:1">
+            <button class="btn btn-primary" onclick="addGuest()">+ Dodaj</button>
+          </div>
+        </div>
+        <div class="guest-filters">
+          <select id="filterCategory" onchange="renderGuests()">
+            <option value="">Wszystkie kategorie</option>
+            <option value="Państwo Młodzi">Państwo Młodzi</option>
+            <option value="Świadkowie">Świadkowie</option>
+            <option value="Rodzice">Rodzice</option>
+            <option value="Rodzina">Rodzina</option>
+            <option value="Znajomi">Znajomi</option>
+          </select>
+          <select id="filterAssigned" onchange="renderGuests()">
+            <option value="">Wszyscy</option>
+            <option value="no">Nieprzypisani</option>
+            <option value="yes">Przypisani</option>
+          </select>
+        </div>
+        <div class="guest-list" id="guestList">
+          <div class="empty-list">Brak gości. Dodaj pierwszego gościa powyżej.</div>
+        </div>
+      </div>
+
+      <!-- CENTER: PLAN STOŁÓW -->
+      <div class="panel-tables" id="panelTables">
+        <div class="panel-title"><span>&#127860;</span> Plan Stołów</div>
+        <div class="table-add">
+          <input type="text" id="tableName" placeholder="Nazwa stołu" style="flex:1;min-width:130px">
+          <select id="tableShape" style="min-width:130px">
+            <option value="round">&#9711; Okrągły</option>
+            <option value="rect">&#9645; Prostokątny</option>
+          </select>
+          <select id="tableSeats" style="min-width:100px">
+            <option value="4">4 miejsca</option>
+            <option value="6">6 miejsc</option>
+            <option value="8" selected>8 miejsc</option>
+            <option value="10">10 miejsc</option>
+            <option value="12">12 miejsc</option>
+          </select>
+          <button class="btn btn-primary" onclick="addTable()">+ Dodaj stół</button>
+        </div>
+        <div class="tables-grid" id="tablesGrid">
+          <div class="empty-tables">
+            <span class="empty-tables-icon">&#127869;</span>
+            Brak stołów. Dodaj pierwszy stół powyżej.
+          </div>
+        </div>
+
+        <!-- STOŁY PERSONELU -->
+        <div class="staff-section">
+          <div class="staff-section-title">&#128119; Stoły personelu</div>
+          <div class="staff-add-row">
+            <select id="staffTableName" onchange="document.getElementById('staffTableCustomName').style.display=this.value==='Inne'?'':'none'">
+              <option value="DJ">&#127911; DJ</option>
+              <option value="Barman">&#127379; Barman</option>
+              <option value="Fotograf">&#128247; Fotograf</option>
+              <option value="Fotobuda">&#128248; Fotobuda</option>
+              <option value="Obs&#322;uga">&#127869; Obs&#322;uga</option>
+              <option value="Inne">&#128119; Inne...</option>
+            </select>
+            <input type="text" id="staffTableCustomName" placeholder="Wpisz nazwę..." style="display:none;flex:1;min-width:80px">
+            <input type="number" id="staffTablePersons" value="2" min="1" max="99" style="width:64px" title="Liczba osób">
+            <span style="font-size:0.78rem;color:var(--text-light)">os.</span>
+            <button class="btn btn-primary btn-sm" onclick="addStaffTable()">+ Dodaj</button>
+          </div>
+          <div id="staffTablesList" class="staff-tables-list">
+            <div class="empty-list">Brak stolików personelu.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: LEGENDA PAR -->
+      <div class="panel-pairs" id="panelPairs">
+        <div class="panel-title"><span>&#10084;</span> Legenda Par</div>
+        <div class="pairs-list" id="pairsList">
+          <div class="empty-list">Brak par.<br>Kliknij &#10084; przy gościu.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ROOM VIEW ══ -->
+  <div id="viewRoom" class="view-panel" style="display:none">
+    <div class="room-view">
+      <div class="room-toolbar">
+        <span class="room-toolbar-icon">&#127963;</span>
+        <input type="text" id="roomNameInput" class="room-name-input" value="Sala weselna"
+               oninput="updateRoomName(this.value)" placeholder="Nazwa sali">
+        <span class="room-hint">Przeciągnij stoły, aby ustawić rozmieszczenie &nbsp;·&nbsp; Najechaj na stół, aby usunąć</span>
+      </div>
+      <div class="room-canvas-wrapper" id="roomCanvasWrapper">
+        <div class="room-canvas" id="roomCanvas">
+          <div class="room-canvas-label" id="roomCanvasLabel">Sala weselna</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RSVP VIEW ══ -->
+  <div id="viewRsvp" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128203; Panel RSVP</h2>
+        <a href="rsvp.html" target="_blank" class="btn btn-primary">&#128279; Otwórz formularz RSVP</a>
+      </div>
+      <div class="rsvp-admin">
+        <div class="rsvp-stats-row" id="rsvpStatsRow"></div>
+        <div class="rsvp-responses-header">
+          <h3>Odpowiedzi gości</h3>
+          <button class="btn btn-sm btn-danger" onclick="clearAllRsvp()">Wyczyść wszystkie</button>
+        </div>
+        <div id="rsvpResponsesList"></div>
+        <div class="rsvp-unmatched-section">
+          <h3>Nieprzypisane odpowiedzi</h3>
+          <div id="rsvpUnmatchedList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BUDGET VIEW ══ -->
+  <div id="viewBudget" class="view-panel budget-view" style="display:none">
+    <!-- OVERVIEW BAR -->
+    <div class="budget-overview">
+      <div class="budget-input-group">
+        <label class="budget-total-lbl">Budżet całkowity</label>
+        <div class="budget-input-row">
+          <input type="number" id="budgetTotalInput" class="budget-total-input" placeholder="0" min="0" step="100"
+                 oninput="onBudgetTotalChange(this.value)">
+          <span class="bunit">zł</span>
+        </div>
+      </div>
+      <div class="bstats">
+        <div class="bstat"><div class="bstat-val" id="bstatPlanned">0,00 zł</div><div class="bstat-lbl">Zaplanowano</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val" id="bstatCatering">0,00 zł</div><div class="bstat-lbl">Catering</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val bval-green" id="bstatPaid">0,00 zł</div><div class="bstat-lbl">Opłacono</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val bval-orange" id="bstatRemaining">0,00 zł</div><div class="bstat-lbl">Pozostało</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val" id="bstatDiff">0,00 zł</div><div class="bstat-lbl">Budżet ‒ planowane</div></div>
+      </div>
+      <div class="budget-prog-wrap">
+        <div class="budget-prog-labels">
+          <span id="budgetProgLabel">0% wydano</span>
+          <span id="budgetProgBudget">Budżet: 0 zł</span>
+        </div>
+        <div class="budget-prog-bg">
+          <div class="budget-prog-planned" id="budgetProgPlanned" style="width:0%"></div>
+          <div class="budget-prog-paid"    id="budgetProgPaid"    style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <!-- BUDGET TAB BAR -->
+    <div class="budget-tab-bar">
+      <button class="budget-tab active" id="btab-summary"   onclick="switchBudgetTab('summary')">&#128202; Podsumowanie</button>
+      <button class="budget-tab"        id="btab-catering"  onclick="switchBudgetTab('catering')">&#127960; Sala</button>
+      <button class="budget-tab"        id="btab-expenses"  onclick="switchBudgetTab('expenses')">&#128203; Wydatki</button>
+      <button class="budget-tab"        id="btab-honeymoon" onclick="switchBudgetTab('honeymoon')">&#9992; Podróż poślubna</button>
+      <button class="budget-tab"        id="btab-payments"  onclick="switchBudgetTab('payments')">&#128179; Płatności</button>
+    </div>
+
+    <!-- SCROLLABLE CONTENT -->
+    <div class="budget-scroll">
+
+      <!-- TAB: CATERING -->
+      <div id="btabPanel-catering" class="btab-panel">
+        <div class="budget-col-hdr">
+          <span>&#127860;</span> Koszty stołów
+          <span class="col-total-badge" id="cateringTotalBadge">0,00 zł</span>
+        </div>
+        <div id="tableCostsList"><div class="empty-list">Brak stołów.</div></div>
+      </div>
+
+      <!-- TAB: WYDATKI -->
+      <div id="btabPanel-expenses" class="btab-panel" style="display:none">
+        <div class="budget-col-hdr">
+          <span>&#128203;</span> Moje wydatki
+          <button class="btn btn-primary btn-sm" onclick="addExpense()">+ Dodaj</button>
+        </div>
+        <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
+        <div class="exp-summary" id="expSummary" style="display:none">
+          <div class="exp-sum-row"><span>Zaplanowano:</span><span id="expSumPlanned" class="exp-sum-val">0,00 zł</span></div>
+          <div class="exp-sum-row"><span>Opłacono:</span><span id="expSumPaid" class="exp-sum-val bval-green">0,00 zł</span></div>
+          <div class="exp-sum-row exp-sum-total"><span>Pozostało:</span><span id="expSumRem" class="exp-sum-val bval-orange">0,00 zł</span></div>
+        </div>
+        <div id="expensesList"><div class="empty-list">Brak wydatków. Kliknij + Dodaj.</div></div>
+      </div>
+
+      <!-- TAB: PODRÓŻ POŚLUBNA -->
+      <div id="btabPanel-honeymoon" class="btab-panel" style="display:none">
+        <div class="budget-extra-card" id="honeymoonCard" style="max-width:640px"></div>
+      </div>
+
+      <!-- TAB: PŁATNOŚCI -->
+      <div id="btabPanel-payments" class="btab-panel" style="display:none">
+        <div id="paymentAlerts" class="payment-alerts"></div>
+        <div id="paymentsList"></div>
+      </div>
+
+      <!-- TAB: PODSUMOWANIE -->
+      <div id="btabPanel-summary" class="btab-panel" style="display:none">
+        <div class="budget-extras-row">
+          <div class="budget-extra-card" id="costBreakdownCard"></div>
+          <div class="budget-extra-card" id="coupleCard"></div>
+        </div>
+        <div class="budget-extras-row">
+          <div class="budget-extra-card" id="costPerTableCard"></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">&#128200; Podział wydatków</span>
+              <button class="btn-chart-expand" onclick="openChartModal('pie')" title="Powiększ">&#128269;</button>
+            </div>
+            <div class="chart-body" id="chartPieBody"></div>
+            <div class="chart-legend" id="chartPieLegend"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">&#128202; Planowane vs opłacone</span>
+              <button class="btn-chart-expand" onclick="openChartModal('bar')" title="Powiększ">&#128269;</button>
+            </div>
+            <div class="chart-body" id="chartBarBody"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">&#9989; Postęp płatności</span>
+              <button class="btn-chart-expand" onclick="openChartModal('prog')" title="Powiększ">&#128269;</button>
+            </div>
+            <div class="chart-body" id="chartProgBody"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SCHEDULE VIEW ══ -->
+  <div id="viewSchedule" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128197; Harmonogram Dnia Ślubu</h2>
+        <button class="btn btn-primary" onclick="addScheduleEvent()">+ Dodaj wydarzenie</button>
+      </div>
+      <div id="scheduleTimeline"></div>
+    </div>
+  </div>
+
+  <!-- ══ TASKS VIEW ══ -->
+  <div id="viewTasks" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#9989; Lista Zadań</h2>
+        <button class="btn btn-primary" onclick="addTask()">+ Dodaj zadanie</button>
+      </div>
+      <div class="tasks-progress-bar-wrap">
+        <div class="tasks-progress-label" id="tasksProgressLabel">0 / 0 zadań ukończonych</div>
+        <div class="tasks-progress-bg"><div class="tasks-progress-fill" id="tasksProgressFill" style="width:0%"></div></div>
+      </div>
+      <div class="tasks-filters">
+        <select id="taskFilterStatus" onchange="renderTasks()">
+          <option value="">Wszystkie statusy</option>
+          <option value="todo">Do zrobienia</option>
+          <option value="inprogress">W trakcie</option>
+          <option value="done">Ukończone</option>
+        </select>
+        <select id="taskFilterPerson" onchange="renderTasks()">
+          <option value="">Wszyscy</option>
+          <option value="groom">Pan Młody</option>
+          <option value="bride">Panna Młoda</option>
+          <option value="both">Oboje</option>
+        </select>
+      </div>
+      <div id="tasksList"></div>
+    </div>
+  </div>
+
+  <!-- ══ VENDORS VIEW ══ -->
+  <div id="viewVendors" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128203; Dostawcy i Usługodawcy</h2>
+        <button class="btn btn-primary" onclick="addVendor()">+ Dodaj dostawcę</button>
+      </div>
+      <div class="vendors-filters">
+        <select id="vendorFilterCat" onchange="renderVendors()">
+          <option value="">Wszystkie kategorie</option>
+          <option value="Fotograf">Fotograf</option>
+          <option value="Kamerzysta">Kamerzysta</option>
+          <option value="Muzyka">Muzyka / DJ</option>
+          <option value="Kwiaty">Kwiaty / Dekoracje</option>
+          <option value="Tort">Tort weselny</option>
+          <option value="Catering">Catering</option>
+          <option value="Transport">Transport</option>
+          <option value="Inne">Inne</option>
+        </select>
+        <select id="vendorFilterStatus" onchange="renderVendors()">
+          <option value="">Wszystkie statusy</option>
+          <option value="contacted">Skontaktowano</option>
+          <option value="confirmed">Potwierdzony</option>
+          <option value="paid">Opłacony</option>
+          <option value="cancelled">Anulowany</option>
+        </select>
+      </div>
+      <div id="vendorsList"></div>
+    </div>
+  </div>
+
+  <!-- ══ TRANSPORT VIEW ══ -->
+  <div id="viewTransport" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128663; Transport</h2>
+        <button class="btn btn-primary" onclick="addVehicle()">+ Dodaj pojazd</button>
+      </div>
+      <div class="transport-notes-row">
+        <div class="transport-note-card">
+          <div class="tn-label">&#128149; Auto ślubne</div>
+          <textarea id="weddingCarNote" class="tn-textarea" placeholder="Notatki o aucie ślubnym..." oninput="saveTransportNotes()"></textarea>
+        </div>
+        <div class="transport-note-card">
+          <div class="tn-label">&#128663; Parking</div>
+          <textarea id="parkingNote" class="tn-textarea" placeholder="Notatki o parkingu..." oninput="saveTransportNotes()"></textarea>
+        </div>
+      </div>
+      <div id="vehiclesList"></div>
+    </div>
+  </div>
+
+  <!-- ══ ACCOMMODATION VIEW ══ -->
+  <div id="viewAccommodation" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#127968; Noclegi</h2>
+        <button class="btn btn-primary" onclick="addHotel()">+ Dodaj hotel</button>
+      </div>
+      <div class="accom-summary" id="accomSummary"></div>
+      <div id="hotelsList"></div>
+    </div>
+  </div>
+
+  <!-- ══ GIFTS VIEW ══ -->
+  <div id="viewGifts" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#127873; Prezenty</h2>
+        <button class="btn btn-primary" onclick="addGift()">+ Dodaj prezent</button>
+      </div>
+      <div class="gifts-summary" id="giftsSummary"></div>
+      <div id="giftsList"></div>
+    </div>
+  </div>
+
+</div><!-- /.views-container -->
+
+<!-- MODALS -->
+<div class="drag-ghost" id="dragGhost"></div>
+<div class="toast" id="toast"></div>
+<div id="rtTooltip" class="rt-tooltip" style="display:none"></div>
+
+<div class="pairing-overlay" id="pairingOverlay" style="display:none">
+  <div class="pairing-banner">
+    <span id="pairingMsg">Wybierz gościa do sparowania</span>
+    <button class="btn-cancel-pair" onclick="cancelPairing()">✕ Anuluj</button>
+  </div>
+</div>
+
+<!-- CHART MODAL -->
+<div class="modal-overlay" id="chartModal" style="display:none" onclick="closeChartModal(event)">
+  <div class="chart-modal-box">
+    <div class="chart-modal-header">
+      <span id="chartModalTitle">Wykres</span>
+      <button class="btn-modal-close" onclick="closeChartModalDirect()">&#10005;</button>
+    </div>
+    <div class="chart-modal-body" id="chartModalBody"></div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal" style="display:none" onclick="closeEditModal(event)">
+  <div class="edit-modal-box">
+    <div class="edit-modal-header">
+      <span id="editModalTitle">Edytuj</span>
+      <button class="btn-modal-close" onclick="closeEditModalDirect()">&#10005;</button>
+    </div>
+    <div class="edit-modal-body" id="editModalBody"></div>
+    <div class="edit-modal-footer">
+      <button class="btn btn-primary" onclick="saveEdit()">&#10003; Zapisz zmiany</button>
+      <button class="btn" onclick="closeEditModalDirect()" style="background:var(--bg);border:1.5px solid var(--border)">Anuluj</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
