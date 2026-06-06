@@ -189,7 +189,7 @@
   const EMAILJS_SVC       = 'service_8y44w48';
   const EMAILJS_TPL_YES   = 'template_1so5ltg';   // Przyjdę
   const EMAILJS_TPL_NO    = 'template_zpg16jc';   // Nie przyjdę
-  const ORGANIZER         = 'macholak.piotr@gmail.com';
+  const ORGANIZERS_BCC    = 'macholak.piotr@gmail.com,ceremonia.panstwa.macholak@gmail.com';
 
   let selectedStatus          = null;
   let companyMode             = null; // 'solo' | 'duo'
@@ -219,7 +219,8 @@
       return false;
     }
     const fullParams = { ...params, to_email: toEmail };
-    console.log('[EmailJS] Wysyłam do:', toEmail, '| Szablon:', templateId, '\nParametry:', JSON.stringify(fullParams, null, 2));
+    console.log('[EmailJS] Adresat (TO):', toEmail, '| BCC:', fullParams.bcc_email || '–', '| Szablon:', templateId);
+    console.log('[EmailJS] Pełne parametry:', JSON.stringify(fullParams, null, 2));
     try {
       const res = await emailjs.send(EMAILJS_SVC, templateId, fullParams);
       console.log('[EmailJS] Sukces →', toEmail, '| status:', res.status, '| text:', res.text);
@@ -481,13 +482,10 @@
       guest_name:     name,
       rsvp_status:    rsvpStatus,
       companion_name: companionName || '',
+      bcc_email:      ORGANIZERS_BCC,
     };
 
-    const [guestOk, orgOk] = await Promise.all([
-      _sendEmail(email,     templateId, emailParams),
-      _sendEmail(ORGANIZER, templateId, emailParams),
-    ]);
-    const emailOk = guestOk && orgOk;
+    const emailOk = await _sendEmail(email, templateId, emailParams);
 
     // ── Pokaż potwierdzenie ──
     const labels = {

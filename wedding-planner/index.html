@@ -152,6 +152,7 @@
               <option value="Rodzice">Rodzice</option>
               <option value="Rodzina" selected>Rodzina</option>
               <option value="Znajomi">Znajomi</option>
+              <option value="Praca">Praca</option>
             </select>
             <select id="guestGender">
               <option value="K">&#9792; Kobieta</option>
@@ -186,43 +187,23 @@
           </div>
         </div>
         <div class="guest-filters">
-          <select id="filterCategory" onchange="renderGuests()">
-            <option value="">Wszystkie kategorie</option>
-            <option value="Państwo Młodzi">Państwo Młodzi</option>
-            <option value="Świadkowie">Świadkowie</option>
-            <option value="Rodzice">Rodzice</option>
-            <option value="Rodzina">Rodzina</option>
-            <option value="Znajomi">Znajomi</option>
-          </select>
-          <select id="filterInvitedBy" onchange="renderGuests()">
-            <option value="">Od kogo zaproszony</option>
-            <option value="groom">Pan Młody</option>
-            <option value="bride">Panna Młoda</option>
-          </select>
-          <select id="filterRsvp" onchange="renderGuests()">
-            <option value="">Wszystkie RSVP</option>
-            <option value="attending">Przyjdzie</option>
-            <option value="not_attending">Nie przyjdzie</option>
-            <option value="none">Brak odpowiedzi</option>
-          </select>
-          <select id="filterDiet" onchange="renderGuests()">
-            <option value="">Wszystkie diety</option>
-            <option value="standard">Standardowa</option>
-            <option value="vegetarian">Wegetariańska</option>
-            <option value="vegan">Wegańska</option>
-            <option value="glutenfree">Bezglutenowa</option>
-          </select>
-          <select id="filterWitness" onchange="renderGuests()">
-            <option value="">Wszyscy</option>
-            <option value="witness_groom">Świadek</option>
-            <option value="witness_bride">Świadkowa</option>
-            <option value="none">Pozostali</option>
-          </select>
-          <select id="filterAssigned" onchange="renderGuests()">
-            <option value="">Stoliki — wszyscy</option>
-            <option value="no">Nieprzypisani</option>
-            <option value="yes">Przypisani</option>
-          </select>
+          <div class="gf-row" id="gfRow1">
+            <button class="gf-btn gf-active" data-filter="quick" data-value="" onclick="setGuestQuickFilter('')">Wszyscy</button>
+            <button class="gf-btn" data-filter="quick" data-value="assigned" onclick="setGuestQuickFilter('assigned')">Przypisani</button>
+            <button class="gf-btn" data-filter="quick" data-value="unassigned" onclick="setGuestQuickFilter('unassigned')">Nieprzypisani</button>
+            <button class="gf-btn" data-filter="quick" data-value="groom" onclick="setGuestQuickFilter('groom')">Od Pana Młodego</button>
+            <button class="gf-btn" data-filter="quick" data-value="bride" onclick="setGuestQuickFilter('bride')">Od Panny Młodej</button>
+          </div>
+          <div class="gf-row" id="gfRow2">
+            <button class="gf-btn gf-active" data-filter="cat" data-value="" onclick="setGuestCatFilter('')">Wszyscy</button>
+            <button class="gf-btn" data-filter="cat" data-value="Rodzina" onclick="setGuestCatFilter('Rodzina')">Rodzina</button>
+            <button class="gf-btn" data-filter="cat" data-value="Znajomi" onclick="setGuestCatFilter('Znajomi')">Znajomi</button>
+            <button class="gf-btn" data-filter="cat" data-value="Współpracownicy" onclick="setGuestCatFilter('Współpracownicy')">Współpracownicy</button>
+            <button class="gf-btn" data-filter="cat" data-value="Inne" onclick="setGuestCatFilter('Inne')">Inne</button>
+          </div>
+          <!-- hidden inputs carry state for renderGuests() -->
+          <input type="hidden" id="filterQuick" value="">
+          <input type="hidden" id="filterCat"   value="">
         </div>
         <div class="guest-list" id="guestList">
           <div class="empty-list">Brak gości. Dodaj pierwszego gościa powyżej.</div>

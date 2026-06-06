@@ -39,6 +39,7 @@ const CAT_CLASS = {
   'Rodzice':        'av-rodzice',
   'Rodzina':        'av-rodzina',
   'Znajomi':        'av-znajomi',
+  'Praca':          'av-praca',
 };
 
 // ── UTILS ──
@@ -192,27 +193,34 @@ document.addEventListener('click', e => {
   }
 });
 
+function setGuestQuickFilter(val) {
+  const el = document.getElementById('filterQuick');
+  if (el) el.value = val;
+  document.querySelectorAll('#gfRow1 .gf-btn').forEach(b => {
+    b.classList.toggle('gf-active', b.dataset.value === val);
+  });
+  renderGuests();
+}
+
+function setGuestCatFilter(val) {
+  const el = document.getElementById('filterCat');
+  if (el) el.value = val;
+  document.querySelectorAll('#gfRow2 .gf-btn').forEach(b => {
+    b.classList.toggle('gf-active', b.dataset.value === val);
+  });
+  renderGuests();
+}
+
 function renderGuests() {
-  const catFilter     = document.getElementById('filterCategory')?.value  ?? '';
-  const invFilter     = document.getElementById('filterInvitedBy')?.value ?? '';
-  const rsvpFilter    = document.getElementById('filterRsvp')?.value      ?? '';
-  const dietFilter    = document.getElementById('filterDiet')?.value      ?? '';
-  const witnessFilter = document.getElementById('filterWitness')?.value   ?? '';
-  const assFilter     = document.getElementById('filterAssigned')?.value  ?? '';
+  const quickFilter = document.getElementById('filterQuick')?.value ?? '';
+  const catFilter   = document.getElementById('filterCat')?.value   ?? '';
 
   const filtered = guests.filter(g => {
+    if (quickFilter === 'assigned'   && g.tableId === null)  return false;
+    if (quickFilter === 'unassigned' && g.tableId !== null)  return false;
+    if (quickFilter === 'groom'      && g.invitedBy !== 'groom') return false;
+    if (quickFilter === 'bride'      && g.invitedBy !== 'bride') return false;
     if (catFilter && g.category !== catFilter) return false;
-    if (invFilter && g.invitedBy !== invFilter) return false;
-    if (dietFilter && (g.diet || 'standard') !== dietFilter) return false;
-    if (witnessFilter === 'none' && (g.witness === 'witness_groom' || g.witness === 'witness_bride')) return false;
-    if (witnessFilter && witnessFilter !== 'none' && g.witness !== witnessFilter) return false;
-    if (assFilter === 'yes' && g.tableId === null)  return false;
-    if (assFilter === 'no'  && g.tableId !== null)  return false;
-    if (rsvpFilter) {
-      const rs = getGuestRsvpStatus(g.id);
-      if (rsvpFilter === 'none'     && rs !== null)           return false;
-      if (rsvpFilter !== 'none'     && rs !== rsvpFilter)     return false;
-    }
     return true;
   });
 
@@ -383,14 +391,16 @@ function deleteTable(tableId) {
 function changeTableSeats(tableId, delta) {
   const t = tables.find(x => x.id === tableId);
   if (!t) return;
-  const occupied = t.seatsData.filter(x => x !== null).length;
-  const newSeats = Math.max(occupied, Math.max(1, t.seats + delta));
-  if (newSeats > t.seats) {
-    t.seatsData.push(...new Array(newSeats - t.seats).fill(null));
+  if (delta < 0) {
+    const lastNull = t.seatsData.lastIndexOf(null);
+    if (lastNull === -1) return; // wszystkie zajęte — nic nie rób
+    t.seatsData.splice(lastNull, 1);
+    t.seats = t.seatsData.length;
   } else {
-    t.seatsData = t.seatsData.slice(0, newSeats);
+    const newSeats = Math.min(t.seats + delta, 99);
+    t.seatsData.push(...new Array(newSeats - t.seats).fill(null));
+    t.seats = newSeats;
   }
-  t.seats = newSeats;
   renderTables();
   updateStats();
 }
@@ -533,7 +543,7 @@ function renderTables() {
         <input class="table-name-input" type="text" value="${esc(t.name)}" oninput="updateTableName(${t.id},this.value)">
         <div class="table-controls">
           <div class="seats-control">
-            <button class="seats-btn" onclick="changeTableSeats(${t.id},-1)">&#8722;</button>
+            <button class="seats-btn" onclick="changeTableSeats(${t.id},-1)" ${free===0?'disabled':''}>&#8722;</button>
             <span class="seats-num">${t.seats}</span>
             <button class="seats-btn" onclick="changeTableSeats(${t.id},1)">+</button>
           </div>
@@ -4237,7 +4247,7 @@ function _eft(id, label, val) {
 }
 
 function _guestForm(g) {
-  const cats  = [['Państwo Młodzi','Państwo Młodzi'],['Świadkowie','Świadkowie'],['Rodzice','Rodzice'],['Rodzina','Rodzina'],['Znajomi','Znajomi']];
+  const cats  = [['Państwo Młodzi','Państwo Młodzi'],['Świadkowie','Świadkowie'],['Rodzice','Rodzice'],['Rodzina','Rodzina'],['Znajomi','Znajomi'],['Praca','Praca']];
   const dietV = g.diet || 'standard';
   return `<div class="ef-grid">
     ${_efi('firstName','Imię','text',g.firstName)}
