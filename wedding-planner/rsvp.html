@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Potwierdzenie Obecności — Wesele Piotra i Patrycji</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     :root {
       --blue: #1a56db; --blue-dark: #1040b0; --blue-pale: #e8f1fd;
@@ -20,7 +26,7 @@
     .card h2 { font-size: 1.1rem; color: var(--blue-dark); margin-bottom: 20px; text-align: center; }
     .field { margin-bottom: 16px; }
     label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-    input[type="text"], textarea {
+    input[type="text"], input[type="email"], textarea {
       width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 14px;
       font-size: 0.92rem; font-family: inherit; color: var(--text); background: var(--white);
       outline: none; transition: border-color 0.2s, box-shadow 0.2s;
@@ -28,7 +34,7 @@
     input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
     textarea { resize: vertical; min-height: 80px; }
 
-    /* Attendance buttons — only two */
+    /* Attendance buttons */
     .attendance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .att-btn { border: 2px solid var(--border); border-radius: 10px; padding: 14px 6px; cursor: pointer; text-align: center; font-size: 0.85rem; font-weight: 600; background: var(--white); transition: all 0.18s; user-select: none; }
     .att-btn:hover { border-color: var(--blue-dark); }
@@ -61,17 +67,36 @@
 
     .error-msg { color: var(--red); font-size: 0.78rem; margin-top: 4px; display: none; }
     .error-msg.show { display: block; }
+
+    /* Submit button */
     .submit-btn {
       width: 100%; padding: 13px; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
       color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
       cursor: pointer; transition: all 0.2s; font-family: inherit; margin-top: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(26,86,219,0.35); }
-    .submit-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(26,86,219,0.35); }
+    .submit-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+    .submit-spinner {
+      display: none; width: 17px; height: 17px; border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50; animation: spin-rsvp 0.75s linear infinite;
+    }
+    .submit-spinner.show { display: block; border-radius: 50%; }
+    @keyframes spin-rsvp { to { transform: rotate(360deg); } }
+
+    /* Email error state */
+    input.field-error { border-color: var(--red) !important; }
+
     .confirm-box { background: #f0fdf4; border: 2px solid #86efac; border-radius: 12px; padding: 18px; margin-top: 14px; display: none; }
     .confirm-box.show { display: block; }
     .confirm-box h3 { color: var(--green); margin-bottom: 8px; font-size: 1rem; }
     .confirm-box p { font-size: 0.85rem; color: #166534; }
+    .confirm-email-note { font-size: 0.78rem; color: #15803d; margin-top: 8px; opacity: 0.8; }
+
+    .email-warn-box { background: #fffbeb; border: 1.5px solid #fde047; border-radius: 10px; padding: 10px 14px; margin-top: 10px; display: none; }
+    .email-warn-box.show { display: block; }
+    .email-warn-box p { font-size: 0.78rem; color: #a16207; }
+
     .match-box { background: var(--blue-pale); border: 2px solid var(--blue); border-radius: 12px; padding: 14px; margin-top: 12px; display: none; }
     .match-box.show { display: block; }
     .match-box p { font-size: 0.85rem; color: var(--blue-dark); margin-bottom: 10px; }
@@ -95,6 +120,12 @@
       <label>Twoje imię i nazwisko *</label>
       <input type="text" id="rsvpName" placeholder="np. Jan Kowalski" autocomplete="name" oninput="onNameInput()">
       <div class="error-msg" id="nameError">Podaj imię i nazwisko (min. 3 znaki)</div>
+    </div>
+
+    <div class="field">
+      <label>Twój adres email *</label>
+      <input type="email" id="rsvpEmail" placeholder="np. jan.kowalski@gmail.com" autocomplete="email">
+      <div class="error-msg" id="emailError">Podaj prawidłowy adres email</div>
     </div>
 
     <div class="field">
@@ -123,10 +154,10 @@
         </div>
       </div>
 
-      <!-- Manualne pole dla gościa bez pary w systemie -->
+      <!-- Pole dla gościa bez pary w systemie -->
       <div class="companion-name-wrap" id="companionNameWrap">
         <div class="field" style="margin-bottom:0">
-          <label>Imię i nazwisko osoby towarzyszącej (opcjonalnie)</label>
+          <label>Imię i nazwisko osoby towarzyszącej / z pary (opcjonalnie)</label>
           <input type="text" id="companionName" placeholder="np. Anna Kowalska">
         </div>
       </div>
@@ -145,28 +176,45 @@
       </div>
     </div>
 
-    <button class="submit-btn" id="submitBtn" onclick="submitRsvp()">Wyślij potwierdzenie</button>
+    <button class="submit-btn" id="submitBtn" onclick="submitRsvp()">
+      <span class="submit-spinner" id="submitSpinner"></span>
+      <span id="submitBtnText">Wyślij potwierdzenie</span>
+    </button>
   </div>
 
   <div class="confirm-box" id="confirmBox">
     <h3>&#127881; Dziękujemy za potwierdzenie!</h3>
     <p id="confirmText">Twoja odpowiedź została zapisana.</p>
+    <p class="confirm-email-note" id="confirmEmailNote"></p>
+  </div>
+
+  <div class="email-warn-box" id="emailWarnBox">
+    <p>&#9888; Nie udało się wysłać emaila potwierdzającego, ale Twoja odpowiedź została zapisana.</p>
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="firebase-config.js"></script>
 <script>
-  const STORAGE_KEY = 'wedding-planner-v2';
-  let selectedStatus   = null;
-  let matchedGuestId   = null;
-  let pendingSuggestedGuestId = null;
-  let partnerGuestId   = null;   // id gościa-pary z systemu
-  let partnerGuestName = '';
-  let pairAnswer       = null;   // 'attending' | 'not_attending' | null
+  const STORAGE_KEY  = 'wedding-planner-v2';
+  const EMAILJS_SVC  = 'service_8y44w48';
+  const EMAILJS_TPL  = 'template_8ppmica';
+  const ORGANIZER    = 'macholak.piotr@gmail.com';
 
-  // ── Normalizacja i Levenshtein (niezmienione) ──
+  let selectedStatus          = null;
+  let matchedGuestId          = null;
+  let pendingSuggestedGuestId = null;
+  let partnerGuestId          = null;
+  let partnerGuestName        = '';
+  let pairAnswer              = null;
+
+  // ── Inicjalizacja EmailJS ──
+  emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });
+
+  // ── Inicjalizacja Firebase ──
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof initFirebaseSync === 'function') initFirebaseSync();
+  });
+
+  // ── Normalizacja i Levenshtein ──
   function normalizePL(str) {
     return (str || '').toLowerCase()
       .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l')
@@ -200,18 +248,13 @@
     return bestScore <= threshold ? best : null;
   }
 
-  // ── Wczytaj dane (localStorage + Firestore) ──
+  // ── Wczytaj dane ──
   function loadAppData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : {};
     } catch (_) { return {}; }
   }
-
-  // Inicjuj Firebase — synchronizuje dane gości z Firestore przy ładowaniu
-  window.addEventListener('DOMContentLoaded', () => {
-    if (typeof initFirebaseSync === 'function') initFirebaseSync();
-  });
 
   // ── Sprawdź parę dla dopasowanego gościa ──
   function detectPartner(guestId) {
@@ -237,12 +280,9 @@
     document.getElementById('matchBox').classList.remove('show');
     pairAnswer = null;
     updatePairButtons();
-
-    // Sekcja towarzysząca
     const compSection = document.getElementById('companionSection');
     if (status === 'attending') {
       compSection.classList.add('show');
-      // Pokaż właściwą pod-sekcję
       refreshCompanionUI();
     } else {
       compSection.classList.remove('show');
@@ -250,8 +290,8 @@
   }
 
   function refreshCompanionUI() {
-    const pairQ      = document.getElementById('pairQuestion');
-    const compNameW  = document.getElementById('companionNameWrap');
+    const pairQ     = document.getElementById('pairQuestion');
+    const compNameW = document.getElementById('companionNameWrap');
     if (partnerGuestId) {
       pairQ.classList.add('show');
       compNameW.classList.remove('show');
@@ -271,7 +311,7 @@
     document.getElementById('pairNo').classList.toggle('sel',  pairAnswer === 'not_attending');
   }
 
-  // ── Nazwa gościa — wykrywanie pary na bieżąco ──
+  // ── Wykrywanie pary podczas wpisywania nazwy ──
   function onNameInput() {
     const name = document.getElementById('rsvpName').value.trim();
     if (name.length < 3) { partnerGuestId = null; partnerGuestName = ''; return; }
@@ -296,7 +336,6 @@
   function confirmMatch() {
     if (pendingSuggestedGuestId) {
       matchedGuestId = pendingSuggestedGuestId;
-      // Re-check partner for newly confirmed match
       const partner = detectPartner(matchedGuestId);
       if (partner) {
         partnerGuestId   = partner.id;
@@ -315,14 +354,26 @@
     doSubmit(false);
   }
 
+  // ── Walidacja email ──
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
   // ── Submit ──
   function submitRsvp() {
-    const name = document.getElementById('rsvpName').value.trim();
+    const name  = document.getElementById('rsvpName').value.trim();
+    const email = document.getElementById('rsvpEmail').value.trim();
     let valid = true;
+
     if (name.length < 3) { document.getElementById('nameError').classList.add('show'); valid = false; }
     else document.getElementById('nameError').classList.remove('show');
+
+    if (!isValidEmail(email)) { document.getElementById('emailError').classList.add('show'); valid = false; }
+    else document.getElementById('emailError').classList.remove('show');
+
     if (!selectedStatus) { document.getElementById('attError').classList.add('show'); valid = false; }
     else document.getElementById('attError').classList.remove('show');
+
     if (!valid) return;
 
     let guests = [];
@@ -344,35 +395,50 @@
     doSubmit(matchedGuestId !== null);
   }
 
-  function doSubmit(matched) {
-    const name         = document.getElementById('rsvpName').value.trim();
-    const message      = document.getElementById('rsvpMessage').value.trim();
-    const companionName= document.getElementById('companionName').value.trim();
+  // ── Zapis i wysyłka emaila ──
+  async function doSubmit(matched) {
+    const btn     = document.getElementById('submitBtn');
+    const spinner = document.getElementById('submitSpinner');
+    const btnText = document.getElementById('submitBtnText');
+    btn.disabled = true;
+    spinner.classList.add('show');
+    btnText.textContent = 'Wysyłanie…';
 
+    const name          = document.getElementById('rsvpName').value.trim();
+    const email         = document.getElementById('rsvpEmail').value.trim();
+    const message       = document.getElementById('rsvpMessage').value.trim();
+    const companionRaw  = document.getElementById('companionName').value.trim();
+
+    // Ustal imię osoby towarzyszącej
+    let companionName = '';
+    if (partnerGuestId && pairAnswer === 'attending') {
+      companionName = partnerGuestName;
+    } else if (!partnerGuestId) {
+      companionName = companionRaw;
+    }
+
+    // ── Zapis do localStorage i Firestore ──
     try {
       const raw   = localStorage.getItem(STORAGE_KEY);
       const state = raw ? JSON.parse(raw) : {};
       if (!state.rsvpEntries) state.rsvpEntries = [];
       if (!state.nextRsvpId)  state.nextRsvpId  = 1;
 
-      // Usuń poprzednią odpowiedź tego gościa
       if (matchedGuestId) {
         state.rsvpEntries = state.rsvpEntries.filter(e => e.guestId !== matchedGuestId);
       }
-
-      // Wpis główny
       state.rsvpEntries.push({
         id: state.nextRsvpId++,
         rawName: name,
+        email,
         status: selectedStatus,
         message,
         guestId: matchedGuestId || null,
         manual: false,
         timestamp: new Date().toISOString(),
-        companionName: selectedStatus === 'attending' && !partnerGuestId ? companionName : '',
+        companionName: selectedStatus === 'attending' ? companionName : '',
       });
 
-      // Wpis dla pary jeśli udzielono odpowiedzi
       if (partnerGuestId && pairAnswer) {
         state.rsvpEntries = state.rsvpEntries.filter(e => e.guestId !== partnerGuestId);
         state.rsvpEntries.push({
@@ -389,21 +455,54 @@
 
       state._savedAt = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      // Natychmiastowa synchronizacja RSVP do Firestore
       if (typeof firestoreSaveNow === 'function') firestoreSaveNow(state);
     } catch (_) {}
 
+    // ── Wysyłka emaili przez EmailJS ──
+    const rsvpStatus  = selectedStatus === 'attending' ? 'Przyjdę ✅' : 'Nie przyjdę ❌';
+    const emailParams = {
+      guest_name:     name,
+      rsvp_status:    rsvpStatus,
+      companion_name: companionName || '—',
+    };
+
+    let emailOk = true;
+    try {
+      // Email do gościa
+      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
+        ...emailParams,
+        to_email: email,
+      });
+      // Powiadomienie do organizatora
+      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, {
+        ...emailParams,
+        to_email: ORGANIZER,
+      });
+    } catch (e) {
+      console.warn('EmailJS:', e);
+      emailOk = false;
+    }
+
+    // ── Pokaż potwierdzenie ──
     const labels = {
-      attending: 'Cieszymy się, że będziesz z nami! &#127881;',
+      attending:     'Cieszymy się, że będziesz z nami! &#127881;',
       not_attending: 'Szkoda, że nie dasz rady. Dziękujemy za odpowiedź.',
     };
     let extra = '';
-    if (partnerGuestId && pairAnswer === 'attending') extra = `<br>Potwierdzono też obecność: <strong>${partnerGuestName}</strong> &#10003;`;
+    if (partnerGuestId && pairAnswer === 'attending')     extra = `<br>Potwierdzono też obecność: <strong>${partnerGuestName}</strong> &#10003;`;
     if (partnerGuestId && pairAnswer === 'not_attending') extra = `<br>${partnerGuestName} nie przyjdzie.`;
 
     document.getElementById('formCard').style.display = 'none';
-    document.getElementById('confirmText').innerHTML = (labels[selectedStatus] || 'Dziękujemy!') + extra;
+    document.getElementById('confirmText').innerHTML   = (labels[selectedStatus] || 'Dziękujemy!') + extra;
     document.getElementById('confirmBox').classList.add('show');
+
+    const emailNote = document.getElementById('confirmEmailNote');
+    if (emailOk) {
+      emailNote.textContent = `📧 Potwierdzenie zostało wysłane na adres ${email}`;
+    }
+    if (!emailOk) {
+      document.getElementById('emailWarnBox').classList.add('show');
+    }
   }
 </script>
 </body>
