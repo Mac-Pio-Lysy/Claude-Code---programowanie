@@ -788,6 +788,10 @@ function renderTableCosts() {
   const regularDecoTotal = calcRegularTableDecoTotal();
   const regularCount  = getRegularTableCount();
   const honorCount    = getHonorTableCount();
+  const staffTotal       = getStaffPersonCount();
+  const staffCostCount   = getStaffCostPersonCount();
+  const staffCost        = calcStaffCost();
+  const total            = base + virtualCost + staffCost + menuTotal + decoTotal;
 
   if (badge) badge.textContent = fmt(total) + ' zł';
 
@@ -850,9 +854,6 @@ function renderTableCosts() {
     </div>`;
 
   // 2b. Personel (stoły obsługi)
-  const staffTotal       = getStaffPersonCount();
-  const staffCostCount   = getStaffCostPersonCount();
-  const staffCost        = calcStaffCost();
   const staffRows = staffTables.length
     ? staffTables.map(t => `
         <div class="staff-budget-row">
@@ -1007,7 +1008,6 @@ function renderTableCosts() {
     </div>` : `<div id="addonsSummaryCard" style="display:none"></div>`;
 
   // 6. Podsumowanie catering
-  const total = base + virtualCost + staffCost + menuTotal + decoTotal;
   const summaryFooter = `
     <div class="tc-summary">
       <div class="tc-sum-row" id="tcSumRowBase">
