@@ -316,6 +316,8 @@
       </div>
       <div class="bstats">
         <div class="bstat"><div class="bstat-val" id="bstatPlanned">0,00 zł</div><div class="bstat-lbl">Potwierdzone</div></div>
+        <div class="bstat-sep" id="bstatExpEstSep" style="display:none"></div>
+        <div class="bstat" id="bstatExpEstRow" style="display:none"><div class="bstat-val bval-est" id="bstatExpEst">0,00 zł</div><div class="bstat-lbl">~ Przewidywane</div></div>
         <div class="bstat-sep bstat-sep-est" style="display:none"></div>
         <div class="bstat bstat-est" style="display:none"><div class="bstat-val bval-est" id="bstatEstimated">0,00 zł</div><div class="bstat-lbl">&#126; Orientacyjnie</div></div>
         <div class="bstat-sep"></div>
@@ -372,6 +374,7 @@
             <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
             <div class="exp-summary" id="expSummary" style="display:none">
               <div class="exp-sum-row"><span>Zaplanowano:</span><span id="expSumPlanned" class="exp-sum-val">0,00 zł</span></div>
+              <div class="exp-sum-row"><span>~ Przewidywane:</span><span id="expSumEstimated" class="exp-sum-val bval-est">0,00 zł</span></div>
               <div class="exp-sum-row"><span>Opłacono:</span><span id="expSumPaid" class="exp-sum-val bval-green">0,00 zł</span></div>
               <div class="exp-sum-row exp-sum-total"><span>Pozostało:</span><span id="expSumRem" class="exp-sum-val bval-orange">0,00 zł</span></div>
             </div>
@@ -446,7 +449,14 @@
     <div class="section-container">
       <div class="section-header">
         <h2>&#128197; Harmonogram Dnia Ślubu</h2>
-        <button class="btn btn-primary" onclick="addScheduleEvent()">+ Dodaj wydarzenie</button>
+        <div class="sched-toolbar">
+          <div class="schv-switcher">
+            <button id="schv-list"    class="schv-btn schv-active" onclick="switchScheduleView('list')"    title="Lista">&#9776; Lista</button>
+            <button id="schv-columns" class="schv-btn"             onclick="switchScheduleView('columns')" title="Kolumny">&#9638; Kolumny</button>
+            <button id="schv-gantt"   class="schv-btn"             onclick="switchScheduleView('gantt')"   title="Gantt">&#9646; Gantt</button>
+          </div>
+          <button class="btn btn-primary" onclick="addScheduleEvent()">+ Dodaj wydarzenie</button>
+        </div>
       </div>
       <div id="scheduleTimeline"></div>
     </div>
@@ -464,12 +474,6 @@
         <div class="tasks-progress-bg"><div class="tasks-progress-fill" id="tasksProgressFill" style="width:0%"></div></div>
       </div>
       <div class="tasks-filters">
-        <select id="taskFilterStatus" onchange="renderTasks()">
-          <option value="">Wszystkie statusy</option>
-          <option value="todo">Do zrobienia</option>
-          <option value="inprogress">W trakcie</option>
-          <option value="done">Ukończone</option>
-        </select>
         <select id="taskFilterPerson" onchange="renderTasks()">
           <option value="">Wszyscy</option>
           <option value="groom">Pan Młody</option>
@@ -477,7 +481,7 @@
           <option value="both">Oboje</option>
         </select>
       </div>
-      <div id="tasksList"></div>
+      <div id="kanbanBoard" class="kanban-board"></div>
     </div>
   </div>
 

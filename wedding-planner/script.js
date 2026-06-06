@@ -629,21 +629,30 @@ let nextHoneymoonInstId  = 1;
 let nextTableDecoId      = 1;
 
 const EXPENSE_CATEGORIES = [
-  { name: 'Sala i catering',    icon: '🍽', color: '#1a56db' },
-  { name: 'Suknia ślubna',      icon: '👗', color: '#e879f9' },
-  { name: 'Garnitur/strój',     icon: '👔', color: '#6366f1' },
-  { name: 'Obrączki',           icon: '💍', color: '#fbbf24' },
-  { name: 'Fotograf',           icon: '📷', color: '#34d399' },
-  { name: 'Kamerzysta/wideo',   icon: '🎥', color: '#2dd4bf' },
-  { name: 'Kwiaty/dekoracje',   icon: '💐', color: '#f87171' },
-  { name: 'Tort weselny',       icon: '🎂', color: '#a78bfa' },
-  { name: 'Muzyka/DJ/zespół',   icon: '🎵', color: '#fb923c' },
-  { name: 'Zaproszenia',        icon: '✉️', color: '#38bdf8' },
-  { name: 'Uroda',              icon: '💄', color: '#f472b6' },
-  { name: 'Transport',          icon: '🚗', color: '#94a3b8' },
-  { name: 'Podróż poślubna',    icon: '✈️', color: '#4ade80' },
-  { name: 'Alkohol',            icon: '🍾', color: '#7c3aed' },
-  { name: 'Inne',               icon: '📦', color: '#cbd5e1' },
+  { name: 'Sala i catering',         icon: '🍽', color: '#1a56db' },
+  { name: 'Suknia ślubna',           icon: '👗', color: '#e879f9' },
+  { name: 'Garnitur/strój',          icon: '👔', color: '#6366f1' },
+  { name: 'Obrączki',                icon: '💍', color: '#fbbf24' },
+  { name: 'Fotograf',                icon: '📷', color: '#34d399' },
+  { name: 'Kamerzysta/wideo',        icon: '🎥', color: '#2dd4bf' },
+  { name: 'Kwiaty/dekoracje',        icon: '💐', color: '#f87171' },
+  { name: 'Bukiet ślubny',           icon: '🌹', color: '#fb7185' },
+  { name: 'Kwiaty dla PM',           icon: '🌸', color: '#f472b6' },
+  { name: 'Przystrojenie kościoła',  icon: '⛪', color: '#818cf8' },
+  { name: 'Tort weselny',            icon: '🎂', color: '#a78bfa' },
+  { name: 'Muzyka/DJ/zespół',        icon: '🎵', color: '#fb923c' },
+  { name: 'Zaproszenia',             icon: '✉️', color: '#38bdf8' },
+  { name: 'Uroda',                   icon: '💄', color: '#f472b6' },
+  { name: 'Makijaż i fryzura',       icon: '💇', color: '#e879f9' },
+  { name: 'Transport',               icon: '🚗', color: '#94a3b8' },
+  { name: 'Dojazd do wesela',        icon: '🚌', color: '#64748b' },
+  { name: 'Dojazd do kościoła',      icon: '🚗', color: '#475569' },
+  { name: 'Upominki dla gości',      icon: '🎁', color: '#10b981' },
+  { name: 'Upominki dla rodziców',   icon: '🎀', color: '#f59e0b' },
+  { name: 'Upominki dla świadków',   icon: '🥂', color: '#8b5cf6' },
+  { name: 'Podróż poślubna',         icon: '✈️', color: '#4ade80' },
+  { name: 'Alkohol',                 icon: '🍾', color: '#7c3aed' },
+  { name: 'Inne',                    icon: '📦', color: '#cbd5e1' },
 ];
 
 function fmt(n) {
@@ -724,9 +733,10 @@ function calcCateringTotal() {
 function calcAlcoholTotal()   { return (budgetData.alcoholItems || []).reduce((s, i) => s + (i.bottles || 0) * (i.pricePerBottle || 0), 0); }
 function calcAlcoholBottles() { return (budgetData.alcoholItems || []).reduce((s, i) => s + (i.bottles || 0), 0); }
 
-function calcExpensesPlanned()   { return budgetData.expenses.reduce((s, e) => s + (e.planned || 0), 0) + calcAlcoholTotal(); }
-function calcExpensesPaid()      { return budgetData.expenses.reduce((s, e) => s + (e.paid    || 0), 0); }
-function calcExpensesEffective() { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0) + calcAlcoholTotal(); }
+function calcExpensesPlanned()    { return budgetData.expenses.reduce((s, e) => s + (e.planned         || 0), 0) + calcAlcoholTotal(); }
+function calcExpensesPaid()       { return budgetData.expenses.reduce((s, e) => s + (e.paid             || 0), 0); }
+function calcExpensesEstimated()  { return budgetData.expenses.reduce((s, e) => s + (e.estimatedAmount  || 0), 0); }
+function calcExpensesEffective()  { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0) + calcAlcoholTotal(); }
 
 // ── BUDGET VIEW ──
 function renderBudget() {
@@ -763,6 +773,15 @@ function renderBudgetOverview() {
   document.getElementById('bstatCatering').textContent  = fmt(catering) + ' zł';
   document.getElementById('bstatPaid').textContent      = fmt(totalPaid) + ' zł';
   document.getElementById('bstatRemaining').textContent = fmt(remaining) + ' zł';
+
+  const expEstTotal = calcExpensesEstimated();
+  const expEstEl    = document.getElementById('bstatExpEst');
+  const expEstRow   = document.getElementById('bstatExpEstRow');
+  const expEstSep   = document.getElementById('bstatExpEstSep');
+  if (expEstEl) expEstEl.textContent = fmt(expEstTotal) + ' zł';
+  const showExpEst = expEstTotal > 0;
+  if (expEstRow) expEstRow.style.display = showExpEst ? '' : 'none';
+  if (expEstSep) expEstSep.style.display = showExpEst ? '' : 'none';
 
   const estEl  = document.getElementById('bstatEstimated');
   const estRow = estEl?.closest('.bstat');
@@ -1831,10 +1850,12 @@ function renderExpenses() {
   }
 
   const expPlan = calcExpensesPlanned();
+  const expEst  = calcExpensesEstimated();
   const expPaid = calcExpensesPaid();
-  document.getElementById('expSumPlanned').textContent = fmt(expPlan) + ' zł';
-  document.getElementById('expSumPaid').textContent    = fmt(expPaid) + ' zł';
-  document.getElementById('expSumRem').textContent     = fmt(Math.max(0, expPlan - expPaid)) + ' zł';
+  document.getElementById('expSumPlanned').textContent   = fmt(expPlan) + ' zł';
+  document.getElementById('expSumEstimated').textContent = fmt(expEst)  + ' zł';
+  document.getElementById('expSumPaid').textContent      = fmt(expPaid) + ' zł';
+  document.getElementById('expSumRem').textContent       = fmt(Math.max(0, expPlan - expPaid)) + ' zł';
   if (summary) summary.style.display = 'block';
 }
 
@@ -2057,13 +2078,17 @@ function _refreshExpenseRow(expId) {
 }
 
 function _refreshExpenseSummary() {
-  const p = calcExpensesPlanned(), q = calcExpensesPaid();
+  const p  = calcExpensesPlanned();
+  const es = calcExpensesEstimated();
+  const q  = calcExpensesPaid();
   const sp = document.getElementById('expSumPlanned');
+  const se = document.getElementById('expSumEstimated');
   const sq = document.getElementById('expSumPaid');
   const sr = document.getElementById('expSumRem');
   const sm = document.getElementById('expSummary');
-  if (sp) sp.textContent = fmt(p) + ' zł';
-  if (sq) sq.textContent = fmt(q) + ' zł';
+  if (sp) sp.textContent = fmt(p)  + ' zł';
+  if (se) se.textContent = fmt(es) + ' zł';
+  if (sq) sq.textContent = fmt(q)  + ' zł';
   if (sr) sr.textContent = fmt(Math.max(0, p - q)) + ' zł';
   if (sm) sm.style.display = budgetData.expenses.length ? 'block' : 'none';
 }
@@ -2566,6 +2591,7 @@ document.addEventListener('mouseup', e => {
 let weddingDate    = null;
 let scheduleEvents = [];
 let nextScheduleId = 1;
+let scheduleView   = 'list'; // 'list' | 'columns' | 'gantt'
 let tasks          = [];
 let nextTaskId     = 1;
 let vendors        = [];
@@ -2682,8 +2708,16 @@ const SCHED_CATS = [
 ];
 
 function addScheduleEvent() {
-  scheduleEvents.push({ id:nextScheduleId++, hour:12, minute:0, name:'Nowe wydarzenie', description:'', location:'', responsible:'', category:'Inne' });
+  scheduleEvents.push({ id:nextScheduleId++, hour:12, minute:0, duration:60, name:'Nowe wydarzenie', description:'', location:'', responsible:'', category:'Inne' });
   renderSchedule(); saveState();
+}
+function switchScheduleView(mode) {
+  scheduleView = mode;
+  ['list','columns','gantt'].forEach(m => {
+    const b = document.getElementById('schv-' + m);
+    if (b) b.classList.toggle('schv-active', m === mode);
+  });
+  renderSchedule();
 }
 function updateScheduleEvent(id, field, value) {
   const ev = scheduleEvents.find(e=>e.id===id);
@@ -2708,6 +2742,36 @@ function addDefaultSchedule() {
   defaults.forEach(d => scheduleEvents.push({id:nextScheduleId++,...d}));
   renderSchedule(); saveState();
 }
+function _tevHtml(ev) {
+  const cat = SCHED_CATS.find(c => c.name === ev.category) || SCHED_CATS[6];
+  const catOpts = SCHED_CATS.map(ct =>
+    `<option value="${ct.name}" ${ct.name === ev.category ? 'selected' : ''}>${ct.icon} ${ct.name}</option>`
+  ).join('');
+  const hh = String(ev.hour).padStart(2, '0');
+  const mm = String(ev.minute).padStart(2, '0');
+  return `<div class="tev" style="border-left:4px solid ${cat.color}" id="tev-${ev.id}">
+    <div class="tev-meta">
+      <div class="tev-time">
+        <input type="number" class="tev-hh" value="${ev.hour}" min="0" max="23" onchange="updateScheduleEvent(${ev.id},'hour',parseInt(this.value)||0)">:<input type="number" class="tev-mm" value="${mm}" min="0" max="59" onchange="updateScheduleEvent(${ev.id},'minute',parseInt(this.value)||0)">
+      </div>
+      <div class="tev-dot" style="background:${cat.color}">${cat.icon}</div>
+    </div>
+    <div class="tev-body">
+      <div class="tev-row1">
+        <input class="tev-name" type="text" value="${esc(ev.name)}" onchange="updateScheduleEvent(${ev.id},'name',this.value)">
+        <select class="tev-cat" onchange="updateScheduleEvent(${ev.id},'category',this.value)">${catOpts}</select>
+        <button class="btn-tev-edit" onclick="openEditModal('schedule',${ev.id})" title="Edytuj">&#9998;</button>
+        <button class="btn-tev-del" onclick="deleteScheduleEvent(${ev.id})">&#128465;</button>
+      </div>
+      <div class="tev-row2">
+        <input class="tev-input" type="text" value="${esc(ev.description)}" placeholder="Opis…" onchange="updateScheduleEvent(${ev.id},'description',this.value)">
+        <input class="tev-input" type="text" value="${esc(ev.location)}" placeholder="Miejsce…" onchange="updateScheduleEvent(${ev.id},'location',this.value)">
+        <input class="tev-input" type="text" value="${esc(ev.responsible)}" placeholder="Odpowiedzialny…" onchange="updateScheduleEvent(${ev.id},'responsible',this.value)">
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderSchedule() {
   const c = document.getElementById('scheduleTimeline');
   if (!c) return;
@@ -2715,76 +2779,167 @@ function renderSchedule() {
     c.innerHTML = `<div class="empty-list">Brak wydarzeń.<br><button class="btn btn-primary" onclick="addDefaultSchedule()">&#128197; Dodaj domyślny harmonogram</button></div>`;
     return;
   }
-  const sorted = [...scheduleEvents].sort((a,b) => {
-    const ah = a.hour<6 ? a.hour+24 : a.hour, bh = b.hour<6 ? b.hour+24 : b.hour;
-    return (ah*60+a.minute)-(bh*60+b.minute);
+  const sorted = [...scheduleEvents].sort((a, b) => {
+    const ah = a.hour < 6 ? a.hour + 24 : a.hour, bh = b.hour < 6 ? b.hour + 24 : b.hour;
+    return (ah * 60 + a.minute) - (bh * 60 + b.minute);
   });
-  c.innerHTML = '<div class="timeline-list">' + sorted.map(ev => {
-    const cat = SCHED_CATS.find(c=>c.name===ev.category)||SCHED_CATS[6];
-    const catOpts = SCHED_CATS.map(ct=>`<option value="${ct.name}" ${ct.name===ev.category?'selected':''}>${ct.icon} ${ct.name}</option>`).join('');
-    return `<div class="tev" style="border-left:4px solid ${cat.color}">
-      <div class="tev-time">
-        <input type="number" class="tev-hh" value="${ev.hour}" min="0" max="23" onchange="updateScheduleEvent(${ev.id},'hour',this.value)">
-        :<input type="number" class="tev-mm" value="${String(ev.minute).padStart(2,'0')}" min="0" max="59" onchange="updateScheduleEvent(${ev.id},'minute',this.value)">
-      </div>
-      <div class="tev-dot" style="background:${cat.color}">${cat.icon}</div>
-      <div class="tev-body">
-        <div class="tev-row">
-          <input class="tev-name" type="text" value="${esc(ev.name)}" onchange="updateScheduleEvent(${ev.id},'name',this.value)">
-          <select class="tev-cat" onchange="updateScheduleEvent(${ev.id},'category',this.value)">${catOpts}</select>
-          <button class="btn-tev-edit" onclick="openEditModal('schedule',${ev.id})" title="Edytuj">&#9998;</button>
-          <button class="btn-tev-del" onclick="deleteScheduleEvent(${ev.id})">&#128465;</button>
-        </div>
-        <div class="tev-row tev-details">
-          <input class="tev-input" type="text" value="${esc(ev.description)}" placeholder="Opis…" onchange="updateScheduleEvent(${ev.id},'description',this.value)">
-          <input class="tev-input" type="text" value="${esc(ev.location)}" placeholder="Miejsce…" onchange="updateScheduleEvent(${ev.id},'location',this.value)">
-          <input class="tev-input" type="text" value="${esc(ev.responsible)}" placeholder="Odpowiedzialny…" onchange="updateScheduleEvent(${ev.id},'responsible',this.value)">
+  if (scheduleView === 'gantt')   { _renderSchedGantt(c, sorted);   return; }
+  if (scheduleView === 'columns') { _renderSchedCols(c, sorted);    return; }
+  c.innerHTML = '<div class="timeline-list">' + sorted.map(_tevHtml).join('') + '</div>';
+}
+
+function _renderSchedCols(c, sorted) {
+  const cols = [
+    { label: '🌅 Rano',     sub: 'do 12:00',  evs: sorted.filter(e => e.hour < 12) },
+    { label: '☀️ Południe', sub: '12:00–17:59', evs: sorted.filter(e => e.hour >= 12 && e.hour < 18) },
+    { label: '🌙 Wieczór', sub: '18:00+',      evs: sorted.filter(e => e.hour >= 18) },
+  ];
+  c.innerHTML = `<div class="sched-cols">${cols.map(col => `
+    <div class="sched-col">
+      <div class="sched-col-hdr"><span class="sched-col-title">${col.label}</span><span class="sched-col-sub">${col.sub}</span></div>
+      <div class="timeline-list">${col.evs.length ? col.evs.map(_tevHtml).join('') : '<div class="sched-col-empty">Brak wydarzeń</div>'}</div>
+    </div>`).join('')}</div>`;
+}
+
+function _renderSchedGantt(c, sorted) {
+  if (!sorted.length) { c.innerHTML = '<div class="empty-list">Brak wydarzeń.</div>'; return; }
+
+  const toMin = e => { const h = e.hour < 6 ? e.hour + 24 : e.hour; return h * 60 + e.minute; };
+  const minStart = Math.min(...sorted.map(toMin));
+  const maxEnd   = Math.max(...sorted.map(e => toMin(e) + (e.duration || 60)));
+  const rangeStart = Math.floor(minStart / 60) * 60 - 30;
+  const rangeEnd   = Math.ceil(maxEnd  / 60) * 60 + 30;
+  const span = rangeEnd - rangeStart;
+
+  const pct = m => ((m - rangeStart) / span * 100).toFixed(2) + '%';
+
+  const hours = [];
+  for (let h = Math.floor(rangeStart / 60); h <= Math.ceil(rangeEnd / 60); h++) {
+    const m = h * 60;
+    if (m >= rangeStart && m <= rangeEnd) hours.push(h);
+  }
+
+  const ruler = hours.map(h => {
+    const lbl = String(h % 24).padStart(2, '0') + ':00';
+    return `<div class="gantt-hr" style="left:${pct(h * 60)}"><span class="gantt-hr-lbl">${lbl}</span></div>`;
+  }).join('');
+
+  const rows = sorted.map(ev => {
+    const cat  = SCHED_CATS.find(ct => ct.name === ev.category) || SCHED_CATS[6];
+    const start = toMin(ev);
+    const dur   = ev.duration || 60;
+    const hh = String(ev.hour).padStart(2, '0'), mm = String(ev.minute).padStart(2, '0');
+    return `<div class="gantt-row">
+      <div class="gantt-row-lbl" title="${esc(ev.name)}">${cat.icon} <strong>${hh}:${mm}</strong> ${esc(ev.name)}</div>
+      <div class="gantt-track">
+        ${hours.map(h => `<div class="gantt-grid-line" style="left:${pct(h * 60)}"></div>`).join('')}
+        <div class="gantt-bar" style="left:${pct(start)};width:${(dur/span*100).toFixed(2)}%;background:${cat.color}" title="${esc(ev.name)} (${dur} min)">
+          <span class="gantt-bar-lbl">${esc(ev.name)}</span>
         </div>
       </div>
     </div>`;
-  }).join('') + '</div>';
+  }).join('');
+
+  c.innerHTML = `<div class="gantt-wrap">
+    <div class="gantt-ruler">${ruler}</div>
+    <div class="gantt-rows">${rows}</div>
+  </div>`;
 }
 
 // ── TASKS ──
+const KANBAN_COLS = [
+  { status:'todo',       label:'Do zrobienia', color:'#ef4444', icon:'📋' },
+  { status:'inprogress', label:'W trakcie',    color:'#f59e0b', icon:'⏳' },
+  { status:'done',       label:'Ukończone',    color:'#10b981', icon:'✅' },
+];
+const TASK_PERSON_LABELS  = { groom:'Pan Młody', bride:'Panna Młoda', both:'Oboje' };
+const TASK_PERSON_COLORS  = { groom:'#3b82f6',   bride:'#ec4899',     both:'#6b7280' };
+
 function addTask() {
   tasks.push({id:nextTaskId++,name:'Nowe zadanie',dueDate:'',responsible:'both',status:'todo'});
   renderTasks(); saveState();
 }
 function updateTask(id,field,value) {
-  const t=tasks.find(x=>x.id===id); if(t){t[field]=value;renderTasks();saveState();}
+  const t=tasks.find(x=>x.id===id); if(!t) return;
+  t[field]=value; renderTasks(); saveState();
 }
 function deleteTask(id) {
   tasks=tasks.filter(x=>x.id!==id); renderTasks(); saveState();
 }
-function renderTasks() {
-  const c=document.getElementById('tasksList');
-  const lbl=document.getElementById('tasksProgressLabel');
-  const fill=document.getElementById('tasksProgressFill');
-  if(!c) return;
-  const sf=document.getElementById('taskFilterStatus')?.value||'';
-  const pf=document.getElementById('taskFilterPerson')?.value||'';
-  const done=tasks.filter(t=>t.status==='done').length;
-  const pct=tasks.length?Math.round(done/tasks.length*100):0;
-  if(lbl) lbl.textContent=`${done}/${tasks.length} ukończonych (${pct}%)`;
-  if(fill) fill.style.width=pct+'%';
-  const filtered=tasks.filter(t=>(!sf||t.status===sf)&&(!pf||t.responsible===pf));
-  if(!filtered.length){c.innerHTML='<div class="empty-list">Brak zadań.</div>';return;}
-  const sColors={todo:'#ef4444',inprogress:'#f59e0b',done:'#10b981'};
-  const sLabels={todo:'Do zrobienia',inprogress:'W trakcie',done:'Ukończone'};
-  const rLabels={groom:'Pan Młody',bride:'Panna Młoda',both:'Oboje'};
-  c.innerHTML=filtered.map(t=>`<div class="task-row${t.status==='done'?' task-done':''}">
-    <div class="task-dot" style="background:${sColors[t.status]}"></div>
-    <div class="task-body">
-      <input class="task-name-input${t.status==='done'?' task-name-striked':''}" type="text" value="${esc(t.name)}" onchange="updateTask(${t.id},'name',this.value)">
-      <div class="task-meta">
-        <select class="task-sel" onchange="updateTask(${t.id},'status',this.value)">${['todo','inprogress','done'].map(s=>`<option value="${s}"${t.status===s?' selected':''}>${sLabels[s]}</option>`).join('')}</select>
-        <select class="task-sel" onchange="updateTask(${t.id},'responsible',this.value)">${['groom','bride','both'].map(r=>`<option value="${r}"${t.responsible===r?' selected':''}>${rLabels[r]}</option>`).join('')}</select>
-        <input type="date" class="task-date" value="${esc(t.dueDate||'')}" onchange="updateTask(${t.id},'dueDate',this.value)">
+
+function _taskCardHtml(t) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const overdue = t.dueDate && t.status!=='done' && new Date(t.dueDate) < today;
+  const pc = TASK_PERSON_COLORS[t.responsible] || '#6b7280';
+  const pl = TASK_PERSON_LABELS[t.responsible] || t.responsible;
+  const dateStr = t.dueDate
+    ? `<span class="kcard-date${overdue?' kcard-overdue':''}">${overdue?'⚠ ':'📅 '}${t.dueDate}</span>`
+    : '';
+  return `<div class="kanban-card${t.status==='done'?' kcard-done':''}"
+      id="kcard-${t.id}" draggable="true"
+      ondragstart="kanbanDragStart(event,${t.id})"
+      ondragend="kanbanDragEnd(event)">
+    <input class="kcard-name${t.status==='done'?' kcard-striked':''}" type="text"
+      value="${esc(t.name)}" onchange="updateTask(${t.id},'name',this.value)">
+    <div class="kcard-footer">
+      <span class="kcard-person" style="background:${pc}22;color:${pc}">${pl}</span>
+      ${dateStr}
+      <div class="kcard-actions">
+        <button class="btn-row-edit" onclick="openEditModal('task',${t.id})" title="Edytuj">&#9998;</button>
+        <button class="btn-row-del" onclick="deleteTask(${t.id})">&#128465;</button>
       </div>
     </div>
-    <button class="btn-row-edit" onclick="openEditModal('task',${t.id})" title="Edytuj">&#9998;</button>
-    <button class="btn-row-del" onclick="deleteTask(${t.id})">&#128465;</button>
-  </div>`).join('');
+  </div>`;
+}
+
+function renderTasks() {
+  const board = document.getElementById('kanbanBoard');
+  const lbl   = document.getElementById('tasksProgressLabel');
+  const fill  = document.getElementById('tasksProgressFill');
+  if (!board) return;
+
+  const done = tasks.filter(t=>t.status==='done').length;
+  const pct  = tasks.length ? Math.round(done/tasks.length*100) : 0;
+  if (lbl)  lbl.textContent  = `${done}/${tasks.length} ukończonych (${pct}%)`;
+  if (fill) fill.style.width = pct+'%';
+
+  const pf = document.getElementById('taskFilterPerson')?.value || '';
+  const filtered = tasks.filter(t => !pf || t.responsible===pf);
+
+  board.innerHTML = KANBAN_COLS.map(col => {
+    const colTasks = filtered.filter(t=>t.status===col.status);
+    const cards    = colTasks.map(_taskCardHtml).join('');
+    return `<div class="kanban-col"
+        ondragover="event.preventDefault();this.classList.add('kol-over')"
+        ondragleave="this.classList.remove('kol-over')"
+        ondrop="kanbanDrop(event,'${col.status}')">
+      <div class="kanban-col-hdr" style="border-top:3px solid ${col.color}">
+        <span class="kcol-title">${col.icon} ${col.label}</span>
+        <span class="kcol-count" style="background:${col.color}22;color:${col.color}">${colTasks.length}</span>
+      </div>
+      <div class="kanban-cards">
+        ${cards || '<div class="kanban-empty">Brak zadań</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function kanbanDragStart(event, taskId) {
+  event.dataTransfer.setData('kTaskId', String(taskId));
+  event.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => document.getElementById('kcard-'+taskId)?.classList.add('kcard-dragging'), 0);
+}
+function kanbanDragEnd(event) {
+  document.querySelectorAll('.kcard-dragging').forEach(el=>el.classList.remove('kcard-dragging'));
+  document.querySelectorAll('.kol-over').forEach(el=>el.classList.remove('kol-over'));
+}
+function kanbanDrop(event, newStatus) {
+  event.preventDefault();
+  event.currentTarget.classList.remove('kol-over');
+  const id = parseInt(event.dataTransfer.getData('kTaskId'));
+  if (!id) return;
+  const t = tasks.find(x=>x.id===id);
+  if (t && t.status !== newStatus) { t.status=newStatus; renderTasks(); saveState(); }
 }
 
 // ── VENDORS ──
@@ -2796,7 +2951,11 @@ const VENDOR_STATUSES=[
   {value:'cancelled',label:'Anulowany',    color:'#ef4444'},
 ];
 function addVendor() {
-  vendors.push({id:nextVendorId++,category:'Inne',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:''});
+  const cf = document.getElementById('vendorFilterCat');
+  const sf = document.getElementById('vendorFilterStatus');
+  if (cf) cf.value = '';
+  if (sf) sf.value = '';
+  vendors.push({id:nextVendorId++,category:'Fotograf',customCategory:'',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:''});
   renderVendors(); saveState();
 }
 function updateVendor(id,field,value) {
@@ -2814,6 +2973,10 @@ function renderVendors() {
     const st=VENDOR_STATUSES.find(s=>s.value===v.paymentStatus)||VENDOR_STATUSES[0];
     const catOpts=VENDOR_CATS.map(cat=>`<option value="${cat}"${cat===v.category?' selected':''}>${cat}</option>`).join('');
     const stOpts=VENDOR_STATUSES.map(s=>`<option value="${s.value}"${s.value===v.paymentStatus?' selected':''}>${s.label}</option>`).join('');
+    const otherField = v.category==='Inne'
+      ? `<input class="vendor-field vendor-field-custom" type="text" value="${esc(v.customCategory||'')}" placeholder="Wpisz kategorię…" onchange="updateVendor(${v.id},'customCategory',this.value)">`
+      : '';
+    const displayCat = v.category==='Inne' && v.customCategory ? v.customCategory : v.category;
     return `<div class="vendor-card">
       <div class="vendor-hdr">
         <select class="vendor-cat" onchange="updateVendor(${v.id},'category',this.value)">${catOpts}</select>
@@ -2821,6 +2984,7 @@ function renderVendors() {
         <button class="btn-row-edit" onclick="openEditModal('vendor',${v.id})" title="Edytuj">&#9998;</button>
         <button class="btn-row-del" onclick="deleteVendor(${v.id})">&#128465;</button>
       </div>
+      ${otherField}
       <input class="vendor-field" type="text" value="${esc(v.companyName)}" placeholder="Nazwa firmy" onchange="updateVendor(${v.id},'companyName',this.value)">
       <input class="vendor-field" type="text" value="${esc(v.contactName)}" placeholder="Imię kontaktu" onchange="updateVendor(${v.id},'contactName',this.value)">
       <div class="vendor-phone-row">
@@ -3110,10 +3274,12 @@ function renderTransport() {
   else html+='<div class="vehicles-grid">'+vehicles.map(v=>{
     const passengers=(v.guestIds||[]).map(id=>guests.find(g=>g.id===id)).filter(Boolean);
     const free=v.seats-passengers.length;
-    const typeOpts=VEHICLE_TYPES.map(t=>`<option value="${t}"${t===v.type?' selected':''}>${t}</option>`).join('');
+    const datalistId=`vtypes-${v.id}`;
+    const typeDatalist=`<datalist id="${datalistId}">${VEHICLE_TYPES.map(t=>`<option value="${t}">`).join('')}</datalist>`;
     return `<div class="vehicle-card">
       <div class="vehicle-hdr">
-        <select class="vehicle-type" onchange="updateVehicle(${v.id},'type',this.value)">${typeOpts}</select>
+        ${typeDatalist}
+        <input class="vehicle-type-inp" type="text" list="${datalistId}" value="${esc(v.type)}" placeholder="Typ pojazdu…" onchange="updateVehicle(${v.id},'type',this.value)">
         <span class="vehicle-seats-badge${free===0?' badge-full':''}">${passengers.length}/${v.seats}</span>
         <button class="btn-row-edit" onclick="openEditModal('vehicle',${v.id})" title="Edytuj">&#9998;</button>
         <button class="btn-row-del" onclick="deleteVehicle(${v.id})">&#128465;</button>
@@ -3145,12 +3311,17 @@ function addHotel() {
   const bodyEl = document.getElementById('editModalBody');
   if (!modal || !bodyEl) return;
   editState = { type: 'hotel-new', id: null };
-  const blank = { name: '', address: '', phone: '', pricePerNight: 0, bookingLink: '', notes: '' };
+  const blank = { name: '', address: '', phone: '', pricePerNight: 0, personsPerRoom: 2, bookingLink: '', notes: '' };
   if (titleEl) titleEl.textContent = 'Dodaj hotel';
   bodyEl.innerHTML = _hotelForm(blank);
   modal.style.display = 'flex';
 }
-function updateHotel(id,field,value) { const h=hotels.find(x=>x.id===id); if(h){h[field]=value;renderAccommodation();saveState();} }
+function updateHotel(id,field,value) {
+  const h=hotels.find(x=>x.id===id); if(!h) return;
+  const numFields=['pricePerNight','personsPerRoom'];
+  h[field] = numFields.includes(field) ? (parseFloat(value)||0) : value;
+  renderAccommodation(); saveState();
+}
 function deleteHotel(id) {
   hotels=hotels.filter(x=>x.id!==id);
   guests.forEach(g=>{if(g.hotelId===id){g.hotelId=null;g.accommodationStatus=null;}});
@@ -3197,8 +3368,16 @@ function renderAccommodation() {
       <div class="h-row">
         ${h.phone?`<a href="tel:${esc(h.phone)}" class="hotel-phone-link">&#128222; ${esc(h.phone)}</a>`:''}
         <input class="hotel-field" type="tel" value="${esc(h.phone)}" placeholder="Telefon" onchange="updateHotel(${h.id},'phone',this.value)">
-        <input class="hotel-price" type="number" value="${h.pricePerNight||0}" min="0" placeholder="Cena/noc" onchange="updateHotel(${h.id},'pricePerNight',parseFloat(this.value)||0)">
-        <span class="currency-sm">zł/noc</span>
+      </div>
+      <div class="h-row h-price-row">
+        <label class="h-lbl">Cena/os/noc:</label>
+        <input class="hotel-price" type="number" value="${h.pricePerNight||0}" min="0" onchange="updateHotel(${h.id},'pricePerNight',parseFloat(this.value)||0)">
+        <span class="currency-sm">zł</span>
+        <span class="h-times">×</span>
+        <input class="hotel-persons" type="number" value="${h.personsPerRoom||1}" min="1" max="20" onchange="updateHotel(${h.id},'personsPerRoom',parseInt(this.value)||1)">
+        <span class="h-lbl-sm">os.</span>
+        <span class="h-eq">=</span>
+        <strong class="h-total">${((h.pricePerNight||0)*(h.personsPerRoom||1)).toLocaleString('pl-PL')} zł/noc</strong>
       </div>
       <input class="hotel-field" type="url" value="${esc(h.bookingLink)}" placeholder="Link rezerwacji" onchange="updateHotel(${h.id},'bookingLink',this.value)">
       <textarea class="hotel-notes" placeholder="Notatki…" onchange="updateHotel(${h.id},'notes',this.value)">${esc(h.notes)}</textarea>
@@ -3933,7 +4112,8 @@ function _hotelForm(h) {
     ${_efi('name','Nazwa hotelu','text',h.name||'')}
     ${_efi('address','Adres','text',h.address||'')}
     ${_efi('phone','Telefon','tel',h.phone||'')}
-    ${_efi('pricePerNight','Cena za noc (zł)','number',h.pricePerNight||0)}
+    ${_efi('pricePerNight','Cena za osobę za noc (zł)','number',h.pricePerNight||0)}
+    ${_efi('personsPerRoom','Liczba osób w pokoju','number',h.personsPerRoom||2,'min="1" max="20"')}
     ${_efi('bookingLink','Link rezerwacji','url',h.bookingLink||'')}
     ${_eft('notes','Notatki',h.notes||'')}
   </div>`;
@@ -4097,12 +4277,13 @@ function saveEdit() {
     } else if (type === 'hotel-new') {
       hotels.push({
         id: nextHotelId++,
-        name:          _efv('name') || 'Hotel',
-        address:       _efv('address'),
-        phone:         _efv('phone'),
-        pricePerNight: _efn('pricePerNight'),
-        bookingLink:   _efv('bookingLink'),
-        notes:         _efv('notes'),
+        name:           _efv('name') || 'Hotel',
+        address:        _efv('address'),
+        phone:          _efv('phone'),
+        pricePerNight:  _efn('pricePerNight'),
+        personsPerRoom: Math.max(1, parseInt(document.getElementById('ef_personsPerRoom')?.value)||2),
+        bookingLink:    _efv('bookingLink'),
+        notes:          _efv('notes'),
       });
       saveState();
       renderAccommodation();
@@ -4112,6 +4293,7 @@ function saveEdit() {
       h.address = _efv('address');
       h.phone = _efv('phone');
       h.pricePerNight = _efn('pricePerNight');
+      h.personsPerRoom = Math.max(1, parseInt(document.getElementById('ef_personsPerRoom')?.value)||2);
       h.bookingLink = _efv('bookingLink');
       h.notes = _efv('notes');
       renderAccommodation();
@@ -4286,6 +4468,10 @@ function loadState() {
     if (budgetData.includeStaffInCalc === undefined) budgetData.includeStaffInCalc = false;
     if (!budgetData.tableDeco.honorAddons)   budgetData.tableDeco.honorAddons   = [];
     if (!budgetData.tableDeco.regularAddons) budgetData.tableDeco.regularAddons = [];
+
+    scheduleEvents.forEach(ev => { if (ev.duration === undefined) ev.duration = 60; });
+    vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; });
+    hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 
     // Restore wedding date input
     const wdInput = document.getElementById('weddingDate');
