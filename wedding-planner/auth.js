@@ -12,12 +12,11 @@ let _auth = null;
 
 function initAuth() {
   if (!window.firebase) {
-    console.error('[Auth] Firebase SDK nie załadowany — pomijam autoryzację');
+    console.error('[Auth] Firebase SDK nie załadowany');
     _showApp(null);
     return;
   }
 
-  // Używa już zainicjalizowanej aplikacji Firebase (z firebase-config.js)
   try {
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     _auth = firebase.auth();
@@ -26,6 +25,13 @@ function initAuth() {
     _showApp(null);
     return;
   }
+
+  // Obsługa wyniku logowania przez przekierowanie (fallback dla zablokowanych popupów)
+  _auth.getRedirectResult().catch(err => {
+    if (err && err.code !== 'auth/no-current-user') {
+      _showLoginError(_errMsg(err));
+    }
+  });
 
   _auth.onAuthStateChanged(user => {
     if (!user) {
@@ -36,7 +42,7 @@ function initAuth() {
     if (!ALLOWED_EMAILS.includes((user.email || '').toLowerCase())) {
       console.warn('[Auth] Nieautoryzowany email:', user.email);
       _auth.signOut();
-      _showLoginScreen('Brak dostępu — ta aplikacja jest prywatna.');
+      _showLoginScreen('Brak dostępu — ta aplikacja jest prywatna.\nSkontaktuj się z organizatorem.');
       return;
     }
 
@@ -45,17 +51,37 @@ function initAuth() {
 }
 
 function signInWithGoogle() {
-  if (!_auth) return;
+  if (!_auth) {
+    _showLoginError('Usługa logowania nie jest gotowa. Odśwież stronę i spróbuj ponownie.');
+    return;
+  }
+
   _hideLoginError();
-  _setSignInBtnState(true);
+  _setBtnLoading(true);
 
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
 
   _auth.signInWithPopup(provider).catch(err => {
-    _setSignInBtnState(false);
-    if (err.code === 'auth/popup-closed-by-user') return;
-    _showLoginError('Błąd logowania: ' + (err.message || 'Spróbuj ponownie.'));
+    // Użytkownik sam zamknął popup — bez komunikatu błędu
+    if (err.code === 'auth/popup-closed-by-user' ||
+        err.code === 'auth/cancelled-popup-request') {
+      _setBtnLoading(false);
+      return;
+    }
+
+    // Popup zablokowany przez przeglądarkę — przełącz na przekierowanie
+    if (err.code === 'auth/popup-blocked') {
+      _showLoginError('Popup zablokowany przez przeglądarkę — przekierowuję…');
+      _auth.signInWithRedirect(provider).catch(e2 => {
+        _setBtnLoading(false);
+        _showLoginError(_errMsg(e2));
+      });
+      return;
+    }
+
+    _setBtnLoading(false);
+    _showLoginError(_errMsg(err));
   });
 }
 
@@ -71,8 +97,8 @@ function _showLoginScreen(errorMsg) {
   if (ls) ls.style.display = 'flex';
   if (ac) ac.style.display = 'none';
   _updateNavUser(null);
+  _setBtnLoading(false);
   if (errorMsg) _showLoginError(errorMsg);
-  _setSignInBtnState(false);
 }
 
 function _showApp(user) {
@@ -106,6 +132,16 @@ function _updateNavUser(user) {
   if (name) name.textContent = user.displayName || user.email;
 }
 
+function _setBtnLoading(loading) {
+  const btn  = document.getElementById('googleSignInBtn');
+  const text = document.getElementById('googleSignInText');
+  const spin = document.getElementById('googleSignInSpinner');
+  if (!btn) return;
+  btn.disabled = loading;
+  if (text) text.textContent = loading ? 'Logowanie…' : 'Zaloguj się przez Google';
+  if (spin) spin.style.display = loading ? 'inline-block' : 'none';
+}
+
 function _showLoginError(msg) {
   const el = document.getElementById('loginError');
   if (el) { el.textContent = msg; el.style.display = 'block'; }
@@ -116,18 +152,15 @@ function _hideLoginError() {
   if (el) el.style.display = 'none';
 }
 
-function _setSignInBtnState(loading) {
-  const btn = document.getElementById('googleSignInBtn');
-  if (!btn) return;
-  btn.disabled = loading;
-  if (loading) {
-    btn.innerHTML = '<span class="gsi-spinner"></span> Logowanie…';
-  } else {
-    btn.innerHTML = `<svg class="gsi-logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-    </svg> Zaloguj się przez Google`;
-  }
+function _errMsg(err) {
+  const map = {
+    'auth/network-request-failed': 'Błąd sieci — sprawdź połączenie z internetem.',
+    'auth/too-many-requests':      'Zbyt wiele prób logowania. Poczekaj chwilę i spróbuj ponownie.',
+    'auth/user-disabled':          'To konto Google zostało wyłączone.',
+    'auth/operation-not-allowed':  'Logowanie przez Google nie jest włączone. Skontaktuj się z administratorem.',
+    'auth/invalid-api-key':        'Błąd konfiguracji aplikacji (nieprawidłowy klucz API).',
+    'auth/app-not-authorized':     'Ta domena nie jest autoryzowana. Sprawdź ustawienia Firebase Console.',
+    'auth/internal-error':         'Wewnętrzny błąd Firebase. Spróbuj ponownie.',
+  };
+  return map[err.code] || ('Błąd logowania (' + (err.code || '?') + '): ' + (err.message || 'Spróbuj ponownie.'));
 }
