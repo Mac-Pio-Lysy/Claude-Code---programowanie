@@ -27,6 +27,8 @@ const PAY_SOURCES = {
 };
 let roomName = 'Sala weselna';
 let roomDrag = null; // { tableId, startMouseX, startMouseY, startPosX, startPosY }
+let roomDragGuestId      = null;
+let roomDragSrcTableId   = null;
 
 const CANVAS_W = 1400;
 const CANVAS_H = 760;
@@ -159,14 +161,58 @@ function _unsetSeat(g) {
   g.seatIndex = null;
 }
 
+function _guestMoveBtn(g) {
+  const available = tables.filter(t => {
+    if (t.id === g.tableId) return false;
+    return t.seatsData.filter(x => x !== null).length < t.seats;
+  });
+  if (!available.length) return '';
+  const opts = available.map(t => {
+    const free = t.seats - t.seatsData.filter(x=>x!==null).length;
+    return `<button class="move-table-opt" onclick="moveGuestToTable(${g.id},${t.id})">${esc(t.name)} <span class="move-free">${free} wolnych</span></button>`;
+  }).join('');
+  return `<div class="move-wrap" id="move-wrap-${g.id}">
+    <button class="btn btn-sm btn-move" onclick="toggleMoveDropdown(${g.id})">&#8635; Przenieś</button>
+    <div class="move-dropdown" id="move-dd-${g.id}" style="display:none">${opts}</div>
+  </div>`;
+}
+function toggleMoveDropdown(gId) {
+  document.querySelectorAll('.move-dropdown').forEach(el => {
+    if (el.id !== 'move-dd-'+gId) el.style.display = 'none';
+  });
+  const dd = document.getElementById('move-dd-'+gId);
+  if (dd) dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+function moveGuestToTable(guestId, tableId) {
+  _assignToTable(tableId, guestId);
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.move-wrap')) {
+    document.querySelectorAll('.move-dropdown').forEach(el => el.style.display = 'none');
+  }
+});
+
 function renderGuests() {
-  const catFilter = document.getElementById('filterCategory')?.value ?? '';
-  const assFilter = document.getElementById('filterAssigned')?.value ?? '';
+  const catFilter     = document.getElementById('filterCategory')?.value  ?? '';
+  const invFilter     = document.getElementById('filterInvitedBy')?.value ?? '';
+  const rsvpFilter    = document.getElementById('filterRsvp')?.value      ?? '';
+  const dietFilter    = document.getElementById('filterDiet')?.value      ?? '';
+  const witnessFilter = document.getElementById('filterWitness')?.value   ?? '';
+  const assFilter     = document.getElementById('filterAssigned')?.value  ?? '';
 
   const filtered = guests.filter(g => {
     if (catFilter && g.category !== catFilter) return false;
-    if (assFilter === 'yes' && g.tableId === null) return false;
-    if (assFilter === 'no'  && g.tableId !== null) return false;
+    if (invFilter && g.invitedBy !== invFilter) return false;
+    if (dietFilter && (g.diet || 'standard') !== dietFilter) return false;
+    if (witnessFilter === 'none' && (g.witness === 'witness_groom' || g.witness === 'witness_bride')) return false;
+    if (witnessFilter && witnessFilter !== 'none' && g.witness !== witnessFilter) return false;
+    if (assFilter === 'yes' && g.tableId === null)  return false;
+    if (assFilter === 'no'  && g.tableId !== null)  return false;
+    if (rsvpFilter) {
+      const rs = getGuestRsvpStatus(g.id);
+      if (rsvpFilter === 'none'     && rs !== null)           return false;
+      if (rsvpFilter !== 'none'     && rs !== rsvpFilter)     return false;
+    }
     return true;
   });
 
@@ -217,6 +263,7 @@ function renderGuests() {
       <div class="guest-actions">
         <button class="btn btn-sm btn-edit" onclick="openEditModal('guest',${g.id})" title="Edytuj gościa">&#9998; Edytuj</button>
         ${pairBtn}
+        ${_guestMoveBtn(g)}
         ${g.tableId!==null ? `<button class="btn btn-sm btn-danger" onclick="removeGuestFromTable(${g.id})" title="Usuń ze stołu">&#10006; Ze stołu</button>` : ''}
         <button class="btn btn-sm btn-danger" onclick="removeGuest(${g.id})" title="Usuń gościa">&#128465;</button>
         <label class="guest-accom-toggle" title="Potrzebuje noclegu">
@@ -2479,6 +2526,10 @@ function renderRoomTable(t) {
     if (g) {
       return `<div class="rt-dot rt-dot-occupied"
         style="left:${pos.x}px;top:${pos.y}px"
+        draggable="true"
+        onmousedown="event.stopPropagation()"
+        ondragstart="roomGuestDragStart(event,${g.id},${t.id})"
+        ondragend="roomGuestDragEnd()"
         onmouseenter="showGuestTooltip(event,${g.id})"
         onmouseleave="hideGuestTooltip()">${esc(initials(g))}</div>`;
     }
@@ -2487,11 +2538,70 @@ function renderRoomTable(t) {
 
   return `<div class="rt-wrap" data-id="${t.id}"
     style="left:${t.posX}px;top:${t.posY}px;width:${wrapW}px;height:${wrapH}px"
-    onmousedown="startRoomTableDrag(event,${t.id})">
+    onmousedown="startRoomTableDrag(event,${t.id})"
+    ondragover="roomTableDragOver(event,${t.id})"
+    ondragleave="roomTableDragLeave(event,${t.id})"
+    ondrop="roomTableDrop(event,${t.id})">
     ${shapeHtml}
     ${dotsHtml}
     <div class="rt-delete" onclick="event.stopPropagation();deleteTable(${t.id})" title="Usuń stół">&#10005;</div>
   </div>`;
+}
+
+// ── ROOM GUEST DRAG & DROP ──
+function roomGuestDragStart(event, guestId, srcTableId) {
+  event.stopPropagation();
+  roomDragGuestId    = guestId;
+  roomDragSrcTableId = srcTableId;
+  event.dataTransfer.setData('roomGuestId', String(guestId));
+  event.dataTransfer.effectAllowed = 'move';
+
+  setTimeout(() => {
+    tables.forEach(t => {
+      const wrap = document.querySelector(`.rt-wrap[data-id="${t.id}"]`);
+      if (!wrap) return;
+      if (t.id === srcTableId) {
+        wrap.classList.add('rt-drag-src');
+      } else {
+        const free = t.seats - t.seatsData.filter(x => x !== null).length;
+        wrap.classList.add(free > 0 ? 'rt-drop-ok' : 'rt-drop-full');
+      }
+    });
+  }, 0);
+}
+
+function roomGuestDragEnd() {
+  roomDragGuestId    = null;
+  roomDragSrcTableId = null;
+  document.querySelectorAll('.rt-wrap').forEach(el =>
+    el.classList.remove('rt-drag-src', 'rt-drop-ok', 'rt-drop-full', 'rt-drop-hover')
+  );
+}
+
+function roomTableDragOver(event, tableId) {
+  if (!roomDragGuestId || tableId === roomDragSrcTableId) return;
+  const t = tables.find(x => x.id === tableId);
+  if (!t) return;
+  const free = t.seats - t.seatsData.filter(x => x !== null).length;
+  if (free === 0) { event.dataTransfer.dropEffect = 'none'; return; }
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  document.querySelector(`.rt-wrap[data-id="${tableId}"]`)?.classList.add('rt-drop-hover');
+}
+
+function roomTableDragLeave(event, tableId) {
+  const wrap = document.querySelector(`.rt-wrap[data-id="${tableId}"]`);
+  if (wrap && !wrap.contains(event.relatedTarget)) wrap.classList.remove('rt-drop-hover');
+}
+
+function roomTableDrop(event, tableId) {
+  event.preventDefault();
+  event.stopPropagation();
+  document.querySelector(`.rt-wrap[data-id="${tableId}"]`)?.classList.remove('rt-drop-hover');
+  const gId = roomDragGuestId || parseInt(event.dataTransfer.getData('roomGuestId'));
+  roomGuestDragEnd();
+  if (!gId || tableId === roomDragSrcTableId) return;
+  _assignToTable(tableId, gId);
 }
 
 function renderRoom() {

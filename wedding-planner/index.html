@@ -194,8 +194,32 @@
             <option value="Rodzina">Rodzina</option>
             <option value="Znajomi">Znajomi</option>
           </select>
-          <select id="filterAssigned" onchange="renderGuests()">
+          <select id="filterInvitedBy" onchange="renderGuests()">
+            <option value="">Od kogo zaproszony</option>
+            <option value="groom">Pan Młody</option>
+            <option value="bride">Panna Młoda</option>
+          </select>
+          <select id="filterRsvp" onchange="renderGuests()">
+            <option value="">Wszystkie RSVP</option>
+            <option value="attending">Przyjdzie</option>
+            <option value="not_attending">Nie przyjdzie</option>
+            <option value="none">Brak odpowiedzi</option>
+          </select>
+          <select id="filterDiet" onchange="renderGuests()">
+            <option value="">Wszystkie diety</option>
+            <option value="standard">Standardowa</option>
+            <option value="vegetarian">Wegetariańska</option>
+            <option value="vegan">Wegańska</option>
+            <option value="glutenfree">Bezglutenowa</option>
+          </select>
+          <select id="filterWitness" onchange="renderGuests()">
             <option value="">Wszyscy</option>
+            <option value="witness_groom">Świadek</option>
+            <option value="witness_bride">Świadkowa</option>
+            <option value="none">Pozostali</option>
+          </select>
+          <select id="filterAssigned" onchange="renderGuests()">
+            <option value="">Stoliki — wszyscy</option>
             <option value="no">Nieprzypisani</option>
             <option value="yes">Przypisani</option>
           </select>
