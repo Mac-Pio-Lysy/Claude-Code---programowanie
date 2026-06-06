@@ -129,6 +129,11 @@
     </div>
 
     <div class="field">
+      <label>Imię i nazwisko osoby towarzyszącej (opcjonalnie)</label>
+      <input type="text" id="rsvpCompanion" placeholder="np. Anna Kowalska" autocomplete="off">
+    </div>
+
+    <div class="field">
       <label>Twoja odpowiedź *</label>
       <div class="attendance-row">
         <div class="att-btn att-yes" id="btnYes" onclick="selectAttendance('attending')">
@@ -408,14 +413,12 @@
     const email         = document.getElementById('rsvpEmail').value.trim();
     const message       = document.getElementById('rsvpMessage').value.trim();
     const companionRaw  = document.getElementById('companionName').value.trim();
+    const companionForm = document.getElementById('rsvpCompanion').value.trim();
 
-    // Ustal imię osoby towarzyszącej
-    let companionName = '';
-    if (partnerGuestId && pairAnswer === 'attending') {
-      companionName = partnerGuestName;
-    } else if (!partnerGuestId) {
-      companionName = companionRaw;
-    }
+    // Dla EmailJS: użyj pola z formularza; fallback do pary ze systemu
+    const companionName = companionForm
+      || (partnerGuestId && pairAnswer === 'attending' ? partnerGuestName : '')
+      || companionRaw;
 
     // ── Zapis do localStorage i Firestore ──
     try {
