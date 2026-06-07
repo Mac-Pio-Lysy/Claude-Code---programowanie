@@ -2602,6 +2602,7 @@ function initMobileCollapse() {
     ['viewTransport',     'transport'],
     ['viewAccommodation', 'accommodation'],
     ['viewGifts',         'gifts'],
+    ['viewGallery',       'gallery'],
   ].forEach(([viewId, key]) => {
     const view = document.getElementById(viewId);
     if (!view) return;
@@ -2722,6 +2723,7 @@ function switchView(view) {
     dashboard: 'viewDashboard', rsvp: 'viewRsvp', payments: 'viewPayments',
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
+    gallery: 'viewGallery',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -2734,7 +2736,7 @@ function switchView(view) {
     dashboard: 'navDashboard', tables: 'navTables', room: 'navRoom', rsvp: 'navRsvp',
     budget: 'navBudget', schedule: 'navSchedule',
     tasks: 'navTasks', vendors: 'navVendors', transport: 'navTransport',
-    accommodation: 'navAccommodation', gifts: 'navGifts',
+    accommodation: 'navAccommodation', gifts: 'navGifts', gallery: 'navGallery',
   };
   const navBtn = document.getElementById(navIds[view]);
   if (navBtn) navBtn.classList.add('active');
@@ -2754,7 +2756,8 @@ function switchView(view) {
     case 'room':          renderRoom();          break;
     case 'budget':        renderBudget(); renderPayments(); break;
     case 'dashboard':     renderDashboard();     break;
-    case 'schedule':      renderSchedule();      break;
+    case 'schedule':      renderSchedule(); renderScheduleQR(); break;
+    case 'gallery':       renderGalleryView();   break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -3178,7 +3181,7 @@ const SCHED_CATS = [
 ];
 
 function addScheduleEvent() {
-  scheduleEvents.push({ id:nextScheduleId++, hour:12, minute:0, duration:60, name:'Nowe wydarzenie', description:'', location:'', responsible:'', category:'Inne' });
+  scheduleEvents.push({ id:nextScheduleId++, hour:12, minute:0, duration:60, name:'Nowe wydarzenie', description:'', location:'', responsible:'', category:'Inne', private:false });
   renderSchedule(); saveState();
 }
 function switchScheduleView(mode) {
@@ -3209,7 +3212,7 @@ function addDefaultSchedule() {
     {hour:22,minute:0,name:'Tort weselny',description:'Krojenie tortu',location:'Sala weselna',responsible:'Oboje',category:'Tort'},
     {hour:1, minute:0,name:'Ostatni taniec',description:'Walc zamykający',location:'Sala weselna',responsible:'Oboje',category:'Taniec'},
   ];
-  defaults.forEach(d => scheduleEvents.push({id:nextScheduleId++,...d}));
+  defaults.forEach(d => scheduleEvents.push({id:nextScheduleId++, private:false, ...d}));
   renderSchedule(); saveState();
 }
 function _tevHtml(ev) {
@@ -3219,7 +3222,8 @@ function _tevHtml(ev) {
   ).join('');
   const hh = String(ev.hour).padStart(2, '0');
   const mm = String(ev.minute).padStart(2, '0');
-  return `<div class="tev" style="border-left:4px solid ${cat.color}" id="tev-${ev.id}">
+  const isPrivate = !!ev.private;
+  return `<div class="tev${isPrivate ? ' tev-private' : ''}" style="border-left:4px solid ${cat.color}" id="tev-${ev.id}">
     <div class="tev-meta">
       <div class="tev-time">
         <input type="number" class="tev-hh" value="${ev.hour}" min="0" max="23" onchange="updateScheduleEvent(${ev.id},'hour',parseInt(this.value)||0)">:<input type="number" class="tev-mm" value="${mm}" min="0" max="59" onchange="updateScheduleEvent(${ev.id},'minute',parseInt(this.value)||0)">
@@ -3228,8 +3232,12 @@ function _tevHtml(ev) {
     </div>
     <div class="tev-body">
       <div class="tev-row1">
+        ${isPrivate ? '<span class="tev-lock" title="Wydarzenie prywatne — ukryte przed gośćmi">&#128274;</span>' : ''}
         <input class="tev-name" type="text" value="${esc(ev.name)}" onchange="updateScheduleEvent(${ev.id},'name',this.value)">
         <select class="tev-cat" onchange="updateScheduleEvent(${ev.id},'category',this.value)">${catOpts}</select>
+        <label class="tev-private-toggle" title="Ukryj to wydarzenie na publicznej stronie harmonogramu dla gości">
+          <input type="checkbox" ${isPrivate ? 'checked' : ''} onchange="updateScheduleEvent(${ev.id},'private',this.checked)"> &#128274; Prywatne
+        </label>
         <button class="btn-tev-edit" onclick="openEditModal('schedule',${ev.id})" title="Edytuj">&#9998;</button>
         <button class="btn-tev-del" onclick="deleteScheduleEvent(${ev.id})">&#128465;</button>
       </div>
@@ -3300,7 +3308,7 @@ function _renderSchedGantt(c, sorted) {
     const dur   = ev.duration || 60;
     const hh = String(ev.hour).padStart(2, '0'), mm = String(ev.minute).padStart(2, '0');
     return `<div class="gantt-row">
-      <div class="gantt-row-lbl" title="${esc(ev.name)}">${cat.icon} <strong>${hh}:${mm}</strong> ${esc(ev.name)}</div>
+      <div class="gantt-row-lbl" title="${esc(ev.name)}">${cat.icon} <strong>${hh}:${mm}</strong> ${ev.private ? '&#128274; ' : ''}${esc(ev.name)}</div>
       <div class="gantt-track">
         ${hours.map(h => `<div class="gantt-grid-line" style="left:${pct(h * 60)}"></div>`).join('')}
         <div class="gantt-bar" style="left:${pct(start)};width:${(dur/span*100).toFixed(2)}%;background:${cat.color}" title="${esc(ev.name)} (${dur} min)">
@@ -4629,6 +4637,12 @@ function _scheduleForm(ev) {
     ${_efi('description','Opis','text',ev.description||'')}
     ${_efi('location','Miejsce','text',ev.location||'')}
     ${_efi('responsible','Odpowiedzialny','text',ev.responsible||'')}
+    <div class="ef-field">
+      <label class="ef-check">
+        <input type="checkbox" id="ef_private" ${ev.private ? 'checked' : ''}>
+        &#128274; Prywatne — ukryj przed gośćmi na stronie /harmonogram
+      </label>
+    </div>
   </div>`;
 }
 
@@ -4804,6 +4818,7 @@ function saveEdit() {
       ev.location = _efv('location');
       ev.responsible = _efv('responsible');
       ev.category = _efv('category');
+      ev.private = _efb('private');
       renderSchedule();
     }
     saveState();
@@ -4823,6 +4838,174 @@ function closeEditModalDirect() {
   const modal = document.getElementById('editModal');
   if (modal) modal.style.display = 'none';
   editState = null;
+}
+
+// ══════════════════════════════════════════════════════
+//  KODY QR + GALERIA GOŚCI (panel organizatora)
+// ══════════════════════════════════════════════════════
+
+// Buduje pełny publiczny adres URL strony (np. dla kodu QR)
+function _publicUrl(path) {
+  const origin = (location.origin && location.origin !== 'null') ? location.origin : '';
+  return origin + '/' + path;
+}
+
+// Generuje kod QR w kontenerze <div> (biblioteka qrcodejs)
+function _renderQRCanvas(containerId, url) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (typeof QRCode === 'undefined') {
+    // Biblioteka QR jeszcze się nie załadowała — spróbuj ponownie za chwilę
+    setTimeout(() => _renderQRCanvas(containerId, url), 300);
+    return;
+  }
+  el.innerHTML = ''; // wyczyść poprzedni kod (przy ponownym wejściu w widok)
+  try {
+    new QRCode(el, {
+      text: url,
+      width: 200,
+      height: 200,
+      colorDark: '#1040b0',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } catch (e) { console.error('Błąd generowania QR:', e); }
+}
+
+// Ustawia adres (i opcjonalnie tekst) linku obok kodu QR
+function _setQRLink(id, url, hrefOnly) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.href = url;
+  if (!hrefOnly) el.textContent = url;
+}
+
+// Pobiera kod QR jako plik PNG
+function downloadQR(containerId, filename) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let dataUrl = '';
+  const canvas = el.querySelector('canvas');
+  if (canvas) {
+    try { dataUrl = canvas.toDataURL('image/png'); } catch (_) {}
+  }
+  if (!dataUrl) {
+    const img = el.querySelector('img');
+    if (img && img.src) dataUrl = img.src;
+  }
+  if (!dataUrl) { console.error('Nie znaleziono kodu QR do pobrania'); return; }
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename || 'qr.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+// QR — harmonogram dla gości
+function renderScheduleQR() {
+  const url = _publicUrl('harmonogram.html');
+  _renderQRCanvas('qrSchedule', url);
+  _setQRLink('qrScheduleLink', url);
+  _setQRLink('qrScheduleOpen', url, true);
+}
+
+// QR — galeria zdjęć gości
+function renderGalleryQR() {
+  const url = _publicUrl('galeria.html');
+  _renderQRCanvas('qrGallery', url);
+  _setQRLink('qrGalleryLink', url);
+  _setQRLink('qrGalleryOpen', url, true);
+}
+
+// ── Administracja galerią ──
+let _galleryAdminItems = [];
+let _galleryAdminUnsub = null;
+
+function renderGalleryView() {
+  renderGalleryQR();
+  _startGalleryAdminListener();
+  renderGalleryAdminGrid();
+}
+
+function _startGalleryAdminListener() {
+  if (_galleryAdminUnsub) return;
+  if (!window.firebase || !firebase.firestore) return;
+  try {
+    _galleryAdminUnsub = firebase.firestore().collection('gallery')
+      .orderBy('timestamp', 'desc')
+      .onSnapshot(snap => {
+        _galleryAdminItems = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+        renderGalleryAdminGrid();
+      }, err => console.error('Nasłuch galerii (admin):', err));
+  } catch (e) { console.error('Galeria admin:', e); }
+}
+
+function renderGalleryAdminGrid() {
+  const grid = document.getElementById('galleryAdminGrid');
+  const countEl = document.getElementById('galleryAdminCount');
+  if (!grid) return;
+
+  if (!_galleryAdminItems.length) {
+    if (countEl) countEl.textContent = '';
+    grid.innerHTML = '<div class="empty-list">Brak zdjęć. Goście mogą dodawać zdjęcia i filmy skanując kod QR powyżej.</div>';
+    return;
+  }
+
+  if (countEl) {
+    const n = _galleryAdminItems.length;
+    countEl.textContent = n + (n === 1 ? ' plik' : ' plików');
+  }
+
+  grid.innerHTML = '<div class="gallery-admin-grid">' + _galleryAdminItems.map(it => {
+    const thumb = it.type === 'video' ? it.url : _cldTransform(it.url, 'c_fill,g_auto,w_400,h_400,f_auto,q_auto');
+    const media = it.type === 'video'
+      ? `<video src="${esc(it.url)}" preload="metadata" muted playsinline></video><span class="ga-badge">▶ film</span>`
+      : `<img src="${esc(thumb)}" alt="" loading="lazy">`;
+    return `<div class="ga-tile">
+      <div class="ga-media" onclick="window.open('${esc(it.url)}','_blank')">${media}</div>
+      <div class="ga-name">&#128247; ${esc(it.uploadedBy || 'Gość')}</div>
+      <div class="ga-actions">
+        <button class="btn btn-sm" onclick="downloadGalleryItem('${it.id}')">&#11015; Pobierz</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteGalleryItem('${it.id}')">&#128465; Usuń</button>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// Wstawia transformację (np. fl_attachment) do adresu Cloudinary
+function _cldTransform(url, t) {
+  if (!url || url.indexOf('/upload/') === -1) return url;
+  return url.replace('/upload/', '/upload/' + t + '/');
+}
+
+function downloadGalleryItem(id) {
+  const it = _galleryAdminItems.find(x => x.id === id);
+  if (!it) return;
+  // fl_attachment wymusza pobranie pliku z Cloudinary (Content-Disposition: attachment)
+  const dlUrl = _cldTransform(it.url, 'fl_attachment');
+  const a = document.createElement('a');
+  a.href = dlUrl;
+  a.download = '';
+  a.target = '_blank';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function deleteGalleryItem(id) {
+  const it = _galleryAdminItems.find(x => x.id === id);
+  if (!it) return;
+  if (!confirm('Usunąć ten plik z galerii? Zniknie z galerii gości. (Oryginał pozostaje na Cloudinary.)')) return;
+  try {
+    // Opcja A — kasujemy tylko wpis w Firestore, plik zostaje na Cloudinary
+    await firebase.firestore().collection('gallery').doc(id).delete();
+    // Lista odświeży się automatycznie przez nasłuch onSnapshot
+  } catch (e) {
+    console.error('Usuwanie pliku galerii:', e);
+    alert('Nie udało się usunąć pliku. Spróbuj ponownie.');
+  }
 }
 
 // ── LOCALSTORAGE ──
@@ -4952,7 +5135,10 @@ function loadState() {
     if (!budgetData.tableDeco.honorAddons)   budgetData.tableDeco.honorAddons   = [];
     if (!budgetData.tableDeco.regularAddons) budgetData.tableDeco.regularAddons = [];
 
-    scheduleEvents.forEach(ev => { if (ev.duration === undefined) ev.duration = 60; });
+    scheduleEvents.forEach(ev => {
+      if (ev.duration === undefined) ev.duration = 60;
+      if (ev.private === undefined) ev.private = false;
+    });
     vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; });
     hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 

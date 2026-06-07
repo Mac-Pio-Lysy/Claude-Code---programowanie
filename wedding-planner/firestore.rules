@@ -5,5 +5,17 @@ service cloud.firestore {
     match /weddingPlanner/main {
       allow read, write: if true;
     }
+    // Galeria zdjęć gości:
+    //  • odczyt i dodawanie — publiczne (goście bez logowania)
+    //  • usuwanie — tylko zalogowani organizatorzy (konta z listy)
+    match /gallery/{photoId} {
+      allow read, create: if true;
+      allow delete: if request.auth != null
+        && request.auth.token.email in [
+          'macholak.piotr@gmail.com',
+          'ceremonia.panstwa.macholak@gmail.com',
+          'patrycja.staniow@gmail.com'
+        ];
+    }
   }
 }

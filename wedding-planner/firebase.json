@@ -14,6 +14,14 @@
     ],
     "rewrites": [
       {
+        "source": "/harmonogram",
+        "destination": "/harmonogram.html"
+      },
+      {
+        "source": "/galeria",
+        "destination": "/galeria.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harmonogram — Ceremonia Patrycji i Piotra</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- QR Code generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-mid: #2563eb; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #eef4ff; --text: #1a2744; --text-soft: #4a5d80;
+      --border: #c5d8f6; --shadow: rgba(26,86,219,0.14); --gold: #c9a23f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, #dbe7ff 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, #d6e4ff 0%, transparent 45%),
+        var(--bg);
+      min-height: 100vh; color: var(--text); padding: 24px 14px 60px;
+    }
+
+    .flyer {
+      max-width: 600px; margin: 0 auto; background: var(--white);
+      border-radius: 26px; overflow: hidden;
+      box-shadow: 0 18px 60px var(--shadow), 0 2px 8px rgba(26,86,219,0.08);
+      border: 1px solid #dbe7ff;
+    }
+
+    /* ── Nagłówek ── */
+    .flyer-head {
+      background: linear-gradient(150deg, var(--blue-dark) 0%, var(--blue) 55%, var(--blue-mid) 100%);
+      color: #fff; text-align: center; padding: 40px 26px 34px; position: relative;
+    }
+    .flyer-head::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 26px;
+      background: var(--white); border-radius: 26px 26px 0 0;
+    }
+    .head-rings { font-size: 2.6rem; margin-bottom: 10px; }
+    .head-sub { font-size: 0.72rem; letter-spacing: 4px; text-transform: uppercase; opacity: 0.85; margin-bottom: 12px; }
+    .head-names {
+      font-size: 2.15rem; font-weight: 700; line-height: 1.15; letter-spacing: 0.5px;
+      font-family: 'Georgia', 'Times New Roman', serif;
+    }
+    .head-amp { display: block; font-size: 1.3rem; color: #ffe9a8; margin: 4px 0; font-weight: 400; }
+    .head-date {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 18px;
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
+      padding: 9px 20px; border-radius: 30px; font-size: 0.98rem; font-weight: 600;
+      backdrop-filter: blur(2px); position: relative; z-index: 1;
+    }
+
+    /* ── Treść ── */
+    .flyer-body { padding: 14px 24px 34px; }
+    .section-tag {
+      text-align: center; font-size: 0.74rem; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--blue); font-weight: 700; margin: 18px 0 26px;
+    }
+    .section-tag::before, .section-tag::after {
+      content: "✦"; color: var(--gold); margin: 0 10px; font-size: 0.7rem;
+    }
+
+    /* ── Oś czasu ── */
+    .timeline { position: relative; padding-left: 8px; }
+    .tl-item { position: relative; padding: 0 0 22px 64px; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-line {
+      position: absolute; left: 23px; top: 30px; bottom: -4px; width: 2px;
+      background: linear-gradient(var(--border), #e3ecfb);
+    }
+    .tl-item:last-child .tl-line { display: none; }
+    .tl-time {
+      position: absolute; left: 0; top: 2px; width: 48px; text-align: center;
+      font-size: 0.92rem; font-weight: 700; color: var(--blue-dark);
+    }
+    .tl-dot {
+      position: absolute; left: 16px; top: 26px; width: 16px; height: 16px;
+      border-radius: 50%; background: var(--white); border: 3px solid var(--blue);
+      box-shadow: 0 0 0 4px var(--blue-pale); z-index: 1;
+    }
+    .tl-card {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 13px 16px; box-shadow: 0 3px 12px rgba(26,86,219,0.07);
+      border-left: 4px solid var(--blue);
+    }
+    .tl-name { font-size: 1.04rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .tl-cat-icon { font-size: 1.1rem; }
+    .tl-desc { font-size: 0.86rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; }
+    .tl-loc {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 9px;
+      font-size: 0.82rem; font-weight: 600; color: var(--blue);
+      text-decoration: none; background: var(--blue-pale); padding: 6px 12px; border-radius: 20px;
+      transition: background 0.18s;
+    }
+    .tl-loc:hover { background: #d8e7fc; }
+    .tl-loc-plain {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 9px;
+      font-size: 0.82rem; color: var(--text-soft);
+    }
+
+    /* ── Sekcja kodów QR ── */
+    .qr-section {
+      padding: 8px 24px 30px; text-align: center;
+      border-top: 1px dashed var(--border); margin-top: 6px;
+    }
+    .qr-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;
+    }
+    .qr-box {
+      background: linear-gradient(160deg, #ffffff 0%, var(--blue-pale) 100%);
+      border: 1.5px solid var(--border); border-radius: 16px;
+      padding: 18px 14px 16px; box-shadow: 0 3px 12px rgba(26,86,219,0.08);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .qr-box-code {
+      background: var(--white); padding: 9px; border-radius: 12px;
+      border: 1.5px solid var(--border); line-height: 0;
+    }
+    .qr-box-code canvas, .qr-box-code img { display: block; width: 150px; height: 150px; }
+    .qr-box-title { font-size: 1rem; font-weight: 700; color: var(--blue-dark); }
+    .qr-box-desc { font-size: 0.83rem; color: var(--text-soft); line-height: 1.4; }
+    .qr-hint { font-size: 0.8rem; color: var(--text-soft); margin-top: 16px; }
+
+    /* ── Stopka ── */
+    .flyer-foot {
+      text-align: center; padding: 24px; color: var(--text-soft);
+      border-top: 1px dashed var(--border); margin-top: 8px;
+    }
+    .foot-heart { font-size: 1.5rem; color: var(--blue); }
+    .foot-text { font-size: 0.9rem; margin-top: 8px; font-style: italic; }
+
+    .state-msg { text-align: center; padding: 50px 20px; color: var(--text-soft); }
+    .spinner {
+      width: 38px; height: 38px; border: 3px solid var(--blue-pale);
+      border-top-color: var(--blue); border-radius: 50%; margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 520px) {
+      body { padding: 12px 8px 40px; }
+      .flyer { border-radius: 20px; }
+      .head-names { font-size: 1.7rem; }
+      .head-rings { font-size: 2.1rem; }
+      .flyer-body { padding: 10px 14px 26px; }
+      .tl-item { padding-left: 56px; }
+      .tl-time { width: 44px; font-size: 0.84rem; }
+      .tl-dot { left: 14px; }
+      .tl-line { left: 21px; }
+      .qr-section { padding: 8px 14px 24px; }
+      .qr-grid { gap: 12px; }
+      .qr-box { padding: 14px 8px; }
+      .qr-box-code canvas, .qr-box-code img { width: 130px; height: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="flyer">
+    <div class="flyer-head">
+      <div class="head-rings">💍</div>
+      <div class="head-sub">Zapraszamy na nasz ślub</div>
+      <div class="head-names">
+        Patrycja
+        <span class="head-amp">&amp;</span>
+        Piotr
+      </div>
+      <div class="head-date">📅 <span id="weddingDateLabel">10 lipca 2027</span></div>
+    </div>
+
+    <div class="flyer-body">
+      <div class="section-tag">Harmonogram dnia</div>
+      <div id="scheduleContainer">
+        <div class="state-msg">
+          <div class="spinner"></div>
+          Wczytywanie harmonogramu…
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <div class="section-tag">Dla gości</div>
+      <div class="qr-grid">
+        <div class="qr-box">
+          <div class="qr-box-code" id="qrGaleria"></div>
+          <div class="qr-box-title">📸 Galeria zdjęć</div>
+          <div class="qr-box-desc">Wrzuć swoje zdjęcia i filmy</div>
+        </div>
+        <div class="qr-box">
+          <div class="qr-box-code" id="qrRsvp"></div>
+          <div class="qr-box-title">💌 Potwierdzenie</div>
+          <div class="qr-box-desc">Potwierdź swoją obecność</div>
+        </div>
+      </div>
+      <div class="qr-hint">Zeskanuj kod telefonem 📱</div>
+    </div>
+
+    <div class="flyer-foot">
+      <div class="foot-heart">❤</div>
+      <div class="foot-text">Dziękujemy, że będziecie z nami w tym wyjątkowym dniu</div>
+    </div>
+  </div>
+
+  <script>
+    const SCHED_CATS = {
+      'Przygotowania': '💄', 'Ceremonia': '💒', 'Sesja': '📷',
+      'Wesele': '🥂', 'Tort': '🎂', 'Taniec': '💃', 'Inne': '📌',
+    };
+    const PL_MONTHS = ['stycznia','lutego','marca','kwietnia','maja','czerwca',
+      'lipca','sierpnia','września','października','listopada','grudnia'];
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function formatPolishDate(iso) {
+      if (!iso) return '10 lipca 2027';
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+      if (!m) return '10 lipca 2027';
+      const y = +m[1], mo = +m[2], d = +m[3];
+      return `${d} ${PL_MONTHS[mo - 1]} ${y}`;
+    }
+
+    function sortEvents(events) {
+      return [...events].sort((a, b) => {
+        const ah = a.hour < 6 ? a.hour + 24 : a.hour;
+        const bh = b.hour < 6 ? b.hour + 24 : b.hour;
+        return (ah * 60 + a.minute) - (bh * 60 + b.minute);
+      });
+    }
+
+    function renderSchedule(data) {
+      const cont = document.getElementById('scheduleContainer');
+      // Pomijamy wydarzenia prywatne — widoczne tylko w panelu organizatora
+      const events = ((data && data.scheduleEvents) || []).filter(ev => !ev.private);
+
+      if (data && data.weddingDate) {
+        document.getElementById('weddingDateLabel').textContent = formatPolishDate(data.weddingDate);
+      }
+
+      if (!events.length) {
+        cont.innerHTML = '<div class="state-msg">Harmonogram zostanie wkrótce uzupełniony. 💙</div>';
+        return;
+      }
+
+      const sorted = sortEvents(events);
+      const html = sorted.map(ev => {
+        const hh = String(ev.hour).padStart(2, '0');
+        const mm = String(ev.minute).padStart(2, '0');
+        const icon = SCHED_CATS[ev.category] || '📌';
+        const loc = (ev.location || '').trim();
+        const locHtml = loc
+          ? `<a class="tl-loc" target="_blank" rel="noopener"
+               href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}">
+               📍 ${esc(loc)}</a>`
+          : '';
+        const descHtml = (ev.description || '').trim()
+          ? `<div class="tl-desc">${esc(ev.description)}</div>` : '';
+        return `<div class="tl-item">
+          <div class="tl-line"></div>
+          <div class="tl-time">${hh}:${mm}</div>
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-name"><span class="tl-cat-icon">${icon}</span>${esc(ev.name)}</div>
+            ${descHtml}
+            ${locHtml}
+          </div>
+        </div>`;
+      }).join('');
+
+      cont.innerHTML = `<div class="timeline">${html}</div>`;
+    }
+
+    // ── Wczytaj dane z Firestore ──
+    (function load() {
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        db.collection(FS_COLLECTION).doc(FS_DOC_ID).get()
+          .then(doc => renderSchedule(doc.exists ? doc.data() : null))
+          .catch(err => {
+            console.error('Błąd wczytywania harmonogramu:', err);
+            document.getElementById('scheduleContainer').innerHTML =
+              '<div class="state-msg">Nie udało się wczytać harmonogramu. Odśwież stronę. 🙏</div>';
+          });
+      } catch (e) {
+        console.error('Błąd inicjalizacji Firebase:', e);
+        document.getElementById('scheduleContainer').innerHTML =
+          '<div class="state-msg">Nie udało się połączyć z serwerem.</div>';
+      }
+    })();
+
+    // ── Kody QR (galeria + RSVP) ──
+    function qrUrl(path) {
+      const o = (location.origin && location.origin !== 'null') ? location.origin : '';
+      return o + '/' + path;
+    }
+    function makeQR(id, url) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (typeof QRCode === 'undefined') { setTimeout(() => makeQR(id, url), 300); return; }
+      el.innerHTML = '';
+      try {
+        new QRCode(el, {
+          text: url, width: 150, height: 150,
+          colorDark: '#1040b0', colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } catch (e) { console.error('Błąd generowania QR:', e); }
+    }
+    makeQR('qrGaleria', qrUrl('galeria.html'));
+    makeQR('qrRsvp', qrUrl('rsvp.html'));
+  </script>
+</body>
+</html>

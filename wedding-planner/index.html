@@ -11,6 +11,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="auth.js"></script>
+  <!-- QR Code generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });</script>
@@ -31,6 +33,7 @@
     </button>
     <div id="loginError" class="login-error" style="display:none"></div>
     <p class="login-privacy">&#128274; Aplikacja prywatna — dostęp tylko dla zaproszonych</p>
+    <a class="login-public-link" href="harmonogram.html" target="_blank" rel="noopener">&#128197; Zobacz harmonogram dnia ślubu &#8599;</a>
   </div>
 </div>
 
@@ -50,6 +53,7 @@
   <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
   <span class="nav-mob-title">&#9834; Wesele</span>
   <button class="nav-btn active" id="navDashboard" onclick="switchView('dashboard')">&#127968; Dashboard</button>
+  <a class="nav-btn nav-link-ext" href="harmonogram.html" target="_blank" rel="noopener" title="Publiczny harmonogram dla gości">&#128197; Harmonogram <span class="nav-ext-icon">&#8599;</span></a>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Goście:</span>
   <button class="nav-btn" id="navTables" onclick="switchView('tables')">&#128101; Stoły i goście</button>
@@ -63,6 +67,7 @@
   <button class="nav-btn" id="navSchedule" onclick="switchView('schedule')">&#128197; Harmonogram</button>
   <button class="nav-btn" id="navTasks" onclick="switchView('tasks')">&#9989; Zadania</button>
   <button class="nav-btn" id="navVendors" onclick="switchView('vendors')">&#128203; Dostawcy</button>
+  <button class="nav-btn" id="navGallery" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Logistyka:</span>
   <button class="nav-btn" id="navTransport" onclick="switchView('transport')">&#128663; Transport</button>
@@ -86,6 +91,7 @@
   </div>
   <div class="mob-drawer-body">
     <button class="mob-nav-btn" onclick="switchView('dashboard')">&#127968; Dashboard</button>
+    <a class="mob-nav-btn mob-nav-link-ext" href="harmonogram.html" target="_blank" rel="noopener">&#128197; Harmonogram <span class="nav-ext-icon">&#8599;</span></a>
     <div class="mob-nav-sep">Goście</div>
     <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
     <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
@@ -96,6 +102,7 @@
     <button class="mob-nav-btn" onclick="switchView('schedule')">&#128197; Harmonogram</button>
     <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
     <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
+    <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
@@ -458,6 +465,25 @@
           <button class="btn btn-primary" onclick="addScheduleEvent()">+ Dodaj wydarzenie</button>
         </div>
       </div>
+
+      <!-- QR KOD — HARMONOGRAM DLA GOŚCI -->
+      <div class="qr-card">
+        <div class="qr-card-canvas">
+          <div id="qrSchedule"></div>
+        </div>
+        <div class="qr-card-info">
+          <div class="qr-card-title">&#128241; Harmonogram dla gości</div>
+          <p class="qr-card-desc">Zeskanuj lub udostępnij ten kod QR, aby goście zobaczyli elegancką ulotkę z harmonogramem dnia ślubu — bez logowania.</p>
+          <div class="qr-card-link">
+            <a id="qrScheduleLink" href="harmonogram.html" target="_blank" rel="noopener">harmonogram</a>
+          </div>
+          <div class="qr-card-actions">
+            <button class="btn btn-primary btn-sm" onclick="downloadQR('qrSchedule','harmonogram-qr.png')">&#11015; Pobierz PNG</button>
+            <a class="btn btn-sm" id="qrScheduleOpen" href="harmonogram.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
+          </div>
+        </div>
+      </div>
+
       <div id="scheduleTimeline"></div>
     </div>
   </div>
@@ -557,6 +583,40 @@
       </div>
       <div class="gifts-summary" id="giftsSummary"></div>
       <div id="giftsList"></div>
+    </div>
+  </div>
+
+  <!-- ══ GALLERY VIEW ══ -->
+  <div id="viewGallery" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128247; Galeria Gości &amp; Kody QR</h2>
+      </div>
+
+      <!-- QR KOD — GALERIA -->
+      <div class="qr-card">
+        <div class="qr-card-canvas">
+          <div id="qrGallery"></div>
+        </div>
+        <div class="qr-card-info">
+          <div class="qr-card-title">&#128241; Galeria zdjęć gości</div>
+          <p class="qr-card-desc">Goście skanują ten kod QR, aby wrzucać zdjęcia i filmy ze swoich telefonów oraz oglądać zdjęcia dodane przez innych — bez logowania.</p>
+          <div class="qr-card-link">
+            <a id="qrGalleryLink" href="galeria.html" target="_blank" rel="noopener">galeria</a>
+          </div>
+          <div class="qr-card-actions">
+            <button class="btn btn-primary btn-sm" onclick="downloadQR('qrGallery','galeria-qr.png')">&#11015; Pobierz PNG</button>
+            <a class="btn btn-sm" id="qrGalleryOpen" href="galeria.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN GALERII -->
+      <div class="gallery-admin-header">
+        <h3>&#128444; Wszystkie zdjęcia i filmy</h3>
+        <span class="gallery-admin-count" id="galleryAdminCount"></span>
+      </div>
+      <div id="galleryAdminGrid"></div>
     </div>
   </div>
 
