@@ -5,6 +5,17 @@ service cloud.firestore {
     match /weddingPlanner/main {
       allow read, write: if true;
     }
+    // Zarządzanie dostępem — czarna lista emaili:
+    //  • odczyt — tylko zalogowani (sprawdzenie blokady przy logowaniu)
+    //  • zapis  — zalogowani, którzy sami NIE są zablokowani (brak samo-odblokowania)
+    match /accessControl/main {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        !exists(/databases/$(database)/documents/accessControl/main) ||
+        !(request.auth.token.email in
+          get(/databases/$(database)/documents/accessControl/main).data.get('blockedEmails', []))
+      );
+    }
     // Galeria zdjęć gości:
     //  • odczyt i dodawanie — publiczne (goście bez logowania)
     //  • usuwanie — tylko zalogowani organizatorzy (konta z listy)

@@ -34,20 +34,74 @@ function initAuth() {
   });
 
   _auth.onAuthStateChanged(user => {
+    _stopBlockWatcher();
+
     if (!user) {
       _showLoginScreen(null);
       return;
     }
 
-    if (!ALLOWED_EMAILS.includes((user.email || '').toLowerCase())) {
+    const email = (user.email || '').toLowerCase();
+
+    if (!ALLOWED_EMAILS.includes(email)) {
       console.warn('[Auth] Nieautoryzowany email:', user.email);
       _auth.signOut();
       _showLoginScreen('Brak dostępu — ta aplikacja jest prywatna.\nSkontaktuj się z organizatorem.');
       return;
     }
 
-    _showApp(user);
+    // Sprawdź czy email nie jest na czarnej liście (blokada w Firestore)
+    _checkBlocked(email).then(blocked => {
+      if (blocked) {
+        console.warn('[Auth] Dostęp zablokowany dla:', email);
+        _auth.signOut();
+        _showLoginScreen('🚫 Twój dostęp został zablokowany.\nSkontaktuj się z organizatorem.');
+        return;
+      }
+      _showApp(user);
+      // Nasłuchuj zmian — wyloguj natychmiast, jeśli konto zostanie zablokowane
+      _startBlockWatcher(email);
+    });
   });
+}
+
+// ── Czarna lista (Firestore: accessControl/main → blockedEmails[]) ──
+let _blockWatcherUnsub = null;
+
+function _blockedEmailsFrom(data) {
+  const list = (data && data.blockedEmails) || [];
+  return list.map(e => (e || '').toLowerCase());
+}
+
+function _checkBlocked(email) {
+  try {
+    const db = firebase.firestore();
+    return db.collection('accessControl').doc('main').get()
+      .then(doc => doc.exists && _blockedEmailsFrom(doc.data()).includes(email))
+      .catch(err => { console.error('[Auth] Odczyt czarnej listy:', err); return false; });
+  } catch (e) {
+    console.error('[Auth] Firestore niedostępny:', e);
+    return Promise.resolve(false);
+  }
+}
+
+function _startBlockWatcher(email) {
+  _stopBlockWatcher();
+  try {
+    const db = firebase.firestore();
+    _blockWatcherUnsub = db.collection('accessControl').doc('main')
+      .onSnapshot(doc => {
+        if (doc.exists && _blockedEmailsFrom(doc.data()).includes(email)) {
+          _stopBlockWatcher();
+          if (_auth) _auth.signOut();
+          _showLoginScreen('🚫 Twój dostęp został zablokowany.\nSkontaktuj się z organizatorem.');
+        }
+      }, () => {});
+  } catch (_) {}
+}
+
+function _stopBlockWatcher() {
+  if (_blockWatcherUnsub) { try { _blockWatcherUnsub(); } catch (_) {} _blockWatcherUnsub = null; }
 }
 
 function signInWithGoogle() {

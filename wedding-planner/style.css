@@ -1060,26 +1060,34 @@ body.mob-nav-open { overflow: hidden; }
   .expenses-alcohol-col    { position: static !important; width: 100% !important; max-width: 100% !important; }
 
   /* ── Pasek budżetu: wszystkie wartości naraz, kompaktowo (2 kolumny) ── */
+  .budget-overview { padding: 8px 44px 8px 10px; gap: 8px; }
   .budget-overview .bstats {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
-    gap: 5px 8px;
+    gap: 5px 6px;
     width: 100%;
     flex: none;
   }
   .budget-overview .bstat-sep { display: none !important; }
+  /* Każda wartość w osobnej „karcie": etykieta nad kwotą — nic się nie ucina */
   .budget-overview .bstat {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 6px;
-    padding: 5px 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 1px;
+    padding: 5px 7px;
     background: var(--bg);
     border-radius: 6px;
     min-width: 0;
   }
-  .budget-overview .bstat-lbl { order: 1; margin-top: 0; font-size: 0.62rem; }
-  .budget-overview .bstat-val { order: 2; font-size: 0.82rem; }
+  .budget-overview .bstat-lbl {
+    order: 1; margin-top: 0; font-size: 0.6rem; line-height: 1.15;
+    white-space: normal; word-break: break-word;
+  }
+  .budget-overview .bstat-val {
+    order: 2; font-size: 0.84rem; white-space: nowrap;
+    max-width: 100%; overflow: visible;
+  }
 
   /* Przycisk zwijania całego paska budżetu */
   .budget-toggle-btn {
@@ -1101,6 +1109,8 @@ body.mob-nav-open { overflow: hidden; }
   .budget-overview.budget-collapsed .bstats { display: flex !important; gap: 0; }
   .budget-overview.budget-collapsed .bstat-remaining {
     display: flex !important;
+    flex-direction: row;
+    align-items: baseline;
     justify-content: flex-start;
     padding: 0;
     gap: 8px;
@@ -1176,6 +1186,24 @@ body.mob-nav-open { overflow: hidden; }
   .tables-grid        { grid-template-columns: 1fr !important; }
   .gf-row             { gap: 4px; }
   .gf-btn             { padding: 6px 10px; font-size: 0.8rem; min-height: 36px; }
+
+  /* Sterowanie stołem — większe, klikalne pola dotykowe */
+  .table-header { flex-wrap: wrap; gap: 6px; }
+  .table-name-input {
+    flex: 1 1 100%; font-size: 1rem; min-height: 42px; padding: 8px 6px;
+    border: 1.5px solid var(--border); border-radius: 8px; touch-action: manipulation;
+  }
+  .table-controls { width: 100%; justify-content: space-between; gap: 8px; }
+  .seats-control { gap: 8px; }
+  .seats-btn {
+    width: 40px; height: 40px; font-size: 1.3rem; touch-action: manipulation;
+  }
+  .seats-num { min-width: 28px; font-size: 1rem; }
+  .btn-edit, .btn-delete-table {
+    min-width: 42px; min-height: 42px; font-size: 1.15rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    touch-action: manipulation;
+  }
 
   /* Karta gościa: zwijana na mobile */
   .guest-item .guest-top-row { cursor: pointer; user-select: none; align-items: center; }
@@ -2247,6 +2275,29 @@ input:focus, select:focus {
   gap: 8px;
   white-space: nowrap;
 }
+
+/* Pływający „duszek" przy przeciąganiu dotykiem (mobile) */
+.touch-drag-ghost {
+  position: fixed;
+  left: 0; top: 0;
+  transform: translate(-50%, -130%);
+  pointer-events: none;
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 2px solid var(--blue);
+  border-radius: 999px;
+  padding: 6px 14px 6px 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+  white-space: nowrap;
+  max-width: 70vw;
+  overflow: hidden;
+}
+.touch-drag-ghost span { overflow: hidden; text-overflow: ellipsis; }
 
 /* ── TOAST ── */
 .toast {
@@ -4257,6 +4308,55 @@ input:focus, select:focus {
 .qr-card-actions .btn { text-decoration: none; display: inline-flex; align-items: center; }
 
 /* ── Administracja galerią ── */
+/* ── Licznik wykorzystanego miejsca ── */
+.gallery-storage {
+  margin-top: 22px; background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 14px 18px; box-shadow: 0 3px 12px var(--shadow);
+}
+.gallery-storage .gs-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex-wrap: wrap; margin-bottom: 10px;
+}
+.gallery-storage .gs-label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.gallery-storage .gs-value { font-size: 0.9rem; font-weight: 700; color: var(--blue-dark); }
+.gs-bar-bg { height: 10px; background: var(--blue-pale); border-radius: 6px; overflow: hidden; }
+.gs-bar {
+  height: 100%; width: 0%; border-radius: 6px;
+  background: linear-gradient(90deg, var(--blue), var(--blue-mid));
+  transition: width 0.4s ease;
+}
+.gs-bar.gs-bar-warn { background: linear-gradient(90deg, #f59e0b, #dc2626); }
+
+/* ── Zarządzanie dostępem ── */
+.access-intro {
+  font-size: 0.86rem; color: var(--text-light); line-height: 1.55;
+  margin: 4px 0 18px; max-width: 720px;
+}
+.access-list { display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
+.acc-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--white); border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 13px 16px; box-shadow: 0 2px 8px var(--shadow); flex-wrap: wrap;
+}
+.acc-row-blocked { background: #fff5f5; border-color: #fca5a5; }
+.acc-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0; }
+.acc-email { font-size: 0.92rem; font-weight: 600; color: var(--text); word-break: break-all; }
+.acc-me {
+  font-size: 0.68rem; font-weight: 700; color: var(--blue-dark);
+  background: var(--blue-pale); border-radius: 12px; padding: 2px 8px; margin-left: 4px;
+}
+.acc-status { font-size: 0.74rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+.acc-active  { background: #dcfce7; color: #15803d; }
+.acc-blocked { background: #fee2e2; color: var(--red); }
+.btn-unblock { background: var(--green); color: #fff; border: none; }
+.btn-unblock:hover { background: #128a3e; }
+
+@media (max-width: 768px) {
+  .acc-row { align-items: flex-start; }
+  .acc-actions { width: 100%; }
+  .acc-actions .btn { width: 100%; }
+}
+
 .gallery-admin-header {
   display: flex; align-items: baseline; justify-content: space-between;
   margin: 26px 0 14px; padding-bottom: 10px; border-bottom: 2px solid var(--border);

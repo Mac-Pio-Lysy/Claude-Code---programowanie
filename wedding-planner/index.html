@@ -68,6 +68,7 @@
   <button class="nav-btn" id="navTasks" onclick="switchView('tasks')">&#9989; Zadania</button>
   <button class="nav-btn" id="navVendors" onclick="switchView('vendors')">&#128203; Dostawcy</button>
   <button class="nav-btn" id="navGallery" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
+  <button class="nav-btn" id="navAccess" onclick="switchView('access')">&#128272; Dostęp</button>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Logistyka:</span>
   <button class="nav-btn" id="navTransport" onclick="switchView('transport')">&#128663; Transport</button>
@@ -103,6 +104,7 @@
     <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
     <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
     <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
+    <button class="mob-nav-btn" onclick="switchView('access')">&#128272; Zarządzanie dostępem</button>
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
@@ -611,12 +613,32 @@
         </div>
       </div>
 
+      <!-- LICZNIK MIEJSCA -->
+      <div class="gallery-storage">
+        <div class="gs-top">
+          <span class="gs-label">&#128190; Wykorzystane miejsce (Cloudinary)</span>
+          <span class="gs-value" id="galleryStorageUsage">Wykorzystano: 0 MB / 25 GB</span>
+        </div>
+        <div class="gs-bar-bg"><div class="gs-bar" id="galleryStorageBar" style="width:0%"></div></div>
+      </div>
+
       <!-- ADMIN GALERII -->
       <div class="gallery-admin-header">
         <h3>&#128444; Wszystkie zdjęcia i filmy</h3>
         <span class="gallery-admin-count" id="galleryAdminCount"></span>
       </div>
       <div id="galleryAdminGrid"></div>
+    </div>
+  </div>
+
+  <!-- ══ ACCESS VIEW ══ -->
+  <div id="viewAccess" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128272; Zarządzanie dostępem</h2>
+      </div>
+      <p class="access-intro">Lista kont z dostępem do panelu. Zablokowany użytkownik zostanie wylogowany po odświeżeniu strony i zobaczy komunikat „Twój dostęp został zablokowany". Dostęp można w każdej chwili przywrócić.</p>
+      <div id="accessList" class="access-list"></div>
     </div>
   </div>
 

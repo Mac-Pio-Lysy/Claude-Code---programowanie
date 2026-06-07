@@ -126,6 +126,14 @@
     .qr-box-code canvas, .qr-box-code img { display: block; width: 150px; height: 150px; }
     .qr-box-title { font-size: 1rem; font-weight: 700; color: var(--blue-dark); }
     .qr-box-desc { font-size: 0.83rem; color: var(--text-soft); line-height: 1.4; }
+    .qr-box-link {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 2px;
+      font-size: 0.84rem; font-weight: 600; text-decoration: none;
+      color: var(--blue-dark); background: var(--white);
+      border: 1.5px solid var(--blue); border-radius: 22px; padding: 8px 16px;
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .qr-box-link:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
     .qr-hint { font-size: 0.8rem; color: var(--text-soft); margin-top: 16px; }
 
     /* ── Stopka ── */
@@ -191,11 +199,13 @@
           <div class="qr-box-code" id="qrGaleria"></div>
           <div class="qr-box-title">📸 Galeria zdjęć</div>
           <div class="qr-box-desc">Wrzuć swoje zdjęcia i filmy</div>
+          <a class="qr-box-link" href="galeria.html" target="_blank" rel="noopener">📸 Otwórz galerię zdjęć</a>
         </div>
         <div class="qr-box">
           <div class="qr-box-code" id="qrRsvp"></div>
           <div class="qr-box-title">💌 Potwierdzenie</div>
           <div class="qr-box-desc">Potwierdź swoją obecność</div>
+          <a class="qr-box-link" href="rsvp.html" target="_blank" rel="noopener">✅ Potwierdź obecność</a>
         </div>
       </div>
       <div class="qr-hint">Zeskanuj kod telefonem 📱</div>

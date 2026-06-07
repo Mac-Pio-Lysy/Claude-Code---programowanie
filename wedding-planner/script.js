@@ -738,6 +738,137 @@ function _assignToSeat(tableId, seatIdx, guestId) {
   showToast(`${fullName(g)} → miejsce ${seatIdx+1} (${t.name})`);
 }
 
+// ── DRAG & DROP DOTYKOWY (mobile / tablet) ──
+// Natywne HTML5 drag&drop nie działa na ekranach dotykowych — poniżej
+// własna obsługa touchstart / touchmove / touchend (przeciąganie inicjałów gości).
+let _touchDrag = null;
+
+// Zwraca id gościa dla elementu, który można przeciągać (kafelek gościa lub zajęte miejsce)
+function _touchFindGuestId(target) {
+  if (!target || !target.closest) return null;
+  const guestEl = target.closest('.guest-item');
+  if (guestEl && guestEl.id && guestEl.id.indexOf('guest-item-') === 0) {
+    return parseInt(guestEl.id.replace('guest-item-', '')) || null;
+  }
+  const slot = target.closest('.table-seat-slot.occupied');
+  if (slot && slot.dataset.table != null) {
+    const t = tables.find(x => x.id === parseInt(slot.dataset.table));
+    if (t) {
+      const gId = t.seatsData[parseInt(slot.dataset.seat)];
+      if (gId != null) return gId;
+    }
+  }
+  return null;
+}
+
+function _touchGhost() {
+  let gh = document.getElementById('touchDragGhost');
+  if (!gh) {
+    gh = document.createElement('div');
+    gh.id = 'touchDragGhost';
+    gh.className = 'touch-drag-ghost';
+    document.body.appendChild(gh);
+  }
+  return gh;
+}
+
+function _onTouchDragStart(e) {
+  if (currentView !== 'tables' || e.touches.length !== 1) return;
+  const guestId = _touchFindGuestId(e.target);
+  if (!guestId) return;
+  const t = e.touches[0];
+  // Start przez przytrzymanie (long-press) — nie koliduje z przewijaniem listy
+  _touchDrag = { guestId, startX: t.clientX, startY: t.clientY, active: false, timer: null };
+  _touchDrag.timer = setTimeout(() => {
+    if (!_touchDrag) return;
+    _touchDrag.active = true;
+    draggedGuestId = _touchDrag.guestId;
+    const g = guests.find(x => x.id === _touchDrag.guestId);
+    const gh = _touchGhost();
+    gh.innerHTML = g ? (avatarHtml(g, 'avatar-sm') + '<span>' + esc(fullName(g)) + '</span>') : '';
+    gh.style.display = 'flex';
+    gh.style.left = _touchDrag.startX + 'px';
+    gh.style.top  = _touchDrag.startY + 'px';
+    if (navigator.vibrate) try { navigator.vibrate(15); } catch (_) {}
+  }, 220);
+}
+
+function _onTouchDragMove(e) {
+  if (!_touchDrag) return;
+  const t = e.touches[0];
+  if (!_touchDrag.active) {
+    // Ruch przed long-press = przewijanie → anuluj przeciąganie
+    if (Math.hypot(t.clientX - _touchDrag.startX, t.clientY - _touchDrag.startY) > 10) {
+      clearTimeout(_touchDrag.timer);
+      _touchDrag = null;
+    }
+    return;
+  }
+  e.preventDefault(); // blokuj przewijanie podczas przeciągania
+  const gh = _touchGhost();
+  gh.style.left = t.clientX + 'px';
+  gh.style.top  = t.clientY + 'px';
+  _touchHighlight(t.clientX, t.clientY);
+}
+
+function _onTouchDragEnd(e) {
+  if (!_touchDrag) return;
+  const drag = _touchDrag;
+  _touchDrag = null;
+  clearTimeout(drag.timer);
+  if (!drag.active) return; // zwykłe dotknięcie / przewinięcie
+  const gh = document.getElementById('touchDragGhost');
+  if (gh) gh.style.display = 'none';
+  const t = e.changedTouches && e.changedTouches[0];
+  if (t) _touchDropOn(document.elementFromPoint(t.clientX, t.clientY), drag.guestId);
+  draggedGuestId = null;
+  _touchClearHighlight();
+}
+
+function _touchHighlight(x, y) {
+  _touchClearHighlight();
+  const el = document.elementFromPoint(x, y);
+  if (!el || !el.closest) return;
+  const slot = el.closest('.table-seat-slot');
+  if (slot && slot.dataset.table != null) {
+    const tableId = parseInt(slot.dataset.table);
+    const t = tables.find(z => z.id === tableId);
+    if (t && t.seatsData[parseInt(slot.dataset.seat)] === null) slot.classList.add('drag-over-seat');
+    document.getElementById(`table-card-${tableId}`)?.classList.add('drag-over');
+    return;
+  }
+  const card = el.closest('.table-card');
+  if (card) card.classList.add('drag-over');
+}
+
+function _touchClearHighlight() {
+  document.querySelectorAll('.table-card.drag-over').forEach(el => el.classList.remove('drag-over'));
+  document.querySelectorAll('.table-seat-slot.drag-over-seat').forEach(el => el.classList.remove('drag-over-seat'));
+}
+
+function _touchDropOn(el, guestId) {
+  if (!el || !el.closest) return;
+  const slot = el.closest('.table-seat-slot');
+  if (slot && slot.dataset.table != null) {
+    const tableId = parseInt(slot.dataset.table);
+    const seatIdx = parseInt(slot.dataset.seat);
+    const t = tables.find(z => z.id === tableId);
+    if (t && t.seatsData[seatIdx] === null) { _assignToSeat(tableId, seatIdx, guestId); return; }
+    if (t) { _assignToTable(tableId, guestId); return; } // zajęte miejsce → pierwsze wolne
+  }
+  const card = el.closest('.table-card');
+  if (card && card.id.indexOf('table-card-') === 0) {
+    _assignToTable(parseInt(card.id.replace('table-card-', '')), guestId);
+  }
+}
+
+function initTouchDragDrop() {
+  document.addEventListener('touchstart', _onTouchDragStart, { passive: true });
+  document.addEventListener('touchmove',  _onTouchDragMove,  { passive: false });
+  document.addEventListener('touchend',   _onTouchDragEnd,   { passive: true });
+  document.addEventListener('touchcancel', _onTouchDragEnd,  { passive: true });
+}
+
 // ── STATS ──
 function updateStats() {
   const statsBar = document.getElementById('statsBar');
@@ -2603,6 +2734,7 @@ function initMobileCollapse() {
     ['viewAccommodation', 'accommodation'],
     ['viewGifts',         'gifts'],
     ['viewGallery',       'gallery'],
+    ['viewAccess',        'access'],
   ].forEach(([viewId, key]) => {
     const view = document.getElementById(viewId);
     if (!view) return;
@@ -2723,7 +2855,7 @@ function switchView(view) {
     dashboard: 'viewDashboard', rsvp: 'viewRsvp', payments: 'viewPayments',
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
-    gallery: 'viewGallery',
+    gallery: 'viewGallery', access: 'viewAccess',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -2737,6 +2869,7 @@ function switchView(view) {
     budget: 'navBudget', schedule: 'navSchedule',
     tasks: 'navTasks', vendors: 'navVendors', transport: 'navTransport',
     accommodation: 'navAccommodation', gifts: 'navGifts', gallery: 'navGallery',
+    access: 'navAccess',
   };
   const navBtn = document.getElementById(navIds[view]);
   if (navBtn) navBtn.classList.add('active');
@@ -2758,6 +2891,7 @@ function switchView(view) {
     case 'dashboard':     renderDashboard();     break;
     case 'schedule':      renderSchedule(); renderScheduleQR(); break;
     case 'gallery':       renderGalleryView();   break;
+    case 'access':        renderAccessView();    break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -4941,10 +5075,33 @@ function _startGalleryAdminListener() {
   } catch (e) { console.error('Galeria admin:', e); }
 }
 
+// Formatuje rozmiar w bajtach do czytelnej postaci (MB / GB)
+function _fmtSize(bytes) {
+  const mb = (bytes || 0) / (1024 * 1024);
+  if (mb >= 1024) return (mb / 1024).toFixed(2) + ' GB';
+  return mb.toFixed(1) + ' MB';
+}
+
+// Aktualizuje licznik wykorzystanego miejsca (25 GB darmowego planu Cloudinary)
+function _renderGalleryStorage() {
+  const usageEl = document.getElementById('galleryStorageUsage');
+  const barEl   = document.getElementById('galleryStorageBar');
+  const total   = _galleryAdminItems.reduce((sum, it) => sum + (it.fileSize || 0), 0);
+  const LIMIT   = 25 * 1024 * 1024 * 1024; // 25 GB
+  if (usageEl) usageEl.textContent = `Wykorzystano: ${_fmtSize(total)} / 25 GB`;
+  if (barEl) {
+    const pct = Math.min(100, (total / LIMIT) * 100);
+    barEl.style.width = pct.toFixed(2) + '%';
+    barEl.classList.toggle('gs-bar-warn', pct >= 85);
+  }
+}
+
 function renderGalleryAdminGrid() {
   const grid = document.getElementById('galleryAdminGrid');
   const countEl = document.getElementById('galleryAdminCount');
   if (!grid) return;
+
+  _renderGalleryStorage();
 
   if (!_galleryAdminItems.length) {
     if (countEl) countEl.textContent = '';
@@ -5005,6 +5162,103 @@ async function deleteGalleryItem(id) {
   } catch (e) {
     console.error('Usuwanie pliku galerii:', e);
     alert('Nie udało się usunąć pliku. Spróbuj ponownie.');
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  ZARZĄDZANIE DOSTĘPEM (czarna lista emaili)
+// ══════════════════════════════════════════════════════
+let _blockedEmailsAdmin = [];
+let _accessUnsub = null;
+
+function renderAccessView() {
+  _startAccessListener();
+  renderAccessList();
+}
+
+function _accessRef() {
+  return firebase.firestore().collection('accessControl').doc('main');
+}
+
+function _startAccessListener() {
+  if (_accessUnsub) return;
+  if (!window.firebase || !firebase.firestore) return;
+  try {
+    _accessUnsub = _accessRef().onSnapshot(doc => {
+      const list = (doc.exists && doc.data().blockedEmails) || [];
+      _blockedEmailsAdmin = list.map(e => (e || '').toLowerCase());
+      renderAccessList();
+    }, err => console.error('Nasłuch dostępu:', err));
+  } catch (e) { console.error('Zarządzanie dostępem:', e); }
+}
+
+function _currentUserEmail() {
+  try {
+    return ((firebase.auth().currentUser || {}).email || '').toLowerCase();
+  } catch (_) { return ''; }
+}
+
+function renderAccessList() {
+  const cont = document.getElementById('accessList');
+  if (!cont) return;
+  const emails = (typeof ALLOWED_EMAILS !== 'undefined') ? ALLOWED_EMAILS : [];
+  const me = _currentUserEmail();
+
+  cont.innerHTML = emails.map(email => {
+    const e = (email || '').toLowerCase();
+    const blocked = _blockedEmailsAdmin.includes(e);
+    const isMe = e === me;
+    const statusBadge = blocked
+      ? '<span class="acc-status acc-blocked">&#128683; Zablokowany</span>'
+      : '<span class="acc-status acc-active">&#10003; Aktywny</span>';
+    const meTag = isMe ? '<span class="acc-me">to Ty</span>' : '';
+
+    let actionBtn;
+    if (isMe) {
+      actionBtn = '<button class="btn btn-sm" disabled title="Nie możesz zablokować własnego konta" style="opacity:.5;cursor:not-allowed">Zablokuj</button>';
+    } else if (blocked) {
+      actionBtn = `<button class="btn btn-sm btn-unblock" onclick="unblockEmail('${esc(e)}')">&#128275; Odblokuj</button>`;
+    } else {
+      actionBtn = `<button class="btn btn-sm btn-danger" onclick="blockEmail('${esc(e)}')">&#128683; Zablokuj</button>`;
+    }
+
+    return `<div class="acc-row ${blocked ? 'acc-row-blocked' : ''}">
+      <div class="acc-info">
+        <span class="acc-email">&#128231; ${esc(email)} ${meTag}</span>
+        ${statusBadge}
+      </div>
+      <div class="acc-actions">${actionBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function blockEmail(email) {
+  const e = (email || '').toLowerCase();
+  if (!e) return;
+  if (e === _currentUserEmail()) { alert('Nie możesz zablokować własnego konta.'); return; }
+  if (!confirm('Zablokować dostęp dla:\n' + email + '\n\nUżytkownik zostanie wylogowany i nie wejdzie do panelu, dopóki nie przywrócisz dostępu.')) return;
+  try {
+    await _accessRef().set({
+      blockedEmails: firebase.firestore.FieldValue.arrayUnion(e),
+    }, { merge: true });
+    showToast('Dostęp zablokowany ✓');
+  } catch (err) {
+    console.error('Blokowanie emaila:', err);
+    alert('Nie udało się zablokować. Spróbuj ponownie.');
+  }
+}
+
+async function unblockEmail(email) {
+  const e = (email || '').toLowerCase();
+  if (!e) return;
+  try {
+    await _accessRef().set({
+      blockedEmails: firebase.firestore.FieldValue.arrayRemove(e),
+    }, { merge: true });
+    showToast('Dostęp przywrócony ✓');
+  } catch (err) {
+    console.error('Odblokowanie emaila:', err);
+    alert('Nie udało się odblokować. Spróbuj ponownie.');
   }
 }
 
@@ -5173,3 +5427,4 @@ switchView('dashboard');
 startCountdown();
 if (typeof initFirebaseSync === 'function') initFirebaseSync();
 if (typeof initAuth === 'function') initAuth();
+if (typeof initTouchDragDrop === 'function') initTouchDragDrop();

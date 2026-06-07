@@ -80,6 +80,13 @@
     .gallery-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 4px; }
     .gallery-head h2 { font-size: 1.15rem; color: var(--blue-dark); }
     .gallery-count { font-size: 0.82rem; color: var(--text-soft); }
+    .gallery-stats {
+      display: inline-flex; align-items: center; gap: 8px; margin: 0 4px 16px;
+      font-size: 0.8rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--blue-pale); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+    }
+    .gallery-stats:empty { display: none; }
 
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
     .tile {
@@ -173,6 +180,7 @@
       </div>
       <span class="gallery-count" id="galleryCount"></span>
     </div>
+    <div class="gallery-stats" id="galleryStats"></div>
     <div id="galleryArea">
       <div class="gal-spinner"></div>
     </div>
@@ -271,6 +279,8 @@
         sources: ['local', 'camera'],
         multiple: true,
         resourceType: 'auto',
+        // Brak transformacji rozdzielczości/jakości — pliki w oryginale.
+        // (Bez maxImageWidth/maxImageHeight, bez kompresji po stronie widgetu.)
         maxFileSize: 104857600,            // 100 MB (limit dla filmów)
         language: 'pl',
         text: {
@@ -326,6 +336,7 @@
           publicId: info.public_id,
           uploadedBy: name,
           type: info.resource_type === 'video' ? 'video' : 'image',
+          fileSize: info.bytes || 0,   // rozmiar pliku w bajtach (do licznika miejsca)
           timestamp: Date.now(),
         });
       } catch (e) {
@@ -348,13 +359,23 @@
       if (w) w.open();
     });
 
+    // Suma rozmiarów wszystkich plików (w bajtach)
+    function totalBytes() {
+      return galleryItems.reduce((sum, it) => sum + (it.fileSize || 0), 0);
+    }
+    function fmtMB(bytes) {
+      return (bytes / (1024 * 1024)).toFixed(1);
+    }
+
     // ── Render galerii ──
     function renderGallery() {
       const area = document.getElementById('galleryArea');
       const countEl = document.getElementById('galleryCount');
+      const statsEl = document.getElementById('galleryStats');
 
       if (!galleryItems.length) {
         countEl.textContent = '';
+        if (statsEl) statsEl.textContent = '';
         area.innerHTML = `<div class="empty-gallery">
           <div class="eg-icon">🖼️</div>
           <p>Nie ma jeszcze żadnych zdjęć.<br>Bądź pierwszy/a i dodaj wspomnienie! 💙</p>
@@ -363,6 +384,9 @@
       }
 
       countEl.textContent = galleryItems.length + (galleryItems.length === 1 ? ' plik' : ' plików');
+      if (statsEl) {
+        statsEl.textContent = `📊 Łącznie zdjęć: ${galleryItems.length} | Rozmiar: ${fmtMB(totalBytes())} MB`;
+      }
 
       const tiles = galleryItems.map((it, i) => {
         let media;
