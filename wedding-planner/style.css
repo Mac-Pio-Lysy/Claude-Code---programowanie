@@ -1023,7 +1023,9 @@ body.mob-nav-open { overflow: hidden; }
   .view-panel .section-container { overflow-y: visible !important; height: auto !important; max-height: none !important; }
   .budget-scroll           { overflow-y: visible !important; height: auto !important; flex: none !important; }
   #viewTables .main        { flex-direction: column !important; height: auto !important; overflow: visible !important; }
-  .panel-guests            { width: 100% !important; height: auto !important; max-height: 60vh !important; overflow-y: auto !important; border-right: none !important; border-bottom: 2px solid var(--border) !important; }
+  /* Każda sekcja zajmuje tyle miejsca ile potrzebuje — przewija się cała strona */
+  .panel-guests            { width: 100% !important; height: auto !important; max-height: none !important; overflow: visible !important; border-right: none !important; border-bottom: 2px solid var(--border) !important; }
+  .panel-guests .guest-list{ flex: none !important; overflow: visible !important; }
   .panel-tables            { flex: none !important; height: auto !important; overflow-x: auto !important; overflow-y: visible !important; -webkit-overflow-scrolling: touch; }
   .panel-pairs             { display: none !important; }
 
@@ -1031,10 +1033,65 @@ body.mob-nav-open { overflow: hidden; }
   .budget-tab-bar          { display: none !important; }
   .btab-panel              { display: block !important; border-bottom: 2px solid var(--border); padding-bottom: 4px; margin-bottom: 4px; }
   .budget-view             { flex: none !important; overflow: visible !important; }
-  .budget-overview         { position: sticky; top: 46px; z-index: 50; }
+  .budget-overview         { position: sticky; top: 46px; z-index: 50; gap: 10px; padding-right: 44px; }
   .expenses-layout         { flex-direction: column !important; }
   .expenses-main-col       { max-width: 100% !important; }
   .expenses-alcohol-col    { position: static !important; width: 100% !important; max-width: 100% !important; }
+
+  /* ── Pasek budżetu: wszystkie wartości naraz, kompaktowo (2 kolumny) ── */
+  .budget-overview .bstats {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px 8px;
+    width: 100%;
+    flex: none;
+  }
+  .budget-overview .bstat-sep { display: none !important; }
+  .budget-overview .bstat {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+    padding: 5px 8px;
+    background: var(--bg);
+    border-radius: 6px;
+    min-width: 0;
+  }
+  .budget-overview .bstat-lbl { order: 1; margin-top: 0; font-size: 0.62rem; }
+  .budget-overview .bstat-val { order: 2; font-size: 0.82rem; }
+
+  /* Przycisk zwijania całego paska budżetu */
+  .budget-toggle-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    margin: 0;
+  }
+  /* Zwinięty: tylko jeden wiersz „Pozostało: <kwota>" */
+  .budget-overview.budget-collapsed {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 0;
+  }
+  .budget-overview.budget-collapsed .budget-input-group,
+  .budget-overview.budget-collapsed .budget-prog-wrap,
+  .budget-overview.budget-collapsed .bstat,
+  .budget-overview.budget-collapsed .bstat-sep { display: none !important; }
+  .budget-overview.budget-collapsed .bstats { display: flex !important; gap: 0; }
+  .budget-overview.budget-collapsed .bstat-remaining {
+    display: flex !important;
+    justify-content: flex-start;
+    padding: 0;
+    gap: 8px;
+    background: none;
+  }
+  .budget-overview.budget-collapsed .bstat-remaining .bstat-lbl {
+    font-size: 0.95rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+  .budget-overview.budget-collapsed .bstat-remaining .bstat-lbl::after { content: ':'; }
+  .budget-overview.budget-collapsed .bstat-remaining .bstat-val { font-size: 1.05rem; }
 
   /* ── Zwijalne sekcje — przyciski ── */
   .mob-toggle-btn {
@@ -1150,19 +1207,15 @@ body.mob-nav-open { overflow: hidden; }
   .sched-col          { min-width: 0 !important; }
   .sched-toolbar      { flex-wrap: wrap; gap: 6px; }
 
-  /* ── Zadania (kanban) ── */
+  /* ── Zadania (kanban): kolumny jedna pod drugą, przewijanie pionowe ── */
   .kanban-board {
     display: flex !important;
-    flex-direction: row;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    gap: 10px;
-    padding-bottom: 12px;
+    flex-direction: column;
+    gap: 12px;
   }
   .kanban-col {
-    flex: 0 0 82vw;
-    scroll-snap-align: start;
+    flex: none;
+    width: 100%;
     min-width: 0;
   }
 
@@ -1178,8 +1231,38 @@ body.mob-nav-open { overflow: hidden; }
   .modal-body     { padding: 14px; }
 
   /* ── Stats bar ── */
-  .stats-bar      { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+  /* Rozwinięty (domyślny układ): dwie/trzy kolumny z dużymi liczbami */
+  .stats-bar      { position: relative; flex-wrap: wrap; gap: 6px; padding: 8px 40px 8px 10px; }
   .stat           { flex: 1 1 calc(33% - 6px); min-width: 60px; }
+
+  /* Przycisk zwijania paska statystyk – po prawej stronie */
+  .stats-toggle-btn {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    margin: 0;
+  }
+
+  /* Zwinięty: liczby + etykiety w jednej/dwóch liniach, mniejsza czcionka */
+  .stats-bar.stats-collapsed {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 4px;
+    column-gap: 10px;
+  }
+  .stats-bar.stats-collapsed .stat {
+    flex: 0 0 auto;
+    min-width: 0;
+    gap: 4px;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+  .stats-bar.stats-collapsed .stat-num {
+    font-size: 0.82rem;
+    min-width: 0;
+  }
+  .stats-bar.stats-collapsed .stat-label { font-size: 0.68rem; }
 }
 
 body {

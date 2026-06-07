@@ -325,7 +325,7 @@
         <div class="bstat-sep"></div>
         <div class="bstat"><div class="bstat-val bval-green" id="bstatPaid">0,00 zł</div><div class="bstat-lbl">Opłacono</div></div>
         <div class="bstat-sep"></div>
-        <div class="bstat"><div class="bstat-val bval-orange" id="bstatRemaining">0,00 zł</div><div class="bstat-lbl">Pozostało</div></div>
+        <div class="bstat bstat-remaining"><div class="bstat-val bval-orange" id="bstatRemaining">0,00 zł</div><div class="bstat-lbl">Pozostało</div></div>
         <div class="bstat-sep"></div>
         <div class="bstat"><div class="bstat-val" id="bstatDiff">0,00 zł</div><div class="bstat-lbl">Budżet ‒ plan</div></div>
       </div>
@@ -473,13 +473,12 @@
         <div class="tasks-progress-label" id="tasksProgressLabel">0 / 0 zadań ukończonych</div>
         <div class="tasks-progress-bg"><div class="tasks-progress-fill" id="tasksProgressFill" style="width:0%"></div></div>
       </div>
-      <div class="tasks-filters">
-        <select id="taskFilterPerson" onchange="renderTasks()">
-          <option value="">Wszyscy</option>
-          <option value="groom">Pan Młody</option>
-          <option value="bride">Panna Młoda</option>
-          <option value="both">Oboje</option>
-        </select>
+      <div class="tasks-filters" id="taskFilters">
+        <button class="gf-btn gf-active" data-value=""      onclick="setTaskPersonFilter('')">Wszyscy</button>
+        <button class="gf-btn"           data-value="groom" onclick="setTaskPersonFilter('groom')">Pan Młody</button>
+        <button class="gf-btn"           data-value="bride" onclick="setTaskPersonFilter('bride')">Panna Młoda</button>
+        <button class="gf-btn"           data-value="both"  onclick="setTaskPersonFilter('both')">Oboje</button>
+        <input type="hidden" id="taskFilterPerson" value="">
       </div>
       <div id="kanbanBoard" class="kanban-board"></div>
     </div>

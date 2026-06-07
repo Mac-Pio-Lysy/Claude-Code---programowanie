@@ -2522,6 +2522,30 @@ function toggleMobSection(key, btn) {
   _saveMobState(state);
 }
 
+// Pasek statystyk: zwinięty = jedna linia (małe liczby), rozwinięty = pełny układ
+function toggleStatsBar(btn) {
+  const bar = document.getElementById('statsBar');
+  if (!bar) return;
+  const nowCollapsed = !bar.classList.contains('stats-collapsed');
+  bar.classList.toggle('stats-collapsed', nowCollapsed);
+  btn.textContent = nowCollapsed ? '▼' : '▲';
+  const state = _getMobState();
+  state.statsBar = nowCollapsed;
+  _saveMobState(state);
+}
+
+// Pasek budżetu: zwinięty = tylko „Pozostało: <kwota>", rozwinięty = wszystkie wartości
+function toggleBudgetBar(btn) {
+  const bar = document.querySelector('.budget-overview');
+  if (!bar) return;
+  const nowCollapsed = !bar.classList.contains('budget-collapsed');
+  bar.classList.toggle('budget-collapsed', nowCollapsed);
+  btn.textContent = nowCollapsed ? '▼' : '▲';
+  const state = _getMobState();
+  state.budgetBar = nowCollapsed;
+  _saveMobState(state);
+}
+
 function initMobileCollapse() {
   if (window.innerWidth > 768) return;
   const state = _getMobState();
@@ -2637,6 +2661,30 @@ function initMobileCollapse() {
       });
     }
   });
+
+  // 6. Pasek statystyk (Stoły i goście) — domyślnie zwinięty do jednej linii
+  const statsBar = document.getElementById('statsBar');
+  if (statsBar && !statsBar.querySelector('.stats-toggle-btn')) {
+    const collapsed = state.statsBar === undefined ? true : !!state.statsBar;
+    statsBar.classList.toggle('stats-collapsed', collapsed);
+    const btn = document.createElement('button');
+    btn.className = 'mob-toggle-btn stats-toggle-btn';
+    btn.textContent = collapsed ? '▼' : '▲';
+    btn.onclick = () => toggleStatsBar(btn);
+    statsBar.appendChild(btn);
+  }
+
+  // 7. Pasek budżetu całkowitego (Budżet) — strzałka zwijająca do „Pozostało"
+  const budgetBar = document.querySelector('.budget-overview');
+  if (budgetBar && !budgetBar.querySelector('.budget-toggle-btn')) {
+    const collapsed = !!state.budgetBar; // domyślnie rozwinięty
+    budgetBar.classList.toggle('budget-collapsed', collapsed);
+    const btn = document.createElement('button');
+    btn.className = 'mob-toggle-btn budget-toggle-btn';
+    btn.textContent = collapsed ? '▼' : '▲';
+    btn.onclick = () => toggleBudgetBar(btn);
+    budgetBar.appendChild(btn);
+  }
 }
 
 function toggleMobileNav() {
@@ -3312,6 +3360,15 @@ function _taskCardHtml(t) {
       </div>
     </div>
   </div>`;
+}
+
+function setTaskPersonFilter(val) {
+  const el = document.getElementById('taskFilterPerson');
+  if (el) el.value = val;
+  document.querySelectorAll('#taskFilters .gf-btn').forEach(b => {
+    b.classList.toggle('gf-active', b.dataset.value === val);
+  });
+  renderTasks();
 }
 
 function renderTasks() {
