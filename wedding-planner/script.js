@@ -3314,8 +3314,49 @@ const SCHED_CATS = [
   {name:'Inne',         color:'#6b7280',icon:'📌'},
 ];
 
+// Linki do miejsc — używane TYLKO jednorazowo do zapisania ich w Firestore (migracja).
+// Po zapisaniu wyświetlanie opiera się wyłącznie na danych z Firestore.
+const SCHED_MAP_CHURCH = 'https://maps.app.goo.gl/i4wi2VWk5Fk1HWTY9';
+const SCHED_MAP_HALL   = 'https://maps.app.goo.gl/y4iuPfPuRzFuJdkZA';
+
+function _schedNorm(s) {
+  return (s || '').toLowerCase()
+    .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l')
+    .replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z');
+}
+// Dobiera startowy link do miejsca na podstawie nazwy wydarzenia (tylko do migracji)
+function _seedUrlForName(name) {
+  const n = _schedNorm(name);
+  if (n.includes('ceremonia')) return SCHED_MAP_CHURCH;              // Ceremonia ślubna (kościół)
+  if (n.includes('przyjazd') && !n.includes('rodzic')) return SCHED_MAP_HALL; // Przyjazd na wesele (sala)
+  return null;
+}
+// Link wydarzenia w panelu organizatora — wyłącznie z danych (ręcznie wpisany URL)
+function schedEventLink(ev) {
+  return (ev.locationUrl || '').trim() || null;
+}
+
+// Jednorazowa migracja: zapisuje linki do map przy „Ceremonia ślubna" i „Przyjazd na wesele"
+let locationLinksSeeded = false;
+function seedLocationLinks() {
+  if (locationLinksSeeded) return;
+  let changed = false;
+  scheduleEvents.forEach(ev => {
+    if ((ev.locationUrl || '').trim()) return; // nie nadpisuj istniejącego linku
+    const url = _seedUrlForName(ev.name);
+    if (url) {
+      ev.locationUrl = url;
+      ev.showLinkToGuests = true;
+      changed = true;
+    }
+  });
+  locationLinksSeeded = true;
+  if (changed && typeof renderSchedule === 'function') renderSchedule();
+  saveState(); // utrwala flagę locationLinksSeeded (i ewentualne zmiany)
+}
+
 function addScheduleEvent() {
-  scheduleEvents.push({ id:nextScheduleId++, hour:12, minute:0, duration:60, name:'Nowe wydarzenie', description:'', location:'', responsible:'', category:'Inne', private:false });
+  scheduleEvents.push({ id:nextScheduleId++, hour:12, minute:0, duration:60, name:'Nowe wydarzenie', description:'', location:'', responsible:'', category:'Inne', private:false, locationUrl:'', showLinkToGuests:false });
   renderSchedule(); saveState();
 }
 function switchScheduleView(mode) {
@@ -3346,7 +3387,14 @@ function addDefaultSchedule() {
     {hour:22,minute:0,name:'Tort weselny',description:'Krojenie tortu',location:'Sala weselna',responsible:'Oboje',category:'Tort'},
     {hour:1, minute:0,name:'Ostatni taniec',description:'Walc zamykający',location:'Sala weselna',responsible:'Oboje',category:'Taniec'},
   ];
-  defaults.forEach(d => scheduleEvents.push({id:nextScheduleId++, private:false, ...d}));
+  defaults.forEach(d => {
+    const url = _seedUrlForName(d.name);
+    scheduleEvents.push({
+      id:nextScheduleId++, private:false,
+      locationUrl: url || '', showLinkToGuests: !!url,
+      ...d,
+    });
+  });
   renderSchedule(); saveState();
 }
 function _tevHtml(ev) {
@@ -3357,6 +3405,8 @@ function _tevHtml(ev) {
   const hh = String(ev.hour).padStart(2, '0');
   const mm = String(ev.minute).padStart(2, '0');
   const isPrivate = !!ev.private;
+  const link = schedEventLink(ev);
+  const showsToGuests = !!link && !!ev.showLinkToGuests;
   return `<div class="tev${isPrivate ? ' tev-private' : ''}" style="border-left:4px solid ${cat.color}" id="tev-${ev.id}">
     <div class="tev-meta">
       <div class="tev-time">
@@ -3369,6 +3419,7 @@ function _tevHtml(ev) {
         ${isPrivate ? '<span class="tev-lock" title="Wydarzenie prywatne — ukryte przed gośćmi">&#128274;</span>' : ''}
         <input class="tev-name" type="text" value="${esc(ev.name)}" onchange="updateScheduleEvent(${ev.id},'name',this.value)">
         <select class="tev-cat" onchange="updateScheduleEvent(${ev.id},'category',this.value)">${catOpts}</select>
+        ${link ? `<a class="tev-map-link" href="${esc(link)}" target="_blank" rel="noopener" title="Otwórz mapę">&#128205; Mapa</a>` : ''}
         <label class="tev-private-toggle" title="Ukryj to wydarzenie na publicznej stronie harmonogramu dla gości">
           <input type="checkbox" ${isPrivate ? 'checked' : ''} onchange="updateScheduleEvent(${ev.id},'private',this.checked)"> &#128274; Prywatne
         </label>
@@ -3379,6 +3430,13 @@ function _tevHtml(ev) {
         <input class="tev-input" type="text" value="${esc(ev.description)}" placeholder="Opis…" onchange="updateScheduleEvent(${ev.id},'description',this.value)">
         <input class="tev-input" type="text" value="${esc(ev.location)}" placeholder="Miejsce…" onchange="updateScheduleEvent(${ev.id},'location',this.value)">
         <input class="tev-input" type="text" value="${esc(ev.responsible)}" placeholder="Odpowiedzialny…" onchange="updateScheduleEvent(${ev.id},'responsible',this.value)">
+      </div>
+      <div class="tev-row3">
+        <input class="tev-input tev-url" type="url" value="${esc(ev.locationUrl || '')}" placeholder="&#128279; Link do lokalizacji (URL)…" onchange="updateScheduleEvent(${ev.id},'locationUrl',this.value.trim())">
+        <label class="tev-guest-toggle" title="Pokaż ten link gościom na stronie /harmonogram">
+          <input type="checkbox" ${ev.showLinkToGuests ? 'checked' : ''} onchange="updateScheduleEvent(${ev.id},'showLinkToGuests',this.checked)"> &#128065; Pokaż link gościom
+        </label>
+        ${link ? `<span class="tev-link-state ${showsToGuests ? 'tls-on' : 'tls-off'}">${showsToGuests ? 'widoczny dla gości' : 'tylko organizatorzy'}</span>` : ''}
       </div>
     </div>
   </div>`;
@@ -4771,6 +4829,13 @@ function _scheduleForm(ev) {
     ${_efi('description','Opis','text',ev.description||'')}
     ${_efi('location','Miejsce','text',ev.location||'')}
     ${_efi('responsible','Odpowiedzialny','text',ev.responsible||'')}
+    ${_efi('locationUrl','Link do lokalizacji (URL)','url',ev.locationUrl||'')}
+    <div class="ef-field">
+      <label class="ef-check">
+        <input type="checkbox" id="ef_showLinkToGuests" ${ev.showLinkToGuests ? 'checked' : ''}>
+        &#128065; Pokaż link gościom na stronie /harmonogram
+      </label>
+    </div>
     <div class="ef-field">
       <label class="ef-check">
         <input type="checkbox" id="ef_private" ${ev.private ? 'checked' : ''}>
@@ -4952,6 +5017,8 @@ function saveEdit() {
       ev.location = _efv('location');
       ev.responsible = _efv('responsible');
       ev.category = _efv('category');
+      ev.locationUrl = _efv('locationUrl');
+      ev.showLinkToGuests = _efb('showLinkToGuests');
       ev.private = _efb('private');
       renderSchedule();
     }
@@ -5056,6 +5123,11 @@ function renderGalleryQR() {
 let _galleryAdminItems = [];
 let _galleryAdminUnsub = null;
 
+// Stan filtrów i sortowania galerii (panel organizatora) — taki sam jak na /galeria
+let _galFilterPerson = '';      // '' = wszyscy
+let _galFilterType   = 'all';   // 'all' | 'image' | 'video'
+let _galSortOrder    = 'newest';// 'newest' | 'oldest'
+
 function renderGalleryView() {
   renderGalleryQR();
   _startGalleryAdminListener();
@@ -5096,12 +5168,83 @@ function _renderGalleryStorage() {
   }
 }
 
+// Lista unikalnych imion osób, które dodały pliki (alfabetycznie)
+function _galPersonsList() {
+  const map = new Map();
+  _galleryAdminItems.forEach(it => {
+    const name = (it.uploadedBy || 'Gość').trim() || 'Gość';
+    map.set(name.toLowerCase(), name);
+  });
+  return [...map.values()].sort((a, b) => a.localeCompare(b, 'pl'));
+}
+
+// Zastosuj filtry i sortowanie do listy plików
+function _galApplyFiltersSort(items) {
+  let out = items.slice();
+  if (_galFilterPerson) {
+    const fp = _galFilterPerson.toLowerCase();
+    out = out.filter(it => ((it.uploadedBy || 'Gość').trim().toLowerCase()) === fp);
+  }
+  if (_galFilterType !== 'all') {
+    out = out.filter(it => (it.type === 'video' ? 'video' : 'image') === _galFilterType);
+  }
+  out.sort((a, b) => _galSortOrder === 'newest'
+    ? (b.timestamp || 0) - (a.timestamp || 0)
+    : (a.timestamp || 0) - (b.timestamp || 0));
+  return out;
+}
+
+// Funkcje wywoływane z UI filtrów
+function setGalFilterPerson(v) { _galFilterPerson = v; renderGalleryAdminGrid(); }
+function setGalFilterType(v)   { _galFilterType = v;   renderGalleryAdminGrid(); }
+function setGalSortOrder(v)    { _galSortOrder = v;    renderGalleryAdminGrid(); }
+
+// Pasek filtrów i sortowania (identyczny jak na /galeria)
+function renderGalleryAdminFilters() {
+  const bar = document.getElementById('galleryAdminFilters');
+  if (!bar) return;
+  if (!_galleryAdminItems.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+
+  const persons = _galPersonsList();
+  const personOpts = ['<option value="">&#128101; Wszyscy</option>']
+    .concat(persons.map(n => `<option value="${esc(n)}" ${_galFilterPerson.toLowerCase() === n.toLowerCase() ? 'selected' : ''}>${esc(n)}</option>`))
+    .join('');
+
+  const typePill = (val, label) =>
+    `<button class="gf-pill ${_galFilterType === val ? 'gf-on' : ''}" onclick="setGalFilterType('${val}')">${label}</button>`;
+  const sortPill = (val, label) =>
+    `<button class="gf-pill ${_galSortOrder === val ? 'gf-on' : ''}" onclick="setGalSortOrder('${val}')">${label}</button>`;
+
+  bar.innerHTML = `
+    <div class="gf-group">
+      <span class="gf-lbl">Osoba</span>
+      <select class="gf-select" onchange="setGalFilterPerson(this.value)">${personOpts}</select>
+    </div>
+    <div class="gf-group">
+      <span class="gf-lbl">Typ</span>
+      <div class="gf-pills">
+        ${typePill('all', 'Wszystkie')}
+        ${typePill('image', '📷 Zdjęcia')}
+        ${typePill('video', '🎥 Filmy')}
+      </div>
+    </div>
+    <div class="gf-group">
+      <span class="gf-lbl">Sortuj</span>
+      <div class="gf-pills">
+        ${sortPill('newest', '⬇ Najnowsze')}
+        ${sortPill('oldest', '⬆ Najstarsze')}
+      </div>
+    </div>`;
+}
+
 function renderGalleryAdminGrid() {
   const grid = document.getElementById('galleryAdminGrid');
   const countEl = document.getElementById('galleryAdminCount');
   if (!grid) return;
 
   _renderGalleryStorage();
+  renderGalleryAdminFilters();
 
   if (!_galleryAdminItems.length) {
     if (countEl) countEl.textContent = '';
@@ -5114,7 +5257,14 @@ function renderGalleryAdminGrid() {
     countEl.textContent = n + (n === 1 ? ' plik' : ' plików');
   }
 
-  grid.innerHTML = '<div class="gallery-admin-grid">' + _galleryAdminItems.map(it => {
+  const displayed = _galApplyFiltersSort(_galleryAdminItems);
+
+  if (!displayed.length) {
+    grid.innerHTML = '<div class="empty-list">🔍 Brak plików dla wybranych filtrów.</div>';
+    return;
+  }
+
+  grid.innerHTML = '<div class="gallery-admin-grid">' + displayed.map(it => {
     const thumb = it.type === 'video' ? it.url : _cldTransform(it.url, 'c_fill,g_auto,w_400,h_400,f_auto,q_auto');
     const media = it.type === 'video'
       ? `<video src="${esc(it.url)}" preload="metadata" muted playsinline></video><span class="ga-badge">▶ film</span>`
@@ -5277,6 +5427,7 @@ function saveState() {
       roomName, budgetData, weddingDate,
       scheduleEvents, tasks, vendors, rsvpEntries, gifts,
       vehicles, hotels, payments, transportNotes,
+      locationLinksSeeded,
       _savedAt: Date.now(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
@@ -5392,7 +5543,10 @@ function loadState() {
     scheduleEvents.forEach(ev => {
       if (ev.duration === undefined) ev.duration = 60;
       if (ev.private === undefined) ev.private = false;
+      if (ev.locationUrl === undefined) ev.locationUrl = '';
+      if (ev.showLinkToGuests === undefined) ev.showLinkToGuests = false;
     });
+    locationLinksSeeded = s.locationLinksSeeded || false;
     vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; });
     hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 
@@ -5408,6 +5562,9 @@ function loadState() {
 
     const input = document.getElementById('roomNameInput');
     if (input) input.value = roomName;
+
+    // Migracja linków do map (raz na zestaw danych — także po synchronizacji z Firestore)
+    try { seedLocationLinks(); } catch (_) {}
   } catch (_) {}
 }
 
@@ -5422,6 +5579,7 @@ if (_dietSel) _dietSel.addEventListener('change', function() {
 });
 
 try { loadState(); } catch(e) { console.error('loadState:', e); }
+try { seedLocationLinks(); } catch(e) { console.error('seedLocationLinks:', e); }
 try { renderAll(); } catch(e) { console.error('renderAll:', e); }
 switchView('dashboard');
 startCountdown();

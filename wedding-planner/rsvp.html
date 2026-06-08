@@ -22,6 +22,21 @@
     header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
     header p  { opacity: 0.8; margin-top: 6px; font-size: 0.9rem; }
     .container { max-width: 540px; margin: 32px auto; padding: 0 16px 40px; }
+
+    /* ── Nawigacja gości ── */
+    .guest-nav {
+      max-width: 540px; margin: 22px auto 0; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap; padding: 0 16px;
+    }
+    .guest-nav.bottom { margin: 4px auto 36px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
     .card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px var(--shadow); }
     .card h2 { font-size: 1.1rem; color: var(--blue-dark); margin-bottom: 20px; text-align: center; }
     .field { margin-bottom: 16px; }
@@ -120,6 +135,11 @@
   <p>Prosimy o potwierdzenie swojego udziału w naszym weselu</p>
 </header>
 
+<nav class="guest-nav">
+  <a href="harmonogram.html">📅 Harmonogram</a>
+  <a href="galeria.html">📸 Galeria zdjęć</a>
+</nav>
+
 <div class="container">
   <div class="card" id="formCard">
     <h2>&#10084; Czy będziesz z nami?</h2>
@@ -194,6 +214,11 @@
     <p>&#9888; Nie udało się wysłać emaila potwierdzającego, ale Twoja odpowiedź została zapisana.</p>
   </div>
 </div>
+
+<nav class="guest-nav bottom">
+  <a href="harmonogram.html">📅 Harmonogram</a>
+  <a href="galeria.html">📸 Galeria zdjęć</a>
+</nav>
 
 <script>
   const STORAGE_KEY  = 'wedding-planner-v2';

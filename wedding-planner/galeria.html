@@ -38,6 +38,21 @@
 
     .container { max-width: 880px; margin: 0 auto; padding: 22px 14px 0; }
 
+    /* ── Nawigacja gości ── */
+    .guest-nav {
+      max-width: 880px; margin: 20px auto 0; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap; padding: 0 14px;
+    }
+    .guest-nav.bottom { margin: 30px auto 10px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+
     /* ── Karta wgrywania ── */
     .upload-card {
       background: var(--white); border: 1.5px solid var(--border); border-radius: 18px;
@@ -87,6 +102,34 @@
       border-radius: 20px; padding: 6px 14px;
     }
     .gallery-stats:empty { display: none; }
+
+    /* ── Filtry i sortowanie ── */
+    .gallery-filters {
+      display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end;
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 14px 16px; margin-bottom: 18px; box-shadow: 0 3px 12px rgba(26,86,219,0.07);
+    }
+    .gf-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .gf-lbl {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-soft);
+    }
+    .gf-select {
+      border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 12px;
+      font-size: 0.88rem; font-family: inherit; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); outline: none; cursor: pointer; min-width: 170px;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .gf-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+    .gf-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .gf-pill {
+      border: 1.5px solid var(--blue); background: var(--white); color: var(--blue-dark);
+      border-radius: 20px; padding: 8px 14px; font-size: 0.84rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; white-space: nowrap;
+      transition: background 0.18s, color 0.18s;
+    }
+    .gf-pill:hover { background: var(--blue-pale); }
+    .gf-pill.gf-on { background: var(--blue); color: #fff; }
 
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
     .tile {
@@ -147,6 +190,11 @@
       header h1 { font-size: 1.3rem; }
       .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 9px; }
       .upload-card { padding: 16px; }
+      .gallery-filters { gap: 12px 14px; padding: 12px; }
+      .gf-group { flex: 1 1 100%; }
+      .gf-select { width: 100%; min-width: 0; }
+      .gf-pills { width: 100%; }
+      .gf-pill { flex: 1; text-align: center; }
     }
   </style>
 </head>
@@ -156,6 +204,11 @@
     <h1>Galeria Gości</h1>
     <p>Ceremonia Patrycji i Piotra • Podzielcie się swoimi zdjęciami i filmami! 💙</p>
   </header>
+
+  <nav class="guest-nav">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+  </nav>
 
   <div class="container">
     <!-- WGRYWANIE -->
@@ -181,10 +234,16 @@
       <span class="gallery-count" id="galleryCount"></span>
     </div>
     <div class="gallery-stats" id="galleryStats"></div>
+    <div class="gallery-filters" id="galleryFilters" style="display:none"></div>
     <div id="galleryArea">
       <div class="gal-spinner"></div>
     </div>
   </div>
+
+  <nav class="guest-nav bottom">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+  </nav>
 
   <!-- LIGHTBOX -->
   <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
@@ -214,6 +273,12 @@
     let galleryItems = [];
     let _widget = null;
     let isOrganizer = false; // true = zalogowany organizator (widać przyciski usuwania)
+
+    // Stan filtrów i sortowania
+    let filterPerson = '';      // '' = wszyscy, inaczej imię osoby
+    let filterType   = 'all';   // 'all' | 'image' | 'video'
+    let sortOrder    = 'newest';// 'newest' | 'oldest'
+    let _displayed   = [];      // aktualnie wyświetlane (po filtrach) — używane przez lightbox
 
     function esc(s) {
       return String(s == null ? '' : s)
@@ -367,6 +432,76 @@
       return (bytes / (1024 * 1024)).toFixed(1);
     }
 
+    // Lista unikalnych imion osób, które dodały pliki (alfabetycznie)
+    function personsList() {
+      const set = new Map();
+      galleryItems.forEach(it => {
+        const name = (it.uploadedBy || 'Gość').trim() || 'Gość';
+        set.set(name.toLowerCase(), name);
+      });
+      return [...set.values()].sort((a, b) => a.localeCompare(b, 'pl'));
+    }
+
+    // Zastosuj filtry i sortowanie do listy plików
+    function applyFiltersSort(items) {
+      let out = items.slice();
+      if (filterPerson) {
+        const fp = filterPerson.toLowerCase();
+        out = out.filter(it => ((it.uploadedBy || 'Gość').trim().toLowerCase()) === fp);
+      }
+      if (filterType !== 'all') {
+        out = out.filter(it => (it.type === 'video' ? 'video' : 'image') === filterType);
+      }
+      out.sort((a, b) => sortOrder === 'newest'
+        ? (b.timestamp || 0) - (a.timestamp || 0)
+        : (a.timestamp || 0) - (b.timestamp || 0));
+      return out;
+    }
+
+    // Funkcje wywoływane z UI filtrów
+    function setFilterPerson(v) { filterPerson = v; renderGallery(); }
+    function setFilterType(v)   { filterType = v;   renderGallery(); }
+    function setSortOrder(v)    { sortOrder = v;    renderGallery(); }
+
+    // Pasek filtrów i sortowania
+    function renderFilters() {
+      const bar = document.getElementById('galleryFilters');
+      if (!bar) return;
+      if (!galleryItems.length) { bar.style.display = 'none'; return; }
+      bar.style.display = 'flex';
+
+      const persons = personsList();
+      const personOpts = ['<option value="">👥 Wszyscy</option>']
+        .concat(persons.map(n => `<option value="${esc(n)}" ${filterPerson.toLowerCase() === n.toLowerCase() ? 'selected' : ''}>${esc(n)}</option>`))
+        .join('');
+
+      const typePill = (val, label) =>
+        `<button class="gf-pill ${filterType === val ? 'gf-on' : ''}" onclick="setFilterType('${val}')">${label}</button>`;
+      const sortPill = (val, label) =>
+        `<button class="gf-pill ${sortOrder === val ? 'gf-on' : ''}" onclick="setSortOrder('${val}')">${label}</button>`;
+
+      bar.innerHTML = `
+        <div class="gf-group">
+          <span class="gf-lbl">Osoba</span>
+          <select class="gf-select" onchange="setFilterPerson(this.value)">${personOpts}</select>
+        </div>
+        <div class="gf-group">
+          <span class="gf-lbl">Typ</span>
+          <div class="gf-pills">
+            ${typePill('all', 'Wszystkie')}
+            ${typePill('image', '📷 Zdjęcia')}
+            ${typePill('video', '🎥 Filmy')}
+          </div>
+        </div>
+        <div class="gf-group">
+          <span class="gf-lbl">Sortuj</span>
+          <div class="gf-pills">
+            ${sortPill('newest', '⬇ Najnowsze')}
+            ${sortPill('oldest', '⬆ Najstarsze')}
+          </div>
+        </div>`;
+    }
+
     // ── Render galerii ──
     function renderGallery() {
       const area = document.getElementById('galleryArea');
@@ -376,6 +511,7 @@
       if (!galleryItems.length) {
         countEl.textContent = '';
         if (statsEl) statsEl.textContent = '';
+        renderFilters();
         area.innerHTML = `<div class="empty-gallery">
           <div class="eg-icon">🖼️</div>
           <p>Nie ma jeszcze żadnych zdjęć.<br>Bądź pierwszy/a i dodaj wspomnienie! 💙</p>
@@ -388,7 +524,19 @@
         statsEl.textContent = `📊 Łącznie zdjęć: ${galleryItems.length} | Rozmiar: ${fmtMB(totalBytes())} MB`;
       }
 
-      const tiles = galleryItems.map((it, i) => {
+      renderFilters();
+
+      _displayed = applyFiltersSort(galleryItems);
+
+      if (!_displayed.length) {
+        area.innerHTML = `<div class="empty-gallery">
+          <div class="eg-icon">🔍</div>
+          <p>Brak plików dla wybranych filtrów.</p>
+        </div>`;
+        return;
+      }
+
+      const tiles = _displayed.map((it, i) => {
         let media;
         if (it.type === 'video') {
           media = `<video src="${esc(it.url)}" muted playsinline preload="metadata"></video>
@@ -428,7 +576,7 @@
 
     // ── Lightbox ──
     function openLightbox(i) {
-      const it = galleryItems[i];
+      const it = _displayed[i];
       if (!it) return;
       const inner = document.getElementById('lbInner');
       if (it.type === 'video') {
