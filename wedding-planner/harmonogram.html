@@ -92,6 +92,15 @@
       .wc-msg  { font-size: 1.25rem; }
     }
 
+    /* ── Transport wewnętrzny (Jak dojechać) ── */
+    .it-box { margin-top: 22px; }
+    .it-item {
+      background: var(--blue-pale); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .it-item-type { font-weight: 700; color: var(--blue-dark); font-size: 0.92rem; }
+    .it-item-info { font-size: 0.86rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
+
     /* ── Treść ── */
     .flyer-body { padding: 14px 24px 34px; }
     .section-tag {
@@ -237,6 +246,7 @@
           Wczytywanie harmonogramu…
         </div>
       </div>
+      <div id="internalTransportBox" class="it-box" style="display:none"></div>
     </div>
 
     <div class="qr-section">
@@ -308,6 +318,12 @@
         const bh = b.hour < 6 ? b.hour + 24 : b.hour;
         return (ah * 60 + a.minute) - (bh * 60 + b.minute);
       });
+    }
+
+    // Rozpakuj aktywny event z kontenera wielu eventów (obsługuje też stary, płaski zapis)
+    function _activeEvent(data) {
+      if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+      return data || {};
     }
 
     // ── Licznik do ceremonii (strefa Europe/Warsaw, z obsługą DST) ──
@@ -400,9 +416,23 @@
       else if (names)    document.title = 'Harmonogram — Ceremonia ' + names;
     }
 
-    function renderSchedule(data) {
+    // Transport wewnętrzny widoczny dla gości (Bolt/Taxi/inne) — „Jak dojechać"
+    function renderInternalTransport(data) {
+      const box = document.getElementById('internalTransportBox');
+      if (!box) return;
+      const list = ((data && data.internalTransport) || []).filter(it => it.showToGuests && (it.info || '').trim());
+      if (!list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+      const icon = ty => { const s = (ty||'').toLowerCase(); return s.includes('taxi')?'🚖':s.includes('bolt')||s.includes('uber')||s.includes('free')?'🚗':'🚐'; };
+      box.style.display = '';
+      box.innerHTML = '<div class="section-tag">Jak dojechać</div>' +
+        list.map(it => `<div class="it-item"><span class="it-item-type">${icon(it.type)} ${esc(it.type)}</span><div class="it-item-info">${esc(it.info)}</div></div>`).join('');
+    }
+
+    function renderSchedule(rawData) {
+      const data = _activeEvent(rawData);
       applyPublicConfig(data);
       setupCountdown(data);
+      renderInternalTransport(data);
       const cont = document.getElementById('scheduleContainer');
       // Pomijamy wydarzenia prywatne — widoczne tylko w panelu organizatora
       const events = ((data && data.scheduleEvents) || []).filter(ev => !ev.private);

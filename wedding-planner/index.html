@@ -43,6 +43,10 @@
 <header>
   <h1 id="appHeaderTitle">&#9834; Impreza Weselna Piotra i Patrycji  &#9834;</h1>
   <p id="appHeaderSubtitle">Panel organizacji wesela</p>
+  <div class="event-switcher">
+    <select id="eventSwitcherSel" class="event-switcher-sel" onchange="switchEvent(this.value)" title="Przełącz event"></select>
+    <button class="event-new-btn" onclick="createNewEvent()" title="Dodaj nowy event">+ Nowy event</button>
+  </div>
   <div id="syncStatusBadge" class="sync-badge sync-offline">
     <span class="sync-icon">○</span><span class="sync-label">Tryb offline</span>
   </div>
@@ -57,7 +61,7 @@
   <span class="nav-group-label">Goście:</span>
   <button class="nav-btn" id="navTables" onclick="switchView('tables')">&#128101; Stoły i goście</button>
   <button class="nav-btn" id="navRoom" onclick="switchView('room')">&#127963; Plan sali</button>
-  <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')">&#128203; RSVP</button>
+  <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Budżet:</span>
   <button class="nav-btn" id="navBudget" onclick="switchView('budget')">&#128176; Budżet</button>
@@ -69,6 +73,7 @@
   <button class="nav-btn" id="navGallery" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
   <button class="nav-btn" id="navAccess" onclick="switchView('access')">&#128272; Dostęp</button>
   <button class="nav-btn" id="navConfig" onclick="switchView('config')">&#9881;&#65039; Konfiguracja</button>
+  <button class="nav-btn" id="navGuestCard" onclick="switchView('guestcard')">&#128100; Kartoteka Gości</button>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Logistyka:</span>
   <button class="nav-btn" id="navTransport" onclick="switchView('transport')">&#128663; Transport</button>
@@ -95,7 +100,7 @@
     <div class="mob-nav-sep">Goście</div>
     <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
     <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
-    <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; RSVP</button>
+    <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
     <div class="mob-nav-sep">Budżet</div>
     <button class="mob-nav-btn" onclick="switchView('budget')">&#128176; Budżet</button>
     <div class="mob-nav-sep">Organizacja</div>
@@ -105,6 +110,7 @@
     <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
     <button class="mob-nav-btn" onclick="switchView('access')">&#128272; Zarządzanie dostępem</button>
     <button class="mob-nav-btn" onclick="switchView('config')">&#9881;&#65039; Konfiguracja</button>
+    <button class="mob-nav-btn" onclick="switchView('guestcard')">&#128100; Kartoteka Gości</button>
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
@@ -158,7 +164,7 @@
   <!-- ══ DASHBOARD VIEW ══ -->
   <div id="viewDashboard" class="view-panel active-view">
     <div class="dashboard-hero">
-      <div class="dashboard-title">&#128149; Do Waszego Ślubu</div>
+      <div class="dashboard-title" id="dashboardTitle">&#128149; Do Waszego Ślubu</div>
       <div class="countdown-wrapper">
         <div class="countdown-display" id="countdownDisplay">
           <div class="countdown-unit"><span class="cd-num" id="cdDays">--</span><span class="cd-lbl">dni</span></div>
@@ -170,7 +176,7 @@
           <div class="countdown-unit"><span class="cd-num" id="cdSecs">--</span><span class="cd-lbl">sek</span></div>
         </div>
         <div class="countdown-nodate" id="countdownNoDate" style="display:none">
-          &#128197; Ustaw datę ślubu w Konfiguracji
+          &#128197; Ustaw datę w Konfiguracji
         </div>
       </div>
     </div>
@@ -294,6 +300,7 @@
             <option value="Inne">&#128119; Inne...</option>
           </select>
           <input type="text" id="staffTableCustomName" placeholder="Wpisz nazwę..." style="display:none;flex:1;min-width:80px">
+          <select id="staffVendorPick" class="vendor-pick-sel" onchange="_prefillStaffFromVendor(this.value)" title="Wstaw z istniejącego dostawcy"></select>
           <input type="number" id="staffTablePersons" value="2" min="1" max="99" style="width:64px" title="Liczba osób">
           <span style="font-size:0.78rem;color:var(--text-light)">os.</span>
           <button class="btn btn-primary btn-sm" onclick="addStaffTable()">+ Dodaj</button>
@@ -312,7 +319,43 @@
         <span class="room-toolbar-icon">&#127963;</span>
         <input type="text" id="roomNameInput" class="room-name-input" value="Sala weselna"
                oninput="updateRoomName(this.value)" placeholder="Nazwa sali">
-        <span class="room-hint">Przeciągnij stoły, aby ustawić rozmieszczenie &nbsp;·&nbsp; Najechaj na stół, aby usunąć</span>
+        <div class="room-dims">
+          <label class="room-dim-field">Szer. (m)
+            <input type="number" id="roomWidthInput" min="0" step="0.1" placeholder="np. 20"
+                   onchange="updateRoomMeta('widthM',this.value)">
+          </label>
+          <span class="room-dim-x">×</span>
+          <label class="room-dim-field">Dł. (m)
+            <input type="number" id="roomLengthInput" min="0" step="0.1" placeholder="np. 12"
+                   onchange="updateRoomMeta('lengthM',this.value)">
+          </label>
+          <label class="room-dim-field">&#9711; Średnica stołów (m)
+            <input type="number" id="roomTableDiamInput" min="0" step="0.1" placeholder="np. 1.5"
+                   onchange="updateRoomMeta('tableDiameterM',this.value)">
+          </label>
+        </div>
+        <span class="room-hint">Przeciągnij elementy, aby ustawić rozmieszczenie &nbsp;·&nbsp; Najechaj, aby usunąć</span>
+      </div>
+      <div class="room-el-toolbar">
+        <span class="room-el-label">&#10133; Dodaj element:</span>
+        <select id="roomElName" onchange="document.getElementById('roomElCustom').style.display=this.value==='Inne'?'':'none'">
+          <option value="Orkiestra">&#127931; Orkiestra</option>
+          <option value="DJ">&#127911; DJ</option>
+          <option value="Parkiet">&#128131; Parkiet</option>
+          <option value="Bar">&#127864; Bar</option>
+          <option value="Scena">&#127917; Scena</option>
+          <option value="Inne">&#10133; Inne...</option>
+        </select>
+        <input type="text" id="roomElCustom" placeholder="Nazwa..." style="display:none">
+        <label class="room-el-dim">szer.
+          <input type="number" id="roomElW" min="0.5" step="0.5" value="3" title="Szerokość (m)">
+        </label>
+        <span class="room-dim-x">×</span>
+        <label class="room-el-dim">dł.
+          <input type="number" id="roomElL" min="0.5" step="0.5" value="2" title="Długość (m)">
+        </label>
+        <span class="room-el-unit">m</span>
+        <button class="btn btn-primary btn-sm" onclick="addRoomElement()">+ Dodaj</button>
       </div>
       <div class="room-canvas-wrapper" id="roomCanvasWrapper">
         <div class="room-canvas" id="roomCanvas"
@@ -329,8 +372,8 @@
   <div id="viewRsvp" class="view-panel" style="display:none">
     <div class="section-container">
       <div class="section-header">
-        <h2>&#128203; Panel RSVP</h2>
-        <a href="rsvp.html" target="_blank" class="btn btn-primary">&#128279; Otwórz formularz RSVP</a>
+        <h2>&#128203; Panel potwierdzeń</h2>
+        <a href="rsvp.html" target="_blank" class="btn btn-primary">&#128279; Otwórz formularz potwierdzeń</a>
       </div>
       <div class="rsvp-admin">
         <div class="rsvp-stats-row" id="rsvpStatsRow"></div>
@@ -415,6 +458,9 @@
             <div class="budget-col-hdr">
               <span>&#128203;</span> Moje wydatki
               <button class="btn btn-primary btn-sm" onclick="addExpense()">+ Dodaj</button>
+              <button class="btn btn-sm" onclick="addExpense(true)" title="Dodaj wydatek jako osobny panel boczny">+ Panel boczny</button>
+              <select class="vendor-pick-sel" id="expVendorPick" onchange="if(this.value){addExpenseFromVendor(this.value);this.value='';}" title="Dodaj wydatek z istniejącego dostawcy"></select>
+              <button class="btn btn-sm" id="restoreAlcoholBtn" onclick="showAlcoholPanel()" style="display:none">&#127870; Pokaż alkohol</button>
             </div>
             <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
             <div class="exp-summary" id="expSummary" style="display:none">
@@ -425,17 +471,19 @@
             </div>
             <div id="expensesList"><div class="empty-list">Brak wydatków. Kliknij + Dodaj.</div></div>
           </div>
-          <!-- PRAWA KOLUMNA: Alkohol (1/3) -->
+          <!-- PRAWA KOLUMNA: panele boczne (Alkohol + własne) -->
           <div class="expenses-alcohol-col">
-            <div class="alcohol-section">
+            <div class="alcohol-section" id="alcoholSection">
               <div class="alcohol-section-hdr">
                 <span class="alcohol-section-icon">&#127870;</span>
                 <span class="alcohol-section-title">Alkohol</span>
                 <button class="btn btn-primary btn-sm" onclick="addAlcohol()">+ Dodaj</button>
+                <button class="alc-hide-btn" onclick="hideAlcoholPanel()" title="Usuń panel alkoholu">&#10006;</button>
               </div>
               <div id="alcoholList" class="alcohol-list"></div>
               <div id="alcoholSummary"></div>
             </div>
+            <div id="expenseSidePanels"></div>
           </div>
         </div>
       </div>
@@ -500,6 +548,12 @@
             <button id="schv-columns" class="schv-btn"             onclick="switchScheduleView('columns')" title="Kolumny">&#9638; Kolumny</button>
             <button id="schv-gantt"   class="schv-btn"             onclick="switchScheduleView('gantt')"   title="Gantt">&#9646; Gantt</button>
           </div>
+          <div class="sched-cols-ctrl" id="schedColsCtrl" style="display:none">
+            <span class="scc-label">Kolumny:</span>
+            <button class="scc-btn" onclick="setScheduleCols(scheduleCols-1)" title="Mniej kolumn">&#8722;</button>
+            <span class="scc-num" id="schedColsNum">3</span>
+            <button class="scc-btn" onclick="setScheduleCols(scheduleCols+1)" title="Więcej kolumn">&#43;</button>
+          </div>
           <button class="btn btn-primary" onclick="addScheduleEvent()">+ Dodaj wydarzenie</button>
         </div>
       </div>
@@ -531,7 +585,13 @@
     <div class="section-container">
       <div class="section-header">
         <h2>&#9989; Lista Zadań</h2>
-        <button class="btn btn-primary" onclick="addTask()">+ Dodaj zadanie</button>
+        <div class="sched-toolbar">
+          <div class="schv-switcher">
+            <button id="tv-board" class="schv-btn schv-active" onclick="setTaskView('board')" title="Tablica">&#9638; Tablica</button>
+            <button id="tv-gantt" class="schv-btn"             onclick="setTaskView('gantt')" title="Harmonogram zadań (Gantt)">&#9646; Harmonogram</button>
+          </div>
+          <button class="btn btn-primary" onclick="addTask()">+ Dodaj zadanie</button>
+        </div>
       </div>
       <div class="tasks-progress-bar-wrap">
         <div class="tasks-progress-label" id="tasksProgressLabel">0 / 0 zadań ukończonych</div>
@@ -543,8 +603,36 @@
         <button class="gf-btn"           data-value="bride" onclick="setTaskPersonFilter('bride')">Panna Młoda</button>
         <button class="gf-btn"           data-value="both"  onclick="setTaskPersonFilter('both')">Oboje</button>
         <input type="hidden" id="taskFilterPerson" value="">
+        <span class="task-filter-sep"></span>
+        <select class="task-filter-sel" onchange="setTaskFilter('status',this.value)" title="Filtruj po statusie">
+          <option value="all">Status: wszystkie</option>
+          <option value="todo">Do zrobienia</option>
+          <option value="inprogress">W trakcie</option>
+          <option value="done">Zrobione</option>
+          <option value="cancelled">Anulowane</option>
+        </select>
+        <select class="task-filter-sel" onchange="setTaskFilter('link',this.value)" title="Filtruj po powiązaniu">
+          <option value="all">Powiązanie: wszystkie</option>
+          <option value="vendor">Z dostawcą</option>
+          <option value="budget">Z budżetem</option>
+          <option value="gift">Z prezentem</option>
+          <option value="none">Bez powiązania</option>
+        </select>
+        <select class="task-filter-sel" onchange="setTaskFilter('date',this.value)" title="Filtruj po dacie">
+          <option value="all">Data: wszystkie</option>
+          <option value="withdate">Z terminem</option>
+          <option value="nodate">Bez terminu</option>
+          <option value="overdue">Przeterminowane</option>
+        </select>
+        <select class="task-filter-sel" onchange="setTaskSort(this.value)" title="Sortuj">
+          <option value="none">Sortuj: domyślnie</option>
+          <option value="date">wg daty</option>
+          <option value="priority">wg priorytetu</option>
+          <option value="status">wg statusu</option>
+        </select>
       </div>
       <div id="kanbanBoard" class="kanban-board"></div>
+      <div id="tasksGantt" class="tasks-gantt" style="display:none"></div>
     </div>
   </div>
 
@@ -689,9 +777,27 @@
 
       <form class="config-form" onsubmit="event.preventDefault();saveConfig()">
         <div class="config-grid">
+          <div class="config-field">
+            <label for="cfgEventType">Typ eventu</label>
+            <select id="cfgEventType" onchange="_toggleEventTypeCustom()">
+              <option value="wedding">💍 Ślub</option>
+              <option value="baptism">👶 Chrzciny</option>
+              <option value="communion">🕊️ Komunia</option>
+              <option value="confirmation">✝️ Bierzmowanie</option>
+              <option value="eighteenth">🎂 18-stka</option>
+              <option value="birthday">🎉 Urodziny</option>
+              <option value="other">🎊 Inne</option>
+            </select>
+            <small>Zmienia kolory aplikacji i dostępne sekcje.</small>
+          </div>
+          <div class="config-field" id="cfgEventTypeCustomWrap" style="display:none">
+            <label for="cfgEventTypeCustom">Własna nazwa typu</label>
+            <input type="text" id="cfgEventTypeCustom" placeholder="np. Jubileusz, Rocznica">
+          </div>
+
           <div class="config-field config-field-wide">
-            <label for="cfgEventName">Nazwa imprezy</label>
-            <input type="text" id="cfgEventName" placeholder="np. Impreza Weselna Piotra i Patrycji">
+            <label for="cfgEventName">Nazwa eventu</label>
+            <input type="text" id="cfgEventName" placeholder="np. Komunia Zosi, Moje Chrzciny">
             <small>Wyświetlana w nagłówku aplikacji i tytule karty.</small>
           </div>
 
@@ -707,12 +813,12 @@
           </div>
 
           <div class="config-field">
-            <label for="cfgWeddingDate">Data ślubu</label>
+            <label for="cfgWeddingDate">Data eventu</label>
             <input type="date" id="cfgWeddingDate">
             <small>Wspólna z odliczaniem na Dashboardzie.</small>
           </div>
           <div class="config-field">
-            <label for="cfgWeddingTime">Godzina ślubu</label>
+            <label for="cfgWeddingTime">Godzina eventu</label>
             <input type="time" id="cfgWeddingTime">
             <small>Strefa Europe/Warsaw — odliczanie do dokładnej godziny (np. 16:00).</small>
           </div>
@@ -736,12 +842,30 @@
             <label for="cfgSubtitle">Podtytuł aplikacji</label>
             <input type="text" id="cfgSubtitle" placeholder="np. Panel organizacji wesela">
           </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgMenuOptions">Słownik menu (Kartoteka Gości)</label>
+            <textarea id="cfgMenuOptions" rows="5" placeholder="Jedna opcja menu w linii, np.&#10;Danie mięsne&#10;Wegetariańskie"></textarea>
+            <small>Każda opcja w osobnej linii — używane przy wyborze menu w Kartotece Gości.</small>
+          </div>
         </div>
 
         <div class="config-actions">
           <button type="submit" class="btn btn-primary">&#128190; Zapisz konfigurację</button>
+          <button type="button" class="btn btn-danger" onclick="deleteActiveEvent()" title="Usuń bieżący event i jego dane">&#128465; Usuń ten event</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ══ KARTOTEKA GOŚCI VIEW ══ -->
+  <div id="viewGuestCard" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128100; Kartoteka Gości</h2>
+      </div>
+      <p class="access-intro">Rozszerzone informacje o gościach: wybór menu (ze słownika w Konfiguracji), preferencje, alergie i notatki specjalne. Podstawowe dane dodajesz w „Stoły i goście".</p>
+      <div id="guestCardList" class="guest-card-list"></div>
     </div>
   </div>
 

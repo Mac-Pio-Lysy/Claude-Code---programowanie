@@ -312,8 +312,14 @@
       console.error('Błąd inicjalizacji Firebase:', e);
     }
 
+    // Rozpakuj aktywny event z kontenera wielu eventów (obsługuje też stary, płaski zapis)
+    function _activeEvent(data) {
+      if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+      return data || {};
+    }
     // Zastosuj nazwę imprezy / imiona w nagłówku galerii
-    function applyPublicConfig(data) {
+    function applyPublicConfig(rawData) {
+      const data = _activeEvent(rawData);
       const cfg = (data && data.appConfig) || {};
       const names = (cfg.displayNames || '').trim();
       const label = cfg.eventName ? cfg.eventName : (names ? 'Ceremonia ' + names : '');

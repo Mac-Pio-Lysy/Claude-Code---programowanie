@@ -10,10 +10,37 @@ const DEFAULT_APP_CONFIG = {
   displayNames:   'Patrycji i Piotra',
   ceremonyPlace:  '',
   receptionPlace: '',
+  menuOptions:    ['Danie mięsne', 'Danie rybne', 'Wegetariańskie', 'Wegańskie', 'Dla dziecka'],
+  eventType:      'wedding',
+  eventTypeCustom: '',
 };
+
+// ── TYPY EVENTÓW (kolory, ikony, dostępne sekcje) ──
+const ALL_EVENT_VIEWS = ['tables','room','rsvp','budget','schedule','tasks','vendors','gifts','transport','accommodation','gallery'];
+const EVENT_TYPES = {
+  wedding:      { icon: '💍', label: 'Ślub',         heroTitle: 'Do Waszego Ślubu', sections: ALL_EVENT_VIEWS.slice() },
+  baptism:      { icon: '👶', label: 'Chrzciny',     heroTitle: 'Do Chrzcin',       sections: ['tables','room','rsvp','budget','schedule','tasks','vendors','transport','accommodation'] },
+  communion:    { icon: '🕊️', label: 'Komunia',      heroTitle: 'Do Komunii',       sections: ['tables','room','rsvp','budget','schedule','tasks','vendors','gifts'] },
+  confirmation: { icon: '✝️', label: 'Bierzmowanie', heroTitle: 'Do Bierzmowania',  sections: ['tables','room','rsvp','budget','schedule','tasks'] },
+  eighteenth:   { icon: '🎂', label: '18-stka',      heroTitle: 'Do Osiemnastki',   sections: ['tables','room','rsvp','budget','schedule','tasks','vendors','transport'] },
+  birthday:     { icon: '🎉', label: 'Urodziny',     heroTitle: 'Do Urodzin',       sections: ['tables','room','rsvp','budget','schedule','tasks','vendors'] },
+  other:        { icon: '🎊', label: 'Inne',         heroTitle: 'Do wydarzenia',    sections: ALL_EVENT_VIEWS.slice() },
+};
+// Widoki zawsze dostępne (zarządzanie aplikacją) niezależnie od typu eventu
+const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard'];
+function eventTypeKey() { return EVENT_TYPES[appConfig.eventType] ? appConfig.eventType : 'wedding'; }
+function eventTypeInfo() { return EVENT_TYPES[eventTypeKey()]; }
+function eventTypeLabel() {
+  const k = eventTypeKey();
+  return (k === 'other' && (appConfig.eventTypeCustom || '').trim()) ? appConfig.eventTypeCustom.trim() : EVENT_TYPES[k].label;
+}
 // Imiona Osoby 1/2 (podział kosztów) trzymane są w budgetData.coupleNames,
 // a data ślubu w globalnym weddingDate — Konfiguracja edytuje te same źródła.
 let appConfig = Object.assign({}, DEFAULT_APP_CONFIG);
+
+// ── WIELE EVENTÓW: kontener { events: {id: stanEventu}, activeEventId } ──
+let EVENTS = {};            // mapa id → pełny stan eventu (serializowany)
+let activeEventId = 'default';
 let nextGuestId = 1;
 let nextTableId = 1;
 let nextPairId  = 1;
@@ -42,8 +69,20 @@ let roomName = 'Sala weselna';
 let roomDrag      = null; // { tableId, startMouseX, startMouseY, startPosX, startPosY }
 let roomGuestDrag = null; // { guestId, srcTableId }
 
+// ── PLAN SALI: wymiary i własne elementy ──
+let roomMeta = { widthM: 0, lengthM: 0, tableDiameterM: 0 }; // wymiary sali i średnica stołów (metry)
+let roomElements = [];           // { id, name, wM, lM, posX, posY }
+let nextRoomElementId = 1;
+let roomElementDrag = null;      // { id, startMouseX, startMouseY, startPosX, startPosY }
+
 const CANVAS_W = 1400;
 const CANVAS_H = 760;
+let roomCanvasH = CANVAS_H;      // dynamiczna wysokość kanwy (gdy podano wymiary sali)
+
+// Skala: ile pikseli przypada na 1 metr (na podstawie szerokości sali; domyślnie 40)
+function roomPxPerMeter() {
+  return roomMeta.widthM > 0 ? (CANVAS_W / roomMeta.widthM) : 40;
+}
 
 const CAT_CLASS = {
   'Państwo Młodzi': 'av-mlodzi',
@@ -147,11 +186,17 @@ function addGuest() {
     dietOther:  diet === 'other' ? (document.getElementById('guestDietOther')?.value || '') : '',
     needsAccommodation: false,
     vehicleId:  null,
+    ownTransport: false,
     hotelId:    null,
     accommodationStatus: null,
     tableId:    null,
     seatIndex:  null,
     pairId:     null,
+    // Kartoteka gości (rozszerzone informacje)
+    menuChoice: '',
+    preferences: '',
+    allergies:  '',
+    cardNotes:  '',
   });
 
   document.getElementById('guestFirstName').value = '';
@@ -481,6 +526,10 @@ function updateStaffCount() {
   const el = document.getElementById('staffCount');
   if (el) el.textContent = (staffTables && staffTables.length) || '';
 }
+// Przelicz pozycje paneli przy zmianie rozmiaru okna (np. desktop ↔ mobile)
+window.addEventListener('resize', () => {
+  if (pairsPanelOpen || staffPanelOpen) layoutDrawers();
+});
 
 // ── TABLES ──
 function addTable() {
@@ -1510,6 +1559,7 @@ function toggleStaffInCalc(checked) {
 
 function renderStaffTables() {
   if (typeof updateStaffCount === 'function') updateStaffCount();
+  _fillVendorPicker('staffVendorPick', '+ Z dostawcy');
   const list = document.getElementById('staffTablesList');
   if (!list) return;
   if (!staffTables.length) {
@@ -1856,7 +1906,7 @@ function _refreshTableDecoLines(type, id) {
 }
 
 // ── EXPENSES ──
-function addExpense() {
+function addExpense(asSidePanel) {
   const newId = nextExpenseId++;
   budgetData.expenses.push({
     id: newId,
@@ -1869,6 +1919,7 @@ function addExpense() {
     note: '',
     splitP1: 0,
     splitP2: 0,
+    sidePanel: !!asSidePanel,
   });
   expenseOrder.push(newId);
   expenseFilters = { status: 'all', person: 'all', category: 'all' };
@@ -1944,7 +1995,8 @@ function syncExpenseOrder() {
 
 function getExpensesToShow() {
   syncExpenseOrder();
-  let list = expenseOrder.map(id => budgetData.expenses.find(e => e.id === id)).filter(Boolean);
+  // Wydatki oznaczone jako „panel boczny" mają osobny obszar — pomijamy je na głównej liście
+  let list = expenseOrder.map(id => budgetData.expenses.find(e => e.id === id)).filter(Boolean).filter(e => !e.sidePanel);
 
   list = list.filter(e => {
     if (expenseFilters.status !== 'all') {
@@ -2153,6 +2205,7 @@ function renderExpenseTile(e, isDrag) {
         <span class="exp-status-badge ${badgeCls}">${badgeTxt}</span>
         <input type="date" class="exp-h-date" value="${esc(e.paymentDate||'')}"
                onchange="updateExpense(${e.id},'paymentDate',this.value)">
+        <button class="btn-row-edit" onclick="toggleExpenseSidePanel(${e.id})" title="${e.sidePanel ? 'Przenieś do głównej listy' : 'Przenieś do panelu bocznego'}">&#8646;</button>
         <button class="btn-row-edit" onclick="openEditModal('expense',${e.id})" title="Edytuj">&#9998;</button>
         <button class="btn-exp-expand" id="exp-expand-btn-${e.id}" onclick="toggleExpDetail(${e.id})" title="Notatka / podział">&#8942;</button>
         <button class="btn-exp-del" onclick="deleteExpense(${e.id})" title="Usuń">&#128465;</button>
@@ -2199,6 +2252,7 @@ function renderExpenses() {
   const container = document.getElementById('expensesList');
   const summary   = document.getElementById('expSummary');
   const filtersBar = document.getElementById('expFiltersBar');
+  _fillVendorPicker('expVendorPick', '+ Z dostawcy');
 
   const hasExpenses = budgetData.expenses.length > 0;
   if (filtersBar) filtersBar.style.display = hasExpenses ? '' : 'none';
@@ -2227,6 +2281,52 @@ function renderExpenses() {
   document.getElementById('expSumPaid').textContent      = fmt(expPaid) + ' zł';
   document.getElementById('expSumRem').textContent       = fmt(Math.max(0, expPlan - expPaid)) + ' zł';
   if (summary) summary.style.display = 'block';
+
+  renderExpenseSidePanels();
+  applyAlcoholPanelVisibility();
+}
+
+// Wydatki oznaczone jako „panel boczny" — w prawej kolumnie, obok alkoholu
+function renderExpenseSidePanels() {
+  const cont = document.getElementById('expenseSidePanels');
+  if (!cont) return;
+  const side = budgetData.expenses.filter(e => e.sidePanel);
+  cont.innerHTML = side.map(e => `
+    <div class="expense-side-panel">
+      <div class="esp-hdr">
+        <span class="esp-title">${esc((e.category === 'Inne' ? (e.customName || 'Wydatek') : e.category))}</span>
+      </div>
+      ${renderExpenseTile(e, false)}
+    </div>`).join('');
+}
+
+// Pokaż/ukryj panel alkoholu
+function applyAlcoholPanelVisibility() {
+  const section = document.getElementById('alcoholSection');
+  const restore = document.getElementById('restoreAlcoholBtn');
+  const hidden  = !!budgetData.alcoholPanelHidden;
+  if (section) section.style.display = hidden ? 'none' : '';
+  if (restore) restore.style.display = hidden ? '' : 'none';
+}
+function hideAlcoholPanel() {
+  budgetData.alcoholPanelHidden = true;
+  applyAlcoholPanelVisibility();
+  saveState();
+}
+function showAlcoholPanel() {
+  budgetData.alcoholPanelHidden = false;
+  applyAlcoholPanelVisibility();
+  saveState();
+}
+function toggleExpenseSidePanel(id) {
+  const e = budgetData.expenses.find(x => x.id === id);
+  if (!e) return;
+  e.sidePanel = !e.sidePanel;
+  renderExpenses();
+  renderCoupleSummary();
+  renderBudgetOverview();
+  renderCharts();
+  saveState();
 }
 
 // ── ALKOHOL ──────────────────────────────────────────────────────────────
@@ -2950,6 +3050,7 @@ function switchView(view) {
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
     gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
+    guestcard: 'viewGuestCard',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -2963,7 +3064,7 @@ function switchView(view) {
     budget: 'navBudget', schedule: 'navSchedule',
     tasks: 'navTasks', vendors: 'navVendors', transport: 'navTransport',
     accommodation: 'navAccommodation', gifts: 'navGifts', gallery: 'navGallery',
-    access: 'navAccess', config: 'navConfig',
+    access: 'navAccess', config: 'navConfig', guestcard: 'navGuestCard',
   };
   const navBtn = document.getElementById(navIds[view]);
   if (navBtn) navBtn.classList.add('active');
@@ -2978,6 +3079,7 @@ function switchView(view) {
       renderGuests();
       renderTables();
       renderPairs();
+      renderStaffTables();
       updateStats();
       break;
     case 'room':          renderRoom();          break;
@@ -2987,6 +3089,7 @@ function switchView(view) {
     case 'gallery':       renderGalleryView();   break;
     case 'access':        renderAccessView();    break;
     case 'config':        renderConfigView();    break;
+    case 'guestcard':     renderGuestCard();     break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -3015,6 +3118,11 @@ function autoTablePos(index) {
 // Returns { tw, th } — inner table dimensions in room plan
 function rtTableDims(t) {
   if (t.shape === 'round') {
+    // Gdy podano średnicę stołów i szerokość sali — rysuj w skali (metry → px)
+    if (roomMeta.tableDiameterM > 0 && roomMeta.widthM > 0) {
+      const d = Math.max(50, Math.min(400, roomMeta.tableDiameterM * roomPxPerMeter()));
+      return { tw: d, th: d };
+    }
     const d = Math.max(86, 58 + t.seats * 5);
     return { tw: d, th: d };
   }
@@ -3198,9 +3306,81 @@ function roomCanvasDrop(event) {
 function renderRoom() {
   const canvas = document.getElementById('roomCanvas');
   if (!canvas) return;
+  // Dynamiczna wysokość kanwy, gdy podano wymiary sali (zachowanie proporcji szer×dł)
+  roomCanvasH = CANVAS_H;
+  if (roomMeta.widthM > 0 && roomMeta.lengthM > 0) {
+    roomCanvasH = Math.max(CANVAS_H, Math.round(roomMeta.lengthM * roomPxPerMeter()));
+  }
+  canvas.style.minHeight = roomCanvasH + 'px';
+
+  const dimLabel = (roomMeta.widthM > 0 && roomMeta.lengthM > 0)
+    ? `<div class="room-dim-label">${roomMeta.widthM} m × ${roomMeta.lengthM} m</div>` : '';
   const tableHtml      = tables.map(renderRoomTable).join('');
   const staffTableHtml = staffTables.map(renderRoomStaffTable).join('');
-  canvas.innerHTML = `<div class="room-canvas-label">${esc(roomName)}</div>${tableHtml}${staffTableHtml}`;
+  const elementHtml    = roomElements.map(renderRoomElement).join('');
+  canvas.innerHTML = `<div class="room-canvas-label">${esc(roomName)}</div>${dimLabel}${elementHtml}${tableHtml}${staffTableHtml}`;
+}
+
+// Renderuje własny element sali (Orkiestra, DJ, Bar, Scena, Parkiet, własny) jako blok z podpisem
+function renderRoomElement(el) {
+  const ppm = roomPxPerMeter();
+  const tw = Math.max(46, Math.round((el.wM || 1) * ppm));
+  const th = Math.max(36, Math.round((el.lM || 1) * ppm));
+  const PAD = 6;
+  const wrapW = tw + PAD * 2, wrapH = th + PAD * 2;
+  const dims = (el.wM && el.lM) ? `${el.wM}×${el.lM} m` : '';
+  return `<div class="rt-wrap rt-element-wrap" data-element-id="${el.id}"
+    style="left:${el.posX}px;top:${el.posY}px;width:${wrapW}px;height:${wrapH}px"
+    onmousedown="startRoomElementDrag(event,${el.id})">
+    <div class="rt-shape rt-rect rt-element" style="width:${tw}px;height:${th}px;left:${PAD}px;top:${PAD}px">
+      <div class="rt-label">
+        <div class="rt-name">${esc(el.name)}</div>
+        ${dims ? `<div class="rt-count">${dims}</div>` : ''}
+      </div>
+    </div>
+    <div class="rt-delete" onclick="event.stopPropagation();deleteRoomElement(${el.id})" title="Usuń element">&#10005;</div>
+  </div>`;
+}
+
+function startRoomElementDrag(e, id) {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  const el = roomElements.find(x => x.id === id);
+  if (!el) return;
+  roomElementDrag = { id, startMouseX: e.clientX, startMouseY: e.clientY, startPosX: el.posX, startPosY: el.posY };
+  document.querySelector(`.rt-element-wrap[data-element-id="${id}"]`)?.classList.add('rt-dragging');
+}
+
+// ── DODAWANIE / USUWANIE ELEMENTÓW SALI ──
+function addRoomElement() {
+  const sel  = document.getElementById('roomElName');
+  const cust = document.getElementById('roomElCustom');
+  const wIn  = document.getElementById('roomElW');
+  const lIn  = document.getElementById('roomElL');
+  let name = sel ? sel.value : 'Element';
+  if (name === 'Inne') name = (cust && cust.value.trim()) || 'Element';
+  const wM = parseFloat(wIn && wIn.value) || 2;
+  const lM = parseFloat(lIn && lIn.value) || 2;
+  const idx = roomElements.length;
+  roomElements.push({
+    id: nextRoomElementId++, name, wM, lM,
+    posX: 40 + (idx % 6) * 130, posY: 40 + Math.floor(idx / 6) * 110,
+  });
+  if (cust) { cust.value = ''; cust.style.display = 'none'; }
+  renderRoom();
+  saveState();
+  showToast('Dodano element: ' + name);
+}
+function deleteRoomElement(id) {
+  roomElements = roomElements.filter(x => x.id !== id);
+  renderRoom();
+  saveState();
+}
+function updateRoomMeta(field, val) {
+  roomMeta[field] = Math.max(0, parseFloat(val) || 0);
+  renderRoom();
+  renderTables();
+  saveState();
 }
 
 // ── GUEST TOOLTIP ──
@@ -3257,7 +3437,7 @@ document.addEventListener('mousemove', e => {
       const dx = e.clientX - roomDrag.startMouseX;
       const dy = e.clientY - roomDrag.startMouseY;
       t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomDrag.startPosX + dx));
-      t.posY = Math.max(0, Math.min(CANVAS_H - el.offsetHeight, roomDrag.startPosY + dy));
+      t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomDrag.startPosY + dy));
       el.style.left = t.posX + 'px';
       el.style.top  = t.posY + 'px';
     }
@@ -3269,7 +3449,19 @@ document.addEventListener('mousemove', e => {
       const dx = e.clientX - roomStaffDrag.startMouseX;
       const dy = e.clientY - roomStaffDrag.startMouseY;
       t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomStaffDrag.startPosX + dx));
-      t.posY = Math.max(0, Math.min(CANVAS_H - el.offsetHeight, roomStaffDrag.startPosY + dy));
+      t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomStaffDrag.startPosY + dy));
+      el.style.left = t.posX + 'px';
+      el.style.top  = t.posY + 'px';
+    }
+  }
+  if (roomElementDrag) {
+    const t  = roomElements.find(x => x.id === roomElementDrag.id);
+    const el = document.querySelector(`.rt-element-wrap[data-element-id="${roomElementDrag.id}"]`);
+    if (t && el) {
+      const dx = e.clientX - roomElementDrag.startMouseX;
+      const dy = e.clientY - roomElementDrag.startMouseY;
+      t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomElementDrag.startPosX + dx));
+      t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomElementDrag.startPosY + dy));
       el.style.left = t.posX + 'px';
       el.style.top  = t.posY + 'px';
     }
@@ -3287,6 +3479,11 @@ document.addEventListener('mouseup', e => {
     roomStaffDrag = null;
     saveState();
   }
+  if (roomElementDrag) {
+    document.querySelector(`.rt-element-wrap[data-element-id="${roomElementDrag.id}"]`)?.classList.remove('rt-dragging');
+    roomElementDrag = null;
+    saveState();
+  }
 });
 
 // ── NEW STATE ──
@@ -3295,6 +3492,7 @@ let weddingTime    = '16:00';   // godzina ślubu (HH:MM, strefa Europe/Warsaw)
 let scheduleEvents = [];
 let nextScheduleId = 1;
 let scheduleView   = 'list'; // 'list' | 'columns' | 'gantt'
+let scheduleCols   = 3;      // liczba kolumn w widoku kolumnowym (1–5)
 let tasks          = [];
 let nextTaskId     = 1;
 let vendors        = [];
@@ -3311,6 +3509,10 @@ let payments       = [];
 let nextPaymentId  = 1;
 let nextInstallmentId = 1;
 let transportNotes = { weddingCar: '', parking: '' };
+let internalTransport = [];        // { id, type, info, showToGuests }
+let nextInternalTransportId = 1;
+let transportShowOwn = true;       // filtr: pokaż/ukryj transport własny
+const INTERNAL_TRANSPORT_TYPES = ['Bolt', 'Taxi', 'Uber', 'FreeNow', 'Inne'];
 let countdownInterval = null;
 
 // ── GUEST FIELD HELPERS ──
@@ -3496,7 +3698,7 @@ const DASH_WIDGETS = {
     },
   },
   rsvp: {
-    icon: '📋', title: 'RSVP', view: 'rsvp',
+    icon: '📋', title: 'Potwierdzenia', view: 'rsvp',
     body: () => {
       const attending = rsvpEntries.filter(e => e.guestId && e.status === 'attending').length;
       const declined = rsvpEntries.filter(e => e.guestId && e.status === 'not_attending').length;
@@ -3821,7 +4023,16 @@ function switchScheduleView(mode) {
     const b = document.getElementById('schv-' + m);
     if (b) b.classList.toggle('schv-active', m === mode);
   });
+  const colsCtrl = document.getElementById('schedColsCtrl');
+  if (colsCtrl) colsCtrl.style.display = (mode === 'columns') ? '' : 'none';
   renderSchedule();
+}
+function setScheduleCols(n) {
+  scheduleCols = Math.max(1, Math.min(5, n || 1));
+  const numEl = document.getElementById('schedColsNum');
+  if (numEl) numEl.textContent = scheduleCols;
+  if (scheduleView !== 'columns') switchScheduleView('columns');
+  else renderSchedule();
 }
 function updateScheduleEvent(id, field, value) {
   const ev = scheduleEvents.find(e=>e.id===id);
@@ -3915,16 +4126,21 @@ function renderSchedule() {
 }
 
 function _renderSchedCols(c, sorted) {
-  const cols = [
-    { label: '🌅 Rano',     sub: 'do 12:00',  evs: sorted.filter(e => e.hour < 12) },
-    { label: '☀️ Południe', sub: '12:00–17:59', evs: sorted.filter(e => e.hour >= 12 && e.hour < 18) },
-    { label: '🌙 Wieczór', sub: '18:00+',      evs: sorted.filter(e => e.hour >= 18) },
-  ];
-  c.innerHTML = `<div class="sched-cols">${cols.map(col => `
-    <div class="sched-col">
-      <div class="sched-col-hdr"><span class="sched-col-title">${col.label}</span><span class="sched-col-sub">${col.sub}</span></div>
-      <div class="timeline-list">${col.evs.length ? col.evs.map(_tevHtml).join('') : '<div class="sched-col-empty">Brak wydarzeń</div>'}</div>
-    </div>`).join('')}</div>`;
+  const n = Math.max(1, Math.min(5, scheduleCols || 3));
+  const pad = x => String(x).padStart(2, '0');
+  // Rozdziel wydarzenia kolejno na N kolumn (chronologicznie, równomiernie)
+  const cols = Array.from({ length: n }, () => []);
+  const per = Math.max(1, Math.ceil(sorted.length / n));
+  sorted.forEach((ev, i) => { cols[Math.min(n - 1, Math.floor(i / per))].push(ev); });
+  c.innerHTML = `<div class="sched-cols">${cols.map((evs, idx) => {
+    const range = evs.length
+      ? `${pad(evs[0].hour)}:${pad(evs[0].minute)}–${pad(evs[evs.length - 1].hour)}:${pad(evs[evs.length - 1].minute)}`
+      : '';
+    return `<div class="sched-col">
+      <div class="sched-col-hdr"><span class="sched-col-title">Część ${idx + 1}</span><span class="sched-col-sub">${range || '—'}</span></div>
+      <div class="timeline-list">${evs.length ? evs.map(_tevHtml).join('') : '<div class="sched-col-empty">Brak wydarzeń</div>'}</div>
+    </div>`;
+  }).join('')}</div>`;
 }
 
 function _renderSchedGantt(c, sorted) {
@@ -3976,15 +4192,50 @@ function _renderSchedGantt(c, sorted) {
 const KANBAN_COLS = [
   { status:'todo',       label:'Do zrobienia', color:'#ef4444', icon:'📋' },
   { status:'inprogress', label:'W trakcie',    color:'#f59e0b', icon:'⏳' },
-  { status:'done',       label:'Ukończone',    color:'#10b981', icon:'✅' },
+  { status:'done',       label:'Zrobione',     color:'#10b981', icon:'✅' },
+  { status:'cancelled',  label:'Anulowane',    color:'#94a3b8', icon:'🚫' },
 ];
+const TASK_STATUS_LABELS  = { todo:'Do zrobienia', inprogress:'W trakcie', done:'Zrobione', cancelled:'Anulowane' };
 const TASK_PERSON_LABELS  = { groom:'Pan Młody', bride:'Panna Młoda', both:'Oboje' };
 const TASK_PERSON_COLORS  = { groom:'#3b82f6',   bride:'#ec4899',     both:'#6b7280' };
+const TASK_PRIORITIES = [
+  { value:'low',  label:'Niski',   color:'#10b981', icon:'🟢' },
+  { value:'med',  label:'Średni',  color:'#f59e0b', icon:'🟡' },
+  { value:'high', label:'Wysoki',  color:'#ef4444', icon:'🔴' },
+];
+let taskView = 'board'; // 'board' | 'gantt'
+let taskFilters = { status:'all', person:'', link:'all', date:'all' };
+let taskSort = 'none';  // 'none' | 'date' | 'priority' | 'status'
 
 function addTask() {
-  tasks.push({id:nextTaskId++,name:'Nowe zadanie',dueDate:'',responsible:'both',status:'todo'});
+  tasks.push({ id:nextTaskId++, name:'Nowe zadanie', dueDate:'', startDate:'', endDate:'',
+    responsible:'both', status:'todo', priority:'med', linkType:'', linkId:null });
   renderTasks(); saveState();
 }
+
+// Etykieta i link powiązanego obiektu (Dostawca/Budżet/Prezent)
+function taskLinkLabel(t) {
+  if (!t.linkType || t.linkId == null) return null;
+  if (t.linkType === 'vendor') { const v = vendors.find(x=>x.id===t.linkId); return v ? { icon:'👨‍🍳', text: vendorLabel(v), view:'vendors' } : null; }
+  if (t.linkType === 'budget') { const e = budgetData.expenses.find(x=>x.id===t.linkId); return e ? { icon:'💰', text:(e.category==='Inne'?(e.customName||'Wydatek'):e.category), view:'budget' } : null; }
+  if (t.linkType === 'gift')   { const g = gifts.find(x=>x.id===t.linkId); return g ? { icon:'🎁', text:(g.description||g.from||'Prezent'), view:'gifts' } : null; }
+  return null;
+}
+function _taskLinkOptions(t) {
+  const cur = (t.linkType && t.linkId != null) ? `${t.linkType}:${t.linkId}` : '';
+  const groups = [['', '— brak —']];
+  vendors.forEach(v => groups.push([`vendor:${v.id}`, '👨‍🍳 ' + vendorLabel(v)]));
+  budgetData.expenses.forEach(e => groups.push([`budget:${e.id}`, '💰 ' + (e.category==='Inne'?(e.customName||'Wydatek'):e.category)]));
+  gifts.forEach(g => groups.push([`gift:${g.id}`, '🎁 ' + (g.description||g.from||'Prezent')]));
+  return { groups, cur };
+}
+function setTaskView(v) {
+  taskView = v;
+  ['board','gantt'].forEach(m => document.getElementById('tv-'+m)?.classList.toggle('schv-active', m===v));
+  renderTasks();
+}
+function setTaskFilter(field, val) { taskFilters[field] = val; renderTasks(); }
+function setTaskSort(val) { taskSort = val; renderTasks(); }
 function updateTask(id,field,value) {
   const t=tasks.find(x=>x.id===id); if(!t) return;
   t[field]=value; renderTasks(); saveState();
@@ -3995,21 +4246,31 @@ function deleteTask(id) {
 
 function _taskCardHtml(t) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const overdue = t.dueDate && t.status!=='done' && new Date(t.dueDate) < today;
+  const overdue = t.dueDate && t.status!=='done' && t.status!=='cancelled' && new Date(t.dueDate) < today;
   const pc = TASK_PERSON_COLORS[t.responsible] || '#6b7280';
   const pl = TASK_PERSON_LABELS[t.responsible] || t.responsible;
+  const prio = TASK_PRIORITIES.find(p => p.value === (t.priority||'med')) || TASK_PRIORITIES[1];
   const dateStr = t.dueDate
     ? `<span class="kcard-date${overdue?' kcard-overdue':''}">${overdue?'⚠ ':'📅 '}${t.dueDate}</span>`
     : '';
-  return `<div class="kanban-card${t.status==='done'?' kcard-done':''}"
+  const link = taskLinkLabel(t);
+  const linkStr = link
+    ? `<span class="kcard-link" title="Powiązanie" onclick="event.stopPropagation();switchView('${link.view}')">${link.icon} ${esc(link.text)}</span>`
+    : '';
+  const done = t.status==='done', cancelled = t.status==='cancelled';
+  return `<div class="kanban-card${done?' kcard-done':''}${cancelled?' kcard-cancelled':''}"
       id="kcard-${t.id}" draggable="true"
       ondragstart="kanbanDragStart(event,${t.id})"
       ondragend="kanbanDragEnd(event)">
-    <input class="kcard-name${t.status==='done'?' kcard-striked':''}" type="text"
-      value="${esc(t.name)}" onchange="updateTask(${t.id},'name',this.value)">
+    <div class="kcard-top">
+      <span class="kcard-prio" title="Priorytet: ${prio.label}" style="color:${prio.color}">${prio.icon}</span>
+      <input class="kcard-name${done||cancelled?' kcard-striked':''}" type="text"
+        value="${esc(t.name)}" onchange="updateTask(${t.id},'name',this.value)">
+    </div>
     <div class="kcard-footer">
       <span class="kcard-person" style="background:${pc}22;color:${pc}">${pl}</span>
       ${dateStr}
+      ${linkStr}
       <div class="kcard-actions">
         <button class="btn-row-edit" onclick="openEditModal('task',${t.id})" title="Edytuj">&#9998;</button>
         <button class="btn-row-del" onclick="deleteTask(${t.id})">&#128465;</button>
@@ -4018,7 +4279,33 @@ function _taskCardHtml(t) {
   </div>`;
 }
 
+// Filtrowanie + sortowanie zadań (wspólne dla tablicy i Gantta)
+function _filteredSortedTasks() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  let list = tasks.filter(t => {
+    if (taskFilters.status !== 'all' && t.status !== taskFilters.status) return false;
+    if (taskFilters.person && t.responsible !== taskFilters.person) return false;
+    if (taskFilters.link === 'none' && t.linkType) return false;
+    if (['vendor','budget','gift'].includes(taskFilters.link) && t.linkType !== taskFilters.link) return false;
+    if (taskFilters.date === 'withdate' && !t.dueDate) return false;
+    if (taskFilters.date === 'nodate'   && t.dueDate)  return false;
+    if (taskFilters.date === 'overdue'  && !(t.dueDate && t.status!=='done' && t.status!=='cancelled' && new Date(t.dueDate) < today)) return false;
+    return true;
+  });
+  if (taskSort === 'date') {
+    list = [...list].sort((a,b) => (a.dueDate||'9999').localeCompare(b.dueDate||'9999'));
+  } else if (taskSort === 'priority') {
+    const rank = { high:0, med:1, low:2 };
+    list = [...list].sort((a,b) => (rank[a.priority]??1) - (rank[b.priority]??1));
+  } else if (taskSort === 'status') {
+    const order = KANBAN_COLS.map(c=>c.status);
+    list = [...list].sort((a,b) => order.indexOf(a.status) - order.indexOf(b.status));
+  }
+  return list;
+}
+
 function setTaskPersonFilter(val) {
+  taskFilters.person = val;
   const el = document.getElementById('taskFilterPerson');
   if (el) el.value = val;
   document.querySelectorAll('#taskFilters .gf-btn').forEach(b => {
@@ -4038,8 +4325,16 @@ function renderTasks() {
   if (lbl)  lbl.textContent  = `${done}/${tasks.length} ukończonych (${pct}%)`;
   if (fill) fill.style.width = pct+'%';
 
-  const pf = document.getElementById('taskFilterPerson')?.value || '';
-  const filtered = tasks.filter(t => !pf || t.responsible===pf);
+  const filtered = _filteredSortedTasks();
+  const ganttCont = document.getElementById('tasksGantt');
+
+  if (taskView === 'gantt') {
+    board.style.display = 'none';
+    if (ganttCont) { ganttCont.style.display = ''; _renderTasksGantt(ganttCont, filtered); }
+    return;
+  }
+  board.style.display = '';
+  if (ganttCont) ganttCont.style.display = 'none';
 
   board.innerHTML = KANBAN_COLS.map(col => {
     const colTasks = filtered.filter(t=>t.status===col.status);
@@ -4058,6 +4353,48 @@ function renderTasks() {
     </div>`;
   }).join('');
   setTimeout(initMobileCollapse, 0);
+}
+
+// ── HARMONOGRAM ZADAŃ (wykres Gantta) ──
+function _renderTasksGantt(c, list) {
+  // Bierzemy tylko zadania z jakąkolwiek datą (start/koniec/termin)
+  const withDates = list.map(t => {
+    const start = t.startDate || t.dueDate || t.endDate;
+    const end   = t.endDate || t.dueDate || t.startDate;
+    return start && end ? { t, start, end } : null;
+  }).filter(Boolean);
+
+  if (!withDates.length) {
+    c.innerHTML = '<div class="empty-list">Brak zadań z datami. Ustaw datę rozpoczęcia/zakończenia lub termin w edycji zadania.</div>';
+    return;
+  }
+
+  const toDay = d => Math.floor(new Date(d + 'T00:00:00').getTime() / 86400000);
+  let minD = Infinity, maxD = -Infinity;
+  withDates.forEach(w => { minD = Math.min(minD, toDay(w.start)); maxD = Math.max(maxD, toDay(w.end)); });
+  const span = Math.max(1, maxD - minD + 1);
+  const fmtD = ds => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ds); return m ? `${m[3]}.${m[2]}` : ds; };
+
+  const rows = withDates.map(({ t, start, end }) => {
+    const s = toDay(start) - minD, e = toDay(end) - minD;
+    const left = (s / span * 100).toFixed(2);
+    const width = Math.max(2, ((e - s + 1) / span * 100)).toFixed(2);
+    const col = KANBAN_COLS.find(k => k.status === t.status) || KANBAN_COLS[0];
+    return `<div class="tg-row">
+      <div class="tg-label" title="${esc(t.name)}" onclick="openEditModal('task',${t.id})">${col.icon} ${esc(t.name)}</div>
+      <div class="tg-track">
+        <div class="tg-bar" style="left:${left}%;width:${width}%;background:${col.color}"
+             title="${esc(t.name)} (${fmtD(start)}–${fmtD(end)})" onclick="openEditModal('task',${t.id})">
+          <span class="tg-bar-lbl">${fmtD(start)}–${fmtD(end)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  c.innerHTML = `<div class="tg-wrap">
+    <div class="tg-head"><div class="tg-label tg-head-lbl">Zadanie</div><div class="tg-track tg-head-range">${fmtD(withDates.reduce((a,w)=>w.start<a?w.start:a, withDates[0].start))} → ${fmtD(withDates.reduce((a,w)=>w.end>a?w.end:a, withDates[0].end))}</div></div>
+    ${rows}
+  </div>`;
 }
 
 function kanbanDragStart(event, taskId) {
@@ -4091,7 +4428,7 @@ function addVendor() {
   const sf = document.getElementById('vendorFilterStatus');
   if (cf) cf.value = '';
   if (sf) sf.value = '';
-  vendors.push({id:nextVendorId++,category:'Fotograf',customCategory:'',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:''});
+  vendors.push({id:nextVendorId++,category:'Fotograf',customCategory:'',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:'',mapUrl:''});
   renderVendors(); saveState();
 }
 function updateVendor(id,field,value) {
@@ -4099,6 +4436,55 @@ function updateVendor(id,field,value) {
   if(v){v[field]=field==='price'?(parseFloat(value)||0):value; renderVendors(); saveState();}
 }
 function deleteVendor(id) { vendors=vendors.filter(x=>x.id!==id); renderVendors(); saveState(); }
+
+// ── Reużywalny wybór istniejącego dostawcy (Noclegi/Budżet/Plan sali/Zadania) ──
+function vendorLabel(v) {
+  return (v.companyName || v.contactName || (v.category === 'Inne' ? v.customCategory : v.category) || 'Dostawca');
+}
+function _vendorOptionsHtml(placeholder) {
+  const opts = vendors.map(v => {
+    const cat = (v.category && v.category !== 'Inne') ? ' (' + esc(v.category) + ')' : '';
+    return `<option value="${v.id}">${esc(vendorLabel(v))}${cat}</option>`;
+  }).join('');
+  return `<option value="">${esc(placeholder || '— z dostawcy —')}</option>${opts}`;
+}
+// Wypełnia <select id> opcjami dostawców (jeśli element istnieje)
+function _fillVendorPicker(id, placeholder) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = _vendorOptionsHtml(placeholder);
+}
+// Budżet: dodaj wydatek na podstawie istniejącego dostawcy
+function addExpenseFromVendor(vendorId) {
+  const v = vendors.find(x => x.id === parseInt(vendorId));
+  if (!v) return;
+  const name = vendorLabel(v);
+  const newId = nextExpenseId++;
+  budgetData.expenses.push({
+    id: newId, category: 'Inne', customName: name,
+    planned: v.price || 0, estimatedAmount: 0, paid: 0, paymentDate: '',
+    note: 'Dostawca: ' + name, splitP1: 0, splitP2: 0, sidePanel: false, vendorId: v.id,
+  });
+  expenseOrder.push(newId);
+  renderExpenses(); renderCoupleSummary(); renderBudgetOverview(); renderCharts(); saveState();
+  showToast('Dodano wydatek: ' + name);
+}
+// Noclegi: wypełnij formularz hotelu danymi dostawcy
+function _prefillHotelFromVendor(id) {
+  const v = vendors.find(x => x.id === parseInt(id));
+  if (!v) return;
+  const set = (f, val) => { const el = document.getElementById('ef_' + f); if (el && val) el.value = val; };
+  set('name', v.companyName || v.contactName || '');
+  set('phone', v.phone || '');
+}
+// Plan sali: wypełnij nazwę stołu personelu danymi dostawcy
+function _prefillStaffFromVendor(id) {
+  const v = vendors.find(x => x.id === parseInt(id));
+  if (!v) return;
+  const sel = document.getElementById('staffTableName');
+  const cust = document.getElementById('staffTableCustomName');
+  if (sel) sel.value = 'Inne';
+  if (cust) { cust.style.display = ''; cust.value = vendorLabel(v); }
+}
 function renderVendors() {
   const c=document.getElementById('vendorsList'); if(!c) return;
   const cf=document.getElementById('vendorFilterCat')?.value||'';
@@ -4128,6 +4514,10 @@ function renderVendors() {
         <input class="vendor-field" type="tel" value="${esc(v.phone)}" placeholder="Telefon" onchange="updateVendor(${v.id},'phone',this.value)">
       </div>
       <input class="vendor-field" type="email" value="${esc(v.email)}" placeholder="Email" onchange="updateVendor(${v.id},'email',this.value)">
+      <div class="vendor-map-row">
+        ${safeUrl(v.mapUrl) ? `<a href="${esc(v.mapUrl)}" target="_blank" rel="noopener" class="vendor-map-link">&#128205; Mapa</a>` : ''}
+        <input class="vendor-field" type="url" value="${esc(v.mapUrl||'')}" placeholder="Link do Google Maps" onchange="updateVendor(${v.id},'mapUrl',this.value)">
+      </div>
       <div class="vendor-price-row">
         <label>Cena:</label>
         <input class="vendor-price" type="number" value="${v.price||0}" min="0" onchange="updateVendor(${v.id},'price',this.value)"> zł
@@ -4179,7 +4569,7 @@ function assignRsvpEntry(entryId, guestId) {
   if (e) { e.guestId = guestId; e.manual = true; renderRsvpPanel(); saveState(); }
 }
 function deleteRsvpEntry(entryId) { rsvpEntries = rsvpEntries.filter(e => e.id !== entryId); renderRsvpPanel(); saveState(); }
-function clearAllRsvp() { if (!confirm('Wyczyścić wszystkie odpowiedzi RSVP?')) return; rsvpEntries = []; renderRsvpPanel(); saveState(); }
+function clearAllRsvp() { if (!confirm('Wyczyścić wszystkie potwierdzenia?')) return; rsvpEntries = []; renderRsvpPanel(); saveState(); }
 function getGuestRsvpStatus(gId) { const e = rsvpEntries.filter(x => x.guestId === gId).slice(-1)[0]; return e ? e.status : null; }
 
 function confirmPairRsvp(guestId, status) {
@@ -4382,8 +4772,37 @@ function deleteVehicle(id) {
 }
 function assignGuestToVehicle(guestId,vehicleId) {
   vehicles.forEach(v=>{v.guestIds=(v.guestIds||[]).filter(id=>id!==guestId);});
-  const g=guests.find(x=>x.id===guestId); if(g) g.vehicleId=vehicleId||null;
+  const g=guests.find(x=>x.id===guestId); if(g){ g.vehicleId=vehicleId||null; if(vehicleId) g.ownTransport=false; }
   if(vehicleId){const v=vehicles.find(x=>x.id===vehicleId);if(v)v.guestIds=[...(v.guestIds||[]),guestId];}
+  renderTransport(); saveState();
+}
+// Transport własny gościa
+function setGuestOwnTransport(guestId, on) {
+  const g = guests.find(x => x.id === guestId); if (!g) return;
+  if (on) { // usuń z pojazdów
+    vehicles.forEach(v => { v.guestIds = (v.guestIds || []).filter(id => id !== guestId); });
+    g.vehicleId = null;
+  }
+  g.ownTransport = !!on;
+  renderTransport(); saveState();
+}
+function toggleTransportShowOwn() {
+  transportShowOwn = !transportShowOwn;
+  renderTransport();
+}
+// ── Transport wewnętrzny (Bolt/Taxi/inne) ──
+function addInternalTransport() {
+  internalTransport.push({ id: nextInternalTransportId++, type: 'Bolt', info: '', showToGuests: true });
+  renderTransport(); saveState();
+}
+function updateInternalTransport(id, field, value) {
+  const it = internalTransport.find(x => x.id === id); if (!it) return;
+  it[field] = value;
+  saveState();
+  if (field !== 'info') renderTransport();
+}
+function deleteInternalTransport(id) {
+  internalTransport = internalTransport.filter(x => x.id !== id);
   renderTransport(); saveState();
 }
 function saveTransportNotes() {
@@ -4394,17 +4813,56 @@ function saveTransportNotes() {
 function renderTransport() {
   const c=document.getElementById('vehiclesList'); if(!c) return;
   const assigned=new Set(vehicles.flatMap(v=>v.guestIds||[]));
-  const unassigned=guests.filter(g=>!assigned.has(g.id));
-  let html=`<div class="transport-section-hdr">Goście bez transportu (${unassigned.length})</div>`;
+  const ownGuests = guests.filter(g => g.ownTransport && !assigned.has(g.id));
+  const ownSet = new Set(ownGuests.map(g => g.id));
+  const unassigned=guests.filter(g=>!assigned.has(g.id) && !ownSet.has(g.id));
+
+  // ── Pasek podziału transportu (ikony) ──
+  const typeCounts = {};
+  vehicles.forEach(v => {
+    const n = (v.guestIds || []).length;
+    typeCounts[v.type] = (typeCounts[v.type] || 0) + n;
+  });
+  const typeIcon = ty => {
+    const s = (ty || '').toLowerCase();
+    if (s.includes('bus')) return '🚐';
+    if (s.includes('taxi') || s.includes('uber')) return '🚖';
+    if (s.includes('wynaj')) return '🚗';
+    if (s.includes('rodzic')) return '👪';
+    return '🚙';
+  };
+  const chips = [];
+  chips.push(`<span class="t-split-chip" title="Transport własny">🚶 Własny: <b>${ownGuests.length}</b></span>`);
+  Object.keys(typeCounts).forEach(ty => {
+    if (typeCounts[ty] > 0) chips.push(`<span class="t-split-chip">${typeIcon(ty)} ${esc(ty)}: <b>${typeCounts[ty]}</b></span>`);
+  });
+  chips.push(`<span class="t-split-chip t-split-none" title="Bez transportu">❓ Bez transportu: <b>${unassigned.length}</b></span>`);
+  let html = `<div class="transport-split-bar">${chips.join('')}
+    <label class="t-own-toggle"><input type="checkbox" ${transportShowOwn?'checked':''} onchange="toggleTransportShowOwn()"> Pokaż transport własny</label>
+  </div>`;
+
+  html+=`<div class="transport-section-hdr">Goście bez transportu (${unassigned.length})</div>`;
   if(unassigned.length){
     const vOpts=vehicles.map(v=>`<option value="${v.id}">${esc(v.description||v.type)}</option>`).join('');
     html+='<div class="transport-unassigned">'+unassigned.map(g=>`<div class="t-guest-chip">
       ${esc(fullName(g))}
-      <select class="t-assign" onchange="if(this.value)assignGuestToVehicle(${g.id},parseInt(this.value))">
-        <option value="">Przypisz…</option>${vOpts}
+      <select class="t-assign" onchange="var val=this.value; if(val==='own'){setGuestOwnTransport(${g.id},true);} else if(val){assignGuestToVehicle(${g.id},parseInt(val));}">
+        <option value="">Przypisz…</option>
+        <option value="own">🚶 Transport własny</option>
+        ${vOpts}
       </select>
     </div>`).join('')+'</div>';
   } else { html+='<div class="transport-ok">Wszyscy goście mają transport ✓</div>'; }
+
+  // ── Transport własny (z filtrem) ──
+  if (transportShowOwn && ownGuests.length) {
+    html += `<div class="transport-section-hdr" style="margin-top:16px">🚶 Transport własny (${ownGuests.length})</div>`;
+    html += '<div class="transport-unassigned">' + ownGuests.map(g => `<span class="t-guest-chip t-own-chip">
+      ${esc(fullName(g))}
+      <button class="vp-rm" title="Cofnij" onclick="setGuestOwnTransport(${g.id},false)">✕</button>
+    </span>`).join('') + '</div>';
+  }
+
   html+=`<div class="transport-section-hdr" style="margin-top:16px">Pojazdy (${vehicles.length})</div>`;
   if(!vehicles.length){html+='<div class="empty-list">Brak pojazdów.</div>';}
   else html+='<div class="vehicles-grid">'+vehicles.map(v=>{
@@ -4437,6 +4895,25 @@ function renderTransport() {
       </div>
     </div>`;
   }).join('')+'</div>';
+
+  // ── Transport wewnętrzny (Bolt/Taxi/inne) — może pojawić się w harmonogramie dla gości ──
+  html += `<div class="transport-section-hdr" style="margin-top:16px">🚖 Transport wewnętrzny
+    <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="addInternalTransport()">+ Dodaj</button></div>`;
+  if (!internalTransport.length) {
+    html += '<div class="empty-list">Brak. Dodaj np. Bolt / Taxi i informację jak się dostać.</div>';
+  } else {
+    const typeOpts = it => INTERNAL_TRANSPORT_TYPES.map(t => `<option value="${t}"${it.type===t?' selected':''}>${t}</option>`).join('');
+    html += '<div class="internal-transport-list">' + internalTransport.map(it => `
+      <div class="it-card">
+        <div class="it-row">
+          <select class="it-type" onchange="updateInternalTransport(${it.id},'type',this.value)">${typeOpts(it)}</select>
+          <label class="it-show"><input type="checkbox" ${it.showToGuests?'checked':''} onchange="updateInternalTransport(${it.id},'showToGuests',this.checked)"> Pokaż gościom</label>
+          <button class="btn-row-del" onclick="deleteInternalTransport(${it.id})">&#128465;</button>
+        </div>
+        <textarea class="it-info" placeholder="Jak się dostać? np. zamów Bolta na adres sali, kod rabatowy…" onchange="updateInternalTransport(${it.id},'info',this.value)">${esc(it.info||'')}</textarea>
+      </div>`).join('') + '</div>';
+  }
+
   c.innerHTML=html;
   setTimeout(initMobileCollapse, 0);
 }
@@ -5206,11 +5683,17 @@ function _tableForm(t) {
   </div>`;
 }
 function _taskForm(t) {
+  const link = _taskLinkOptions(t);
+  const prio = TASK_PRIORITIES.map(p => [p.value, p.icon + ' ' + p.label]);
   return `<div class="ef-grid">
     ${_efi('name','Nazwa zadania','text',t.name)}
-    ${_efs('status','Status',[['todo','Do zrobienia'],['inprogress','W trakcie'],['done','Ukończone']],t.status)}
+    ${_efs('status','Status',[['todo','Do zrobienia'],['inprogress','W trakcie'],['done','Zrobione'],['cancelled','Anulowane']],t.status)}
+    ${_efs('priority','Priorytet',prio,t.priority||'med')}
     ${_efs('responsible','Odpowiedzialny',[['groom','Pan Młody'],['bride','Panna Młoda'],['both','Oboje']],t.responsible)}
+    ${_ef('startDate','Data rozpoczęcia',`<input type="date" id="ef_startDate" value="${esc(t.startDate||'')}">`)}
+    ${_ef('endDate','Data zakończenia',`<input type="date" id="ef_endDate" value="${esc(t.endDate||'')}">`)}
     ${_ef('dueDate','Termin',`<input type="date" id="ef_dueDate" value="${esc(t.dueDate||'')}">`)}
+    ${_efs('taskLink','Powiązanie (Dostawca/Budżet/Prezent)',link.groups,link.cur)}
   </div>`;
 }
 function _vendorForm(v) {
@@ -5224,6 +5707,7 @@ function _vendorForm(v) {
     ${_efi('email','Email','email',v.email||'')}
     ${_efi('price','Cena (zł)','number',v.price||0)}
     ${_efs('paymentStatus','Status płatności',sts,v.paymentStatus)}
+    ${_efi('mapUrl','Link do Google Maps','url',v.mapUrl||'')}
     ${_eft('notes','Notatki',v.notes||'')}
   </div>`;
 }
@@ -5247,7 +5731,11 @@ function _vehicleForm(v) {
   </div>`;
 }
 function _hotelForm(h) {
+  const vendorPick = vendors.length
+    ? _ef('vendorPick', 'Wybierz z dostawców', `<select id="ef_vendorPick" onchange="_prefillHotelFromVendor(this.value)">${_vendorOptionsHtml('— nowy hotel —')}</select>`)
+    : '';
   return `<div class="ef-grid">
+    ${vendorPick}
     ${_efi('name','Nazwa hotelu','text',h.name||'')}
     ${_efi('address','Adres','text',h.address||'')}
     ${_efi('phone','Telefon','tel',h.phone||'')}
@@ -5395,8 +5883,14 @@ function saveEdit() {
       const t = tasks.find(x=>x.id===id); if (!t) return;
       t.name = _efv('name') || t.name;
       t.status = _efv('status');
+      t.priority = _efv('priority') || 'med';
       t.responsible = _efv('responsible');
+      t.startDate = _efv('startDate');
+      t.endDate = _efv('endDate');
       t.dueDate = _efv('dueDate');
+      const lk = _efv('taskLink');
+      if (lk) { const [lt, lid] = lk.split(':'); t.linkType = lt; t.linkId = parseInt(lid); }
+      else { t.linkType = ''; t.linkId = null; }
       renderTasks();
     } else if (type === 'vendor') {
       const v = vendors.find(x=>x.id===id); if (!v) return;
@@ -5407,6 +5901,7 @@ function saveEdit() {
       v.email = _efv('email');
       v.price = _efn('price');
       v.paymentStatus = _efv('paymentStatus');
+      v.mapUrl = _efv('mapUrl');
       v.notes = _efv('notes');
       renderVendors();
     } else if (type === 'gift') {
@@ -5881,25 +6376,68 @@ function applyConfig() {
   const names    = cfg('displayNames') || 'Patrycji i Piotra';
   const eventNm  = cfg('eventName')    || DEFAULT_APP_CONFIG.eventName;
   const subtitle = cfg('subtitle')     || DEFAULT_APP_CONFIG.subtitle;
+  const ti       = eventTypeInfo();
+  const isWedding = eventTypeKey() === 'wedding';
+
+  // Kolory i widoczne sekcje zależne od typu eventu
+  applyEventTheme();
+  applyEventSections();
 
   // Tytuł karty
   document.title = eventNm;
 
-  // Nagłówek aplikacji
+  // Nagłówek aplikacji (z ikoną typu)
   const hdrTitle = document.getElementById('appHeaderTitle');
-  if (hdrTitle) hdrTitle.innerHTML = '&#9834; ' + esc(eventNm) + ' &#9834;';
+  if (hdrTitle) hdrTitle.innerHTML = ti.icon + ' ' + esc(eventNm) + ' ' + ti.icon;
   const hdrSub = document.getElementById('appHeaderSubtitle');
   if (hdrSub) hdrSub.textContent = subtitle;
 
-  // Ekran logowania
+  // Ekran logowania — dla ślubu „Ceremonia", dla innych typów nazwa eventu
   const loginTitle = document.getElementById('loginTitle');
-  if (loginTitle) loginTitle.innerHTML = 'Ceremonia<br>' + esc(names);
+  if (loginTitle) loginTitle.innerHTML = isWedding ? ('Ceremonia<br>' + esc(names)) : esc(eventNm);
   const loginSub = document.getElementById('loginSubtitle');
   if (loginSub) loginSub.textContent = subtitle;
 
   // Tytuł w nawigacji mobilnej
   const navMobTitle = document.getElementById('navMobTitle');
-  if (navMobTitle) navMobTitle.innerHTML = '&#9834; ' + esc(names);
+  if (navMobTitle) navMobTitle.innerHTML = ti.icon + ' ' + esc(isWedding ? names : eventTypeLabel());
+
+  // Tytuł licznika na Dashboardzie
+  const heroTitle = document.getElementById('dashboardTitle');
+  if (heroTitle) heroTitle.innerHTML = ti.icon + ' ' + esc(ti.heroTitle);
+
+  // Przełącznik eventów
+  if (typeof renderEventSwitcher === 'function') renderEventSwitcher();
+}
+
+// Zastosuj schemat kolorów typu eventu (przez atrybut data-event-theme na <html>)
+function applyEventTheme() {
+  document.documentElement.setAttribute('data-event-theme', eventTypeKey());
+}
+
+// Pokaż/ukryj zakładki nawigacji zależnie od typu eventu
+const _VIEW_NAV_IDS = {
+  dashboard:'navDashboard', tables:'navTables', room:'navRoom', rsvp:'navRsvp', budget:'navBudget',
+  schedule:'navSchedule', tasks:'navTasks', vendors:'navVendors', gallery:'navGallery', access:'navAccess',
+  config:'navConfig', guestcard:'navGuestCard', transport:'navTransport', accommodation:'navAccommodation', gifts:'navGifts',
+};
+function allowedViewSet() {
+  return new Set([...(eventTypeInfo().sections || ALL_EVENT_VIEWS), ...ALWAYS_VIEWS]);
+}
+function applyEventSections() {
+  const allowed = allowedViewSet();
+  Object.entries(_VIEW_NAV_IDS).forEach(([view, navId]) => {
+    const show = allowed.has(view);
+    const btn = document.getElementById(navId);
+    if (btn) btn.style.display = show ? '' : 'none';
+    document.querySelectorAll(`.mob-nav-btn[onclick*="switchView('${view}')"]`).forEach(b => {
+      b.style.display = show ? '' : 'none';
+    });
+  });
+  // Jeśli bieżący widok został ukryty — wróć na Dashboard
+  if (typeof currentView !== 'undefined' && !allowed.has(currentView)) {
+    if (typeof switchView === 'function') switchView('dashboard');
+  }
 }
 
 function renderConfigView() {
@@ -5915,6 +6453,16 @@ function renderConfigView() {
   set('cfgReceptionPlace', cfg('receptionPlace'));
   set('cfgSubtitle',       cfg('subtitle'));
   set('cfgDisplayNames',   cfg('displayNames'));
+  set('cfgMenuOptions',    (appConfig.menuOptions || []).join('\n'));
+  set('cfgEventType',      eventTypeKey());
+  set('cfgEventTypeCustom', appConfig.eventTypeCustom || '');
+  _toggleEventTypeCustom();
+}
+// Pokazuje pole własnej nazwy tylko dla typu „Inne"
+function _toggleEventTypeCustom() {
+  const sel = document.getElementById('cfgEventType');
+  const wrap = document.getElementById('cfgEventTypeCustomWrap');
+  if (sel && wrap) wrap.style.display = sel.value === 'other' ? '' : 'none';
 }
 
 function saveConfig() {
@@ -5926,6 +6474,10 @@ function saveConfig() {
     displayNames:   val('cfgDisplayNames')   || DEFAULT_APP_CONFIG.displayNames,
     ceremonyPlace:  val('cfgCeremonyPlace'),
     receptionPlace: val('cfgReceptionPlace'),
+    menuOptions:    (document.getElementById('cfgMenuOptions')?.value || '')
+                      .split('\n').map(s => s.trim()).filter(Boolean),
+    eventType:      val('cfgEventType') || 'wedding',
+    eventTypeCustom: val('cfgEventTypeCustom'),
   });
 
   // Imiona Osoby 1/2 — wspólne ze splitem kosztów (budgetData.coupleNames)
@@ -5945,34 +6497,166 @@ function saveConfig() {
   showToast('Konfiguracja zapisana ✓');
 }
 
+// ── KARTOTEKA GOŚCI (rozszerzone informacje) ──
+function renderGuestCard() {
+  const cont = document.getElementById('guestCardList');
+  if (!cont) return;
+  if (!guests.length) {
+    cont.innerHTML = '<div class="empty-list">Brak gości. Dodaj gości w sekcji „Stoły i goście".</div>';
+    return;
+  }
+  const menuOpts = appConfig.menuOptions || [];
+  const sorted = [...guests].sort((a, b) => fullName(a).localeCompare(fullName(b), 'pl'));
+  cont.innerHTML = sorted.map(g => {
+    const opts = ['<option value="">— wybierz menu —</option>']
+      .concat(menuOpts.map(m => `<option value="${esc(m)}"${g.menuChoice === m ? ' selected' : ''}>${esc(m)}</option>`)).join('');
+    return `<div class="gcard">
+      <div class="gcard-hdr">
+        ${avatarHtml(g, 'avatar-sm')}
+        <div class="gcard-name">${esc(fullName(g))}</div>
+        <span class="badge badge-cat">${esc(g.category)}</span>
+      </div>
+      <div class="gcard-grid">
+        <label class="gcard-field">
+          <span>&#127869; Menu</span>
+          <select onchange="updateGuestCardField(${g.id},'menuChoice',this.value)">${opts}</select>
+        </label>
+        <label class="gcard-field">
+          <span>&#11088; Preferencje</span>
+          <input type="text" value="${esc(g.preferences || '')}" placeholder="np. miejsce przy rodzinie" onchange="updateGuestCardField(${g.id},'preferences',this.value)">
+        </label>
+        <label class="gcard-field">
+          <span>&#9888;&#65039; Alergie</span>
+          <input type="text" value="${esc(g.allergies || '')}" placeholder="np. orzechy, gluten" onchange="updateGuestCardField(${g.id},'allergies',this.value)">
+        </label>
+        <label class="gcard-field gcard-field-wide">
+          <span>&#128221; Notatki specjalne</span>
+          <textarea rows="2" placeholder="Dodatkowe informacje…" onchange="updateGuestCardField(${g.id},'cardNotes',this.value)">${esc(g.cardNotes || '')}</textarea>
+        </label>
+      </div>
+    </div>`;
+  }).join('');
+}
+function updateGuestCardField(id, field, value) {
+  const g = guests.find(x => x.id === id);
+  if (!g) return;
+  g[field] = value;
+  saveState();
+}
+
 // ── LOCALSTORAGE ──
 const STORAGE_KEY = 'wedding-planner-v2';
 
+// Serializuje stan bieżącego (aktywnego) eventu
+function _serializeState() {
+  return {
+    guests, tables, pairs, staffTables,
+    nextGuestId, nextTableId, nextPairId,
+    nextAddonId, nextMenuAddonId, nextExpenseId,
+    nextScheduleId, nextTaskId, nextVendorId, nextRsvpId,
+    nextGiftId, nextVehicleId, nextHotelId, nextPaymentId, nextInstallmentId,
+    nextTableDecoId, nextStaffTableId, expenseOrder,
+    roomName, roomMeta, roomElements, nextRoomElementId, budgetData, weddingDate, weddingTime, appConfig,
+    scheduleEvents, tasks, vendors, rsvpEntries, gifts,
+    vehicles, hotels, payments, transportNotes,
+    internalTransport, nextInternalTransportId,
+    locationLinksSeeded,
+  };
+}
+
 function saveState() {
   try {
-    const _state = {
-      guests, tables, pairs, staffTables,
-      nextGuestId, nextTableId, nextPairId,
-      nextAddonId, nextMenuAddonId, nextExpenseId,
-      nextScheduleId, nextTaskId, nextVendorId, nextRsvpId,
-      nextGiftId, nextVehicleId, nextHotelId, nextPaymentId, nextInstallmentId,
-      nextTableDecoId, nextStaffTableId, expenseOrder,
-      roomName, budgetData, weddingDate, weddingTime, appConfig,
-      scheduleEvents, tasks, vendors, rsvpEntries, gifts,
-      vehicles, hotels, payments, transportNotes,
-      locationLinksSeeded,
-      _savedAt: Date.now(),
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(_state));
-    if (typeof firestoreSave === 'function') firestoreSave(_state);
+    if (!activeEventId) activeEventId = 'default';
+    EVENTS[activeEventId] = _serializeState();
+    const container = { events: EVENTS, activeEventId, _savedAt: Date.now() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(container));
+    if (typeof firestoreSave === 'function') firestoreSave(container);
   } catch (_) {}
+}
+
+// ── ZARZĄDZANIE WIELOMA EVENTAMI ──
+function _eventMeta(id) {
+  const c = (id === activeEventId) ? appConfig : ((EVENTS[id] && EVENTS[id].appConfig) || {});
+  const type = EVENT_TYPES[c.eventType] ? c.eventType : 'wedding';
+  return { icon: EVENT_TYPES[type].icon, name: (c.eventName || '').trim() || EVENT_TYPES[type].label };
+}
+function renderEventSwitcher() {
+  const sel = document.getElementById('eventSwitcherSel');
+  if (!sel) return;
+  const ids = Object.keys(EVENTS);
+  if (!ids.length) { sel.innerHTML = ''; return; }
+  sel.innerHTML = ids.map(id => {
+    const m = _eventMeta(id);
+    return `<option value="${id}"${id === activeEventId ? ' selected' : ''}>${m.icon} ${esc(m.name)}</option>`;
+  }).join('');
+}
+function switchEvent(id) {
+  if (!EVENTS[id] || id === activeEventId) return;
+  EVENTS[activeEventId] = _serializeState();   // zapisz bieżący event
+  activeEventId = id;
+  _applyEventState(EVENTS[id] || {});          // wczytaj wybrany
+  saveState();
+  renderAll();
+  switchView('dashboard');
+  renderEventSwitcher();
+  showToast('Przełączono na: ' + _eventMeta(id).name);
+}
+function createNewEvent() {
+  const name = prompt('Nazwa nowego eventu:', 'Nowy event');
+  if (name === null) return; // anulowano
+  EVENTS[activeEventId] = _serializeState();   // zapisz bieżący
+  const id = 'e' + Date.now().toString(36);
+  EVENTS[id] = {};                             // pusty stan → backfill do domyślnych
+  activeEventId = id;
+  _applyEventState({});                        // domyślne wartości
+  appConfig = Object.assign({}, DEFAULT_APP_CONFIG, { eventName: (name.trim() || 'Nowy event') });
+  saveState();
+  renderAll();
+  switchView('config');
+  renderEventSwitcher();
+  showToast('Utworzono event: ' + appConfig.eventName);
+}
+function deleteActiveEvent() {
+  const ids = Object.keys(EVENTS);
+  if (ids.length <= 1) { alert('Nie można usunąć jedynego eventu.'); return; }
+  if (!confirm('Usunąć ten event i wszystkie jego dane?\nTej operacji nie można cofnąć.')) return;
+  delete EVENTS[activeEventId];
+  activeEventId = Object.keys(EVENTS)[0];
+  _applyEventState(EVENTS[activeEventId] || {});
+  saveState();
+  renderAll();
+  switchView('dashboard');
+  renderEventSwitcher();
+  showToast('Event usunięty');
+}
+
+// Rozpakowuje zapis do kontenera wielu eventów (migruje stary, „płaski" zapis)
+function _normalizeContainer(parsed) {
+  if (parsed && parsed.events && typeof parsed.events === 'object' && parsed.activeEventId) {
+    const events = parsed.events;
+    let active = parsed.activeEventId;
+    if (!Object.keys(events).length) events['default'] = {};
+    if (!events[active]) active = Object.keys(events)[0];
+    return { events, activeEventId: active };
+  }
+  // Stary zapis (pojedynczy event) → opakuj jako „default"
+  return { events: { default: parsed || {} }, activeEventId: 'default' };
 }
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
-    const s = JSON.parse(raw);
+    const container = _normalizeContainer(JSON.parse(raw));
+    EVENTS = container.events;
+    activeEventId = container.activeEventId;
+    _applyEventState(EVENTS[activeEventId] || {});
+  } catch (_) {}
+}
+
+// Wczytuje stan jednego eventu do zmiennych globalnych
+function _applyEventState(s) {
+  try {
     guests      = s.guests      || [];
     tables      = s.tables      || [];
     pairs       = s.pairs       || [];
@@ -5984,6 +6668,9 @@ function loadState() {
     nextMenuAddonId = s.nextMenuAddonId || 1;
     nextExpenseId   = s.nextExpenseId   || 1;
     roomName        = s.roomName        || 'Sala weselna';
+    roomMeta        = Object.assign({ widthM: 0, lengthM: 0, tableDiameterM: 0 }, s.roomMeta || {});
+    roomElements    = s.roomElements    || [];
+    nextRoomElementId = s.nextRoomElementId || (roomElements.reduce((m, e) => Math.max(m, e.id + 1), 1));
     budgetData = s.budgetData || {
       total: 0, pricePerPerson: 0, venueMinGuests: 0,
       menuAddons: [], coupleNames: ['Osoba 1', 'Osoba 2'], expenses: []
@@ -6002,6 +6689,7 @@ function loadState() {
       if (e.splitP2        === undefined) e.splitP2        = 0;
       if (e.customName     === undefined) e.customName     = '';
       if (e.estimatedAmount=== undefined) e.estimatedAmount= 0;
+      if (e.sidePanel      === undefined) e.sidePanel       = false;
       if (!expenseOrder.includes(e.id))   expenseOrder.push(e.id);
     });
     expenseOrder = expenseOrder.filter(id => budgetData.expenses.some(e => e.id === id));
@@ -6031,15 +6719,29 @@ function loadState() {
       if (g.dietOther === undefined)           g.dietOther = '';
       if (g.needsAccommodation === undefined)  g.needsAccommodation = false;
       if (g.vehicleId === undefined)           g.vehicleId = null;
+      if (g.ownTransport === undefined)        g.ownTransport = false;
       if (g.hotelId === undefined)             g.hotelId = null;
       if (g.accommodationStatus === undefined) g.accommodationStatus = null;
+      if (g.menuChoice === undefined)          g.menuChoice = '';
+      if (g.preferences === undefined)         g.preferences = '';
+      if (g.allergies === undefined)           g.allergies = '';
+      if (g.cardNotes === undefined)           g.cardNotes = '';
     });
+    if (!Array.isArray(appConfig.menuOptions)) appConfig.menuOptions = DEFAULT_APP_CONFIG.menuOptions.slice();
 
     // Load new sections
     weddingDate    = s.weddingDate    || null;
     weddingTime    = s.weddingTime    || '16:00';
     scheduleEvents = s.scheduleEvents || [];
     tasks          = s.tasks          || [];
+    tasks.forEach(t => {
+      if (t.startDate === undefined) t.startDate = '';
+      if (t.endDate === undefined)   t.endDate = '';
+      if (t.priority === undefined)  t.priority = 'med';
+      if (t.linkType === undefined)  t.linkType = '';
+      if (t.linkId === undefined)    t.linkId = null;
+      if (t.status === undefined)    t.status = 'todo';
+    });
     vendors        = s.vendors        || [];
     rsvpEntries    = s.rsvpEntries    || [];
     rsvpEntries.forEach(e => { if (e.companionName === undefined) e.companionName = ''; });
@@ -6048,6 +6750,8 @@ function loadState() {
     hotels         = s.hotels         || [];
     payments       = s.payments       || [];
     transportNotes = s.transportNotes || { weddingCar: '', parking: '' };
+    internalTransport = s.internalTransport || [];
+    nextInternalTransportId = s.nextInternalTransportId || (internalTransport.reduce((m, i) => Math.max(m, i.id + 1), 1));
 
     nextScheduleId    = s.nextScheduleId    || 1;
     nextTaskId        = s.nextTaskId        || 1;
@@ -6067,6 +6771,7 @@ function loadState() {
     });
 
     if (!budgetData.alcoholItems)                    budgetData.alcoholItems    = [];
+    if (budgetData.alcoholPanelHidden === undefined) budgetData.alcoholPanelHidden = false;
     if (!budgetData.nextAlcoholId)                   budgetData.nextAlcoholId   = 1;
     if (budgetData.alcoholSplitP1 === undefined)     budgetData.alcoholSplitP1  = 0;
     if (budgetData.alcoholSplitP2 === undefined)     budgetData.alcoholSplitP2  = 0;
@@ -6082,7 +6787,7 @@ function loadState() {
       if (ev.showLinkToGuests === undefined) ev.showLinkToGuests = false;
     });
     locationLinksSeeded = s.locationLinksSeeded || false;
-    vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; });
+    vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; if (v.mapUrl === undefined) v.mapUrl = ''; });
     hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 
     // Data ślubu — odśwież licznik (edytowana wyłącznie w Konfiguracji)
@@ -6096,6 +6801,11 @@ function loadState() {
 
     const input = document.getElementById('roomNameInput');
     if (input) input.value = roomName;
+    // Przywróć wymiary sali / średnicę stołów
+    const _setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+    _setVal('roomWidthInput',  roomMeta.widthM        || '');
+    _setVal('roomLengthInput', roomMeta.lengthM       || '');
+    _setVal('roomTableDiamInput', roomMeta.tableDiameterM || '');
 
     // Migracja linków do map (raz na zestaw danych — także po synchronizacji z Firestore)
     try { seedLocationLinks(); } catch (_) {}
@@ -6118,6 +6828,7 @@ if (_dietSel) _dietSel.addEventListener('change', function() {
 try { loadState(); } catch(e) { console.error('loadState:', e); }
 try { seedLocationLinks(); } catch(e) { console.error('seedLocationLinks:', e); }
 try { renderAll(); } catch(e) { console.error('renderAll:', e); }
+try { applyConfig(); } catch(e) { console.error('applyConfig:', e); }
 switchView('dashboard');
 startCountdown();
 if (typeof initFirebaseSync === 'function') initFirebaseSync();

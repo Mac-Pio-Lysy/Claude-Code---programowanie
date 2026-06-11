@@ -276,8 +276,14 @@
     if (typeof firestoreLoad === 'function') firestoreLoad(applyPublicConfig);
   });
 
+  // Rozpakuj aktywny event z kontenera wielu eventów (obsługuje też stary, płaski zapis)
+  function _activeEvent(data) {
+    if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+    return data || {};
+  }
   // Zastosuj konfigurowalne napisy (wspólne, z Firestore)
-  function applyPublicConfig(data) {
+  function applyPublicConfig(rawData) {
+    const data = _activeEvent(rawData);
     const cfg = (data && data.appConfig) || {};
     const names = (cfg.displayNames || '').trim();
     if (cfg.eventName) document.title = 'Potwierdzenie Obecności — ' + cfg.eventName;
@@ -318,11 +324,11 @@
     return bestScore <= threshold ? best : null;
   }
 
-  // ── Wczytaj dane ──
+  // ── Wczytaj dane (aktywny event z kontenera) ──
   function loadAppData() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
+      return raw ? _activeEvent(JSON.parse(raw)) : {};
     } catch (_) { return {}; }
   }
 
@@ -444,7 +450,7 @@
     if (!valid) return;
 
     let guests = [];
-    try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) guests = JSON.parse(raw).guests || []; } catch (_) {}
+    try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) guests = (_activeEvent(JSON.parse(raw)).guests) || []; } catch (_) {}
     const match = findMatch(name, guests);
     const normInput = normalizePL(name);
     if (match && matchedGuestId === null) {
@@ -478,10 +484,17 @@
       ? document.getElementById('rsvpCompanion').value.trim()
       : '';
 
-    // ── Zapis do localStorage i Firestore ──
+    // ── Zapis do localStorage i Firestore (do aktywnego eventu w kontenerze) ──
     try {
       const raw   = localStorage.getItem(STORAGE_KEY);
-      const state = raw ? JSON.parse(raw) : {};
+      let container = raw ? JSON.parse(raw) : {};
+      // Znormalizuj do kontenera wielu eventów (migracja starego, płaskiego zapisu)
+      if (!(container && container.events && container.activeEventId)) {
+        const flat = container && Object.keys(container).length ? container : {};
+        container = { events: { default: flat }, activeEventId: 'default' };
+      }
+      const _eid = container.activeEventId;
+      const state = container.events[_eid] || (container.events[_eid] = {});
       if (!state.rsvpEntries) state.rsvpEntries = [];
       if (!state.nextRsvpId)  state.nextRsvpId  = 1;
 
@@ -514,9 +527,9 @@
         });
       }
 
-      state._savedAt = Date.now();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      if (typeof firestoreSaveNow === 'function') firestoreSaveNow(state);
+      container._savedAt = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(container));
+      if (typeof firestoreSaveNow === 'function') firestoreSaveNow(container);
     } catch (_) {}
 
     // ── Wysyłka emaili przez EmailJS ──
