@@ -2,6 +2,18 @@
 let guests = [];
 let tables = [];
 let pairs  = [];
+
+// ── KONFIGURACJA APLIKACJI (edytowalne stałe napisy, wspólne dla wszystkich) ──
+const DEFAULT_APP_CONFIG = {
+  eventName:      'Impreza Weselna Piotra i Patrycji',
+  subtitle:       'Panel organizacji wesela',
+  displayNames:   'Patrycji i Piotra',
+  ceremonyPlace:  '',
+  receptionPlace: '',
+};
+// Imiona Osoby 1/2 (podział kosztów) trzymane są w budgetData.coupleNames,
+// a data ślubu w globalnym weddingDate — Konfiguracja edytuje te same źródła.
+let appConfig = Object.assign({}, DEFAULT_APP_CONFIG);
 let nextGuestId = 1;
 let nextTableId = 1;
 let nextPairId  = 1;
@@ -251,7 +263,8 @@ function renderGuests() {
 
   container.innerHTML = filtered.map(g => {
     const table     = g.tableId !== null ? tables.find(t => t.id === g.tableId) : null;
-    const partner   = g.pairId  !== null ? _pairPartner(g) : null;
+    const pair      = g.pairId  !== null ? pairs.find(x => x.id === g.pairId) : null;
+    const partner   = pair ? _pairPartner(g) : null;
     const isTarget  = pairingGuestId !== null && pairingGuestId !== g.id && g.pairId === null;
     const isChooser = pairingGuestId === g.id;
 
@@ -263,6 +276,11 @@ function renderGuests() {
           ? `<button class="btn btn-sm btn-pair" onclick="startPairing(${g.id})" title="Połącz w parę">&#10084;</button>`
           : '';
 
+    // Skrót pary — zawsze widoczny przy gościu (bez rozwijania opcji)
+    const pairChip = partner
+      ? `<span class="guest-pair-chip" title="${esc(pairTypeInfo(pair).label)}: ${esc(fullName(partner))}">${pairTypeInfo(pair).icon}&nbsp;${esc(partner.firstName || initials(partner))}</span>`
+      : '';
+
     return `<div class="guest-item${g.tableId!==null?' assigned':''}${isTarget?' pairing-target':''}"
          id="guest-item-${g.id}"
          draggable="true"
@@ -272,11 +290,13 @@ function renderGuests() {
       <div class="guest-top-row"${!isTarget ? ` onclick="toggleGuestCard(${g.id})"` : ''}>
         ${avatarHtml(g)}
         <div class="guest-info">
-          <div class="guest-name">${esc(fullName(g))}</div>
+          <div class="guest-name-row">
+            <span class="guest-name">${esc(fullName(g))}</span>
+            ${pairChip}
+          </div>
           <div class="guest-meta">
             <span class="badge badge-cat">${esc(g.category)}</span>
             ${table   ? `<span class="badge badge-seated">&#10003; ${esc(table.name)}</span>` : ''}
-            ${partner ? `<span class="badge badge-pair">&#10084; ${esc(fullName(partner))}</span>` : ''}
             ${g.invitedBy === 'groom' ? `<span class="badge badge-groom">&#129309; Pan Młody</span>` : ''}
             ${g.invitedBy === 'bride' ? `<span class="badge badge-bride">&#128144; Panna Młoda</span>` : ''}
             ${g.witness === 'witness_groom' ? `<span class="badge badge-witness-g">&#9679; Świadek</span>` : ''}
@@ -285,7 +305,7 @@ function renderGuests() {
             ${g.needsAccommodation ? `<span class="badge badge-accom">&#127968;</span>` : ''}
           </div>
         </div>
-        <span class="guest-expand-btn" aria-hidden="true">&#9660;</span>
+        ${!isTarget ? `<button class="guest-expand-btn" type="button" aria-label="Pokaż opcje" title="Pokaż opcje">&#9660;</button>` : ''}
       </div>
       <div class="guest-actions">
         <button class="btn btn-sm btn-edit" onclick="openEditModal('guest',${g.id})" title="Edytuj gościa">&#9998; Edytuj</button>
@@ -303,15 +323,29 @@ function renderGuests() {
 }
 
 function toggleGuestCard(id) {
-  if (window.innerWidth > 768) return;
   const item = document.getElementById('guest-item-' + id);
   if (!item) return;
-  const expanded = item.classList.toggle('mob-expanded');
+  const expanded = item.classList.toggle('expanded');
   const btn = item.querySelector('.guest-expand-btn');
   if (btn) btn.innerHTML = expanded ? '&#9650;' : '&#9660;';
 }
 
 // ── PAIRING ──
+// Typy par — używane w legendzie i przy gościu
+const PAIR_TYPES = {
+  romantic: { icon: '\u{1F491}', label: 'Para' },                 // 💑
+  parents:  { icon: '\u{1F46A}', label: 'Rodzice' },              // 👪
+  plusone:  { icon: '\u{1F9D1}‍\u{1F91D}‍\u{1F9D1}', label: 'Z osobą towarzyszącą' }, // 🧑‍🤝‍🧑
+};
+function pairTypeKey(p) { return (p && PAIR_TYPES[p.type]) ? p.type : 'romantic'; }
+function pairTypeInfo(p) { return PAIR_TYPES[pairTypeKey(p)]; }
+function setPairType(pairId, type) {
+  const p = pairs.find(x => x.id === pairId);
+  if (!p || !PAIR_TYPES[type]) return;
+  p.type = type;
+  renderAll();
+}
+
 function startPairing(guestId) {
   pairingGuestId = guestId;
   const g = guests.find(x => x.id === guestId);
@@ -331,7 +365,7 @@ function completePairing(targetId) {
   const g1 = guests.find(x => x.id === pairingGuestId);
   const g2 = guests.find(x => x.id === targetId);
   if (!g1 || !g2 || g2.pairId !== null) return;
-  const pair = { id: nextPairId++, g1: g1.id, g2: g2.id };
+  const pair = { id: nextPairId++, g1: g1.id, g2: g2.id, type: 'romantic' };
   pairs.push(pair);
   g1.pairId = pair.id;
   g2.pairId = pair.id;
@@ -365,6 +399,8 @@ function _pairPartner(g) {
 
 function renderPairs() {
   const container = document.getElementById('pairsList');
+  if (!container) return;
+  updatePairsCount();
   if (!pairs.length) {
     container.innerHTML = '<div class="empty-list">Brak par.<br>Kliknij &#10084; przy gościu.</div>';
     return;
@@ -373,10 +409,14 @@ function renderPairs() {
     const g1 = guests.find(x => x.id === p.g1);
     const g2 = guests.find(x => x.id === p.g2);
     if (!g1 || !g2) return '';
+    const ti = pairTypeInfo(p);
+    const opts = Object.entries(PAIR_TYPES).map(([k, v]) =>
+      `<option value="${k}"${pairTypeKey(p) === k ? ' selected' : ''}>${v.icon} ${v.label}</option>`).join('');
     return `<div class="pair-item">
+      <div class="pair-type-badge">${ti.icon} ${esc(ti.label)}</div>
       <div class="pair-avatars">
         ${avatarHtml(g1,'avatar-sm')}
-        <span class="pair-heart">&#10084;</span>
+        <span class="pair-heart">${ti.icon}</span>
         ${avatarHtml(g2,'avatar-sm')}
       </div>
       <div class="pair-names">
@@ -384,9 +424,62 @@ function renderPairs() {
         <span style="color:var(--pink)">&amp;</span>
         <span>${esc(fullName(g2))}</span>
       </div>
+      <select class="pair-type-select" title="Typ pary" onchange="setPairType(${p.id},this.value)">${opts}</select>
       <button class="btn-unpair" onclick="unpairGuest(${g1.id})">Rozłącz</button>
     </div>`;
   }).join('');
+}
+
+// ── WYSUWANE PANELE BOCZNE (Pary + Personel) ──
+// Oba mogą być otwarte jednocześnie; na desktopie układają się obok siebie.
+let pairsPanelOpen = false;
+let staffPanelOpen = false;
+const DRAWER_WIDTH = 300; // musi odpowiadać szerokości .side-drawer w CSS
+
+function togglePairsPanel(force) {
+  pairsPanelOpen = (typeof force === 'boolean') ? force : !pairsPanelOpen;
+  layoutDrawers();
+}
+function toggleStaffPanel(force) {
+  staffPanelOpen = (typeof force === 'boolean') ? force : !staffPanelOpen;
+  layoutDrawers();
+}
+function closeAllDrawers() {
+  pairsPanelOpen = false;
+  staffPanelOpen = false;
+  layoutDrawers();
+}
+
+// Pozycjonuje panele i zakładki tak, by mogły współistnieć obok siebie (Pary najbardziej z prawej)
+function layoutDrawers() {
+  const pairs    = document.getElementById('panelPairs');
+  const staff    = document.getElementById('panelStaff');
+  const pairsTab = document.getElementById('pairsToggleTab');
+  const staffTab = document.getElementById('staffToggleTab');
+  const backdrop = document.getElementById('drawersBackdrop');
+  const isMobile = window.innerWidth <= 660;
+  const W = isMobile ? 0 : DRAWER_WIDTH; // na mobile panele nakładają się (brak przesunięcia)
+
+  if (pairs) {
+    pairs.classList.toggle('open', pairsPanelOpen);
+    pairs.style.right = '0px';
+  }
+  if (staff) {
+    staff.classList.toggle('open', staffPanelOpen);
+    staff.style.right = (pairsPanelOpen ? W : 0) + 'px';
+  }
+  const totalOpen = (pairsPanelOpen ? W : 0) + (staffPanelOpen ? W : 0);
+  if (pairsTab) pairsTab.style.right = totalOpen + 'px';
+  if (staffTab) staffTab.style.right = totalOpen + 'px';
+  if (backdrop) backdrop.classList.toggle('show', pairsPanelOpen || staffPanelOpen);
+}
+function updatePairsCount() {
+  const el = document.getElementById('pairsCount');
+  if (el) el.textContent = pairs.length || '';
+}
+function updateStaffCount() {
+  const el = document.getElementById('staffCount');
+  if (el) el.textContent = (staffTables && staffTables.length) || '';
 }
 
 // ── TABLES ──
@@ -1416,6 +1509,7 @@ function toggleStaffInCalc(checked) {
 }
 
 function renderStaffTables() {
+  if (typeof updateStaffCount === 'function') updateStaffCount();
   const list = document.getElementById('staffTablesList');
   if (!list) return;
   if (!staffTables.length) {
@@ -2855,7 +2949,7 @@ function switchView(view) {
     dashboard: 'viewDashboard', rsvp: 'viewRsvp', payments: 'viewPayments',
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
-    gallery: 'viewGallery', access: 'viewAccess',
+    gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -2869,7 +2963,7 @@ function switchView(view) {
     budget: 'navBudget', schedule: 'navSchedule',
     tasks: 'navTasks', vendors: 'navVendors', transport: 'navTransport',
     accommodation: 'navAccommodation', gifts: 'navGifts', gallery: 'navGallery',
-    access: 'navAccess',
+    access: 'navAccess', config: 'navConfig',
   };
   const navBtn = document.getElementById(navIds[view]);
   if (navBtn) navBtn.classList.add('active');
@@ -2892,6 +2986,7 @@ function switchView(view) {
     case 'schedule':      renderSchedule(); renderScheduleQR(); break;
     case 'gallery':       renderGalleryView();   break;
     case 'access':        renderAccessView();    break;
+    case 'config':        renderConfigView();    break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -3196,6 +3291,7 @@ document.addEventListener('mouseup', e => {
 
 // ── NEW STATE ──
 let weddingDate    = null;
+let weddingTime    = '16:00';   // godzina ślubu (HH:MM, strefa Europe/Warsaw)
 let scheduleEvents = [];
 let nextScheduleId = 1;
 let scheduleView   = 'list'; // 'list' | 'columns' | 'gantt'
@@ -3232,12 +3328,41 @@ function updateGuestField(guestId, field, value) {
 }
 
 // ── COUNTDOWN ──
-function updateCountdown() {
-  const input = document.getElementById('weddingDate');
-  if (!input) return;
-  weddingDate = input.value || null;
-  saveState();
-  tickCountdown();
+// Data i godzina ślubu edytowane wyłącznie w „Konfiguracji" (globalne weddingDate / weddingTime).
+
+// Offset strefy Europe/Warsaw względem UTC (w minutach) dla danego momentu — uwzględnia czas letni/zimowy
+function _warsawOffsetMinutes(date) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Warsaw', hour12: false,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  });
+  const map = {};
+  for (const p of dtf.formatToParts(date)) map[p.type] = p.value;
+  let hour = +map.hour;
+  if (hour === 24) hour = 0; // niektóre silniki zwracają 24 dla północy
+  const asUTC = Date.UTC(+map.year, +map.month - 1, +map.day, hour, +map.minute, +map.second);
+  return Math.round((asUTC - date.getTime()) / 60000);
+}
+
+// Zamienia „ścienną" datę+godzinę w Warszawie na dokładny moment UTC (milisekundy), z obsługą DST
+function _warsawWallClockToMs(y, mo, d, h, mi) {
+  const guess = Date.UTC(y, mo - 1, d, h, mi, 0);
+  const off1 = _warsawOffsetMinutes(new Date(guess));
+  let ms = guess - off1 * 60000;
+  const off2 = _warsawOffsetMinutes(new Date(ms));
+  if (off2 !== off1) ms = guess - off2 * 60000; // korekta na granicy zmiany czasu
+  return ms;
+}
+
+// Zwraca docelowy moment ślubu (ms) lub null, gdy brak daty
+function weddingTargetMs() {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(weddingDate || '');
+  if (!m) return null;
+  const t = /^(\d{1,2}):(\d{2})/.exec(weddingTime || '16:00');
+  const hh = t ? Math.min(23, +t[1]) : 16;
+  const mi = t ? Math.min(59, +t[2]) : 0;
+  return _warsawWallClockToMs(+m[1], +m[2], +m[3], hh, mi);
 }
 
 function startCountdown() {
@@ -3246,19 +3371,40 @@ function startCountdown() {
   countdownInterval = setInterval(tickCountdown, 1000);
 }
 
+// Odświeża kafelek „Licznik do ślubu" na bieżąco (co sekundę)
+function _updateCountdownTile() {
+  const tile = document.querySelector('.dash-widget[data-id="countdown"]');
+  if (!tile || typeof DASH_WIDGETS === 'undefined') return;
+  let data = {};
+  try { data = DASH_WIDGETS.countdown.body() || {}; } catch (_) {}
+  const numEl = tile.querySelector('.dw-num');
+  const subEl = tile.querySelector('.dw-sub');
+  if (numEl) numEl.innerHTML = (data.num != null ? data.num : '—');
+  if (subEl) subEl.textContent = data.sub || '';
+}
+
 function tickCountdown() {
+  if (typeof _updateCountdownTile === 'function') _updateCountdownTile();
   const days  = document.getElementById('cdDays');
   const hours = document.getElementById('cdHours');
   const mins  = document.getElementById('cdMins');
   const secs  = document.getElementById('cdSecs');
-  if (!days) return;
+  const disp     = document.getElementById('countdownDisplay');
+  const noDate   = document.getElementById('countdownNoDate');
+
+  // Brak daty — pokaż komunikat, ukryj licznik
   if (!weddingDate) {
     [days,hours,mins,secs].forEach(el => { if (el) el.textContent = '--'; });
+    if (disp)    disp.style.display = 'none';
+    if (noDate)  noDate.style.display = '';
     return;
   }
-  const target = new Date(weddingDate);
-  const now    = new Date();
-  const diff   = target - now;
+  if (disp)    disp.style.display = '';
+  if (noDate)  noDate.style.display = 'none';
+
+  if (!days) return;
+  const target = weddingTargetMs();
+  const diff   = (target === null ? 0 : target) - Date.now();
   if (diff <= 0) {
     days.textContent='0'; hours.textContent='00'; mins.textContent='00'; if(secs) secs.textContent='00';
     return;
@@ -3275,32 +3421,342 @@ function tickCountdown() {
 
 // ── DASHBOARD ──
 function renderDashboard() {
-  const cards = document.getElementById('dashboardCards');
-  if (!cards) return;
-  const doneTasks   = tasks.filter(t => t.status === 'done').length;
-  const allInst     = payments.flatMap(p => p.installments);
-  const overdue     = allInst.filter(i => i.status !== 'paid' && i.dueDate && new Date(i.dueDate) < new Date()).length;
-  const soon        = allInst.filter(i => i.status !== 'paid' && isInstallmentDueSoon(i.dueDate)).length;
-  const noRsvp      = guests.filter(g => !rsvpEntries.some(e => e.guestId === g.id)).length;
-  const attending   = rsvpEntries.filter(e => e.guestId && e.status === 'attending').length;
-  const allVehicleGuests = new Set(vehicles.flatMap(v => v.guestIds || []));
-  const noTransport = guests.filter(g => !allVehicleGuests.has(g.id)).length;
+  renderDashboardWidgets();
+}
 
-  cards.innerHTML = [
-    { icon:'&#128101;', num: guests.length,    lbl:'Gości ogółem',        sub:`${attending} potwierdzeń · ${noRsvp} bez odpowiedzi`,  view:'tables' },
-    { icon:'&#128176;', num: fmt(calcCateringTotal()+calcExpensesPlanned())+' zł', lbl:'Zaplanowany budżet', sub:`Limit: ${fmt(budgetData.total||0)} zł`, view:'budget' },
-    { icon:'&#128179;', num: overdue+soon,     lbl:'Płatności do uwagi',  sub:`${overdue} zaległych · ${soon} wkrótce`, view:'payments', alert: overdue > 0 },
-    { icon:'&#9989;',   num: `${doneTasks}/${tasks.length}`, lbl:'Zadania ukończone', sub:`${tasks.length-doneTasks} pozostało`, view:'tasks' },
-    { icon:'&#128203;', num: vendors.length,   lbl:'Dostawców',           sub:`${vendors.filter(v=>v.paymentStatus==='confirmed'||v.paymentStatus==='paid').length} potwierdzonych`, view:'vendors' },
-    { icon:'&#127873;', num: gifts.length,     lbl:'Prezentów',           sub:`${gifts.filter(g=>g.thanked).length} z podziękowaniem`, view:'gifts' },
-    { icon:'&#128663;', num: vehicles.length,  lbl:'Pojazdów',            sub:`${noTransport} gości bez transportu`, view:'transport' },
-    { icon:'&#127968;', num: guests.filter(g=>g.needsAccommodation).length, lbl:'Potrzebuje noclegu', sub:`${guests.filter(g=>g.accommodationStatus==='reserved').length} zarezerwowanych`, view:'accommodation' },
-  ].map(c => `<div class="dash-card${c.alert?' dash-card-alert':''}" onclick="switchView('${c.view}')">
-    <div class="dash-icon">${c.icon}</div>
-    <div class="dash-num">${c.num}</div>
-    <div class="dash-lbl">${c.lbl}</div>
-    <div class="dash-sub">${c.sub}</div>
-  </div>`).join('');
+// ══════════════════════════════════════════════════════
+//  DASHBOARD — personalizowane widżety (zapis w Firestore per użytkownik)
+// ══════════════════════════════════════════════════════
+// Katalog dostępnych kafelków. „body" zwraca treść na żywo (liczba/podpis). „view" = dokąd prowadzi skrót.
+const DASH_WIDGETS = {
+  guests: {
+    icon: '👥', title: 'Goście', view: 'tables',
+    body: () => {
+      const attending = rsvpEntries.filter(e => e.guestId && e.status === 'attending').length;
+      const noRsvp = guests.filter(g => !rsvpEntries.some(e => e.guestId === g.id)).length;
+      return { num: guests.length, sub: `${attending} potwierdzeń · ${noRsvp} bez odpowiedzi` };
+    },
+  },
+  tables: {
+    icon: '🪑', title: 'Stoły', view: 'tables',
+    body: () => ({
+      num: tables.length,
+      sub: `${tables.reduce((s, t) => s + (t.seats || 0), 0)} miejsc`,
+    }),
+  },
+  budget: {
+    icon: '💰', title: 'Budżet', view: 'budget',
+    body: () => ({
+      num: fmt(calcCateringTotal() + calcExpensesPlanned()) + ' zł',
+      sub: `Limit: ${fmt(budgetData.total || 0)} zł`,
+    }),
+  },
+  schedule: {
+    icon: '📅', title: 'Harmonogram', view: 'schedule',
+    body: () => ({ num: scheduleEvents.length, sub: 'punktów programu' }),
+  },
+  tasks: {
+    icon: '✅', title: 'Zadania', view: 'tasks',
+    body: () => {
+      const done = tasks.filter(t => t.status === 'done').length;
+      return { num: `${done}/${tasks.length}`, sub: `${tasks.length - done} pozostało` };
+    },
+  },
+  transport: {
+    icon: '🚗', title: 'Transport', view: 'transport',
+    body: () => {
+      const inCars = new Set(vehicles.flatMap(v => v.guestIds || []));
+      return { num: vehicles.length, sub: `${guests.filter(g => !inCars.has(g.id)).length} gości bez transportu` };
+    },
+  },
+  accommodation: {
+    icon: '🏨', title: 'Noclegi', view: 'accommodation',
+    body: () => ({
+      num: guests.filter(g => g.needsAccommodation).length,
+      sub: `${guests.filter(g => g.accommodationStatus === 'reserved').length} zarezerwowanych`,
+    }),
+  },
+  gifts: {
+    icon: '🎁', title: 'Prezenty', view: 'gifts',
+    body: () => ({ num: gifts.length, sub: `${gifts.filter(g => g.thanked).length} z podziękowaniem` }),
+  },
+  countdown: {
+    icon: '💍', title: 'Licznik do ślubu', view: 'config',
+    body: () => {
+      const target = (typeof weddingTargetMs === 'function') ? weddingTargetMs() : null;
+      if (target === null) return { num: '—', sub: 'Ustaw datę w Konfiguracji' };
+      const diff = target - Date.now();
+      if (diff <= 0) return { num: '🎉', sub: 'Już po ślubie!' };
+      const p = n => String(n).padStart(2, '0');
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      return { num: d, sub: `dni · ${p(h)}:${p(m)}:${p(s)}` };
+    },
+  },
+  rsvp: {
+    icon: '📋', title: 'RSVP', view: 'rsvp',
+    body: () => {
+      const attending = rsvpEntries.filter(e => e.guestId && e.status === 'attending').length;
+      const declined = rsvpEntries.filter(e => e.guestId && e.status === 'not_attending').length;
+      return { num: attending, sub: `${declined} odmów · ${rsvpEntries.length} odpowiedzi` };
+    },
+  },
+  alcohol: {
+    icon: '🍾', title: 'Alkohol', view: 'budget',
+    body: () => ({
+      num: fmt(calcAlcoholTotal()) + ' zł',
+      sub: `${calcAlcoholBottles()} butelek`,
+    }),
+  },
+  honeymoon: {
+    icon: '✈️', title: 'Podróż poślubna', view: 'budget',
+    body: () => {
+      const h = budgetData.honeymoon || {};
+      return { num: fmt(h.totalAmount || 0) + ' zł', sub: (h.name || '').trim() || 'Podróż poślubna' };
+    },
+  },
+  payments: {
+    icon: '💳', title: 'Płatności', view: 'budget',
+    body: () => {
+      const allInst = payments.flatMap(p => p.installments);
+      const overdue = allInst.filter(i => i.status !== 'paid' && i.dueDate && new Date(i.dueDate) < new Date()).length;
+      const soon = allInst.filter(i => i.status !== 'paid' && isInstallmentDueSoon(i.dueDate)).length;
+      return { num: overdue + soon, sub: `${overdue} zaległych · ${soon} wkrótce`, alert: overdue > 0 };
+    },
+  },
+  vendors: {
+    icon: '👨‍🍳', title: 'Dostawcy', view: 'vendors',
+    body: () => ({
+      num: vendors.length,
+      sub: `${vendors.filter(v => v.paymentStatus === 'confirmed' || v.paymentStatus === 'paid').length} potwierdzonych`,
+    }),
+  },
+  gallery: {
+    icon: '📸', title: 'Galeria', view: 'gallery',
+    body: () => ({
+      num: (typeof _galleryAdminItems !== 'undefined' ? _galleryAdminItems.length : 0),
+      sub: 'zdjęć i filmów',
+    }),
+  },
+};
+const DASH_WIDGET_SIZES = ['small', 'medium', 'large'];
+const DEFAULT_DASH_LAYOUT = {
+  widgets: [
+    { id: 'countdown', size: 'medium' },
+    { id: 'guests', size: 'medium' },
+    { id: 'budget', size: 'small' },
+    { id: 'tasks', size: 'small' },
+    { id: 'payments', size: 'small' },
+    { id: 'rsvp', size: 'small' },
+    { id: 'schedule', size: 'small' },
+    { id: 'vendors', size: 'small' },
+  ],
+};
+
+let dashLayout       = null;     // {widgets:[{id,size}]}
+let dashLayoutLoaded = false;
+let dashEditMode     = false;
+let dashAddZoneOpen  = false;
+let _dragWidgetId    = null;
+
+function _dashLayoutKey() {
+  const email = (typeof _currentUserEmail === 'function' ? _currentUserEmail() : '') || 'anon';
+  return 'weddingDashLayout:' + email;
+}
+function _dashLayoutDocRef() {
+  if (!window.firebase || !firebase.firestore) return null;
+  const email = (typeof _currentUserEmail === 'function' ? _currentUserEmail() : '') || 'anon';
+  const id = email.replace(/[^a-z0-9]/gi, '_') || 'anon';
+  return firebase.firestore().collection('dashboardLayouts').doc(id);
+}
+
+function _cloneDefaultLayout() {
+  return { widgets: DEFAULT_DASH_LAYOUT.widgets.map(w => ({ id: w.id, size: w.size })) };
+}
+function _sanitizeLayout(layout) {
+  if (!layout || !Array.isArray(layout.widgets)) return _cloneDefaultLayout();
+  const seen = new Set();
+  const widgets = [];
+  layout.widgets.forEach(w => {
+    if (!w || !DASH_WIDGETS[w.id] || seen.has(w.id)) return;
+    seen.add(w.id);
+    widgets.push({ id: w.id, size: DASH_WIDGET_SIZES.includes(w.size) ? w.size : 'small' });
+  });
+  return { widgets };
+}
+
+function getDashLayout() {
+  if (!dashLayout) {
+    // Najpierw natychmiastowy odczyt z localStorage (cache), potem Firestore nadpisze
+    try {
+      const raw = localStorage.getItem(_dashLayoutKey());
+      dashLayout = raw ? _sanitizeLayout(JSON.parse(raw)) : _cloneDefaultLayout();
+    } catch (_) { dashLayout = _cloneDefaultLayout(); }
+  }
+  return dashLayout;
+}
+
+function loadDashLayout() {
+  if (dashLayoutLoaded) return;
+  dashLayoutLoaded = true;
+  const ref = _dashLayoutDocRef();
+  if (!ref) { renderDashboardWidgets(); return; }
+  ref.get()
+    .then(doc => {
+      if (doc.exists) {
+        dashLayout = _sanitizeLayout(doc.data());
+        try { localStorage.setItem(_dashLayoutKey(), JSON.stringify(dashLayout)); } catch (_) {}
+        renderDashboardWidgets();
+      }
+    })
+    .catch(() => {});
+}
+
+function saveDashLayout() {
+  const layout = getDashLayout();
+  try { localStorage.setItem(_dashLayoutKey(), JSON.stringify(layout)); } catch (_) {}
+  const ref = _dashLayoutDocRef();
+  if (ref) ref.set({ widgets: layout.widgets, _ts: Date.now() }).catch(() => {});
+}
+
+function renderDashboardWidgets() {
+  if (!dashLayoutLoaded) loadDashLayout();
+  const grid = document.getElementById('dashWidgets');
+  if (!grid) return;
+  const layout = getDashLayout();
+
+  grid.classList.toggle('editing', dashEditMode);
+  grid.innerHTML = layout.widgets.map(w => {
+    const def = DASH_WIDGETS[w.id];
+    if (!def) return '';
+    let data = {};
+    try { data = def.body() || {}; } catch (_) { data = {}; }
+    const sizeCtrl = DASH_WIDGET_SIZES.map(sz => {
+      const lbl = sz === 'small' ? 'S' : sz === 'medium' ? 'M' : 'L';
+      return `<button class="dw-size-btn${w.size === sz ? ' active' : ''}" title="${sz}"
+        onclick="event.stopPropagation();setWidgetSize('${w.id}','${sz}')">${lbl}</button>`;
+    }).join('');
+    const editControls = dashEditMode
+      ? `<button class="dw-remove" title="Ukryj widżet" onclick="event.stopPropagation();hideWidget('${w.id}')">&#10006;</button>
+         <div class="dw-sizes">${sizeCtrl}</div>`
+      : '';
+    const onclick = dashEditMode ? '' : `onclick="switchView('${def.view}')"`;
+    const drag = dashEditMode
+      ? `draggable="true" ondragstart="dwDragStart(event,'${w.id}')" ondragover="dwDragOver(event,'${w.id}')" ondrop="dwDrop(event,'${w.id}')" ondragend="dwDragEnd(event)"` : '';
+    return `<div class="dash-widget dw-${w.size}${data.alert ? ' dw-alert' : ''}${dashEditMode ? ' editing' : ''}" data-id="${w.id}" ${onclick} ${drag}>
+      ${editControls}
+      <div class="dw-icon">${def.icon}</div>
+      <div class="dw-num">${data.num != null ? data.num : '—'}</div>
+      <div class="dw-title">${esc(def.title)}</div>
+      ${data.sub ? `<div class="dw-sub">${esc(data.sub)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  renderWidgetAddZone(layout);
+
+  const editBtn  = document.getElementById('dwEditBtn');
+  const addBtn   = document.getElementById('dwAddBtn');
+  const resetBtn = document.getElementById('dwResetBtn');
+  if (editBtn)  editBtn.innerHTML = dashEditMode ? '&#10003; Gotowe' : '&#9999;&#65039; Edytuj';
+  if (addBtn)   addBtn.style.display   = dashEditMode ? '' : 'none';
+  if (resetBtn) resetBtn.style.display = dashEditMode ? '' : 'none';
+}
+
+function renderWidgetAddZone(layout) {
+  const zone = document.getElementById('dashWidgetAddZone');
+  if (!zone) return;
+  if (!dashEditMode || !dashAddZoneOpen) { zone.style.display = 'none'; zone.innerHTML = ''; return; }
+  const present = new Set(layout.widgets.map(w => w.id));
+  const missing = Object.keys(DASH_WIDGETS).filter(id => !present.has(id));
+  zone.style.display = 'block';
+  if (!missing.length) {
+    zone.innerHTML = `<div class="dwa-title">Wszystkie widżety są już dodane &#9989;</div>`;
+    return;
+  }
+  zone.innerHTML = `<div class="dwa-title">&#10133; Dodaj widżet</div>
+    <div class="dwa-grid">${missing.map(id =>
+      `<button class="dwa-chip" onclick="addWidget('${id}')">
+        <span class="dwa-chip-icon">${DASH_WIDGETS[id].icon}</span>${esc(DASH_WIDGETS[id].title)}</button>`).join('')}</div>`;
+}
+
+// Wywoływane po zalogowaniu/zmianie użytkownika — przeładuj układ widżetów dla właściwego konta
+function onDashboardUserChange() {
+  dashLayoutLoaded = false;
+  dashLayout = null;
+  if (currentView === 'dashboard') renderDashboard();
+}
+
+function toggleDashEdit() {
+  dashEditMode = !dashEditMode;
+  if (!dashEditMode) dashAddZoneOpen = false;
+  renderDashboardWidgets();
+}
+function toggleAddWidget() {
+  dashAddZoneOpen = !dashAddZoneOpen;
+  renderDashboardWidgets();
+}
+function setWidgetSize(id, size) {
+  if (!DASH_WIDGET_SIZES.includes(size)) return;
+  const layout = getDashLayout();
+  const w = layout.widgets.find(x => x.id === id);
+  if (!w) return;
+  w.size = size;
+  saveDashLayout();
+  renderDashboardWidgets();
+}
+function hideWidget(id) {
+  const layout = getDashLayout();
+  layout.widgets = layout.widgets.filter(w => w.id !== id);
+  saveDashLayout();
+  renderDashboardWidgets();
+}
+function addWidget(id) {
+  if (!DASH_WIDGETS[id]) return;
+  const layout = getDashLayout();
+  if (!layout.widgets.some(w => w.id === id)) layout.widgets.push({ id, size: 'small' });
+  saveDashLayout();
+  renderDashboardWidgets();
+}
+function resetDashLayout() {
+  if (!confirm('Przywrócić domyślny układ widżetów?')) return;
+  dashLayout = _cloneDefaultLayout();
+  saveDashLayout();
+  renderDashboardWidgets();
+}
+
+// ── Przeciąganie widżetów (zmiana kolejności) ──
+function dwDragStart(e, id) {
+  _dragWidgetId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', id); } catch (_) {}
+  if (e.currentTarget) e.currentTarget.classList.add('dragging');
+}
+function dwDragOver(e, overId) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.dash-widget.drop-target').forEach(el => el.classList.remove('drop-target'));
+  if (overId !== _dragWidgetId && e.currentTarget) e.currentTarget.classList.add('drop-target');
+}
+function dwDrop(e, overId) {
+  e.preventDefault();
+  const from = _dragWidgetId;
+  if (!from || from === overId) return;
+  const layout = getDashLayout();
+  const order = layout.widgets;
+  const fromIdx = order.findIndex(w => w.id === from);
+  const toIdx = order.findIndex(w => w.id === overId);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const [moved] = order.splice(fromIdx, 1);
+  order.splice(toIdx, 0, moved);
+  saveDashLayout();
+  renderDashboardWidgets();
+}
+function dwDragEnd() {
+  _dragWidgetId = null;
+  document.querySelectorAll('.dash-widget.dragging, .dash-widget.drop-target')
+    .forEach(el => el.classList.remove('dragging', 'drop-target'));
 }
 
 // ── SCHEDULE ──
@@ -5412,6 +5868,83 @@ async function unblockEmail(email) {
   }
 }
 
+// ══════════════════════════════════════════════════════
+//  KONFIGURACJA — edytowalne stałe napisy
+// ══════════════════════════════════════════════════════
+function cfg(key) {
+  const v = appConfig && appConfig[key];
+  return (v === undefined || v === null) ? (DEFAULT_APP_CONFIG[key] || '') : v;
+}
+
+// Zastosuj wartości konfiguracji w całej aplikacji (DOM)
+function applyConfig() {
+  const names    = cfg('displayNames') || 'Patrycji i Piotra';
+  const eventNm  = cfg('eventName')    || DEFAULT_APP_CONFIG.eventName;
+  const subtitle = cfg('subtitle')     || DEFAULT_APP_CONFIG.subtitle;
+
+  // Tytuł karty
+  document.title = eventNm;
+
+  // Nagłówek aplikacji
+  const hdrTitle = document.getElementById('appHeaderTitle');
+  if (hdrTitle) hdrTitle.innerHTML = '&#9834; ' + esc(eventNm) + ' &#9834;';
+  const hdrSub = document.getElementById('appHeaderSubtitle');
+  if (hdrSub) hdrSub.textContent = subtitle;
+
+  // Ekran logowania
+  const loginTitle = document.getElementById('loginTitle');
+  if (loginTitle) loginTitle.innerHTML = 'Ceremonia<br>' + esc(names);
+  const loginSub = document.getElementById('loginSubtitle');
+  if (loginSub) loginSub.textContent = subtitle;
+
+  // Tytuł w nawigacji mobilnej
+  const navMobTitle = document.getElementById('navMobTitle');
+  if (navMobTitle) navMobTitle.innerHTML = '&#9834; ' + esc(names);
+}
+
+function renderConfigView() {
+  const c1 = (budgetData.coupleNames && budgetData.coupleNames[0]) || '';
+  const c2 = (budgetData.coupleNames && budgetData.coupleNames[1]) || '';
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+  set('cfgEventName',      cfg('eventName'));
+  set('cfgPerson1',        c1);
+  set('cfgPerson2',        c2);
+  set('cfgWeddingDate',    weddingDate || '');
+  set('cfgWeddingTime',    weddingTime || '16:00');
+  set('cfgCeremonyPlace',  cfg('ceremonyPlace'));
+  set('cfgReceptionPlace', cfg('receptionPlace'));
+  set('cfgSubtitle',       cfg('subtitle'));
+  set('cfgDisplayNames',   cfg('displayNames'));
+}
+
+function saveConfig() {
+  const val = id => (document.getElementById(id)?.value || '').trim();
+
+  appConfig = Object.assign({}, appConfig, {
+    eventName:      val('cfgEventName')      || DEFAULT_APP_CONFIG.eventName,
+    subtitle:       val('cfgSubtitle')       || DEFAULT_APP_CONFIG.subtitle,
+    displayNames:   val('cfgDisplayNames')   || DEFAULT_APP_CONFIG.displayNames,
+    ceremonyPlace:  val('cfgCeremonyPlace'),
+    receptionPlace: val('cfgReceptionPlace'),
+  });
+
+  // Imiona Osoby 1/2 — wspólne ze splitem kosztów (budgetData.coupleNames)
+  if (!budgetData.coupleNames) budgetData.coupleNames = ['Osoba 1', 'Osoba 2'];
+  budgetData.coupleNames[0] = val('cfgPerson1') || 'Osoba 1';
+  budgetData.coupleNames[1] = val('cfgPerson2') || 'Osoba 2';
+
+  // Data i godzina ślubu — wpisywane tylko tutaj; licznik czyta globalne weddingDate / weddingTime
+  weddingDate = val('cfgWeddingDate') || null;
+  weddingTime = val('cfgWeddingTime') || '16:00';
+
+  applyConfig();
+  saveState();
+  renderAll();
+  if (typeof tickCountdown === 'function') tickCountdown();
+  renderConfigView();
+  showToast('Konfiguracja zapisana ✓');
+}
+
 // ── LOCALSTORAGE ──
 const STORAGE_KEY = 'wedding-planner-v2';
 
@@ -5424,7 +5957,7 @@ function saveState() {
       nextScheduleId, nextTaskId, nextVendorId, nextRsvpId,
       nextGiftId, nextVehicleId, nextHotelId, nextPaymentId, nextInstallmentId,
       nextTableDecoId, nextStaffTableId, expenseOrder,
-      roomName, budgetData, weddingDate,
+      roomName, budgetData, weddingDate, weddingTime, appConfig,
       scheduleEvents, tasks, vendors, rsvpEntries, gifts,
       vehicles, hotels, payments, transportNotes,
       locationLinksSeeded,
@@ -5443,6 +5976,7 @@ function loadState() {
     guests      = s.guests      || [];
     tables      = s.tables      || [];
     pairs       = s.pairs       || [];
+    appConfig   = Object.assign({}, DEFAULT_APP_CONFIG, s.appConfig || {});
     nextGuestId     = s.nextGuestId     || 1;
     nextTableId     = s.nextTableId     || 1;
     nextPairId      = s.nextPairId      || 1;
@@ -5503,6 +6037,7 @@ function loadState() {
 
     // Load new sections
     weddingDate    = s.weddingDate    || null;
+    weddingTime    = s.weddingTime    || '16:00';
     scheduleEvents = s.scheduleEvents || [];
     tasks          = s.tasks          || [];
     vendors        = s.vendors        || [];
@@ -5550,9 +6085,8 @@ function loadState() {
     vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; });
     hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 
-    // Restore wedding date input
-    const wdInput = document.getElementById('weddingDate');
-    if (wdInput && weddingDate) wdInput.value = weddingDate;
+    // Data ślubu — odśwież licznik (edytowana wyłącznie w Konfiguracji)
+    if (typeof tickCountdown === 'function') tickCountdown();
 
     // Restore transport notes
     const carNote  = document.getElementById('weddingCarNote');
@@ -5565,6 +6099,9 @@ function loadState() {
 
     // Migracja linków do map (raz na zestaw danych — także po synchronizacji z Firestore)
     try { seedLocationLinks(); } catch (_) {}
+
+    // Zastosuj konfigurowalne napisy w całej aplikacji
+    try { applyConfig(); } catch (_) {}
   } catch (_) {}
 }
 

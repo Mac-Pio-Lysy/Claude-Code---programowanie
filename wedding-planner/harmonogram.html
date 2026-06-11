@@ -72,6 +72,26 @@
       backdrop-filter: blur(2px); position: relative; z-index: 1;
     }
 
+    /* ── Licznik do ceremonii ── */
+    .wed-countdown {
+      margin-top: 18px; position: relative; z-index: 1;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 18px; padding: 14px 20px; backdrop-filter: blur(2px);
+    }
+    .wc-label {
+      font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase;
+      opacity: 0.9; margin-bottom: 8px; font-weight: 600;
+    }
+    .wc-time {
+      font-size: 1.85rem; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1;
+      font-variant-numeric: tabular-nums; text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .wc-msg { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+    @media (max-width: 520px) {
+      .wc-time { font-size: 1.5rem; }
+      .wc-msg  { font-size: 1.25rem; }
+    }
+
     /* ── Treść ── */
     .flyer-body { padding: 14px 24px 34px; }
     .section-tag {
@@ -195,11 +215,18 @@
       <div class="head-rings">💍</div>
       <div class="head-sub">Zapraszamy na nasz ślub</div>
       <div class="head-names">
-        Patrycja
+        <span id="headName1">Patrycja</span>
         <span class="head-amp">&amp;</span>
-        Piotr
+        <span id="headName2">Piotr</span>
       </div>
       <div class="head-date">📅 <span id="weddingDateLabel">10 lipca 2027</span></div>
+
+      <!-- Licznik czasu do ceremonii -->
+      <div class="wed-countdown" id="wedCountdown" style="display:none">
+        <div class="wc-label" id="wcLabel">⏳ Do ceremonii pozostało</div>
+        <div class="wc-time" id="wcTime">—</div>
+        <div class="wc-msg" id="wcMsg" style="display:none"></div>
+      </div>
     </div>
 
     <div class="flyer-body">
@@ -250,11 +277,15 @@
     const PL_MONTHS = ['stycznia','lutego','marca','kwietnia','maja','czerwca',
       'lipca','sierpnia','września','października','listopada','grudnia'];
 
-    // Link do mapy widoczny dla gości — WYŁĄCZNIE z danych z Firestore.
-    // Pojawia się tylko gdy wydarzenie ma wpisany link ORAZ zaznaczono „Pokaż link gościom".
+    // Linki do map widoczne dla gości — TYLKO przy dwóch wydarzeniach.
+    // Dopasowanie po nazwie wydarzenia (bez względu na wielkość liter i odstępy).
+    const GUEST_MAP_LINKS = {
+      'ceremonia ślubna': 'https://maps.app.goo.gl/i4wi2VWk5Fk1HWTY9',
+      'przyjazd na wesele': 'https://maps.app.goo.gl/y4iuPfPuRzFuJdkZA',
+    };
     function mapLinkFor(ev) {
-      const manual = (ev.locationUrl || '').trim();
-      return (manual && ev.showLinkToGuests) ? manual : null;
+      const key = (ev.name || '').trim().toLowerCase();
+      return GUEST_MAP_LINKS[key] || null;
     }
 
     function esc(s) {
@@ -279,7 +310,99 @@
       });
     }
 
+    // ── Licznik do ceremonii (strefa Europe/Warsaw, z obsługą DST) ──
+    let wedTargetMs = null, wedInterval = null;
+    const CEREMONY_DURATION_MS = 60 * 60 * 1000; // okno „trwa ceremonia" = 1 godzina
+
+    function _warsawOffsetMinutes(date) {
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Warsaw', hour12: false,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      });
+      const map = {};
+      for (const p of dtf.formatToParts(date)) map[p.type] = p.value;
+      let hour = +map.hour; if (hour === 24) hour = 0;
+      const asUTC = Date.UTC(+map.year, +map.month - 1, +map.day, hour, +map.minute, +map.second);
+      return Math.round((asUTC - date.getTime()) / 60000);
+    }
+    function _warsawWallClockToMs(y, mo, d, h, mi) {
+      const guess = Date.UTC(y, mo - 1, d, h, mi, 0);
+      const o1 = _warsawOffsetMinutes(new Date(guess));
+      let ms = guess - o1 * 60000;
+      const o2 = _warsawOffsetMinutes(new Date(ms));
+      if (o2 !== o1) ms = guess - o2 * 60000;
+      return ms;
+    }
+    const _pad = n => String(n).padStart(2, '0');
+    function _dayWord(n) {
+      if (n === 1) return 'dzień';
+      const d2 = n % 100, d1 = n % 10;
+      if (d1 >= 2 && d1 <= 4 && !(d2 >= 12 && d2 <= 14)) return 'dni';
+      return 'dni';
+    }
+
+    function setupCountdown(data) {
+      const band = document.getElementById('wedCountdown');
+      const iso  = data && data.weddingDate;
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+      if (!m) { if (band) band.style.display = 'none'; return; }
+      const t  = /^(\d{1,2}):(\d{2})/.exec((data && data.weddingTime) || '16:00');
+      const hh = t ? Math.min(23, +t[1]) : 16;
+      const mi = t ? Math.min(59, +t[2]) : 0;
+      wedTargetMs = _warsawWallClockToMs(+m[1], +m[2], +m[3], hh, mi);
+      if (band) band.style.display = '';
+      tickCountdown();
+      if (!wedInterval) wedInterval = setInterval(tickCountdown, 1000);
+    }
+
+    function tickCountdown() {
+      if (wedTargetMs === null) return;
+      const lbl  = document.getElementById('wcLabel');
+      const time = document.getElementById('wcTime');
+      const msg  = document.getElementById('wcMsg');
+      const diff = wedTargetMs - Date.now();
+
+      const showMsg = (text) => {
+        if (lbl)  lbl.style.display  = 'none';
+        if (time) time.style.display = 'none';
+        if (msg)  { msg.style.display = ''; msg.textContent = text; }
+      };
+
+      if (diff > 0) {
+        const d  = Math.floor(diff / 86400000);
+        const h  = Math.floor((diff % 86400000) / 3600000);
+        const mn = Math.floor((diff % 3600000) / 60000);
+        const s  = Math.floor((diff % 60000) / 1000);
+        if (lbl)  lbl.style.display  = '';
+        if (msg)  msg.style.display  = 'none';
+        if (time) { time.style.display = ''; time.textContent = `${d} ${_dayWord(d)} ${_pad(h)}:${_pad(mn)}:${_pad(s)}`; }
+      } else if (diff > -CEREMONY_DURATION_MS) {
+        showMsg('🎉 Właśnie trwa ceremonia!');
+      } else {
+        showMsg('💍 Już po ślubie!');
+        if (wedInterval) { clearInterval(wedInterval); wedInterval = null; }
+      }
+    }
+
+    // Zastosuj konfigurowalne napisy (wspólne, z Firestore)
+    function applyPublicConfig(data) {
+      const cfg    = (data && data.appConfig) || {};
+      const couple = (data && data.budgetData && data.budgetData.coupleNames) || [];
+      // Pomijamy domyślne zastępcze nazwy, by nie nadpisywać nagłówka „Osobą 1/2"
+      const real = v => { const s = (v || '').trim(); return (s && s !== 'Osoba 1' && s !== 'Osoba 2') ? s : ''; };
+      const n1 = real(couple[1]);   // w nagłówku: Osoba 2 (np. Patrycja) jako pierwsza
+      const n2 = real(couple[0]);
+      if (n1) { const e = document.getElementById('headName1'); if (e) e.textContent = n1; }
+      if (n2) { const e = document.getElementById('headName2'); if (e) e.textContent = n2; }
+      const names = (cfg.displayNames || '').trim();
+      if (cfg.eventName) document.title = 'Harmonogram — ' + cfg.eventName;
+      else if (names)    document.title = 'Harmonogram — Ceremonia ' + names;
+    }
+
     function renderSchedule(data) {
+      applyPublicConfig(data);
+      setupCountdown(data);
       const cont = document.getElementById('scheduleContainer');
       // Pomijamy wydarzenia prywatne — widoczne tylko w panelu organizatora
       const events = ((data && data.scheduleEvents) || []).filter(ev => !ev.private);

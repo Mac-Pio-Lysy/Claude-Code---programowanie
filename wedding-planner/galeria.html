@@ -202,7 +202,7 @@
   <header>
     <div class="h-icon">📸</div>
     <h1>Galeria Gości</h1>
-    <p>Ceremonia Patrycji i Piotra • Podzielcie się swoimi zdjęciami i filmami! 💙</p>
+    <p id="galleryIntro">Ceremonia Patrycji i Piotra • Podzielcie się swoimi zdjęciami i filmami! 💙</p>
   </header>
 
   <nav class="guest-nav">
@@ -304,8 +304,24 @@
     try {
       if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
+      // Konfigurowalne napisy (wspólne, z Firestore)
+      db.collection(FS_COLLECTION).doc(FS_DOC_ID).get()
+        .then(doc => { if (doc.exists) applyPublicConfig(doc.data()); })
+        .catch(() => {});
     } catch (e) {
       console.error('Błąd inicjalizacji Firebase:', e);
+    }
+
+    // Zastosuj nazwę imprezy / imiona w nagłówku galerii
+    function applyPublicConfig(data) {
+      const cfg = (data && data.appConfig) || {};
+      const names = (cfg.displayNames || '').trim();
+      const label = cfg.eventName ? cfg.eventName : (names ? 'Ceremonia ' + names : '');
+      if (label) {
+        const p = document.getElementById('galleryIntro');
+        if (p) p.textContent = label + ' • Podzielcie się swoimi zdjęciami i filmami! 💙';
+        document.title = 'Galeria Gości — ' + (cfg.eventName || ('Ceremonia ' + names));
+      }
     }
 
     // ── Sprawdzenie stanu logowania (Firebase Auth) ──

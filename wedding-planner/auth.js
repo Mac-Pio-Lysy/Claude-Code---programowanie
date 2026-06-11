@@ -161,6 +161,8 @@ function _showApp(user) {
   if (ls) ls.style.display = 'none';
   if (ac) ac.style.display = '';
   _updateNavUser(user);
+  // Przeładuj spersonalizowany układ dashboardu dla zalogowanego użytkownika
+  if (typeof onDashboardUserChange === 'function') onDashboardUserChange();
 }
 
 function _updateNavUser(user) {

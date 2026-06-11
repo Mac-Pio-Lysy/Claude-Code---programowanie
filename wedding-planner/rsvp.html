@@ -273,7 +273,16 @@
   // ── Inicjalizacja Firebase ──
   window.addEventListener('DOMContentLoaded', () => {
     if (typeof initFirebaseSync === 'function') initFirebaseSync();
+    if (typeof firestoreLoad === 'function') firestoreLoad(applyPublicConfig);
   });
+
+  // Zastosuj konfigurowalne napisy (wspólne, z Firestore)
+  function applyPublicConfig(data) {
+    const cfg = (data && data.appConfig) || {};
+    const names = (cfg.displayNames || '').trim();
+    if (cfg.eventName) document.title = 'Potwierdzenie Obecności — ' + cfg.eventName;
+    else if (names)    document.title = 'Potwierdzenie Obecności — Wesele ' + names;
+  }
 
   // ── Normalizacja i Levenshtein ──
   function normalizePL(str) {

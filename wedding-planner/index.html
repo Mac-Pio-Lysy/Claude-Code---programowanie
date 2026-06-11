@@ -23,8 +23,8 @@
 <div id="loginScreen" class="login-screen">
   <div class="login-card">
     <div class="login-icon">💍</div>
-    <h1 class="login-title">Ceremonia<br>Patrycji i&nbsp;Piotra</h1>
-    <p class="login-subtitle">Panel organizacji wesela</p>
+    <h1 class="login-title" id="loginTitle">Ceremonia<br>Patrycji i&nbsp;Piotra</h1>
+    <p class="login-subtitle" id="loginSubtitle">Panel organizacji wesela</p>
     <div class="login-divider"></div>
     <button id="googleSignInBtn" class="btn-google-signin" onclick="signInWithGoogle()">
       <span id="googleSignInSpinner" class="gsi-spinner" style="display:none"></span>
@@ -41,8 +41,8 @@
 <div id="appContent" style="display:none">
 
 <header>
-  <h1>&#9834; Impreza Weselna Piotra i Patrycji  &#9834;</h1>
-  <p>Planowanie</p>
+  <h1 id="appHeaderTitle">&#9834; Impreza Weselna Piotra i Patrycji  &#9834;</h1>
+  <p id="appHeaderSubtitle">Panel organizacji wesela</p>
   <div id="syncStatusBadge" class="sync-badge sync-offline">
     <span class="sync-icon">○</span><span class="sync-label">Tryb offline</span>
   </div>
@@ -51,9 +51,8 @@
 <!-- NAVIGATION -->
 <nav class="main-nav">
   <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
-  <span class="nav-mob-title">&#9834; Wesele</span>
+  <span class="nav-mob-title" id="navMobTitle">&#9834; Wesele</span>
   <button class="nav-btn active" id="navDashboard" onclick="switchView('dashboard')">&#127968; Dashboard</button>
-  <a class="nav-btn nav-link-ext" href="harmonogram.html" target="_blank" rel="noopener" title="Publiczny harmonogram dla gości">&#128197; Harmonogram <span class="nav-ext-icon">&#8599;</span></a>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Goście:</span>
   <button class="nav-btn" id="navTables" onclick="switchView('tables')">&#128101; Stoły i goście</button>
@@ -69,6 +68,7 @@
   <button class="nav-btn" id="navVendors" onclick="switchView('vendors')">&#128203; Dostawcy</button>
   <button class="nav-btn" id="navGallery" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
   <button class="nav-btn" id="navAccess" onclick="switchView('access')">&#128272; Dostęp</button>
+  <button class="nav-btn" id="navConfig" onclick="switchView('config')">&#9881;&#65039; Konfiguracja</button>
   <span class="nav-sep">|</span>
   <span class="nav-group-label">Logistyka:</span>
   <button class="nav-btn" id="navTransport" onclick="switchView('transport')">&#128663; Transport</button>
@@ -92,7 +92,6 @@
   </div>
   <div class="mob-drawer-body">
     <button class="mob-nav-btn" onclick="switchView('dashboard')">&#127968; Dashboard</button>
-    <a class="mob-nav-btn mob-nav-link-ext" href="harmonogram.html" target="_blank" rel="noopener">&#128197; Harmonogram <span class="nav-ext-icon">&#8599;</span></a>
     <div class="mob-nav-sep">Goście</div>
     <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
     <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
@@ -105,6 +104,7 @@
     <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
     <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
     <button class="mob-nav-btn" onclick="switchView('access')">&#128272; Zarządzanie dostępem</button>
+    <button class="mob-nav-btn" onclick="switchView('config')">&#9881;&#65039; Konfiguracja</button>
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
@@ -160,10 +160,6 @@
     <div class="dashboard-hero">
       <div class="dashboard-title">&#128149; Do Waszego Ślubu</div>
       <div class="countdown-wrapper">
-        <div class="countdown-date-row">
-          <label>Data ślubu:</label>
-          <input type="date" id="weddingDate" onchange="updateCountdown()" class="wedding-date-input">
-        </div>
         <div class="countdown-display" id="countdownDisplay">
           <div class="countdown-unit"><span class="cd-num" id="cdDays">--</span><span class="cd-lbl">dni</span></div>
           <div class="countdown-sep">:</div>
@@ -173,9 +169,25 @@
           <div class="countdown-sep">:</div>
           <div class="countdown-unit"><span class="cd-num" id="cdSecs">--</span><span class="cd-lbl">sek</span></div>
         </div>
+        <div class="countdown-nodate" id="countdownNoDate" style="display:none">
+          &#128197; Ustaw datę ślubu w Konfiguracji
+        </div>
       </div>
     </div>
-    <div class="dashboard-cards" id="dashboardCards"></div>
+
+    <!-- DASHBOARD — jeden spójny system kafelków (skrót + dane na żywo), zapis w Firestore per użytkownik -->
+    <div class="dash-widgets-wrap">
+      <div class="dash-widgets-head">
+        <div class="dash-widgets-title">&#128202; Dashboard</div>
+        <div class="dash-widgets-tools">
+          <button class="dash-wtool-btn dash-wtool-add"   id="dwAddBtn"   onclick="toggleAddWidget()"   style="display:none">&#10133; Dodaj kafelek</button>
+          <button class="dash-wtool-btn dash-wtool-reset" id="dwResetBtn" onclick="resetDashLayout()"   style="display:none">&#128260; Resetuj</button>
+          <button class="dash-wtool-btn dash-wtool-edit"  id="dwEditBtn"  onclick="toggleDashEdit()">&#9999;&#65039; Edytuj</button>
+        </div>
+      </div>
+      <div class="dash-widgets-grid" id="dashWidgets"></div>
+      <div class="dash-widget-addzone" id="dashWidgetAddZone" style="display:none"></div>
+    </div>
   </div>
 
   <!-- ══ TABLES VIEW ══ -->
@@ -235,35 +247,59 @@
             Brak stołów. Dodaj pierwszy stół powyżej.
           </div>
         </div>
-
-        <!-- STOŁY PERSONELU -->
-        <div class="staff-section">
-          <div class="staff-section-title">&#128119; Stoły personelu</div>
-          <div class="staff-add-row">
-            <select id="staffTableName" onchange="document.getElementById('staffTableCustomName').style.display=this.value==='Inne'?'':'none'">
-              <option value="DJ">&#127911; DJ</option>
-              <option value="Barman">&#127379; Barman</option>
-              <option value="Fotograf">&#128247; Fotograf</option>
-              <option value="Fotobuda">&#128248; Fotobuda</option>
-              <option value="Obs&#322;uga">&#127869; Obs&#322;uga</option>
-              <option value="Inne">&#128119; Inne...</option>
-            </select>
-            <input type="text" id="staffTableCustomName" placeholder="Wpisz nazwę..." style="display:none;flex:1;min-width:80px">
-            <input type="number" id="staffTablePersons" value="2" min="1" max="99" style="width:64px" title="Liczba osób">
-            <span style="font-size:0.78rem;color:var(--text-light)">os.</span>
-            <button class="btn btn-primary btn-sm" onclick="addStaffTable()">+ Dodaj</button>
-          </div>
-          <div id="staffTablesList" class="staff-tables-list">
-            <div class="empty-list">Brak stolików personelu.</div>
-          </div>
-        </div>
       </div>
 
-      <!-- RIGHT: LEGENDA PAR -->
-      <div class="panel-pairs" id="panelPairs">
-        <div class="panel-title"><span>&#10084;</span> Legenda Par</div>
-        <div class="pairs-list" id="pairsList">
-          <div class="empty-list">Brak par.<br>Kliknij &#10084; przy gościu.</div>
+    </div>
+
+    <!-- PRZYCISKI/BANERY: wysuwane panele z prawej -->
+    <button class="side-tab side-tab-pairs" id="pairsToggleTab" type="button" onclick="togglePairsPanel()" title="Pokaż/ukryj legendę par">
+      <span class="ptt-icon">&#128107;</span>
+      <span class="ptt-label">Pary</span>
+      <span class="ptt-count" id="pairsCount"></span>
+    </button>
+    <button class="side-tab side-tab-staff" id="staffToggleTab" type="button" onclick="toggleStaffPanel()" title="Pokaż/ukryj stoły personelu">
+      <span class="ptt-icon">&#128119;</span>
+      <span class="ptt-label">Personel</span>
+      <span class="ptt-count" id="staffCount"></span>
+    </button>
+
+    <!-- TŁO (klik zamyka oba panele) -->
+    <div class="side-drawer-backdrop" id="drawersBackdrop" onclick="closeAllDrawers()"></div>
+
+    <!-- LEGENDA PAR — wysuwany panel z prawej -->
+    <div class="panel-pairs side-drawer" id="panelPairs">
+      <div class="panel-title">
+        <span>&#128107;</span> Legenda Par
+        <button class="pairs-close-btn" type="button" onclick="togglePairsPanel(false)" title="Zamknij">&#10006;</button>
+      </div>
+      <div class="pairs-list" id="pairsList">
+        <div class="empty-list">Brak par.<br>Kliknij &#10084; przy gościu.</div>
+      </div>
+    </div>
+
+    <!-- STOŁY PERSONELU — wysuwany panel z prawej -->
+    <div class="panel-pairs side-drawer" id="panelStaff">
+      <div class="panel-title">
+        <span>&#128119;</span> Stoły personelu
+        <button class="pairs-close-btn" type="button" onclick="toggleStaffPanel(false)" title="Zamknij">&#10006;</button>
+      </div>
+      <div class="staff-drawer-body">
+        <div class="staff-add-row">
+          <select id="staffTableName" onchange="document.getElementById('staffTableCustomName').style.display=this.value==='Inne'?'':'none'">
+            <option value="DJ">&#127911; DJ</option>
+            <option value="Barman">&#127379; Barman</option>
+            <option value="Fotograf">&#128247; Fotograf</option>
+            <option value="Fotobuda">&#128248; Fotobuda</option>
+            <option value="Obs&#322;uga">&#127869; Obs&#322;uga</option>
+            <option value="Inne">&#128119; Inne...</option>
+          </select>
+          <input type="text" id="staffTableCustomName" placeholder="Wpisz nazwę..." style="display:none;flex:1;min-width:80px">
+          <input type="number" id="staffTablePersons" value="2" min="1" max="99" style="width:64px" title="Liczba osób">
+          <span style="font-size:0.78rem;color:var(--text-light)">os.</span>
+          <button class="btn btn-primary btn-sm" onclick="addStaffTable()">+ Dodaj</button>
+        </div>
+        <div id="staffTablesList" class="staff-tables-list">
+          <div class="empty-list">Brak stolików personelu.</div>
         </div>
       </div>
     </div>
@@ -640,6 +676,72 @@
       </div>
       <p class="access-intro">Lista kont z dostępem do panelu. Zablokowany użytkownik zostanie wylogowany po odświeżeniu strony i zobaczy komunikat „Twój dostęp został zablokowany". Dostęp można w każdej chwili przywrócić.</p>
       <div id="accessList" class="access-list"></div>
+    </div>
+  </div>
+
+  <!-- ══ CONFIG VIEW ══ -->
+  <div id="viewConfig" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#9881;&#65039; Konfiguracja</h2>
+      </div>
+      <p class="access-intro">Edytuj stałe napisy używane w całej aplikacji. Zmiany są wspólne dla wszystkich zalogowanych i widoczne natychmiast po zapisaniu.</p>
+
+      <form class="config-form" onsubmit="event.preventDefault();saveConfig()">
+        <div class="config-grid">
+          <div class="config-field config-field-wide">
+            <label for="cfgEventName">Nazwa imprezy</label>
+            <input type="text" id="cfgEventName" placeholder="np. Impreza Weselna Piotra i Patrycji">
+            <small>Wyświetlana w nagłówku aplikacji i tytule karty.</small>
+          </div>
+
+          <div class="config-field">
+            <label for="cfgPerson1">Imię Osoby 1</label>
+            <input type="text" id="cfgPerson1" placeholder="np. Piotr">
+            <small>Używane w podziale kosztów.</small>
+          </div>
+          <div class="config-field">
+            <label for="cfgPerson2">Imię Osoby 2</label>
+            <input type="text" id="cfgPerson2" placeholder="np. Patrycja">
+            <small>Używane w podziale kosztów.</small>
+          </div>
+
+          <div class="config-field">
+            <label for="cfgWeddingDate">Data ślubu</label>
+            <input type="date" id="cfgWeddingDate">
+            <small>Wspólna z odliczaniem na Dashboardzie.</small>
+          </div>
+          <div class="config-field">
+            <label for="cfgWeddingTime">Godzina ślubu</label>
+            <input type="time" id="cfgWeddingTime">
+            <small>Strefa Europe/Warsaw — odliczanie do dokładnej godziny (np. 16:00).</small>
+          </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgDisplayNames">Imiona w nawigacji i nagłówkach</label>
+            <input type="text" id="cfgDisplayNames" placeholder="np. Patrycji i Piotra">
+            <small>np. „Patrycji i Piotra" (dopełniacz).</small>
+          </div>
+
+          <div class="config-field">
+            <label for="cfgCeremonyPlace">Miejsce ceremonii</label>
+            <input type="text" id="cfgCeremonyPlace" placeholder="np. Kościół św. Anny">
+          </div>
+          <div class="config-field">
+            <label for="cfgReceptionPlace">Miejsce wesela</label>
+            <input type="text" id="cfgReceptionPlace" placeholder="np. Sala weselna Pod Dębem">
+          </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgSubtitle">Podtytuł aplikacji</label>
+            <input type="text" id="cfgSubtitle" placeholder="np. Panel organizacji wesela">
+          </div>
+        </div>
+
+        <div class="config-actions">
+          <button type="submit" class="btn btn-primary">&#128190; Zapisz konfigurację</button>
+        </div>
+      </form>
     </div>
   </div>
 
