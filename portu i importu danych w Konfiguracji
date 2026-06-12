@@ -1,0 +1,27 @@
+[33me4e4da2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m Napraw reguły Firestore i odzyskiwanie z kopii zapasowych
+[33m1c12c2d[m Dodaj diagnostykę, odzyskiwanie i kopie zapasowe danych
+[33m2a86c98[m Napraw krytyczną utratę danych po wprowadzeniu systemu wielu eventów
+[33m6f70d04[m dodanie nowych eventów wielezniam
+[33mcecbbfa[m Dodanie widżetót
+[33m440aead[m poprawki
+[33m0f34155[m poprawki z galerią
+[33m9d36d2a[m dodanie galeri zdjęc i harmonogramu dla gosci
+[33mfaee1f4[m poprawki formatowania
+[33m5e8399e[m poprawka responsywnosci
+[33m2f8c616[m dodanie responsywności RWD
+[33m20d1a3e[m poprawki widoku wydatków
+[33m1c21ab5[m poprawka maili
+[33m9b3392e[m poprawki z draganddrop
+[33m6296b1d[m poprawki błędów draganddrop
+[33m19ab699[m poprawki błędów
+[33m0069dca[m poprawki wesja 1.0
+[33m8f9e6e2[m poprawa logowania
+[33me6fa214[m dodanie logowania
+[33mdc85a90[m zmiana rsv
+[33mc8a25f1[m Dodano EmailJS i RSVP z potwierdzeniem email
+[33m54c0c33[m poprawka rsvp
+[33m03689e5[m dodanie wysyłki maila
+[33mab991f0[m dodanie firebase
+[33m18fa8f6[m zmiana
+[33md6e49d9[m zmiany
+[33mb285471[m Initial commit
