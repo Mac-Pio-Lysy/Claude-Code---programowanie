@@ -79,6 +79,8 @@ function initFirebaseSync() {
         }
         _badge('synced');
         _startListener();
+        // Diagnostyka: zaloguj zawartość Firestore w konsoli (WYMÓG 1).
+        try { scanFirestore(); } catch (_) {}
       })
       .catch(() => { _badge('error'); _startListener(); });
 
@@ -146,6 +148,34 @@ function firestoreSaveNow(data) {
     .catch(e => console.error('Firestore zapis natychmiastowy:', e));
 }
 
+// ── WYMÓG 1: diagnostyka Firestore ───────────────────────────────────────
+// Skanuje kolekcję główną (oraz potencjalne stare ścieżki), loguje co znaleziono
+// i zwraca dane głównego dokumentu (lub dowolnego dokumentu z danymi).
+function scanFirestore() {
+  if (!_db) { console.warn('[wedding-planner] Firestore niedostępny (offline / brak logowania).'); return Promise.resolve(null); }
+  console.group('%c[wedding-planner] Skan Firestore', 'font-weight:bold;color:#7c3aed');
+  const has = (typeof _payloadHasData === 'function') ? _payloadHasData : () => '?';
+  return _db.collection(FS_COLLECTION).get()
+    .then(snap => {
+      console.log('Kolekcja /' + FS_COLLECTION + ' — dokumentów: ' + snap.size);
+      let mainData = null, anyData = null;
+      snap.forEach(doc => {
+        const data = _stripMeta(doc.data() || {});
+        const hd = has(data);
+        console.log('  /' + FS_COLLECTION + '/' + doc.id, { _savedAt: data._savedAt, maDane: hd, klucze: Object.keys(data) });
+        if (doc.id === FS_DOC_ID) mainData = data;
+        if (hd && !anyData) anyData = data;
+      });
+      if (!snap.docs.some(d => d.id === FS_DOC_ID)) {
+        console.warn('  ⚠ Brak głównego dokumentu /' + FS_COLLECTION + '/' + FS_DOC_ID);
+      }
+      console.groupEnd();
+      // Zwróć główny dokument, a jeśli pusty/brak — pierwszy z danymi (stara ścieżka).
+      return (mainData && has(mainData)) ? mainData : (anyData || mainData);
+    })
+    .catch(e => { console.error('[wedding-planner] Skan Firestore — błąd:', e); console.groupEnd(); return null; });
+}
+
 // ── Wczytaj z Firestore jednorazowo (dla rsvp.html) ──────────────────────
 function firestoreLoad(callback) {
   if (!_db) { callback(null); return; }
@@ -196,3 +226,6 @@ function _showRemoteNotice() {
   clearTimeout(notice._timer);
   notice._timer = setTimeout(() => notice.classList.remove('show'), 3500);
 }
+
+// Udostępnij diagnostykę Firestore z konsoli przeglądarki
+try { window.scanFirestore = scanFirestore; } catch (_) {}

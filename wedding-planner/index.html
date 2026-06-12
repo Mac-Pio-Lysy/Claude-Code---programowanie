@@ -855,6 +855,16 @@
           <button type="button" class="btn btn-danger" onclick="deleteActiveEvent()" title="Usuń bieżący event i jego dane">&#128465; Usuń ten event</button>
         </div>
       </form>
+
+      <!-- ══ ODZYSKIWANIE I KOPIE ZAPASOWE DANYCH ══ -->
+      <div class="backup-section">
+        <h3>&#128190; Kopie zapasowe i odzyskiwanie danych</h3>
+        <p class="access-intro">Kopie zapasowe powstają automatycznie przed każdą migracją danych. Jeśli dane zniknęły, użyj „Skanuj i odzyskaj dane" — przeszukuje localStorage oraz Firestore i przywraca znalezione dane do eventu. Szczegóły skanu pojawią się w konsoli przeglądarki (F12).</p>
+        <div class="config-actions">
+          <button type="button" class="btn btn-primary" onclick="runDataRecovery()">&#128270; Skanuj i odzyskaj dane</button>
+        </div>
+        <div id="backupList" class="backup-list"></div>
+      </div>
     </div>
   </div>
 

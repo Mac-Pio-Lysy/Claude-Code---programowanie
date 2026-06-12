@@ -6458,6 +6458,7 @@ function renderConfigView() {
   set('cfgEventType',      eventTypeKey());
   set('cfgEventTypeCustom', appConfig.eventTypeCustom || '');
   _toggleEventTypeCustom();
+  try { renderBackupList(); } catch (_) {}
 }
 // Pokazuje pole własnej nazwy tylko dla typu „Inne"
 function _toggleEventTypeCustom() {
@@ -6671,6 +6672,9 @@ function loadState() {
     let parsed;
     try { parsed = JSON.parse(raw); } catch (_) { _stateReady = true; return; }
 
+    // Wymóg 4: przed JAKĄKOLWIEK migracją utwórz datowaną kopię zapasową bieżących danych.
+    if (_anyHasData(parsed)) { try { _backupBeforeMigration(raw); } catch (_) {} }
+
     // Stary, „płaski" zapis → zachowaj jednorazowo kopię zapasową, nim cokolwiek nadpiszemy
     if (_isFlatState(parsed)) {
       try { if (!localStorage.getItem(LEGACY_BACKUP_KEY)) localStorage.setItem(LEGACY_BACKUP_KEY, raw); } catch (_) {}
@@ -6729,6 +6733,166 @@ function _loadFlatFallback() {
   _applyEventState(flat); // ustawia _stateReady = true po pełnym wczytaniu
   console.warn('[wedding-planner] Awaryjny tryb płaski: migracja eventów zawiodła — wczytano stare dane do eventu „Ślub".');
 }
+
+// ════════════════════════════════════════════════════════════════════════
+//  DIAGNOSTYKA, ODZYSKIWANIE I KOPIE ZAPASOWE DANYCH
+//  Dostępne też z konsoli: scanLocalStorage(), scanFirestore(), recoverData()
+// ════════════════════════════════════════════════════════════════════════
+const BACKUP_PREFIX = 'backup_';
+const MAX_BACKUPS    = 8;
+
+// Czy obiekt (kontener wielu eventów LUB stary płaski zapis) zawiera jakiekolwiek dane?
+function _anyHasData(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  if (obj.events && typeof obj.events === 'object') {
+    return Object.keys(obj.events).some(id => _eventHasData(obj.events[id]));
+  }
+  return _eventHasData(obj);
+}
+
+// Krótki opis zawartości zapisu (do logów i listy kopii)
+function _describeData(obj) {
+  const s = (obj && obj.events && typeof obj.events === 'object')
+    ? (obj.events[obj.activeEventId] || Object.values(obj.events).find(_eventHasData) || {})
+    : (obj || {});
+  const n = a => Array.isArray(a) ? a.length : 0;
+  const exp = (s.budgetData && Array.isArray(s.budgetData.expenses)) ? s.budgetData.expenses.length : 0;
+  const name = (s.appConfig && s.appConfig.eventName) || '';
+  return `${name ? '„' + name + '" — ' : ''}gości:${n(s.guests)} stołów:${n(s.tables)} zadań:${n(s.tasks)} wydatków:${exp}`;
+}
+
+// WYMÓG 2: skanuje WSZYSTKIE klucze localStorage, loguje je i zwraca kandydatów z danymi.
+function scanLocalStorage() {
+  const all = [];
+  const candidates = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    const raw = localStorage.getItem(key);
+    let parsed = null;
+    try { parsed = JSON.parse(raw); } catch (_) {}
+    const hasData = _anyHasData(parsed);
+    if (hasData) candidates.push({ key, parsed, savedAt: (parsed && parsed._savedAt) || 0 });
+    all.push({ klucz: key, bajty: (raw || '').length, dane: hasData ? '✓ ' + _describeData(parsed) : '—' });
+  }
+  console.group('%c[wedding-planner] Skan localStorage — znaleziono ' + all.length + ' kluczy', 'font-weight:bold;color:#1a56db');
+  try { console.table(all); } catch (_) { console.log(all); }
+  console.log('Wszystkie klucze:', all.map(x => x.klucz));
+  console.log('Klucze z danymi plannera:', candidates.map(c => c.key));
+  console.groupEnd();
+  return candidates;
+}
+
+// Migruje dowolny znaleziony zapis (płaski lub kontener) do systemu eventów (domyślny event „Ślub").
+function _migrateParsedIntoEvents(parsed, sourceLabel) {
+  const container = _normalizeContainer(parsed);
+  EVENTS = container.events;
+  activeEventId = container.activeEventId;
+  _applyEventState(EVENTS[activeEventId] || {});
+  saveState();
+  try { renderAll(); } catch (_) {}
+  try { renderEventSwitcher(); } catch (_) {}
+  console.log('[wedding-planner] Zmigrowano dane do systemu eventów ze źródła:', sourceLabel);
+}
+
+// WYMÓG 3: szuka danych wszędzie (localStorage → Firestore) i przywraca je; w razie braku — komunikat.
+async function recoverData() {
+  // 1) localStorage — niezależnie od nazwy klucza
+  const cands = scanLocalStorage();
+  if (cands.length) {
+    cands.sort((a, b) => b.savedAt - a.savedAt);
+    const best = cands[0];
+    try { _backupBeforeMigration(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
+    _migrateParsedIntoEvents(best.parsed, 'localStorage:' + best.key);
+    showToast('Przywrócono dane z localStorage: ' + best.key);
+    return true;
+  }
+  // 2) Firestore — sprawdź główną i ewentualne inne ścieżki
+  if (typeof scanFirestore === 'function') {
+    try {
+      const remote = await scanFirestore();
+      if (_anyHasData(remote)) {
+        _migrateParsedIntoEvents(remote, 'Firestore');
+        showToast('Przywrócono dane z Firestore');
+        return true;
+      }
+    } catch (_) {}
+  }
+  // 3) Nigdzie nie ma danych
+  const msg = 'Brak danych - możliwe że zostały usunięte podczas migracji';
+  console.warn('[wedding-planner] ' + msg);
+  showToast(msg);
+  return false;
+}
+
+// ── Kopie zapasowe (WYMÓG 4) ──
+// Tworzy datowaną kopię zapasową „backup_[timestamp]" przed migracją (z deduplikacją i przycinaniem).
+function _backupBeforeMigration(raw) {
+  if (!raw) return;
+  const existing = _listBackups();
+  if (existing.some(b => localStorage.getItem(b.key) === raw)) return; // identyczna kopia już jest
+  try {
+    localStorage.setItem(BACKUP_PREFIX + Date.now(), raw);
+  } catch (_) {
+    // Brak miejsca — usuń najstarszą kopię i spróbuj ponownie
+    const all = _listBackups();
+    if (all.length) { try { localStorage.removeItem(all[all.length - 1].key); localStorage.setItem(BACKUP_PREFIX + Date.now(), raw); } catch (_) {} }
+  }
+  _pruneBackups();
+}
+function _listBackups() {
+  const out = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.indexOf(BACKUP_PREFIX) === 0) out.push({ key: k, ts: parseInt(k.slice(BACKUP_PREFIX.length), 10) || 0 });
+  }
+  return out.sort((a, b) => b.ts - a.ts); // najnowsze pierwsze
+}
+function _pruneBackups() {
+  _listBackups().slice(MAX_BACKUPS).forEach(b => { try { localStorage.removeItem(b.key); } catch (_) {} });
+}
+
+// Renderuje listę kopii zapasowych w Konfiguracji
+function renderBackupList() {
+  const box = document.getElementById('backupList');
+  if (!box) return;
+  const backups = _listBackups();
+  if (!backups.length) { box.innerHTML = '<p class="backup-empty">Brak kopii zapasowych. Powstają automatycznie przed migracją danych.</p>'; return; }
+  box.innerHTML = backups.map(b => {
+    const d = new Date(b.ts);
+    const when = isNaN(d.getTime()) ? b.key : d.toLocaleString('pl-PL');
+    let summary = '';
+    try { summary = _describeData(JSON.parse(localStorage.getItem(b.key))); } catch (_) {}
+    return `<div class="backup-row">
+      <div class="backup-info"><span class="backup-when">&#128190; ${esc(when)}</span><span class="backup-sum">${esc(summary)}</span></div>
+      <button type="button" class="btn btn-sm" onclick="restoreBackup('${esc(b.key)}')">Przywróć</button>
+    </div>`;
+  }).join('');
+}
+
+// Przywraca wskazaną kopię zapasową (z UI „Przywróć kopię zapasową")
+function restoreBackup(key) {
+  const raw = localStorage.getItem(key);
+  if (!raw) { showToast('Kopia nie istnieje'); renderBackupList(); return; }
+  if (!confirm('Przywrócić kopię zapasową z „' + key + '"?\nBieżące dane zostaną zastąpione (najpierw powstanie ich kopia).')) return;
+  let parsed;
+  try { parsed = JSON.parse(raw); } catch (_) { showToast('Uszkodzona kopia zapasowa'); return; }
+  try { _backupBeforeMigration(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
+  _migrateParsedIntoEvents(parsed, 'backup:' + key);
+  showToast('Przywrócono kopię zapasową');
+  renderBackupList();
+}
+
+// Uruchamia pełną diagnostykę + próbę odzyskania (przycisk w Konfiguracji)
+function runDataRecovery() {
+  console.log('%c[wedding-planner] Diagnostyka danych — start', 'font-weight:bold;color:#059669');
+  recoverData().then(() => renderBackupList());
+}
+
+// Udostępnij narzędzia z konsoli przeglądarki
+try {
+  window.scanLocalStorage = scanLocalStorage;
+  window.recoverData      = recoverData;
+} catch (_) {}
 
 // Wczytuje stan jednego eventu do zmiennych globalnych
 function _applyEventState(s) {
@@ -6904,6 +7068,8 @@ if (_dietSel) _dietSel.addEventListener('change', function() {
 });
 
 try { loadState(); } catch(e) { console.error('loadState:', e); }
+// Diagnostyka startowa: pokaż w konsoli wszystkie klucze localStorage (WYMÓG 2).
+try { scanLocalStorage(); } catch(e) { console.error('scanLocalStorage:', e); }
 try { seedLocationLinks(); } catch(e) { console.error('seedLocationLinks:', e); }
 try { renderAll(); } catch(e) { console.error('renderAll:', e); }
 try { applyConfig(); } catch(e) { console.error('applyConfig:', e); }
