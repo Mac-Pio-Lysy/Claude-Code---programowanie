@@ -61,11 +61,20 @@ function initFirebaseSync() {
           } catch (_) {}
 
           if ((remote._savedAt || 0) > localTs) {
-            // Zdalne dane są nowsze — zastosuj je
+            // Zdalne dane są nowsze — zastosuj je, ALE nigdy nie nadpisuj
+            // niepustych danych lokalnych pustym zapisem z chmury (ochrona przed
+            // skasowaniem danych przez „pusty" kontener eventów).
             const clean = _stripMeta(remote);
-            localStorage.setItem(LS_KEY, JSON.stringify(clean));
-            if (typeof loadState === 'function') try { loadState(); } catch (_) {}
-            if (typeof renderAll === 'function') try { renderAll(); } catch (_) {}
+            let localData = null;
+            try { localData = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (_) {}
+            if (_payloadHasData(clean) || !_payloadHasData(localData)) {
+              localStorage.setItem(LS_KEY, JSON.stringify(clean));
+              if (typeof loadState === 'function') try { loadState(); } catch (_) {}
+              if (typeof renderAll === 'function') try { renderAll(); } catch (_) {}
+            } else if (typeof saveState === 'function') {
+              // Chmura jest pusta, a mamy lokalne dane — odeślij je z powrotem (uzdrów chmurę).
+              try { saveState(); } catch (_) {}
+            }
           }
         }
         _badge('synced');
@@ -93,6 +102,14 @@ function _startListener() {
       // Zastosuj zmiany z innego urządzenia
       try {
         const clean = _stripMeta(data);
+        // Nie pozwól, by pusty zapis zdalny skasował niepuste dane lokalne.
+        let localData = null;
+        try { localData = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (_) {}
+        if (!_payloadHasData(clean) && _payloadHasData(localData)) {
+          if (typeof saveState === 'function') try { saveState(); } catch (_) {} // odeślij dobre dane do chmury
+          _badge('synced');
+          return;
+        }
         localStorage.setItem(LS_KEY, JSON.stringify(clean));
         if (typeof loadState === 'function') loadState();
         if (typeof renderAll === 'function') renderAll();
@@ -141,6 +158,28 @@ function firestoreLoad(callback) {
 function _stripMeta(obj) {
   const { _syncMeta, ...rest } = obj;
   return rest;
+}
+
+// ── Czy zapis (kontener wielu eventów LUB stary płaski zapis) ma jakieś dane? ──
+// Chroni przed nadpisywaniem realnych danych „pustym" stanem (w localStorage i Firestore).
+function _payloadHasData(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  // Nowy kontener wielu eventów: { events: {id: stan}, activeEventId }
+  if (obj.events && typeof obj.events === 'object') {
+    return Object.keys(obj.events).some(id => _stateHasData(obj.events[id]));
+  }
+  // Stary, płaski zapis (pojedynczy event)
+  return _stateHasData(obj);
+}
+function _stateHasData(s) {
+  // Korzystaj z funkcji ze script.js, jeśli już załadowana; w przeciwnym razie minimalny wariant.
+  if (typeof _eventHasData === 'function') return _eventHasData(s);
+  if (!s || typeof s !== 'object') return false;
+  const len = a => Array.isArray(a) && a.length;
+  return len(s.guests) || len(s.tables) || len(s.scheduleEvents) || len(s.tasks) ||
+    len(s.vendors) || len(s.gifts) || len(s.vehicles) || len(s.hotels) ||
+    (s.budgetData && len(s.budgetData.expenses)) ||
+    !!(s.appConfig && s.appConfig.eventName) || !!s.weddingDate;
 }
 
 // ── Powiadomienie o aktualizacji z innego urządzenia ────────────────────

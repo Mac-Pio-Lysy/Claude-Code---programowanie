@@ -41,6 +41,7 @@ let appConfig = Object.assign({}, DEFAULT_APP_CONFIG);
 // ── WIELE EVENTÓW: kontener { events: {id: stanEventu}, activeEventId } ──
 let EVENTS = {};            // mapa id → pełny stan eventu (serializowany)
 let activeEventId = 'default';
+let _stateReady = false;    // true dopiero po udanym wczytaniu — chroni przed nadpisaniem danych pustym stanem
 let nextGuestId = 1;
 let nextTableId = 1;
 let nextPairId  = 1;
@@ -6566,6 +6567,8 @@ function _serializeState() {
 
 function saveState() {
   try {
+    // Nie zapisuj, dopóki stan nie został w pełni wczytany — chroni stare dane przed nadpisaniem pustym stanem
+    if (!_stateReady) return;
     if (!activeEventId) activeEventId = 'default';
     EVENTS[activeEventId] = _serializeState();
     const container = { events: EVENTS, activeEventId, _savedAt: Date.now() };
@@ -6630,6 +6633,23 @@ function deleteActiveEvent() {
   showToast('Event usunięty');
 }
 
+const LEGACY_BACKUP_KEY = 'wedding-planner-v2:legacy';
+
+// Czy obiekt to stary, „płaski" zapis (sprzed systemu eventów)?
+function _isFlatState(o) {
+  return !!(o && typeof o === 'object' && !(o.events && o.activeEventId) &&
+    (o.guests || o.scheduleEvents || o.appConfig || o.budgetData || o.tasks || o.vendors || o.tables));
+}
+// Czy stan eventu zawiera jakiekolwiek istotne dane?
+function _eventHasData(s) {
+  if (!s || typeof s !== 'object') return false;
+  const len = a => Array.isArray(a) && a.length;
+  return len(s.guests) || len(s.tables) || len(s.scheduleEvents) || len(s.tasks) || len(s.vendors) ||
+    len(s.gifts) || len(s.vehicles) || len(s.hotels) || len(s.staffTables) ||
+    (s.budgetData && len(s.budgetData.expenses)) ||
+    !!(s.appConfig && s.appConfig.eventName) || !!s.weddingDate;
+}
+
 // Rozpakowuje zapis do kontenera wielu eventów (migruje stary, „płaski" zapis)
 function _normalizeContainer(parsed) {
   if (parsed && parsed.events && typeof parsed.events === 'object' && parsed.activeEventId) {
@@ -6646,12 +6666,68 @@ function _normalizeContainer(parsed) {
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const container = _normalizeContainer(JSON.parse(raw));
+    if (!raw) { _stateReady = true; return; } // brak danych — świeży start, można zapisywać
+
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (_) { _stateReady = true; return; }
+
+    // Stary, „płaski" zapis → zachowaj jednorazowo kopię zapasową, nim cokolwiek nadpiszemy
+    if (_isFlatState(parsed)) {
+      try { if (!localStorage.getItem(LEGACY_BACKUP_KEY)) localStorage.setItem(LEGACY_BACKUP_KEY, raw); } catch (_) {}
+    }
+
+    const container = _normalizeContainer(parsed);
+
+    // Odzyskiwanie: jeśli aktywny event jest pusty, a istnieje kopia zapasowa starych danych —
+    // przypisz je do domyślnego eventu (Ślub), aby nie zniknęły.
+    let _recovered = false;
+    if (!_eventHasData(container.events[container.activeEventId])) {
+      try {
+        const legacyRaw = localStorage.getItem(LEGACY_BACKUP_KEY);
+        const legacy = legacyRaw ? JSON.parse(legacyRaw) : null;
+        if (_isFlatState(legacy) && _eventHasData(legacy)) {
+          container.events['default'] = legacy;
+          container.activeEventId = 'default';
+          _recovered = true;
+        }
+      } catch (_) {}
+    }
+
     EVENTS = container.events;
     activeEventId = container.activeEventId;
     _applyEventState(EVENTS[activeEventId] || {});
-  } catch (_) {}
+
+    // Po odzyskaniu utrwal stan, by pusty kontener w localStorage/Firestore nie wracał przy przeładowaniu.
+    if (_recovered) { try { saveState(); } catch (_) {} }
+  } catch (_) {
+    // Awaryjny fallback (wymóg 4): jeśli migracja do systemu eventów zawiedzie,
+    // wczytaj dane „po staremu" (płaski zapis) bezpośrednio — tymczasowe rozwiązanie,
+    // by użytkownik nie stracił dostępu do danych.
+    try { _loadFlatFallback(); } catch (_) {}
+  }
+}
+
+// Awaryjne wczytanie starego, „płaskiego" zapisu (sprzed systemu eventów).
+// Szuka danych w kopii zapasowej, głównym kluczu lub wewnątrz kontenera eventów
+// i ładuje je do domyślnego eventu „Ślub", omijając pełną logikę migracji.
+function _loadFlatFallback() {
+  let flat = null;
+  for (const key of [LEGACY_BACKUP_KEY, STORAGE_KEY]) {
+    try {
+      const raw = localStorage.getItem(key);
+      const obj = raw ? JSON.parse(raw) : null;
+      if (_isFlatState(obj) && _eventHasData(obj)) { flat = obj; break; }
+      if (obj && obj.events && typeof obj.events === 'object') {
+        const id = Object.keys(obj.events).find(k => _eventHasData(obj.events[k]));
+        if (id) { flat = obj.events[id]; break; }
+      }
+    } catch (_) {}
+  }
+  if (!flat) { _stateReady = true; return; } // brak czegokolwiek do odzyskania
+  EVENTS = { default: flat };
+  activeEventId = 'default';
+  _applyEventState(flat); // ustawia _stateReady = true po pełnym wczytaniu
+  console.warn('[wedding-planner] Awaryjny tryb płaski: migracja eventów zawiodła — wczytano stare dane do eventu „Ślub".');
 }
 
 // Wczytuje stan jednego eventu do zmiennych globalnych
@@ -6812,6 +6888,8 @@ function _applyEventState(s) {
 
     // Zastosuj konfigurowalne napisy w całej aplikacji
     try { applyConfig(); } catch (_) {}
+
+    _stateReady = true; // stan w pełni wczytany — bezpiecznie można zapisywać
   } catch (_) {}
 }
 
