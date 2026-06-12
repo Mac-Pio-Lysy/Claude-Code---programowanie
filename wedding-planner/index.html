@@ -856,9 +856,20 @@
         </div>
       </form>
 
+      <!-- ══ EKSPORT / IMPORT DANYCH ══ -->
+      <div class="backup-section">
+        <h3>&#128190; Eksport i import danych</h3>
+        <p class="access-intro">Zapisz wszystkie dane (wszystkie eventy) do pliku JSON na dysku — to Twoja niezależna kopia bezpieczeństwa. Plik możesz później wczytać przez „Importuj dane". Aplikacja co tydzień przypomni o wykonaniu kopii.</p>
+        <div class="config-actions">
+          <button type="button" class="btn btn-primary" onclick="exportData()">&#128190; Eksportuj dane</button>
+          <button type="button" class="btn" onclick="importData()">&#128194; Importuj dane</button>
+        </div>
+        <input type="file" id="importFileInput" accept="application/json,.json" style="display:none" onchange="_handleImportFile(event)">
+      </div>
+
       <!-- ══ ODZYSKIWANIE I KOPIE ZAPASOWE DANYCH ══ -->
       <div class="backup-section">
-        <h3>&#128190; Kopie zapasowe i odzyskiwanie danych</h3>
+        <h3>&#9851; Kopie zapasowe i odzyskiwanie danych</h3>
         <p class="access-intro">Kopie zapasowe powstają automatycznie przed każdą migracją danych. Jeśli dane zniknęły, użyj „Skanuj i odzyskaj dane" — przeszukuje localStorage oraz Firestore i przywraca znalezione dane do eventu. Szczegóły skanu pojawią się w konsoli przeglądarki (F12).</p>
         <div class="config-actions">
           <button type="button" class="btn btn-primary" onclick="runDataRecovery()">&#128270; Skanuj i odzyskaj dane</button>

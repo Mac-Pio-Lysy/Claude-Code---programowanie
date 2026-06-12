@@ -4922,7 +4922,25 @@ input:focus, select:focus {
 .backup-when { font-weight: 600; color: #1f2937; font-size: 14px; }
 .backup-sum { color: #6b7280; font-size: 12px; }
 .btn-sm { padding: 6px 14px; font-size: 13px; }
+.btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,.5); color: inherit; }
 @media (max-width: 768px) {
   .backup-row { flex-wrap: wrap; }
   .backup-info { flex: 1 1 100%; }
+}
+
+/* ── Cotygodniowe przypomnienie o eksporcie ── */
+.export-reminder {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  z-index: 9999; max-width: 92vw;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 12px 18px; border-radius: 12px;
+  background: #1f2937; color: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.28);
+  animation: exportReminderIn .35s ease;
+}
+.export-reminder-text { font-size: 14px; font-weight: 600; }
+.export-reminder-actions { display: flex; gap: 8px; }
+@keyframes exportReminderIn { from { opacity: 0; transform: translate(-50%, 14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (max-width: 768px) {
+  .export-reminder { flex-direction: column; align-items: stretch; text-align: center; bottom: 12px; }
+  .export-reminder-actions { justify-content: center; }
 }

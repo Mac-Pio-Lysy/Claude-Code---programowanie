@@ -6918,6 +6918,86 @@ function restoreLatestBackup() {
   return true;
 }
 
+// ════════ EKSPORT / IMPORT DANYCH (lokalna kopia na dysku) ════════
+const LAST_EXPORT_KEY  = 'wedding-planner:lastExportAt';
+const EXPORT_SNOOZE_KEY = 'wedding-planner:exportSnoozeAt';
+const EXPORT_REMIND_MS  = 7 * 24 * 60 * 60 * 1000; // tydzień
+
+// Buduje pełny kontener wszystkich eventów do eksportu/zapisu.
+function _exportContainer() {
+  try { if (typeof saveState === 'function') saveState(); } catch (_) {} // utrwal bieżący event w EVENTS
+  return { events: EVENTS, activeEventId, _savedAt: Date.now(), _exportedAt: Date.now(), _app: 'wedding-planner' };
+}
+
+// 1) Eksport wszystkich danych do pliku JSON na dysku
+function exportData() {
+  const json = JSON.stringify(_exportContainer(), null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const d = new Date(); const pad = n => String(n).padStart(2, '0');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `wedding-planner_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  _markExported();
+  _hideExportReminder();
+  showToast('💾 Wyeksportowano dane do pliku JSON');
+}
+
+// 2) Import danych z pliku JSON
+function importData() {
+  const inp = document.getElementById('importFileInput');
+  if (inp) { inp.value = ''; inp.click(); }
+}
+function _handleImportFile(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onerror = () => showToast('Nie udało się odczytać pliku');
+  reader.onload = () => {
+    let parsed;
+    try { parsed = JSON.parse(reader.result); } catch (_) { showToast('Nieprawidłowy plik JSON'); return; }
+    if (!parsed || typeof parsed !== 'object') { showToast('Plik nie zawiera danych aplikacji'); return; }
+    const desc = _anyHasData(parsed) ? _describeData(parsed) : 'plik nie zawiera danych plannera';
+    if (!confirm('Zaimportować dane z pliku „' + file.name + '"?\n' + desc + '\n\nBieżące dane zostaną zastąpione (najpierw powstanie ich kopia zapasowa).')) return;
+    try { _backupBeforeMigration(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
+    _migrateParsedIntoEvents(parsed, 'import:' + file.name);
+    showToast('📂 Zaimportowano dane z pliku');
+    try { renderBackupList(); } catch (_) {}
+  };
+  reader.readAsText(file);
+}
+
+// 3) Cotygodniowe przypomnienie o eksporcie
+function _markExported() { try { localStorage.setItem(LAST_EXPORT_KEY, String(Date.now())); } catch (_) {} }
+function _maybeRemindExport() {
+  if (!_anyHasData({ events: EVENTS })) return; // nie przypominaj, gdy nie ma czego eksportować
+  let last = 0, snooze = 0;
+  try { last   = parseInt(localStorage.getItem(LAST_EXPORT_KEY), 10)  || 0; } catch (_) {}
+  try { snooze = parseInt(localStorage.getItem(EXPORT_SNOOZE_KEY), 10) || 0; } catch (_) {}
+  if (Date.now() - Math.max(last, snooze) >= EXPORT_REMIND_MS) _showExportReminder(last);
+}
+function _showExportReminder(last) {
+  if (document.getElementById('exportReminder')) return;
+  const when = last ? ('Ostatni eksport: ' + new Date(last).toLocaleDateString('pl-PL')) : 'Nie wykonano jeszcze eksportu.';
+  const bar = document.createElement('div');
+  bar.id = 'exportReminder';
+  bar.className = 'export-reminder';
+  bar.innerHTML =
+    `<span class="export-reminder-text">💾 Czas na kopię danych! ${esc(when)}</span>
+     <span class="export-reminder-actions">
+       <button type="button" class="btn btn-sm" onclick="exportData()">Eksportuj teraz</button>
+       <button type="button" class="btn btn-sm btn-ghost" onclick="_snoozeExportReminder()">Później</button>
+     </span>`;
+  document.body.appendChild(bar);
+}
+function _hideExportReminder() { const el = document.getElementById('exportReminder'); if (el) el.remove(); }
+function _snoozeExportReminder() {
+  try { localStorage.setItem(EXPORT_SNOOZE_KEY, String(Date.now())); } catch (_) {}
+  _hideExportReminder();
+}
+
 // Uruchamia pełną diagnostykę + próbę odzyskania (przycisk w Konfiguracji)
 function runDataRecovery() {
   console.log('%c[wedding-planner] Diagnostyka danych — start', 'font-weight:bold;color:#059669');
@@ -6929,6 +7009,8 @@ try {
   window.scanLocalStorage    = scanLocalStorage;
   window.recoverData         = recoverData;
   window.restoreLatestBackup = restoreLatestBackup;
+  window.exportData          = exportData;
+  window.importData          = importData;
 } catch (_) {}
 
 // Wczytuje stan jednego eventu do zmiennych globalnych
@@ -7115,3 +7197,5 @@ startCountdown();
 if (typeof initFirebaseSync === 'function') initFirebaseSync();
 if (typeof initAuth === 'function') initAuth();
 if (typeof initTouchDragDrop === 'function') initTouchDragDrop();
+// Cotygodniowe przypomnienie o eksporcie danych (po ustabilizowaniu się synchronizacji)
+try { setTimeout(_maybeRemindExport, 5000); } catch (_) {}
