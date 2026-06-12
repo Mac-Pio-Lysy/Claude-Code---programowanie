@@ -6919,8 +6919,14 @@ function restoreLatestBackup() {
 }
 
 // ════════ EKSPORT / IMPORT DANYCH (lokalna kopia na dysku) ════════
-const LAST_EXPORT_KEY  = 'wedding-planner:lastExportAt';
+// WAŻNE: podbij APP_VERSION po KAŻDEJ większej zmianie w kodzie (zwłaszcza
+// dotykającej danych/migracji). Po zmianie wersji aplikacja przypomni
+// użytkownikowi o wykonaniu eksportu — kopia danych zanim nowy kod ich dotknie.
+const APP_VERSION = '2026.06.12-3';
+const LAST_EXPORT_KEY   = 'wedding-planner:lastExportAt';
+const EXPORT_VERSION_KEY = 'wedding-planner:lastExportVersion'; // wersja kodu przy ostatnim eksporcie
 const EXPORT_SNOOZE_KEY = 'wedding-planner:exportSnoozeAt';
+const EXPORT_VER_SNOOZE_KEY = 'wedding-planner:exportVerSnooze'; // wersja, dla której odłożono przypomnienie
 const EXPORT_REMIND_MS  = 7 * 24 * 60 * 60 * 1000; // tydzień
 
 // Buduje pełny kontener wszystkich eventów do eksportu/zapisu.
@@ -6969,23 +6975,41 @@ function _handleImportFile(ev) {
   reader.readAsText(file);
 }
 
-// 3) Cotygodniowe przypomnienie o eksporcie
-function _markExported() { try { localStorage.setItem(LAST_EXPORT_KEY, String(Date.now())); } catch (_) {} }
+// 3) Przypomnienie o eksporcie: po każdej większej zmianie kodu (zmiana APP_VERSION)
+//    oraz dodatkowo co tydzień.
+function _markExported() {
+  try {
+    localStorage.setItem(LAST_EXPORT_KEY, String(Date.now()));
+    localStorage.setItem(EXPORT_VERSION_KEY, APP_VERSION); // eksport pokrywa bieżącą wersję kodu
+  } catch (_) {}
+}
 function _maybeRemindExport() {
   if (!_anyHasData({ events: EVENTS })) return; // nie przypominaj, gdy nie ma czego eksportować
-  let last = 0, snooze = 0;
-  try { last   = parseInt(localStorage.getItem(LAST_EXPORT_KEY), 10)  || 0; } catch (_) {}
-  try { snooze = parseInt(localStorage.getItem(EXPORT_SNOOZE_KEY), 10) || 0; } catch (_) {}
-  if (Date.now() - Math.max(last, snooze) >= EXPORT_REMIND_MS) _showExportReminder(last);
+  let last = 0, snooze = 0, lastVer = '', verSnooze = '';
+  try { last      = parseInt(localStorage.getItem(LAST_EXPORT_KEY), 10)  || 0; } catch (_) {}
+  try { snooze    = parseInt(localStorage.getItem(EXPORT_SNOOZE_KEY), 10) || 0; } catch (_) {}
+  try { lastVer   = localStorage.getItem(EXPORT_VERSION_KEY) || ''; } catch (_) {}
+  try { verSnooze = localStorage.getItem(EXPORT_VER_SNOOZE_KEY) || ''; } catch (_) {}
+
+  // Kod się zmienił od ostatniego eksportu i użytkownik nie odłożył przypomnienia dla tej wersji
+  const codeChanged = (lastVer !== APP_VERSION) && (verSnooze !== APP_VERSION);
+  // Minął tydzień od ostatniego eksportu / odłożenia
+  const weekElapsed = Date.now() - Math.max(last, snooze) >= EXPORT_REMIND_MS;
+
+  if (codeChanged)      _showExportReminder(last, 'code');
+  else if (weekElapsed) _showExportReminder(last, 'week');
 }
-function _showExportReminder(last) {
+function _showExportReminder(last, reason) {
   if (document.getElementById('exportReminder')) return;
   const when = last ? ('Ostatni eksport: ' + new Date(last).toLocaleDateString('pl-PL')) : 'Nie wykonano jeszcze eksportu.';
+  const headline = reason === 'code'
+    ? '🆕 Aplikacja została zaktualizowana — wykonaj kopię danych na wszelki wypadek.'
+    : '💾 Czas na cotygodniową kopię danych!';
   const bar = document.createElement('div');
   bar.id = 'exportReminder';
   bar.className = 'export-reminder';
   bar.innerHTML =
-    `<span class="export-reminder-text">💾 Czas na kopię danych! ${esc(when)}</span>
+    `<span class="export-reminder-text">${headline} <span class="export-reminder-sub">${esc(when)}</span></span>
      <span class="export-reminder-actions">
        <button type="button" class="btn btn-sm" onclick="exportData()">Eksportuj teraz</button>
        <button type="button" class="btn btn-sm btn-ghost" onclick="_snoozeExportReminder()">Później</button>
@@ -6994,7 +7018,10 @@ function _showExportReminder(last) {
 }
 function _hideExportReminder() { const el = document.getElementById('exportReminder'); if (el) el.remove(); }
 function _snoozeExportReminder() {
-  try { localStorage.setItem(EXPORT_SNOOZE_KEY, String(Date.now())); } catch (_) {}
+  try {
+    localStorage.setItem(EXPORT_SNOOZE_KEY, String(Date.now()));
+    localStorage.setItem(EXPORT_VER_SNOOZE_KEY, APP_VERSION); // nie przypominaj ponownie dla tej wersji
+  } catch (_) {}
   _hideExportReminder();
 }
 
