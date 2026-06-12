@@ -862,6 +862,7 @@
         <p class="access-intro">Kopie zapasowe powstają automatycznie przed każdą migracją danych. Jeśli dane zniknęły, użyj „Skanuj i odzyskaj dane" — przeszukuje localStorage oraz Firestore i przywraca znalezione dane do eventu. Szczegóły skanu pojawią się w konsoli przeglądarki (F12).</p>
         <div class="config-actions">
           <button type="button" class="btn btn-primary" onclick="runDataRecovery()">&#128270; Skanuj i odzyskaj dane</button>
+          <button type="button" class="btn" onclick="restoreLatestBackup()" title="Przywróć najnowszą kopię backup_* z niepustymi danymi">&#9851; Przywróć najnowszą kopię z danymi</button>
         </div>
         <div id="backupList" class="backup-list"></div>
       </div>

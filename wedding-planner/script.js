@@ -6771,7 +6771,7 @@ function scanLocalStorage() {
     let parsed = null;
     try { parsed = JSON.parse(raw); } catch (_) {}
     const hasData = _anyHasData(parsed);
-    if (hasData) candidates.push({ key, parsed, savedAt: (parsed && parsed._savedAt) || 0 });
+    if (hasData) candidates.push({ key, parsed, ts: _candidateTs(key, parsed) });
     all.push({ klucz: key, bajty: (raw || '').length, dane: hasData ? '✓ ' + _describeData(parsed) : '—' });
   }
   console.group('%c[wedding-planner] Skan localStorage — znaleziono ' + all.length + ' kluczy', 'font-weight:bold;color:#1a56db');
@@ -6794,16 +6794,28 @@ function _migrateParsedIntoEvents(parsed, sourceLabel) {
   console.log('[wedding-planner] Zmigrowano dane do systemu eventów ze źródła:', sourceLabel);
 }
 
+// Efektywny znacznik czasu kandydata: dla kluczy „backup_[timestamp]" bierzemy
+// timestamp z nazwy klucza, w pozostałych przypadkach pole _savedAt zapisu.
+function _candidateTs(key, parsed) {
+  if (key && key.indexOf(BACKUP_PREFIX) === 0) {
+    const t = parseInt(key.slice(BACKUP_PREFIX.length), 10);
+    if (t) return t;
+  }
+  return (parsed && parsed._savedAt) || 0;
+}
+
 // WYMÓG 3: szuka danych wszędzie (localStorage → Firestore) i przywraca je; w razie braku — komunikat.
 async function recoverData() {
-  // 1) localStorage — niezależnie od nazwy klucza
+  // 1) localStorage — niezależnie od nazwy klucza; wybierz zapis z NAJNOWSZYM
+  //    znacznikiem czasu spośród tych z NIEPUSTYMI danymi (w tym kopie backup_*).
   const cands = scanLocalStorage();
   if (cands.length) {
-    cands.sort((a, b) => b.savedAt - a.savedAt);
+    cands.sort((a, b) => b.ts - a.ts);
     const best = cands[0];
     try { _backupBeforeMigration(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
     _migrateParsedIntoEvents(best.parsed, 'localStorage:' + best.key);
-    showToast('Przywrócono dane z localStorage: ' + best.key);
+    const when = best.key.indexOf(BACKUP_PREFIX) === 0 ? new Date(best.ts).toLocaleString('pl-PL') : best.key;
+    showToast('Przywrócono dane z: ' + best.key + (best.key.indexOf(BACKUP_PREFIX) === 0 ? ' (' + when + ')' : ''));
     return true;
   }
   // 2) Firestore — sprawdź główną i ewentualne inne ścieżki
@@ -6826,8 +6838,12 @@ async function recoverData() {
 
 // ── Kopie zapasowe (WYMÓG 4) ──
 // Tworzy datowaną kopię zapasową „backup_[timestamp]" przed migracją (z deduplikacją i przycinaniem).
+// Tworzymy kopię TYLKO gdy zapis faktycznie zawiera dane — pusty zapis nie może
+// wyprzeć (przez przycinanie) starszej kopii z prawdziwymi danymi.
 function _backupBeforeMigration(raw) {
   if (!raw) return;
+  let parsed = null; try { parsed = JSON.parse(raw); } catch (_) {}
+  if (!_anyHasData(parsed)) return; // nie archiwizuj pustego stanu
   const existing = _listBackups();
   if (existing.some(b => localStorage.getItem(b.key) === raw)) return; // identyczna kopia już jest
   try {
@@ -6882,6 +6898,26 @@ function restoreBackup(key) {
   renderBackupList();
 }
 
+// WYMÓG 2: znajdź najnowszą kopię „backup_[timestamp]" z NIEPUSTYMI danymi i przywróć ją.
+function restoreLatestBackup() {
+  const withData = _listBackups().filter(b => {  // _listBackups jest już posortowane malejąco po ts
+    try { return _anyHasData(JSON.parse(localStorage.getItem(b.key))); } catch (_) { return false; }
+  });
+  if (!withData.length) {
+    const msg = 'Brak kopii zapasowej z danymi - możliwe że dane zostały usunięte podczas migracji';
+    console.warn('[wedding-planner] ' + msg);
+    showToast(msg);
+    return false;
+  }
+  const best = withData[0]; // największy timestamp z niepustymi danymi
+  let parsed; try { parsed = JSON.parse(localStorage.getItem(best.key)); } catch (_) { return false; }
+  try { _backupBeforeMigration(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
+  _migrateParsedIntoEvents(parsed, 'najnowsza kopia ' + best.key);
+  showToast('Przywrócono najnowszą kopię z danymi (' + new Date(best.ts).toLocaleString('pl-PL') + ')');
+  try { renderBackupList(); } catch (_) {}
+  return true;
+}
+
 // Uruchamia pełną diagnostykę + próbę odzyskania (przycisk w Konfiguracji)
 function runDataRecovery() {
   console.log('%c[wedding-planner] Diagnostyka danych — start', 'font-weight:bold;color:#059669');
@@ -6890,8 +6926,9 @@ function runDataRecovery() {
 
 // Udostępnij narzędzia z konsoli przeglądarki
 try {
-  window.scanLocalStorage = scanLocalStorage;
-  window.recoverData      = recoverData;
+  window.scanLocalStorage    = scanLocalStorage;
+  window.recoverData         = recoverData;
+  window.restoreLatestBackup = restoreLatestBackup;
 } catch (_) {}
 
 // Wczytuje stan jednego eventu do zmiennych globalnych
