@@ -451,14 +451,9 @@
     function renderGiftProposals(data) {
       const box = document.getElementById('giftProposalsBox');
       if (!box) return;
-      // Widoczność per propozycja: pokaż tylko te z indywidualnie zaznaczonym „Pokaż gościom".
-      // Zgodność wstecz: gdy brak pola showToGuests, użyj dawnej globalnej flagi.
-      const globalOn = !!(data && data.giftProposalsPublic);
-      const list = ((data && data.giftProposals) || []).filter(p => {
-        const vis = (p.showToGuests === undefined) ? globalOn : !!p.showToGuests;
-        return vis && ((p.title || '').trim() || (p.desc || '').trim());
-      });
-      if (!list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+      const show = !!(data && data.giftProposalsPublic);
+      const list = ((data && data.giftProposals) || []).filter(p => (p.title || '').trim() || (p.desc || '').trim());
+      if (!show || !list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
       box.style.display = '';
       box.innerHTML = '<div class="section-tag">Propozycje prezentów</div>' +
         list.map(p => `<div class="gp-item">

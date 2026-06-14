@@ -665,9 +665,8 @@
           </div>
           <div class="qr-card-actions">
             <button class="btn btn-primary btn-sm" onclick="downloadQR('qrSchedule','harmonogram-qr.png')">&#11015; Pobierz PNG</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('scheduleList','a4')" title="Lista wydarzeń — karta A4 na stół">&#128221; Harmonogram PDF A4</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('scheduleList','a5')" title="Lista wydarzeń — karta A5 na stół">&#128221; Harmonogram PDF A5</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('schedule','a5')" title="Sama karta z kodem QR">&#128424;&#65039; QR PDF</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('schedule','a4')" title="Karta A4 do druku">&#128424;&#65039; PDF A4</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('schedule','a5')" title="Karta A5 do druku">&#128424;&#65039; PDF A5</button>
             <a class="btn btn-sm" id="qrScheduleOpen" href="harmonogram.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
           </div>
         </div>
@@ -823,7 +822,11 @@
           <span class="gtab-title">&#128172; Propozycje prezentów (lista życzeń)</span>
           <button class="btn btn-primary btn-sm" onclick="addGiftProposal()">+ Dodaj propozycję</button>
         </div>
-        <p class="access-intro">Sugestie prezentów dla gości (np. „Zamiast kwiatów prosimy o wpłatę na podróż"). Każdą propozycję możesz osobno udostępnić gościom — zaznacz „Pokaż tę propozycję gościom" przy wybranych pozycjach. Na stronie harmonogramu pojawią się tylko zaznaczone.</p>
+        <p class="access-intro">Sugestie prezentów dla gości (np. „Zamiast kwiatów prosimy o wpłatę na podróż"). Pokażą się gościom na stronie harmonogramu tylko po zaznaczeniu poniższej opcji.</p>
+        <label class="gprop-public-toggle">
+          <input type="checkbox" id="giftProposalsPublic" onchange="toggleGiftProposalsPublic(this.checked)">
+          &#128065; Pokaż propozycje gościom na stronie harmonogramu
+        </label>
         <div id="giftProposalsList"></div>
       </div>
     </div>
@@ -864,8 +867,7 @@
           <label class="pdf-ctrl">Wariant
             <select id="pdfVariant">
               <option value="gallery">Galeria (zdjęcia gości)</option>
-              <option value="schedule">Harmonogram — kod QR</option>
-              <option value="scheduleList">Harmonogram — lista wydarzeń</option>
+              <option value="schedule">Harmonogram dnia</option>
               <option value="combined">Połączony (galeria + harmonogram)</option>
             </select>
           </label>
@@ -989,12 +991,6 @@
             <label for="cfgMenuOptions">Słownik menu (Kartoteka Gości)</label>
             <textarea id="cfgMenuOptions" rows="5" placeholder="Jedna opcja menu w linii, np.&#10;Danie mięsne&#10;Wegetariańskie"></textarea>
             <small>Każda opcja w osobnej linii — używane przy wyborze menu w Kartotece Gości.</small>
-          </div>
-
-          <div class="config-field config-field-wide">
-            <label for="cfgExpenseCategories">Kategorie wydatków (Budżet)</label>
-            <textarea id="cfgExpenseCategories" rows="6" placeholder="Jedna kategoria w linii, np.&#10;Garnitur&#10;Suknia ślubna&#10;Bukiet&#10;Obrączki&#10;Fotograf"></textarea>
-            <small>Każda kategoria w osobnej linii — możesz dodawać, edytować i usuwać. Używane przy dodawaniu wydatków w Budżecie. „Inne" warto zostawić.</small>
           </div>
         </div>
 

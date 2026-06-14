@@ -1180,30 +1180,6 @@ function fmt(n) {
   return Number(n || 0).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Czytelna nazwa wydatku: dla kategorii „Inne" użyj wpisanej nazwy własnej
-function _expenseLabel(e) {
-  if (!e) return 'Wydatek';
-  if (e.category === 'Inne' && (e.customName || '').trim()) return e.customName.trim();
-  return e.category || 'Wydatek';
-}
-
-// Lista kategorii wydatków — konfigurowalna per event (appConfig.expenseCategories), z fallbackiem do domyślnych
-function getExpenseCategories() {
-  const cfgList = appConfig && Array.isArray(appConfig.expenseCategories) ? appConfig.expenseCategories.filter(s => (s || '').trim()) : null;
-  if (cfgList && cfgList.length) return cfgList.slice();
-  return EXPENSE_CATEGORIES.map(c => c.name);
-}
-function _expenseCatIcon(name) {
-  const def = EXPENSE_CATEGORIES.find(c => c.name === name);
-  return def ? def.icon : '📦';
-}
-// <option>-y kategorii wydatków (z konfigurowalnej listy)
-function _expenseCatOptionsHtml(selected) {
-  return getExpenseCategories().map(name =>
-    `<option value="${esc(name)}"${name === selected ? ' selected' : ''}>${_expenseCatIcon(name)} ${esc(name)}</option>`
-  ).join('');
-}
-
 // ── BUDGET CALCULATIONS ──
 function calcTableAddons(t) {
   return (t.addons || []).reduce((s, a) => s + (a.price || 0), 0);
@@ -1393,36 +1369,19 @@ function renderExternalCosts() {
   const hTotal = calcHotelsTotal();
   const tTotal = calcTransportTotal();
   const grand  = vTotal + hTotal + tTotal;
-  // Ten sam układ co pozostałe karty podsumowania budżetu (.extra-card-* / .cb-*)
-  const erow = (name, amount, note) => `<div class="cb-row">
-    <span class="cb-name">${esc(name)}</span>
-    <span class="cb-date">${esc(note || '')}</span>
-    <strong class="cb-amt">${fmt(amount)} zł</strong>
-  </div>`;
   const vendorRows = vendors.filter(v => !v.isBudgetLinked).map(v => {
     const s = _vendorInstallmentSums(v);
-    return erow(vendorLabel(v), v.price || 0, s.paid ? `zapłacono ${fmt(s.paid)} zł` : '');
-  }).join('') || '<div class="cb-empty">Brak (lub powiązani z budżetem)</div>';
-  const hotelRows = hotels.map(h => erow((h.name || 'Hotel') + (h.inComplex ? ' 🏨' : ''), (h.pricePerNight || 0) * (h.personsPerRoom || 1), 'zł/noc')).join('') || '<div class="cb-empty">Brak hoteli</div>';
-  const transRows = vehicles.map(v => erow(v.description || v.type || 'Pojazd', v.cost || 0)).join('') || '<div class="cb-empty">Brak pojazdów</div>';
+    return `<div class="ext-row"><span>${esc(vendorLabel(v))}</span><span>${fmt(v.price||0)} zł${s.paid ? ` <small>(zapł. ${fmt(s.paid)})</small>` : ''}</span></div>`;
+  }).join('') || '<div class="ext-empty">Brak (lub wszyscy powiązani z budżetem).</div>';
+  const hotelRows = hotels.map(h => `<div class="ext-row"><span>${esc(h.name||'Hotel')}${h.inComplex ? ' 🏨' : ''}</span><span>${fmt((h.pricePerNight||0)*(h.personsPerRoom||1))} zł/noc</span></div>`).join('') || '<div class="ext-empty">Brak hoteli.</div>';
+  const transRows = vehicles.map(v => `<div class="ext-row"><span>${esc(v.description||v.type||'Pojazd')}</span><span>${fmt(v.cost||0)} zł</span></div>`).join('') || '<div class="ext-empty">Brak pojazdów.</div>';
   el.innerHTML = `
-    <div class="extra-card-header">&#128279; Koszty zewnętrzne</div>
-    <div class="extra-card-body">
-      <p class="cb-note">Wliczane do całkowitego podsumowania budżetu. Edycja w sekcjach Dostawcy / Noclegi / Transport. Dostawcy powiązani z budżetem liczeni są jako wydatki.</p>
-      <div class="cb-section">
-        <div class="cb-hdr cb-hdr-planned">&#128104;&#8205;&#127859; Dostawcy &mdash; ${fmt(vTotal)} zł</div>${vendorRows}
-      </div>
-      <div class="cb-section">
-        <div class="cb-hdr cb-hdr-planned">&#127976; Noclegi / Hotele &mdash; ${fmt(hTotal)} zł</div>${hotelRows}
-      </div>
-      <div class="cb-section">
-        <div class="cb-hdr cb-hdr-planned">&#128663; Transport &mdash; ${fmt(tTotal)} zł</div>${transRows}
-      </div>
-      <div class="cb-total-row">
-        <span>Razem koszty zewnętrzne:</span>
-        <strong class="bval-orange">${fmt(grand)} zł</strong>
-      </div>
-    </div>`;
+    <div class="extra-card-title">🔗 Koszty zewnętrzne (podgląd)</div>
+    <p class="ext-note">Wliczają się do całkowitego podsumowania budżetu. Edycja w sekcjach Dostawcy / Noclegi / Transport. Dostawcy powiązani z budżetem są liczeni jako wydatki.</p>
+    <div class="ext-block"><div class="ext-block-hdr"><span>👨‍🍳 Dostawcy</span><b>${fmt(vTotal)} zł</b></div>${vendorRows}</div>
+    <div class="ext-block"><div class="ext-block-hdr"><span>🏨 Noclegi</span><b>${fmt(hTotal)} zł</b></div>${hotelRows}</div>
+    <div class="ext-block"><div class="ext-block-hdr"><span>🚗 Transport</span><b>${fmt(tTotal)} zł</b></div>${transRows}</div>
+    <div class="ext-grand">Razem koszty zewnętrzne: <b>${fmt(grand)} zł</b></div>`;
 }
 
 // ── TABLE COSTS ──
@@ -2144,7 +2103,9 @@ function openExpCatPicker(expId) {
   const e    = budgetData.expenses.find(x => x.id === expId);
   const wrap = document.getElementById('exp-cat-wrap-' + expId);
   if (!wrap || !e) return;
-  const opts = _expenseCatOptionsHtml(e.category);
+  const opts = EXPENSE_CATEGORIES.map(c =>
+    `<option value="${esc(c.name)}" ${e.category === c.name ? 'selected' : ''}>${c.icon} ${esc(c.name)}</option>`
+  ).join('');
   wrap.className = 'exp-cat-wrap';
   wrap.innerHTML = `<select class="exp-cat-select"
     onchange="updateExpenseCat(${expId},this.value)"
@@ -2274,8 +2235,8 @@ function renderExpenseFilters() {
   ).join('');
 
   const catOpts = [`<option value="all"${expenseFilters.category==='all'?' selected':''}>Wszystkie kategorie</option>`]
-    .concat(getExpenseCategories().map(name =>
-      `<option value="${esc(name)}"${expenseFilters.category===name?' selected':''}>${_expenseCatIcon(name)} ${esc(name)}</option>`
+    .concat(EXPENSE_CATEGORIES.map(c =>
+      `<option value="${esc(c.name)}"${expenseFilters.category===c.name?' selected':''}>${c.icon} ${esc(c.name)}</option>`
     )).join('');
 
   const sortDefs = [
@@ -2327,7 +2288,9 @@ function renderExpenseTile(e, isDrag) {
     : '';
 
   const catDef = EXPENSE_CATEGORIES.find(c => c.name === e.category) || EXPENSE_CATEGORIES[EXPENSE_CATEGORIES.length - 1];
-  const selectedCatOpts = _expenseCatOptionsHtml(e.category);
+  const selectedCatOpts = EXPENSE_CATEGORIES.map(c =>
+    `<option value="${esc(c.name)}" ${c.name===e.category?'selected':''}>${c.icon} ${esc(c.name)}</option>`
+  ).join('');
 
   const sp1 = e.splitP1 || 0, sp2 = e.splitP2 || 0;
   const splitSum = sp1 + sp2;
@@ -3117,8 +3080,7 @@ function renderProgressChart() {
       const pct  = plan > 0 ? Math.min(100, (paid / plan) * 100) : 0;
       const fillCls = pct >= 100 ? 'prog-fill-full' : pct > 0 ? 'prog-fill-partial' : 'prog-fill-zero';
       const cfg = EXPENSE_CATEGORIES.find(c => c.name === e.category);
-      const nm  = _expenseLabel(e);
-      const lbl = nm.length > 16 ? nm.substring(0, 14) + '…' : nm;
+      const lbl = e.category.length > 16 ? e.category.substring(0, 14) + '…' : e.category;
       return `<div class="prog-item">
         <div class="prog-label">
           <span>${cfg?.icon || ''} ${esc(lbl)}</span>
@@ -4215,9 +4177,8 @@ let giftsForGuests = [];        // upominki dla gości: {id, category, name, qty
 let nextGiftForId  = 1;
 let giftProposals  = [];        // propozycje/lista życzeń: {id, title, desc, link}
 let nextProposalId = 1;
-let giftProposalsPublic = false; // (legacy) dawna globalna flaga widoczności propozycji
+let giftProposalsPublic = false; // czy pokazać propozycje gościom na /harmonogram
 let giftsTab       = 'received'; // 'received' | 'forguests' | 'proposals'
-let giftForGuestsBasis = '';     // '' | 'real' | 'realvirtual' — podstawa przeliczania upominków
 let vehicles       = [];
 let nextVehicleId  = 1;
 let hotels         = [];
@@ -5616,33 +5577,16 @@ function removeDistinctionGuest(id, guestId) {
   it.guestIds = it.guestIds.filter(g => g !== parseInt(guestId));
   renderGiftsForGuests(); saveState();
 }
-// Przeliczanie upominków na liczbę osób (rzeczywiści / rzeczywiści + wirtualni)
-function setGiftForGuestsBasis(which, checked) {
-  giftForGuestsBasis = checked ? which : (giftForGuestsBasis === which ? '' : giftForGuestsBasis);
-  renderGiftsForGuests(); saveState();
-}
 function renderGiftsForGuests() {
   const c = document.getElementById('giftsForGuestsList'); if (!c) return;
   const sum = document.getElementById('giftsForGuestsSummary');
-  const basis = giftForGuestsBasis;
-  const personCount = basis === 'real' ? guests.length
-                    : basis === 'realvirtual' ? guests.length + getVirtualGuests()
-                    : 0;
-  // ilość użyta do obliczeń: gdy włączono przeliczanie — liczba osób, inaczej ręczna ilość
-  const effQty = it => basis ? personCount : (it.qty || 0);
-
-  const calcCtrl = `<div class="gforg-calc">
-    <label class="gforg-calc-opt"><input type="checkbox" ${basis === 'real' ? 'checked' : ''} onchange="setGiftForGuestsBasis('real', this.checked)"> Przelicz na gości rzeczywistych${basis === 'real' ? ` (${personCount} os.)` : ''}</label>
-    <label class="gforg-calc-opt"><input type="checkbox" ${basis === 'realvirtual' ? 'checked' : ''} onchange="setGiftForGuestsBasis('realvirtual', this.checked)"> Przelicz na rzeczywistych + wirtualnych${basis === 'realvirtual' ? ` (${personCount} os.)` : ''}</label>
-  </div>`;
-
   let grand = 0, count = 0;
-  const cats = GIFT_GUEST_CATS.map(cat => {
+  const html = GIFT_GUEST_CATS.map(cat => {
     const items = giftsForGuests.filter(it => it.category === cat.key);
-    const catTotal = items.reduce((s, it) => s + effQty(it) * (it.cost || 0), 0);
+    const catTotal = items.reduce((s, it) => s + (it.qty || 0) * (it.cost || 0), 0);
     grand += catTotal; count += items.length;
     const rows = items.map(it => {
-      const lineTotal = effQty(it) * (it.cost || 0);
+      const lineTotal = (it.qty || 0) * (it.cost || 0);
       const distinctionUI = cat.key === 'distinction' ? `
         <div class="gforg-distinction">
           <div class="gforg-chips">
@@ -5655,10 +5599,10 @@ function renderGiftsForGuests() {
         </div>` : '';
       return `<div class="gforg-item">
         <input class="gforg-name" type="text" value="${esc(it.name)}" placeholder="Upominek…" onchange="updateGiftForGuest(${it.id},'name',this.value)">
-        <input class="gforg-qty" type="number" min="0" value="${it.qty||0}" title="Ilość" ${basis ? 'disabled' : ''} onchange="updateGiftForGuest(${it.id},'qty',this.value)">
+        <input class="gforg-qty" type="number" min="0" value="${it.qty||0}" title="Ilość" onchange="updateGiftForGuest(${it.id},'qty',this.value)">
         <span class="gforg-x">×</span>
         <input class="gforg-cost" type="number" min="0" value="${it.cost||0}" title="Koszt/szt. (zł)" onchange="updateGiftForGuest(${it.id},'cost',this.value)">
-        <span class="gforg-eq">${basis ? `= ${effQty(it)} × ${fmt(it.cost||0)} = ` : '= '}${fmt(lineTotal)} zł</span>
+        <span class="gforg-eq">= ${fmt(lineTotal)} zł</span>
         <button class="btn-row-del" onclick="deleteGiftForGuest(${it.id})" title="Usuń">&#128465;</button>
         ${distinctionUI}
       </div>`;
@@ -5672,14 +5616,14 @@ function renderGiftsForGuests() {
       <div class="gforg-list">${rows}</div>
     </div>`;
   }).join('');
-  c.innerHTML = calcCtrl + cats;
+  c.innerHTML = html;
   if (sum) sum.innerHTML = `<div class="sum-stat"><span class="sv">${count}</span><span>Upominków</span></div>
-    <div class="sum-stat"><span class="sv">${fmt(grand)} zł</span><span>Łączny koszt${basis ? ` (${personCount} os.)` : ''}</span></div>`;
+    <div class="sum-stat"><span class="sv">${fmt(grand)} zł</span><span>Łączny koszt</span></div>`;
 }
 
 // ── PROPOZYCJE / LISTA ŻYCZEŃ ──
 function addGiftProposal() {
-  giftProposals.push({ id: nextProposalId++, title:'', desc:'', link:'', showToGuests:false });
+  giftProposals.push({ id: nextProposalId++, title:'', desc:'', link:'' });
   renderGiftProposals(); saveState();
 }
 function updateGiftProposal(id, field, value) {
@@ -5691,20 +5635,19 @@ function deleteGiftProposal(id) {
   giftProposals = giftProposals.filter(x => x.id !== id);
   renderGiftProposals(); saveState();
 }
-function toggleGiftProposalVisibility(id, checked) {
-  const p = giftProposals.find(x => x.id === id); if (!p) return;
-  p.showToGuests = !!checked;
+function toggleGiftProposalsPublic(checked) {
+  giftProposalsPublic = !!checked;
   saveState();
 }
 function renderGiftProposals() {
   const c = document.getElementById('giftProposalsList'); if (!c) return;
+  const cb = document.getElementById('giftProposalsPublic'); if (cb) cb.checked = !!giftProposalsPublic;
   if (!giftProposals.length) { c.innerHTML = '<div class="empty-list">Brak propozycji. Kliknij „+ Dodaj propozycję".</div>'; return; }
   c.innerHTML = '<div class="gprop-list">' + giftProposals.map(p => `
-    <div class="gprop-card${p.showToGuests ? ' gprop-public' : ''}">
+    <div class="gprop-card">
       <input class="gprop-title" type="text" value="${esc(p.title)}" placeholder="Tytuł propozycji…" onchange="updateGiftProposal(${p.id},'title',this.value)">
       <textarea class="gprop-desc" placeholder="Opis (np. Zamiast kwiatów prosimy o wpłatę na podróż)…" onchange="updateGiftProposal(${p.id},'desc',this.value)">${esc(p.desc)}</textarea>
       <input class="gprop-link" type="url" value="${esc(p.link || '')}" placeholder="🔗 Link (opcjonalnie)…" onchange="updateGiftProposal(${p.id},'link',this.value)">
-      <label class="gprop-visible"><input type="checkbox" ${p.showToGuests ? 'checked' : ''} onchange="toggleGiftProposalVisibility(${p.id},this.checked)"> &#128065; Pokaż tę propozycję gościom</label>
       <button class="btn-row-del gprop-del" onclick="deleteGiftProposal(${p.id})" title="Usuń">&#128465;</button>
     </div>`).join('') + '</div>';
 }
@@ -6507,13 +6450,12 @@ function renderCostBreakdown() {
 
   // Wydatki
   budgetData.expenses.forEach(e => {
-    const nm = _expenseLabel(e);
     const p = e.paid || 0;
-    if (p > 0) paid.push({ name: nm, amount: p, date: e.paymentDate || null });
+    if (p > 0) paid.push({ name: e.category, amount: p, date: e.paymentDate || null });
     const rem = (e.planned || 0) - p;
     if (rem > 0) {
-      if (e.paymentDate) toPay.push({ name: nm, amount: rem, date: e.paymentDate });
-      else               planned.push({ name: nm, amount: rem });
+      if (e.paymentDate) toPay.push({ name: e.category, amount: rem, date: e.paymentDate });
+      else               planned.push({ name: e.category, amount: rem });
     }
   });
 
@@ -6759,7 +6701,7 @@ function _paymentForm(p) {
   </div>`;
 }
 function _expenseForm(e) {
-  const cats = getExpenseCategories().map(name => [name, _expenseCatIcon(name) + ' ' + name]);
+  const cats = EXPENSE_CATEGORIES.map(c=>[c.name, c.icon + ' ' + c.name]);
   return `<div class="ef-grid">
     ${_efs('category','Kategoria',cats,e.category)}
     ${_efi('planned','Planowane (zł)','number',e.planned||0)}
@@ -7518,8 +7460,6 @@ async function generatePrintPdf(variantArg, sizeArg) {
     items.push({ qr: await _makeQrDataUrl(galUrl, 640), title: 'Galeria zdjęć', cap: 'Zeskanuj i podziel się swoimi zdjęciami z naszego wesela' });
   if (variant === 'schedule' || variant === 'combined')
     items.push({ qr: await _makeQrDataUrl(schUrl, 640), title: 'Harmonogram dnia', cap: 'Zeskanuj i zobacz harmonogram naszego dnia' });
-  // wariant „lista harmonogramu" — opcjonalny mały QR do pełnej wersji online
-  const schListQr = (variant === 'scheduleList') ? await _makeQrDataUrl(schUrl, 420) : null;
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: size });
@@ -7562,64 +7502,6 @@ async function generatePrintPdf(variantArg, sizeArg) {
   doc.line(cx - (big?32:24), y + 4, cx - 5, y + 4); doc.line(cx + 5, y + 4, cx + (big?32:24), y + 4);
   doc.setFillColor(26, 86, 219); doc.triangle(cx, y + 2.5, cx - 2.2, y + 4, cx, y + 5.5, 'F'); doc.triangle(cx, y + 2.5, cx + 2.2, y + 4, cx, y + 5.5, 'F');
   y += big ? 14 : 11;
-
-  // ── WARIANT: LISTA HARMONOGRAMU DLA GOŚCI (rzeczywiste wydarzenia, nie tylko QR) ──
-  if (variant === 'scheduleList') {
-    const _hexRgb = hex => { const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return [26, 86, 219]; const n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
-    const _newPage = () => {
-      doc.addPage();
-      doc.setFillColor(247, 251, 255); doc.rect(0, 0, pw, ph, 'F');
-      doc.setDrawColor(26, 86, 219); doc.setLineWidth(0.9); doc.roundedRect(7, 7, pw - 14, ph - 14, 6, 6, 'S');
-      return big ? 24 : 18;
-    };
-    const evs = (scheduleEvents || []).filter(ev => !ev.private).slice()
-      .sort((a, b) => { const ah = a.hour < 6 ? a.hour + 24 : a.hour, bh = b.hour < 6 ? b.hour + 24 : b.hour; return (ah * 60 + a.minute) - (bh * 60 + b.minute); });
-    F(true); doc.setFontSize(big ? 14 : 11); doc.setTextColor(26, 86, 219);
-    doc.text(tx('Harmonogram dnia'), cx, y, { align: 'center' }); y += big ? 9 : 7;
-
-    if (!evs.length) {
-      F(false); doc.setFontSize(big ? 12 : 10); doc.setTextColor(110, 125, 155);
-      doc.text(tx('Harmonogram zostanie wkrótce uzupełniony.'), cx, y, { align: 'center' });
-    } else {
-      const dotX = big ? 22 : 15, timeX = big ? 27 : 19, nameX = big ? 48 : 37;
-      const rightW = pw - nameX - (big ? 18 : 12);
-      const lineH = big ? 6.4 : 5.4;
-      evs.forEach(ev => {
-        const [r, g, b2] = _hexRgb((typeof SCHED_CATS !== 'undefined' && SCHED_CATS.find(c => c.name === ev.category) || {}).color);
-        const hh = String(ev.hour).padStart(2, '0'), mm = String(ev.minute).padStart(2, '0');
-        F(true); doc.setFontSize(big ? 11.5 : 9.5);
-        const nameLines = doc.splitTextToSize(tx(ev.name || '(wydarzenie)'), rightW);
-        const descLines = (ev.description || '').trim() ? doc.splitTextToSize(tx(ev.description), rightW) : [];
-        const need = nameLines.length * lineH + descLines.length * (big ? 5 : 4.2) + (big ? 4 : 3);
-        if (y + need > ph - 24) y = _newPage();
-        doc.setFillColor(r, g, b2); doc.circle(dotX, y - 1.4, big ? 1.7 : 1.4, 'F');
-        F(true); doc.setFontSize(big ? 11.5 : 9.5); doc.setTextColor(26, 86, 219); doc.text(`${hh}:${mm}`, timeX, y);
-        F(true); doc.setTextColor(26, 40, 80); doc.text(nameLines, nameX, y);
-        y += nameLines.length * lineH;
-        if (descLines.length) { F(false); doc.setFontSize(big ? 9.5 : 8); doc.setTextColor(95, 110, 140); doc.text(descLines, nameX, y); y += descLines.length * (big ? 5 : 4.2); }
-        y += (big ? 4 : 3);
-      });
-    }
-
-    // opcjonalny mały QR do pełnej wersji online
-    if (schListQr) {
-      const q = big ? 30 : 24;
-      if (y + q + 16 > ph - 16) y = _newPage();
-      y += big ? 6 : 4;
-      doc.setFillColor(255, 255, 255); doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.5);
-      doc.roundedRect(cx - q / 2 - 4, y, q + 8, q + 8, 3, 3, 'FD');
-      try { doc.addImage(schListQr, 'PNG', cx - q / 2, y + 4, q, q); } catch (_) {}
-      y += q + 10;
-      F(false); doc.setFontSize(big ? 10 : 8.5); doc.setTextColor(110, 125, 155);
-      doc.text(tx('Pełny harmonogram online — zeskanuj kod'), cx, y, { align: 'center' });
-    }
-
-    F(false); doc.setFontSize(big ? 10 : 8); doc.setTextColor(120, 140, 170);
-    doc.text(tx(names ? `${names} • dziękujemy!` : 'Dziękujemy!'), cx, ph - 12, { align: 'center' });
-    doc.save(`harmonogram-lista-${size}.pdf`);
-    showToast(plFont ? 'PDF gotowy ✓' : 'PDF gotowy ✓ (font PL niedostępny — wersja ASCII)');
-    return;
-  }
 
   // ── Kody QR ──
   const two = items.length > 1;
@@ -7812,7 +7694,6 @@ function renderConfigView() {
   set('cfgSubtitle',       cfg('subtitle'));
   set('cfgDisplayNames',   cfg('displayNames'));
   set('cfgMenuOptions',    (appConfig.menuOptions || []).join('\n'));
-  set('cfgExpenseCategories', getExpenseCategories().join('\n'));
   set('cfgEventType',      eventTypeKey());
   set('cfgEventTypeCustom', appConfig.eventTypeCustom || '');
   _toggleEventTypeCustom();
@@ -7835,8 +7716,6 @@ function saveConfig() {
     ceremonyPlace:  val('cfgCeremonyPlace'),
     receptionPlace: val('cfgReceptionPlace'),
     menuOptions:    (document.getElementById('cfgMenuOptions')?.value || '')
-                      .split('\n').map(s => s.trim()).filter(Boolean),
-    expenseCategories: (document.getElementById('cfgExpenseCategories')?.value || '')
                       .split('\n').map(s => s.trim()).filter(Boolean),
     eventType:      val('cfgEventType') || 'wedding',
     eventTypeCustom: val('cfgEventTypeCustom'),
@@ -7920,7 +7799,7 @@ function _serializeState() {
     nextTableDecoId, nextStaffTableId, expenseOrder,
     roomName, roomMeta, roomElements, nextRoomElementId, budgetData, weddingDate, weddingTime, appConfig,
     scheduleEvents, tasks, vendors, rsvpEntries, gifts,
-    giftsForGuests, nextGiftForId, giftProposals, nextProposalId, giftProposalsPublic, giftForGuestsBasis,
+    giftsForGuests, nextGiftForId, giftProposals, nextProposalId, giftProposalsPublic,
     vehicles, hotels, payments, transportNotes,
     internalTransport, nextInternalTransportId,
     locationLinksSeeded,
@@ -8571,12 +8450,9 @@ function _applyEventState(s) {
     giftsForGuests = Array.isArray(s.giftsForGuests) ? s.giftsForGuests : [];
     giftsForGuests.forEach(it => { if (!Array.isArray(it.guestIds)) it.guestIds = []; if (it.qty === undefined) it.qty = 1; if (it.cost === undefined) it.cost = 0; });
     nextGiftForId  = s.nextGiftForId  || (giftsForGuests.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftForGuestsBasis = (s.giftForGuestsBasis === 'real' || s.giftForGuestsBasis === 'realvirtual') ? s.giftForGuestsBasis : '';
     giftProposals  = Array.isArray(s.giftProposals) ? s.giftProposals : [];
-    giftProposalsPublic = !!s.giftProposalsPublic;
-    // Widoczność per propozycja — migracja ze starej globalnej flagi
-    giftProposals.forEach(p => { if (p.showToGuests === undefined) p.showToGuests = giftProposalsPublic; });
     nextProposalId = s.nextProposalId || (giftProposals.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
+    giftProposalsPublic = !!s.giftProposalsPublic;
     vehicles       = s.vehicles       || [];
     vehicles.forEach(v => { if (v.cost === undefined) v.cost = 0; });
     hotels         = s.hotels         || [];
