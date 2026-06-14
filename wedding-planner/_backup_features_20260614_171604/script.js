@@ -27,7 +27,7 @@ const EVENT_TYPES = {
   other:        { icon: '🎊', label: 'Inne',         heroTitle: 'Do wydarzenia',    sections: ALL_EVENT_VIEWS.slice() },
 };
 // Widoki zawsze dostępne (zarządzanie aplikacją) niezależnie od typu eventu
-const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard', 'devsettings'];
+const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard'];
 function eventTypeKey() { return EVENT_TYPES[appConfig.eventType] ? appConfig.eventType : 'wedding'; }
 function eventTypeInfo() { return EVENT_TYPES[eventTypeKey()]; }
 function eventTypeLabel() {
@@ -83,7 +83,6 @@ let isFullscreen = false;        // tryb pełnoekranowy „Plan sali"
 let roomFsScale = 1;             // bieżąca skala dopasowania (fit-to-screen)
 let roomGridOn = false;          // siatka rozmiarów (snap) w planie sali
 const ROOM_GRID = 20;            // krok siatki w px
-let roomScale = 1;               // bieżąca skala kanwy (dopasowanie do okna) — wspólna dla podglądu i edycji
 
 // Rozmiar „pudełka" stołu na kanwie (do wykrywania kolizji)
 function _tableWrapSize(t) {
@@ -1754,6 +1753,7 @@ function renderRoomStaffTable(t) {
 }
 
 function startRoomStaffTableDrag(e, id) {
+  if (!isEditing) return;
   if (e.button !== 0) return;
   e.preventDefault();
   const t = staffTables.find(x => x.id === id);
@@ -3346,7 +3346,7 @@ function switchView(view) {
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
     gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
-    guestcard: 'viewGuestCard', devsettings: 'viewDevSettings',
+    guestcard: 'viewGuestCard',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -3373,10 +3373,10 @@ function switchView(view) {
   closeNavGroups();
 
   // Widoki z menu ustawień (trybik) — podświetl trybik zamiast zakładki nav
-  const settingsViews = ['config', 'access', 'guestcard', 'devsettings'];
+  const settingsViews = ['config', 'access', 'guestcard'];
   const gearBtn = document.getElementById('settingsGearBtn');
   if (gearBtn) gearBtn.classList.toggle('active', settingsViews.includes(view));
-  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard', devsettings: 'setItemDevSettings' };
+  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard' };
   document.querySelectorAll('.settings-menu-item').forEach(el => el.classList.remove('active'));
   const setItem = document.getElementById(setItemIds[view]);
   if (setItem) setItem.classList.add('active');
@@ -3402,7 +3402,6 @@ function switchView(view) {
     case 'access':        renderAccessView();    break;
     case 'config':        renderConfigView();    break;
     case 'guestcard':     renderGuestCard();     break;
-    case 'devsettings':   if (typeof renderBackupList === 'function') renderBackupList(); break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -3640,7 +3639,7 @@ function renderRoom() {
   const elementHtml    = roomElements.map(renderRoomElement).join('');
   canvas.innerHTML = `<div class="room-canvas-label">${esc(roomName)}</div>${dimLabel}${elementHtml}${tableHtml}${staffTableHtml}`;
   _applyRoomEditUI();
-  _applyRoomFit();        // dopasowanie do okna (podgląd i edycja) lub pełny ekran
+  _applyRoomFit();        // dopasowanie do okna (podgląd) lub pełny ekran; edycja = naturalny rozmiar
   _updateRoomFsBtn();
 }
 
@@ -3734,7 +3733,7 @@ function selectRoomElement(id) {
 
 // Klik w pustą część kanwy odznacza element
 function roomCanvasMouseDown(e) {
-  if (roomElementDrag || roomElementResize || roomDrag || roomStaffDrag) return;   // właśnie zaczęło się przeciąganie
+  if (roomElementDrag || roomElementResize) return;   // właśnie zaczął się drag/resize elementu
   if (e.target.closest('.rt-element-wrap')) return;
   if (selectedRoomElementId !== null) { selectedRoomElementId = null; renderRoom(); }
 }
@@ -3867,7 +3866,6 @@ function enterRoomEdit() {
   selectedRoomElementId = null;
   renderRoom();
   renderTables();
-  _scheduleRoomRefit();        // przelicz dopasowanie po slide-down paneli
 }
 
 function saveRoomEdit() {
@@ -3877,7 +3875,6 @@ function saveRoomEdit() {
   saveState();                 // utrwal layout (localStorage + Firestore)
   renderRoom();
   renderTables();
-  _scheduleRoomRefit();
   showToast('Zapisano plan sali');
 }
 
@@ -3889,7 +3886,6 @@ function cancelRoomEdit() {
   saveState();                 // utrwal przywrócony stan
   renderRoom();
   renderTables();
-  _scheduleRoomRefit();
   showToast('Anulowano zmiany');
 }
 
@@ -3906,7 +3902,6 @@ function _fitRoomToScreen() {
   // CANVAS_W × roomCanvasH odzwierciedlają proporcje sali (widthM × lengthM)
   const s = Math.max(0.1, Math.min(availW / CANVAS_W, availH / roomCanvasH));
   roomFsScale = s;
-  roomScale = s;
   canvas.style.transformOrigin = 'center center';
   canvas.style.transform = 'scale(' + s + ')';
 }
@@ -3928,13 +3923,11 @@ function _fitRoomPreview() {
   const innerH = Math.max(50, availH - padY);
   // CANVAS_W × roomCanvasH zachowują proporcje sali (widthM × lengthM)
   const s = Math.max(0.05, Math.min(innerW / CANVAS_W, innerH / roomCanvasH));
-  roomScale = s;
   canvas.style.transformOrigin = 'center center';
   canvas.style.transform = 'scale(' + s + ')';
 }
 
-// Wybiera właściwe dopasowanie zależnie od trybu.
-// Podgląd ORAZ edycja: kanwa dopasowana do okna (wyśrodkowana, proporcje sali, bez wychodzenia poza ekran).
+// Wybiera właściwe dopasowanie zależnie od trybu (pełny ekran / podgląd / edycja)
 function _applyRoomFit() {
   const wrap   = document.getElementById('roomCanvasWrapper');
   const canvas = document.getElementById('roomCanvas');
@@ -3942,21 +3935,19 @@ function _applyRoomFit() {
   if (isFullscreen) {
     wrap.classList.remove('room-fit'); wrap.style.height = '';
     _fitRoomToScreen();
-  } else {
-    wrap.classList.add('room-fit');
+  } else if (!isEditing) {
+    wrap.classList.add('room-fit');                // podgląd: auto-dopasowanie
     _fitRoomPreview();
+  } else {
+    // tryb edycji: naturalny rozmiar + przewijanie (precyzyjna edycja)
+    wrap.classList.remove('room-fit'); wrap.style.height = '';
+    canvas.style.transform = ''; canvas.style.transformOrigin = '';
   }
 }
 
-// Ponowne dopasowanie po animacjach (np. slide-down paneli konfiguracji w trybie edycji)
-function _scheduleRoomRefit() {
-  setTimeout(() => { if (currentView === 'room') _applyRoomFit(); }, 80);
-  setTimeout(() => { if (currentView === 'room') _applyRoomFit(); }, 460);
-}
-
-// Przelicz dopasowanie przy zmianie rozmiaru okna (always-on; podgląd i edycja, też na mobile)
+// Przelicz dopasowanie podglądu przy zmianie rozmiaru okna (always-on, działa też na mobile)
 window.addEventListener('resize', () => {
-  if (currentView === 'room' && !isFullscreen) _fitRoomPreview();
+  if (currentView === 'room' && !isFullscreen && !isEditing) _fitRoomPreview();
 });
 
 // Stały referencyjny handler ESC (ten sam obiekt do add/removeEventListener)
@@ -4048,6 +4039,7 @@ function hideGuestTooltip() {
 
 // ── ROOM TABLE DRAG ──
 function startRoomTableDrag(e, tableId) {
+  if (!isEditing) return;
   if (e.button !== 0) return;
   if (roomGuestDrag) return; // guest drag in progress — don't move table
   e.preventDefault();
@@ -4058,7 +4050,7 @@ function startRoomTableDrag(e, tableId) {
 }
 
 document.addEventListener('mousemove', e => {
-  const _sc = roomScale || 1;   // kompensacja skali dopasowania (podgląd/edycja/pełny ekran)
+  const _sc = isFullscreen ? roomFsScale : 1;   // kompensacja skali fit-to-screen
   if (roomDrag) {
     const t  = tables.find(x => x.id === roomDrag.tableId);
     const el = document.querySelector(`.rt-wrap[data-id="${roomDrag.tableId}"]`);
@@ -4173,12 +4165,6 @@ let rsvpEntries    = [];
 let nextRsvpId     = 1;
 let gifts          = [];
 let nextGiftId     = 1;
-let giftsForGuests = [];        // upominki dla gości: {id, category, name, qty, cost, guestIds[]}
-let nextGiftForId  = 1;
-let giftProposals  = [];        // propozycje/lista życzeń: {id, title, desc, link}
-let nextProposalId = 1;
-let giftProposalsPublic = false; // czy pokazać propozycje gościom na /harmonogram
-let giftsTab       = 'received'; // 'received' | 'forguests' | 'proposals'
 let vehicles       = [];
 let nextVehicleId  = 1;
 let hotels         = [];
@@ -5504,25 +5490,7 @@ function _refreshGiftsSummary() {
     <div class="sum-stat"><span class="sv">${fmt(total)} zł</span><span>Łączna wartość</span></div>
     <div class="sum-stat"><span class="sv">${thanked}/${gifts.length}</span><span>Podziękowano</span></div>`;
 }
-// ── Zakładki prezentów ──
-function switchGiftsTab(tab) {
-  giftsTab = tab;
-  ['received','forguests','proposals'].forEach(t => {
-    const btn = document.getElementById('gtab-' + t);
-    if (btn) btn.classList.toggle('active', t === tab);
-    const panel = document.getElementById('gtabPanel-' + t);
-    if (panel) panel.style.display = (t === tab) ? '' : 'none';
-  });
-  renderGifts();
-}
-
 function renderGifts() {
-  renderGiftsReceived();
-  renderGiftsForGuests();
-  renderGiftProposals();
-}
-
-function renderGiftsReceived() {
   const c=document.getElementById('giftsList'); if(!c) return;
   _refreshGiftsSummary();
   if(!gifts.length){c.innerHTML='<div class="empty-list">Brak prezentów.</div>';return;}
@@ -5544,112 +5512,6 @@ function renderGiftsReceived() {
       </label>
     </div>
   </div>`).join('')+'</div>';
-}
-
-// ── UPOMINKI DLA GOŚCI ──
-const GIFT_GUEST_CATS = [
-  { key:'guests',     label:'Goście',      icon:'🎁' },
-  { key:'witnesses',  label:'Świadkowie',  icon:'🤝' },
-  { key:'parents',    label:'Rodzice',     icon:'👪' },
-  { key:'distinction',label:'Wyróżnienie', icon:'⭐' },
-];
-function addGiftForGuest(catKey) {
-  giftsForGuests.push({ id: nextGiftForId++, category: catKey, name:'', qty:1, cost:0, guestIds:[] });
-  renderGiftsForGuests(); saveState();
-}
-function updateGiftForGuest(id, field, value) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it) return;
-  it[field] = (field === 'qty' || field === 'cost') ? (parseFloat(value) || 0) : value;
-  renderGiftsForGuests(); saveState();
-}
-function deleteGiftForGuest(id) {
-  giftsForGuests = giftsForGuests.filter(x => x.id !== id);
-  renderGiftsForGuests(); saveState();
-}
-function addDistinctionGuest(id, guestId) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it || !guestId) return;
-  const gid = parseInt(guestId);
-  if (!it.guestIds.includes(gid)) it.guestIds.push(gid);
-  renderGiftsForGuests(); saveState();
-}
-function removeDistinctionGuest(id, guestId) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it) return;
-  it.guestIds = it.guestIds.filter(g => g !== parseInt(guestId));
-  renderGiftsForGuests(); saveState();
-}
-function renderGiftsForGuests() {
-  const c = document.getElementById('giftsForGuestsList'); if (!c) return;
-  const sum = document.getElementById('giftsForGuestsSummary');
-  let grand = 0, count = 0;
-  const html = GIFT_GUEST_CATS.map(cat => {
-    const items = giftsForGuests.filter(it => it.category === cat.key);
-    const catTotal = items.reduce((s, it) => s + (it.qty || 0) * (it.cost || 0), 0);
-    grand += catTotal; count += items.length;
-    const rows = items.map(it => {
-      const lineTotal = (it.qty || 0) * (it.cost || 0);
-      const distinctionUI = cat.key === 'distinction' ? `
-        <div class="gforg-distinction">
-          <div class="gforg-chips">
-            ${(it.guestIds || []).map(gid => { const g = guests.find(x => x.id === gid); return g ? `<span class="gforg-chip">${esc(fullName(g) || 'Gość')}<button onclick="removeDistinctionGuest(${it.id},${gid})" title="Usuń">✕</button></span>` : ''; }).join('') || '<span class="gforg-chip-empty">Brak wybranych osób</span>'}
-          </div>
-          <select class="gforg-guestsel" onchange="if(this.value){addDistinctionGuest(${it.id},this.value);this.value='';}">
-            <option value="">+ Dodaj osobę…</option>
-            ${guests.map(g => `<option value="${g.id}">${esc(fullName(g) || 'Gość')}</option>`).join('')}
-          </select>
-        </div>` : '';
-      return `<div class="gforg-item">
-        <input class="gforg-name" type="text" value="${esc(it.name)}" placeholder="Upominek…" onchange="updateGiftForGuest(${it.id},'name',this.value)">
-        <input class="gforg-qty" type="number" min="0" value="${it.qty||0}" title="Ilość" onchange="updateGiftForGuest(${it.id},'qty',this.value)">
-        <span class="gforg-x">×</span>
-        <input class="gforg-cost" type="number" min="0" value="${it.cost||0}" title="Koszt/szt. (zł)" onchange="updateGiftForGuest(${it.id},'cost',this.value)">
-        <span class="gforg-eq">= ${fmt(lineTotal)} zł</span>
-        <button class="btn-row-del" onclick="deleteGiftForGuest(${it.id})" title="Usuń">&#128465;</button>
-        ${distinctionUI}
-      </div>`;
-    }).join('') || '<div class="gforg-empty">Brak upominków w tej kategorii.</div>';
-    return `<div class="gforg-cat">
-      <div class="gforg-cat-hdr">
-        <span class="gforg-cat-title">${cat.icon} ${cat.label}</span>
-        <span class="gforg-cat-total">${fmt(catTotal)} zł</span>
-        <button class="btn btn-sm btn-primary" onclick="addGiftForGuest('${cat.key}')">+ Upominek</button>
-      </div>
-      <div class="gforg-list">${rows}</div>
-    </div>`;
-  }).join('');
-  c.innerHTML = html;
-  if (sum) sum.innerHTML = `<div class="sum-stat"><span class="sv">${count}</span><span>Upominków</span></div>
-    <div class="sum-stat"><span class="sv">${fmt(grand)} zł</span><span>Łączny koszt</span></div>`;
-}
-
-// ── PROPOZYCJE / LISTA ŻYCZEŃ ──
-function addGiftProposal() {
-  giftProposals.push({ id: nextProposalId++, title:'', desc:'', link:'' });
-  renderGiftProposals(); saveState();
-}
-function updateGiftProposal(id, field, value) {
-  const p = giftProposals.find(x => x.id === id); if (!p) return;
-  p[field] = value;
-  saveState();
-}
-function deleteGiftProposal(id) {
-  giftProposals = giftProposals.filter(x => x.id !== id);
-  renderGiftProposals(); saveState();
-}
-function toggleGiftProposalsPublic(checked) {
-  giftProposalsPublic = !!checked;
-  saveState();
-}
-function renderGiftProposals() {
-  const c = document.getElementById('giftProposalsList'); if (!c) return;
-  const cb = document.getElementById('giftProposalsPublic'); if (cb) cb.checked = !!giftProposalsPublic;
-  if (!giftProposals.length) { c.innerHTML = '<div class="empty-list">Brak propozycji. Kliknij „+ Dodaj propozycję".</div>'; return; }
-  c.innerHTML = '<div class="gprop-list">' + giftProposals.map(p => `
-    <div class="gprop-card">
-      <input class="gprop-title" type="text" value="${esc(p.title)}" placeholder="Tytuł propozycji…" onchange="updateGiftProposal(${p.id},'title',this.value)">
-      <textarea class="gprop-desc" placeholder="Opis (np. Zamiast kwiatów prosimy o wpłatę na podróż)…" onchange="updateGiftProposal(${p.id},'desc',this.value)">${esc(p.desc)}</textarea>
-      <input class="gprop-link" type="url" value="${esc(p.link || '')}" placeholder="🔗 Link (opcjonalnie)…" onchange="updateGiftProposal(${p.id},'link',this.value)">
-      <button class="btn-row-del gprop-del" onclick="deleteGiftProposal(${p.id})" title="Usuń">&#128465;</button>
-    </div>`).join('') + '</div>';
 }
 
 // ── TRANSPORT ──
@@ -7376,162 +7238,6 @@ function finishOnboarding() {
   try { localStorage.setItem(_onboardingKey(), '1'); } catch (_) {}
 }
 
-// ══════════════════════════════════════════════════════
-//  PDF DO DRUKU — karty z kodami QR (galeria / harmonogram / połączony)
-// ══════════════════════════════════════════════════════
-// Osadzane fonty z polskimi znakami (TTF) — pobierane raz z CDN i cache'owane jako base64.
-let _pdfFontReg = null;   // regular: null=nie próbowano, ''=nieudane, string=gotowy
-let _pdfFontBold = null;  // bold
-const _PDF_FONT_REG  = [
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Regular.ttf',
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/ptsans/PT_Sans-Web-Regular.ttf',
-];
-const _PDF_FONT_BOLD = [
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Bold.ttf',
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/ptsans/PT_Sans-Web-Bold.ttf',
-];
-function _abToBase64(buf) {
-  let bin = ''; const bytes = new Uint8Array(buf); const CH = 0x8000;
-  for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
-  return btoa(bin);
-}
-async function _fetchFontB64(urls) {
-  for (const url of urls) {
-    try { const res = await fetch(url); if (res.ok) return _abToBase64(await res.arrayBuffer()); } catch (_) {}
-  }
-  return '';
-}
-// Rejestruje fonty PL w dokumencie. Zwraca true jeśli przynajmniej regular dostępny.
-async function _ensurePdfFont(doc) {
-  if (_pdfFontReg === null)  _pdfFontReg  = await _fetchFontB64(_PDF_FONT_REG);
-  if (_pdfFontBold === null) _pdfFontBold = await _fetchFontB64(_PDF_FONT_BOLD);
-  let ok = false;
-  if (_pdfFontReg) {
-    try { doc.addFileToVFS('PLreg.ttf', _pdfFontReg); doc.addFont('PLreg.ttf', 'PL', 'normal'); ok = true; } catch (_) {}
-  }
-  if (_pdfFontBold) {
-    try { doc.addFileToVFS('PLbold.ttf', _pdfFontBold); doc.addFont('PLbold.ttf', 'PL', 'bold'); } catch (_) {}
-  }
-  return ok;
-}
-
-// Standardowe fonty jsPDF nie wspierają polskich znaków — transliteracja na ASCII (fallback).
-function _plAscii(s) {
-  return String(s == null ? '' : s)
-    .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n')
-    .replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z')
-    .replace(/Ą/g,'A').replace(/Ć/g,'C').replace(/Ę/g,'E').replace(/Ł/g,'L').replace(/Ń/g,'N')
-    .replace(/Ó/g,'O').replace(/Ś/g,'S').replace(/Ź/g,'Z').replace(/Ż/g,'Z');
-}
-const _PL_MONTHS_PDF = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
-function _printDateStr() {
-  if (!weddingDate) return '';
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(weddingDate); if (!m) return '';
-  return `${+m[3]} ${_PL_MONTHS_PDF[+m[2] - 1]} ${m[1]}`;
-}
-// Generuje data-URL kodu QR (przez bibliotekę qrcodejs) w tymczasowym, ukrytym elemencie
-function _makeQrDataUrl(url, px) {
-  return new Promise(resolve => {
-    if (typeof QRCode === 'undefined') { resolve(null); return; }
-    const tmp = document.createElement('div');
-    tmp.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
-    document.body.appendChild(tmp);
-    try { new QRCode(tmp, { text: url, width: px, height: px, correctLevel: QRCode.CorrectLevel.M }); } catch (_) {}
-    setTimeout(() => {
-      let data = null;
-      const c = tmp.querySelector('canvas');
-      if (c) { try { data = c.toDataURL('image/png'); } catch (_) {} }
-      if (!data) { const img = tmp.querySelector('img'); if (img) data = img.src; }
-      try { document.body.removeChild(tmp); } catch (_) {}
-      resolve(data);
-    }, 90);
-  });
-}
-async function generatePrintPdf(variantArg, sizeArg) {
-  if (!window.jspdf || !window.jspdf.jsPDF) { showToast('Biblioteka PDF nie została wczytana — sprawdź połączenie z internetem.'); return; }
-  const variant = variantArg || document.getElementById('pdfVariant')?.value || 'gallery';
-  const size    = ((sizeArg || document.getElementById('pdfSize')?.value) === 'a5') ? 'a5' : 'a4';
-  const galUrl  = new URL('galeria.html', location.href).href;
-  const schUrl  = new URL('harmonogram.html', location.href).href;
-
-  showToast('Generuję PDF…');
-  const items = [];
-  if (variant === 'gallery' || variant === 'combined')
-    items.push({ qr: await _makeQrDataUrl(galUrl, 640), title: 'Galeria zdjęć', cap: 'Zeskanuj i podziel się swoimi zdjęciami z naszego wesela' });
-  if (variant === 'schedule' || variant === 'combined')
-    items.push({ qr: await _makeQrDataUrl(schUrl, 640), title: 'Harmonogram dnia', cap: 'Zeskanuj i zobacz harmonogram naszego dnia' });
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: size });
-  const pw  = doc.internal.pageSize.getWidth();
-  const ph  = doc.internal.pageSize.getHeight();
-  const big = (size === 'a4');
-  const cx  = pw / 2;
-
-  // Font z polskimi znakami (Lato); fallback do ASCII gdy brak internetu
-  const plFont = await _ensurePdfFont(doc);
-  const tx  = s => plFont ? String(s == null ? '' : s) : _plAscii(s);
-  const F  = (bold) => { if (plFont) doc.setFont('PL', bold ? 'bold' : 'normal'); else doc.setFont(bold ? 'times' : 'helvetica', bold ? 'bold' : 'normal'); };
-
-  const eventName = (appConfig && appConfig.eventName) || 'Nasze Wesele';
-  const dateStr   = _printDateStr();
-  const couple    = (budgetData && budgetData.coupleNames) || [];
-  const realName  = v => { const s = (v || '').trim(); return (s && s !== 'Osoba 1' && s !== 'Osoba 2') ? s : ''; };
-  const names     = [realName(couple[1]), realName(couple[0])].filter(Boolean).join(' & ');
-
-  // ── Tło i ozdobne ramki ──
-  doc.setFillColor(247, 251, 255); doc.rect(0, 0, pw, ph, 'F');                 // delikatne tło
-  doc.setDrawColor(26, 86, 219);  doc.setLineWidth(0.9); doc.roundedRect(7, 7, pw - 14, ph - 14, 6, 6, 'S');   // ramka zewn.
-  doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.4); doc.roundedRect(11, 11, pw - 22, ph - 22, 4, 4, 'S'); // ramka wewn.
-  // narożne ozdobniki (wektorowe — niezależne od glifów fontu)
-  doc.setFillColor(150, 195, 245);
-  [[17,17],[pw-17,17],[17,ph-17],[pw-17,ph-17]].forEach(([x,yy]) => { doc.circle(x, yy, 1.7, 'F'); });
-
-  // ── Nagłówek ──
-  let y = big ? 34 : 26;
-  F(false); doc.setFontSize(big ? 12 : 10); doc.setTextColor(120, 150, 200);
-  doc.text(tx('• Z radością zapraszamy •'), cx, y, { align: 'center' });
-  y += big ? 14 : 11;
-  F(true); doc.setFontSize(big ? 34 : 25); doc.setTextColor(16, 40, 80);
-  doc.splitTextToSize(tx(eventName), pw - 40).forEach((ln, i) => { doc.text(ln, cx, y + i * (big ? 13 : 10), { align: 'center' }); });
-  y += doc.splitTextToSize(tx(eventName), pw - 40).length * (big ? 13 : 10) + (big ? 2 : 1);
-  if (names) { F(false); doc.setFontSize(big ? 15 : 12); doc.setTextColor(26, 86, 219); doc.text(tx(names), cx, y, { align: 'center' }); y += big ? 9 : 7; }
-  if (dateStr) { F(false); doc.setFontSize(big ? 12 : 10); doc.setTextColor(110, 125, 155); doc.text(tx(dateStr), cx, y, { align: 'center' }); y += big ? 4 : 3; }
-  // ozdobny separator z rombem
-  doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.5);
-  doc.line(cx - (big?32:24), y + 4, cx - 5, y + 4); doc.line(cx + 5, y + 4, cx + (big?32:24), y + 4);
-  doc.setFillColor(26, 86, 219); doc.triangle(cx, y + 2.5, cx - 2.2, y + 4, cx, y + 5.5, 'F'); doc.triangle(cx, y + 2.5, cx + 2.2, y + 4, cx, y + 5.5, 'F');
-  y += big ? 14 : 11;
-
-  // ── Kody QR ──
-  const two = items.length > 1;
-  const qrSize  = two ? (big ? 66 : 46) : (big ? 92 : 64);
-  const boxPad  = big ? 6 : 4;
-  items.forEach(it => {
-    if (two) { F(true); doc.setFontSize(big ? 14 : 11); doc.setTextColor(26, 86, 219); doc.text(tx(it.title), cx, y, { align: 'center' }); y += big ? 6 : 5; }
-    // biała ramka pod QR (z subtelnym „cieniem")
-    const bx = cx - qrSize / 2 - boxPad, by = y, bw = qrSize + boxPad * 2, bh = qrSize + boxPad * 2;
-    doc.setFillColor(225, 234, 248); doc.roundedRect(bx + 1.2, by + 1.2, bw, bh, 3, 3, 'F');   // cień
-    doc.setFillColor(255, 255, 255); doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.5);
-    doc.roundedRect(bx, by, bw, bh, 3, 3, 'FD');
-    if (it.qr) { try { doc.addImage(it.qr, 'PNG', cx - qrSize / 2, by + boxPad, qrSize, qrSize); } catch (_) {} }
-    y += bh + (big ? 7 : 5);
-    F(false); doc.setFontSize(big ? 12 : 9.5); doc.setTextColor(50, 65, 95);
-    const lines = doc.splitTextToSize(tx(it.cap), pw - (big ? 50 : 38));
-    doc.text(lines, cx, y, { align: 'center' });
-    y += lines.length * (big ? 5.6 : 4.6) + (big ? 12 : 9);
-  });
-
-  // ── Stopka ──
-  F(false); doc.setFontSize(big ? 11 : 9); doc.setTextColor(150, 195, 245);
-  doc.text('• • •', cx, ph - 20, { align: 'center' });
-  F(false); doc.setFontSize(big ? 10 : 8); doc.setTextColor(120, 140, 170);
-  doc.text(tx(names ? `${names} • dziękujemy!` : 'Dziękujemy!'), cx, ph - 14, { align: 'center' });
-
-  doc.save(`${variant}-${size}.pdf`);
-  showToast(plFont ? 'PDF gotowy ✓' : 'PDF gotowy ✓ (font PL niedostępny — wersja ASCII)');
-}
-
 function renderAccessList() {
   const cont = document.getElementById('accessList');
   if (!cont) return;
@@ -7799,7 +7505,6 @@ function _serializeState() {
     nextTableDecoId, nextStaffTableId, expenseOrder,
     roomName, roomMeta, roomElements, nextRoomElementId, budgetData, weddingDate, weddingTime, appConfig,
     scheduleEvents, tasks, vendors, rsvpEntries, gifts,
-    giftsForGuests, nextGiftForId, giftProposals, nextProposalId, giftProposalsPublic,
     vehicles, hotels, payments, transportNotes,
     internalTransport, nextInternalTransportId,
     locationLinksSeeded,
@@ -8214,7 +7919,7 @@ function _pruneBackups() {
 function renderBackupList() {
   const box = document.getElementById('backupList');
   if (!box) return;
-  const backups = _listBackups().slice(0, 3);   // pokazuj tylko 3 ostatnie zapisy
+  const backups = _listBackups();
   if (!backups.length) { box.innerHTML = '<p class="backup-empty">Brak kopii zapasowych. Powstają automatycznie przed migracją danych.</p>'; return; }
   box.innerHTML = backups.map(b => {
     const d = new Date(b.ts);
@@ -8446,13 +8151,6 @@ function _applyEventState(s) {
     rsvpEntries    = s.rsvpEntries    || [];
     rsvpEntries.forEach(e => { if (e.companionName === undefined) e.companionName = ''; });
     gifts          = s.gifts          || [];
-    // Upominki dla gości + propozycje (lista życzeń)
-    giftsForGuests = Array.isArray(s.giftsForGuests) ? s.giftsForGuests : [];
-    giftsForGuests.forEach(it => { if (!Array.isArray(it.guestIds)) it.guestIds = []; if (it.qty === undefined) it.qty = 1; if (it.cost === undefined) it.cost = 0; });
-    nextGiftForId  = s.nextGiftForId  || (giftsForGuests.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftProposals  = Array.isArray(s.giftProposals) ? s.giftProposals : [];
-    nextProposalId = s.nextProposalId || (giftProposals.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftProposalsPublic = !!s.giftProposalsPublic;
     vehicles       = s.vehicles       || [];
     vehicles.forEach(v => { if (v.cost === undefined) v.cost = 0; });
     hotels         = s.hotels         || [];

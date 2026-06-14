@@ -17,8 +17,6 @@
   <script src="auth.js"></script>
   <!-- QR Code generator -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- jsPDF — generowanie PDF do druku (materiały na stoliki) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });</script>
@@ -88,7 +86,6 @@
       <button class="settings-menu-item" id="setItemConfig"    onclick="openSettingsView('config')"><span class="sm-ico">&#9881;&#65039;</span> Konfiguracja</button>
       <button class="settings-menu-item" id="setItemAccess"    onclick="openSettingsView('access')"><span class="sm-ico">&#128272;</span> Dostęp</button>
       <button class="settings-menu-item" id="setItemGuestCard" onclick="openSettingsView('guestcard')"><span class="sm-ico">&#128100;</span> Kartoteka Gości</button>
-      <button class="settings-menu-item" id="setItemDevSettings" onclick="openSettingsView('devsettings')"><span class="sm-ico">&#128295;</span> Ustawienia programistyczne</button>
       <button class="settings-menu-item" id="setItemOnboarding" onclick="startOnboarding()"><span class="sm-ico">&#129517;</span> Przewodnik (od nowa)</button>
     </div>
   </div>
@@ -665,8 +662,6 @@
           </div>
           <div class="qr-card-actions">
             <button class="btn btn-primary btn-sm" onclick="downloadQR('qrSchedule','harmonogram-qr.png')">&#11015; Pobierz PNG</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('schedule','a4')" title="Karta A4 do druku">&#128424;&#65039; PDF A4</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('schedule','a5')" title="Karta A5 do druku">&#128424;&#65039; PDF A5</button>
             <a class="btn btn-sm" id="qrScheduleOpen" href="harmonogram.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
           </div>
         </div>
@@ -791,44 +786,10 @@
     <div class="section-container">
       <div class="section-header">
         <h2>&#127873; Prezenty</h2>
+        <button class="btn btn-primary" onclick="addGift()">+ Dodaj prezent</button>
       </div>
-
-      <!-- Zakładki prezentów -->
-      <div class="gifts-tabbar">
-        <button class="gifts-tab active" id="gtab-received"  onclick="switchGiftsTab('received')">&#127873; Otrzymane</button>
-        <button class="gifts-tab"        id="gtab-forguests" onclick="switchGiftsTab('forguests')">&#127872; Dla gości (upominki)</button>
-        <button class="gifts-tab"        id="gtab-proposals" onclick="switchGiftsTab('proposals')">&#128172; Propozycje (lista życzeń)</button>
-      </div>
-
-      <!-- ZAKŁADKA: PREZENTY OTRZYMANE -->
-      <div id="gtabPanel-received" class="gtab-panel">
-        <div class="gtab-hdr">
-          <span class="gtab-title">&#127873; Prezenty otrzymane</span>
-          <button class="btn btn-primary btn-sm" onclick="addGift()">+ Dodaj prezent</button>
-        </div>
-        <div class="gifts-summary" id="giftsSummary"></div>
-        <div id="giftsList"></div>
-      </div>
-
-      <!-- ZAKŁADKA: UPOMINKI DLA GOŚCI -->
-      <div id="gtabPanel-forguests" class="gtab-panel" style="display:none">
-        <div class="gforg-summary" id="giftsForGuestsSummary"></div>
-        <div id="giftsForGuestsList"></div>
-      </div>
-
-      <!-- ZAKŁADKA: PROPOZYCJE / LISTA ŻYCZEŃ -->
-      <div id="gtabPanel-proposals" class="gtab-panel" style="display:none">
-        <div class="gtab-hdr">
-          <span class="gtab-title">&#128172; Propozycje prezentów (lista życzeń)</span>
-          <button class="btn btn-primary btn-sm" onclick="addGiftProposal()">+ Dodaj propozycję</button>
-        </div>
-        <p class="access-intro">Sugestie prezentów dla gości (np. „Zamiast kwiatów prosimy o wpłatę na podróż"). Pokażą się gościom na stronie harmonogramu tylko po zaznaczeniu poniższej opcji.</p>
-        <label class="gprop-public-toggle">
-          <input type="checkbox" id="giftProposalsPublic" onchange="toggleGiftProposalsPublic(this.checked)">
-          &#128065; Pokaż propozycje gościom na stronie harmonogramu
-        </label>
-        <div id="giftProposalsList"></div>
-      </div>
+      <div class="gifts-summary" id="giftsSummary"></div>
+      <div id="giftsList"></div>
     </div>
   </div>
 
@@ -852,32 +813,8 @@
           </div>
           <div class="qr-card-actions">
             <button class="btn btn-primary btn-sm" onclick="downloadQR('qrGallery','galeria-qr.png')">&#11015; Pobierz PNG</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('gallery','a4')" title="Karta A4 do druku">&#128424;&#65039; PDF A4</button>
-            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('gallery','a5')" title="Karta A5 do druku">&#128424;&#65039; PDF A5</button>
             <a class="btn btn-sm" id="qrGalleryOpen" href="galeria.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
           </div>
-        </div>
-      </div>
-
-      <!-- MATERIAŁY DO DRUKU (PDF) -->
-      <div class="pdf-print-card">
-        <div class="pdf-print-title">&#128424;&#65039; Materiały do druku (PDF)</div>
-        <p class="pdf-print-desc">Wygeneruj elegancką kartę z kodem QR do wydrukowania i postawienia w ramce na stoliku.</p>
-        <div class="pdf-print-controls">
-          <label class="pdf-ctrl">Wariant
-            <select id="pdfVariant">
-              <option value="gallery">Galeria (zdjęcia gości)</option>
-              <option value="schedule">Harmonogram dnia</option>
-              <option value="combined">Połączony (galeria + harmonogram)</option>
-            </select>
-          </label>
-          <label class="pdf-ctrl">Rozmiar
-            <select id="pdfSize">
-              <option value="a4">A4</option>
-              <option value="a5">A5</option>
-            </select>
-          </label>
-          <button class="btn btn-primary" onclick="generatePrintPdf()">&#11015; Pobierz PDF</button>
         </div>
       </div>
 
@@ -1000,15 +937,6 @@
           <button type="button" class="btn btn-danger" onclick="deleteActiveEvent()" title="Usuń bieżący event i jego dane">&#128465; Usuń ten event</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- ══ USTAWIENIA PROGRAMISTYCZNE VIEW ══ -->
-  <div id="viewDevSettings" class="view-panel" style="display:none">
-    <div class="section-container">
-      <div class="section-header">
-        <h2>&#128295; Ustawienia programistyczne</h2>
-      </div>
 
       <!-- ══ EKSPORT / IMPORT DANYCH ══ -->
       <div class="backup-section">
@@ -1024,7 +952,7 @@
       <!-- ══ ODZYSKIWANIE I KOPIE ZAPASOWE DANYCH ══ -->
       <div class="backup-section">
         <h3>&#9851; Kopie zapasowe i odzyskiwanie danych</h3>
-        <p class="access-intro">Kopie zapasowe powstają automatycznie przed każdą migracją danych. Poniżej widoczne są 3 ostatnie zapisy. Jeśli dane zniknęły, użyj „Skanuj i odzyskaj dane" — przeszukuje localStorage oraz Firestore i przywraca znalezione dane do eventu. Szczegóły skanu pojawią się w konsoli przeglądarki (F12).</p>
+        <p class="access-intro">Kopie zapasowe powstają automatycznie przed każdą migracją danych. Jeśli dane zniknęły, użyj „Skanuj i odzyskaj dane" — przeszukuje localStorage oraz Firestore i przywraca znalezione dane do eventu. Szczegóły skanu pojawią się w konsoli przeglądarki (F12).</p>
         <div class="config-actions">
           <button type="button" class="btn btn-primary" onclick="runDataRecovery()">&#128270; Skanuj i odzyskaj dane</button>
           <button type="button" class="btn" onclick="restoreLatestBackup()" title="Przywróć najnowszą kopię backup_* z niepustymi danymi">&#9851; Przywróć najnowszą kopię z danymi</button>

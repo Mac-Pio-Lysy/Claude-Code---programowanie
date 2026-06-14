@@ -13,7 +13,7 @@ const firebaseConfig = {
 
 const FS_COLLECTION  = 'weddingPlanner';
 const FS_DOC_ID      = 'main';
-const FS_DEBOUNCE_MS = 3000;   // dłuższy debounce — mniej zapisów, mniej kolizji między urządzeniami
+const FS_DEBOUNCE_MS = 2000;
 const LS_KEY         = 'wedding-planner-v2';
 
 // Unikalny identyfikator urządzenia — pomija własne zapisy w słuchaczu
@@ -21,10 +21,6 @@ const _ownDevice = 'd' + Math.random().toString(36).slice(2) + Date.now();
 
 let _db        = null;
 let _saveTimer = null;
-let _pendingRemote = null;          // zmiana zdalna odłożona, bo użytkownik właśnie edytuje pole
-// Flaga: trwa stosowanie zmiany zdalnej (lokalny zapis ma być wtedy wstrzymany).
-// Współdzielona ze script.js (saveState) przez window — przerywa pętlę zapis↔listener.
-window.__applyingRemote = window.__applyingRemote || false;
 
 // ── Wskaźnik synchronizacji ─────────────────────────────────────────────
 function _badge(status) {
@@ -44,8 +40,6 @@ function _badge(status) {
 // ── Inicjalizacja Firebase ───────────────────────────────────────────────
 function initFirebaseSync() {
   if (!window.firebase) { _badge('offline'); return; }
-  // Kopia zapasowa bieżących danych do localStorage PRZED jakąkolwiek synchronizacją
-  try { _backupLocalData(); } catch (_) {}
   try {
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     _db = firebase.firestore();
@@ -74,15 +68,9 @@ function initFirebaseSync() {
             let localData = null;
             try { localData = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (_) {}
             if (_payloadHasData(clean) || !_payloadHasData(localData)) {
-              // stosujemy dane zdalne — wstrzymaj lokalny zapis (bez echa do chmury)
-              window.__applyingRemote = true;
-              try {
-                localStorage.setItem(LS_KEY, JSON.stringify(clean));
-                if (typeof loadState === 'function') try { loadState(); } catch (_) {}
-                if (typeof renderAll === 'function') try { renderAll(); } catch (_) {}
-              } finally {
-                window.__applyingRemote = false;
-              }
+              localStorage.setItem(LS_KEY, JSON.stringify(clean));
+              if (typeof loadState === 'function') try { loadState(); } catch (_) {}
+              if (typeof renderAll === 'function') try { renderAll(); } catch (_) {}
             } else if (typeof saveState === 'function') {
               // Chmura jest pusta, a mamy lokalne dane — odeślij je z powrotem (uzdrów chmurę).
               try { saveState(); } catch (_) {}
@@ -110,90 +98,34 @@ function _startListener() {
       if (!snap.exists) return;
       const data = snap.data();
 
-      // Pomiń własne zapisy (porównanie identyfikatora urządzenia)
+      // Pomiń własne zapisy
       if (data._syncMeta && data._syncMeta.device === _ownDevice) return;
 
-      // Jeśli użytkownik właśnie edytuje pole (aktywny input/select/textarea) —
-      // NIE nadpisuj teraz; odłóż zmianę i zastosuj po zakończeniu edycji (blur).
-      if (_isUserEditing()) {
-        _pendingRemote = data;
+      // Zastosuj zmiany z innego urządzenia
+      try {
+        const clean = _stripMeta(data);
+        // Nie pozwól, by pusty zapis zdalny skasował niepuste dane lokalne.
+        let localData = null;
+        try { localData = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (_) {}
+        if (!_payloadHasData(clean) && _payloadHasData(localData)) {
+          if (typeof saveState === 'function') try { saveState(); } catch (_) {} // odeślij dobre dane do chmury
+          _badge('synced');
+          return;
+        }
+        localStorage.setItem(LS_KEY, JSON.stringify(clean));
+        if (typeof loadState === 'function') loadState();
+        if (typeof renderAll === 'function') renderAll();
         _badge('synced');
-        return;
+        _showRemoteNotice();
+      } catch (e) {
+        console.error('Błąd zastosowania zmian zdalnych:', e);
       }
-      _applyRemoteData(data);
     }, () => _badge('error'));
-}
-
-// Czy użytkownik aktywnie edytuje pole formularza?
-function _isUserEditing() {
-  const el = document.activeElement;
-  if (!el) return false;
-  const tag = el.tagName;
-  if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
-  if (tag === 'INPUT') {
-    const t = (el.type || 'text').toLowerCase();
-    return !['button','submit','checkbox','radio','file','range','color','reset','image'].includes(t);
-  }
-  return !!el.isContentEditable;
-}
-
-// Zastosuj dane zdalne (pod flagą __applyingRemote → bez echa zapisu do chmury)
-function _applyRemoteData(data) {
-  try {
-    const clean = _stripMeta(data);
-    // Nie pozwól, by pusty zapis zdalny skasował niepuste dane lokalne.
-    let localData = null;
-    try { localData = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (_) {}
-    if (!_payloadHasData(clean) && _payloadHasData(localData)) {
-      if (typeof saveState === 'function') try { saveState(); } catch (_) {} // odeślij dobre dane do chmury
-      _badge('synced');
-      return;
-    }
-    window.__applyingRemote = true;
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(clean));
-      if (typeof loadState === 'function') loadState();
-      if (typeof renderAll === 'function') renderAll();
-    } finally {
-      window.__applyingRemote = false;
-    }
-    _badge('synced');
-    _showRemoteNotice();
-  } catch (e) {
-    console.error('Błąd zastosowania zmian zdalnych:', e);
-  }
-}
-
-// Gdy użytkownik skończy edycję pola — zastosuj ewentualnie odłożoną zmianę zdalną
-document.addEventListener('focusout', () => {
-  setTimeout(() => {
-    if (_pendingRemote && !_isUserEditing()) {
-      const d = _pendingRemote;
-      _pendingRemote = null;
-      _applyRemoteData(d);
-    }
-  }, 60);
-});
-
-// ── Kopia zapasowa bieżących danych do localStorage (jednorazowo na sesję) ──
-function _backupLocalData() {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return;
-    // Stała kopia „przed naprawą synchronizacji" — tworzona tylko raz, nigdy nie nadpisywana.
-    if (!localStorage.getItem(LS_KEY + '__backup_presync')) {
-      localStorage.setItem(LS_KEY + '__backup_presync', raw);
-    }
-    // Dodatkowa, rotacyjna kopia z bieżącej sesji (zawsze najświeższa lokalnie).
-    localStorage.setItem(LS_KEY + '__backup_lastsession', raw);
-  } catch (_) {}
 }
 
 // ── Zapis do Firestore (z debounce) ──────────────────────────────────────
 function firestoreSave(data) {
   if (!_db) return;
-  // Nie odsyłaj do chmury zmian, które właśnie z niej przyszły (ochrona przed pętlą)
-  if (window.__applyingRemote) return;
   clearTimeout(_saveTimer);
   _badge('syncing');
   _saveTimer = setTimeout(() => {

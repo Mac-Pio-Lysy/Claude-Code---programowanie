@@ -27,7 +27,7 @@ const EVENT_TYPES = {
   other:        { icon: '🎊', label: 'Inne',         heroTitle: 'Do wydarzenia',    sections: ALL_EVENT_VIEWS.slice() },
 };
 // Widoki zawsze dostępne (zarządzanie aplikacją) niezależnie od typu eventu
-const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard', 'devsettings'];
+const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard'];
 function eventTypeKey() { return EVENT_TYPES[appConfig.eventType] ? appConfig.eventType : 'wedding'; }
 function eventTypeInfo() { return EVENT_TYPES[eventTypeKey()]; }
 function eventTypeLabel() {
@@ -3346,7 +3346,7 @@ function switchView(view) {
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
     gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
-    guestcard: 'viewGuestCard', devsettings: 'viewDevSettings',
+    guestcard: 'viewGuestCard',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -3373,10 +3373,10 @@ function switchView(view) {
   closeNavGroups();
 
   // Widoki z menu ustawień (trybik) — podświetl trybik zamiast zakładki nav
-  const settingsViews = ['config', 'access', 'guestcard', 'devsettings'];
+  const settingsViews = ['config', 'access', 'guestcard'];
   const gearBtn = document.getElementById('settingsGearBtn');
   if (gearBtn) gearBtn.classList.toggle('active', settingsViews.includes(view));
-  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard', devsettings: 'setItemDevSettings' };
+  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard' };
   document.querySelectorAll('.settings-menu-item').forEach(el => el.classList.remove('active'));
   const setItem = document.getElementById(setItemIds[view]);
   if (setItem) setItem.classList.add('active');
@@ -3402,7 +3402,6 @@ function switchView(view) {
     case 'access':        renderAccessView();    break;
     case 'config':        renderConfigView();    break;
     case 'guestcard':     renderGuestCard();     break;
-    case 'devsettings':   if (typeof renderBackupList === 'function') renderBackupList(); break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -4173,12 +4172,6 @@ let rsvpEntries    = [];
 let nextRsvpId     = 1;
 let gifts          = [];
 let nextGiftId     = 1;
-let giftsForGuests = [];        // upominki dla gości: {id, category, name, qty, cost, guestIds[]}
-let nextGiftForId  = 1;
-let giftProposals  = [];        // propozycje/lista życzeń: {id, title, desc, link}
-let nextProposalId = 1;
-let giftProposalsPublic = false; // czy pokazać propozycje gościom na /harmonogram
-let giftsTab       = 'received'; // 'received' | 'forguests' | 'proposals'
 let vehicles       = [];
 let nextVehicleId  = 1;
 let hotels         = [];
@@ -5504,25 +5497,7 @@ function _refreshGiftsSummary() {
     <div class="sum-stat"><span class="sv">${fmt(total)} zł</span><span>Łączna wartość</span></div>
     <div class="sum-stat"><span class="sv">${thanked}/${gifts.length}</span><span>Podziękowano</span></div>`;
 }
-// ── Zakładki prezentów ──
-function switchGiftsTab(tab) {
-  giftsTab = tab;
-  ['received','forguests','proposals'].forEach(t => {
-    const btn = document.getElementById('gtab-' + t);
-    if (btn) btn.classList.toggle('active', t === tab);
-    const panel = document.getElementById('gtabPanel-' + t);
-    if (panel) panel.style.display = (t === tab) ? '' : 'none';
-  });
-  renderGifts();
-}
-
 function renderGifts() {
-  renderGiftsReceived();
-  renderGiftsForGuests();
-  renderGiftProposals();
-}
-
-function renderGiftsReceived() {
   const c=document.getElementById('giftsList'); if(!c) return;
   _refreshGiftsSummary();
   if(!gifts.length){c.innerHTML='<div class="empty-list">Brak prezentów.</div>';return;}
@@ -5544,112 +5519,6 @@ function renderGiftsReceived() {
       </label>
     </div>
   </div>`).join('')+'</div>';
-}
-
-// ── UPOMINKI DLA GOŚCI ──
-const GIFT_GUEST_CATS = [
-  { key:'guests',     label:'Goście',      icon:'🎁' },
-  { key:'witnesses',  label:'Świadkowie',  icon:'🤝' },
-  { key:'parents',    label:'Rodzice',     icon:'👪' },
-  { key:'distinction',label:'Wyróżnienie', icon:'⭐' },
-];
-function addGiftForGuest(catKey) {
-  giftsForGuests.push({ id: nextGiftForId++, category: catKey, name:'', qty:1, cost:0, guestIds:[] });
-  renderGiftsForGuests(); saveState();
-}
-function updateGiftForGuest(id, field, value) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it) return;
-  it[field] = (field === 'qty' || field === 'cost') ? (parseFloat(value) || 0) : value;
-  renderGiftsForGuests(); saveState();
-}
-function deleteGiftForGuest(id) {
-  giftsForGuests = giftsForGuests.filter(x => x.id !== id);
-  renderGiftsForGuests(); saveState();
-}
-function addDistinctionGuest(id, guestId) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it || !guestId) return;
-  const gid = parseInt(guestId);
-  if (!it.guestIds.includes(gid)) it.guestIds.push(gid);
-  renderGiftsForGuests(); saveState();
-}
-function removeDistinctionGuest(id, guestId) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it) return;
-  it.guestIds = it.guestIds.filter(g => g !== parseInt(guestId));
-  renderGiftsForGuests(); saveState();
-}
-function renderGiftsForGuests() {
-  const c = document.getElementById('giftsForGuestsList'); if (!c) return;
-  const sum = document.getElementById('giftsForGuestsSummary');
-  let grand = 0, count = 0;
-  const html = GIFT_GUEST_CATS.map(cat => {
-    const items = giftsForGuests.filter(it => it.category === cat.key);
-    const catTotal = items.reduce((s, it) => s + (it.qty || 0) * (it.cost || 0), 0);
-    grand += catTotal; count += items.length;
-    const rows = items.map(it => {
-      const lineTotal = (it.qty || 0) * (it.cost || 0);
-      const distinctionUI = cat.key === 'distinction' ? `
-        <div class="gforg-distinction">
-          <div class="gforg-chips">
-            ${(it.guestIds || []).map(gid => { const g = guests.find(x => x.id === gid); return g ? `<span class="gforg-chip">${esc(fullName(g) || 'Gość')}<button onclick="removeDistinctionGuest(${it.id},${gid})" title="Usuń">✕</button></span>` : ''; }).join('') || '<span class="gforg-chip-empty">Brak wybranych osób</span>'}
-          </div>
-          <select class="gforg-guestsel" onchange="if(this.value){addDistinctionGuest(${it.id},this.value);this.value='';}">
-            <option value="">+ Dodaj osobę…</option>
-            ${guests.map(g => `<option value="${g.id}">${esc(fullName(g) || 'Gość')}</option>`).join('')}
-          </select>
-        </div>` : '';
-      return `<div class="gforg-item">
-        <input class="gforg-name" type="text" value="${esc(it.name)}" placeholder="Upominek…" onchange="updateGiftForGuest(${it.id},'name',this.value)">
-        <input class="gforg-qty" type="number" min="0" value="${it.qty||0}" title="Ilość" onchange="updateGiftForGuest(${it.id},'qty',this.value)">
-        <span class="gforg-x">×</span>
-        <input class="gforg-cost" type="number" min="0" value="${it.cost||0}" title="Koszt/szt. (zł)" onchange="updateGiftForGuest(${it.id},'cost',this.value)">
-        <span class="gforg-eq">= ${fmt(lineTotal)} zł</span>
-        <button class="btn-row-del" onclick="deleteGiftForGuest(${it.id})" title="Usuń">&#128465;</button>
-        ${distinctionUI}
-      </div>`;
-    }).join('') || '<div class="gforg-empty">Brak upominków w tej kategorii.</div>';
-    return `<div class="gforg-cat">
-      <div class="gforg-cat-hdr">
-        <span class="gforg-cat-title">${cat.icon} ${cat.label}</span>
-        <span class="gforg-cat-total">${fmt(catTotal)} zł</span>
-        <button class="btn btn-sm btn-primary" onclick="addGiftForGuest('${cat.key}')">+ Upominek</button>
-      </div>
-      <div class="gforg-list">${rows}</div>
-    </div>`;
-  }).join('');
-  c.innerHTML = html;
-  if (sum) sum.innerHTML = `<div class="sum-stat"><span class="sv">${count}</span><span>Upominków</span></div>
-    <div class="sum-stat"><span class="sv">${fmt(grand)} zł</span><span>Łączny koszt</span></div>`;
-}
-
-// ── PROPOZYCJE / LISTA ŻYCZEŃ ──
-function addGiftProposal() {
-  giftProposals.push({ id: nextProposalId++, title:'', desc:'', link:'' });
-  renderGiftProposals(); saveState();
-}
-function updateGiftProposal(id, field, value) {
-  const p = giftProposals.find(x => x.id === id); if (!p) return;
-  p[field] = value;
-  saveState();
-}
-function deleteGiftProposal(id) {
-  giftProposals = giftProposals.filter(x => x.id !== id);
-  renderGiftProposals(); saveState();
-}
-function toggleGiftProposalsPublic(checked) {
-  giftProposalsPublic = !!checked;
-  saveState();
-}
-function renderGiftProposals() {
-  const c = document.getElementById('giftProposalsList'); if (!c) return;
-  const cb = document.getElementById('giftProposalsPublic'); if (cb) cb.checked = !!giftProposalsPublic;
-  if (!giftProposals.length) { c.innerHTML = '<div class="empty-list">Brak propozycji. Kliknij „+ Dodaj propozycję".</div>'; return; }
-  c.innerHTML = '<div class="gprop-list">' + giftProposals.map(p => `
-    <div class="gprop-card">
-      <input class="gprop-title" type="text" value="${esc(p.title)}" placeholder="Tytuł propozycji…" onchange="updateGiftProposal(${p.id},'title',this.value)">
-      <textarea class="gprop-desc" placeholder="Opis (np. Zamiast kwiatów prosimy o wpłatę na podróż)…" onchange="updateGiftProposal(${p.id},'desc',this.value)">${esc(p.desc)}</textarea>
-      <input class="gprop-link" type="url" value="${esc(p.link || '')}" placeholder="🔗 Link (opcjonalnie)…" onchange="updateGiftProposal(${p.id},'link',this.value)">
-      <button class="btn-row-del gprop-del" onclick="deleteGiftProposal(${p.id})" title="Usuń">&#128465;</button>
-    </div>`).join('') + '</div>';
 }
 
 // ── TRANSPORT ──
@@ -7799,7 +7668,6 @@ function _serializeState() {
     nextTableDecoId, nextStaffTableId, expenseOrder,
     roomName, roomMeta, roomElements, nextRoomElementId, budgetData, weddingDate, weddingTime, appConfig,
     scheduleEvents, tasks, vendors, rsvpEntries, gifts,
-    giftsForGuests, nextGiftForId, giftProposals, nextProposalId, giftProposalsPublic,
     vehicles, hotels, payments, transportNotes,
     internalTransport, nextInternalTransportId,
     locationLinksSeeded,
@@ -8214,7 +8082,7 @@ function _pruneBackups() {
 function renderBackupList() {
   const box = document.getElementById('backupList');
   if (!box) return;
-  const backups = _listBackups().slice(0, 3);   // pokazuj tylko 3 ostatnie zapisy
+  const backups = _listBackups();
   if (!backups.length) { box.innerHTML = '<p class="backup-empty">Brak kopii zapasowych. Powstają automatycznie przed migracją danych.</p>'; return; }
   box.innerHTML = backups.map(b => {
     const d = new Date(b.ts);
@@ -8446,13 +8314,6 @@ function _applyEventState(s) {
     rsvpEntries    = s.rsvpEntries    || [];
     rsvpEntries.forEach(e => { if (e.companionName === undefined) e.companionName = ''; });
     gifts          = s.gifts          || [];
-    // Upominki dla gości + propozycje (lista życzeń)
-    giftsForGuests = Array.isArray(s.giftsForGuests) ? s.giftsForGuests : [];
-    giftsForGuests.forEach(it => { if (!Array.isArray(it.guestIds)) it.guestIds = []; if (it.qty === undefined) it.qty = 1; if (it.cost === undefined) it.cost = 0; });
-    nextGiftForId  = s.nextGiftForId  || (giftsForGuests.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftProposals  = Array.isArray(s.giftProposals) ? s.giftProposals : [];
-    nextProposalId = s.nextProposalId || (giftProposals.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftProposalsPublic = !!s.giftProposalsPublic;
     vehicles       = s.vehicles       || [];
     vehicles.forEach(v => { if (v.cost === undefined) v.cost = 0; });
     hotels         = s.hotels         || [];

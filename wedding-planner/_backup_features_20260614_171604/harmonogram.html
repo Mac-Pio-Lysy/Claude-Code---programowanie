@@ -100,16 +100,6 @@
     }
     .it-item-type { font-weight: 700; color: var(--blue-dark); font-size: 0.92rem; }
     .it-item-info { font-size: 0.86rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
-    /* Propozycje prezentów (lista życzeń) */
-    .gp-box { margin-top: 22px; }
-    .gp-item {
-      background: var(--blue-pale); border: 1.5px solid var(--border);
-      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
-    }
-    .gp-item-title { font-weight: 700; color: var(--blue-dark); font-size: 0.95rem; }
-    .gp-item-desc { font-size: 0.88rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
-    .gp-item-link { display: inline-block; margin-top: 8px; font-size: 0.84rem; font-weight: 600; color: var(--blue); text-decoration: none; background: #fff; border: 1.5px solid var(--border); padding: 5px 12px; border-radius: 18px; }
-    .gp-item-link:hover { background: #d8e7fc; }
 
     /* ── Treść ── */
     .flyer-body { padding: 14px 24px 34px; }
@@ -257,7 +247,6 @@
         </div>
       </div>
       <div id="internalTransportBox" class="it-box" style="display:none"></div>
-      <div id="giftProposalsBox" class="gp-box" style="display:none"></div>
     </div>
 
     <div class="qr-section">
@@ -305,13 +294,6 @@
       'przyjazd na wesele': 'https://maps.app.goo.gl/y4iuPfPuRzFuJdkZA',
     };
     function mapLinkFor(ev) {
-      // Priorytet: link ustawiony przy wydarzeniu z zaznaczonym „Pokaż gościom".
-      // (Wcześniej brano tylko predefiniowane linki wg nazwy — dlatego link czasem się nie pokazywał.)
-      const url = (ev.locationUrl || '').trim();
-      if (ev.showLinkToGuests && url) {
-        return /^https?:\/\//i.test(url) ? url : ('https://' + url.replace(/^\/+/, ''));
-      }
-      // Zgodność wstecz: predefiniowane linki wg nazwy wydarzenia
       const key = (ev.name || '').trim().toLowerCase();
       return GUEST_MAP_LINKS[key] || null;
     }
@@ -410,8 +392,7 @@
         const s  = Math.floor((diff % 60000) / 1000);
         if (lbl)  lbl.style.display  = '';
         if (msg)  msg.style.display  = 'none';
-        // Dni, godziny, minuty I sekundy — odliczane na żywo (co sekundę)
-        if (time) { time.style.display = ''; time.textContent = `${d} ${_dayWord(d)} · ${_pad(h)} godz · ${_pad(mn)} min · ${_pad(s)} sek`; }
+        if (time) { time.style.display = ''; time.textContent = `${d} ${_dayWord(d)} ${_pad(h)}:${_pad(mn)}:${_pad(s)}`; }
       } else if (diff > -CEREMONY_DURATION_MS) {
         showMsg('🎉 Właśnie trwa ceremonia!');
       } else {
@@ -447,28 +428,11 @@
         list.map(it => `<div class="it-item"><span class="it-item-type">${icon(it.type)} ${esc(it.type)}</span><div class="it-item-info">${esc(it.info)}</div></div>`).join('');
     }
 
-    // Propozycje prezentów (lista życzeń) — widoczne dla gości TYLKO gdy organizator zaznaczył
-    function renderGiftProposals(data) {
-      const box = document.getElementById('giftProposalsBox');
-      if (!box) return;
-      const show = !!(data && data.giftProposalsPublic);
-      const list = ((data && data.giftProposals) || []).filter(p => (p.title || '').trim() || (p.desc || '').trim());
-      if (!show || !list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
-      box.style.display = '';
-      box.innerHTML = '<div class="section-tag">Propozycje prezentów</div>' +
-        list.map(p => `<div class="gp-item">
-          ${p.title ? `<div class="gp-item-title">🎁 ${esc(p.title)}</div>` : ''}
-          ${p.desc ? `<div class="gp-item-desc">${esc(p.desc)}</div>` : ''}
-          ${(p.link || '').trim() ? `<a class="gp-item-link" target="_blank" rel="noopener" href="${esc(/^https?:\/\//i.test(p.link) ? p.link : 'https://' + p.link.replace(/^\/+/, ''))}">🔗 Zobacz szczegóły</a>` : ''}
-        </div>`).join('');
-    }
-
     function renderSchedule(rawData) {
       const data = _activeEvent(rawData);
       applyPublicConfig(data);
       setupCountdown(data);
       renderInternalTransport(data);
-      renderGiftProposals(data);
       const cont = document.getElementById('scheduleContainer');
       // Pomijamy wydarzenia prywatne — widoczne tylko w panelu organizatora
       const events = ((data && data.scheduleEvents) || []).filter(ev => !ev.private);
@@ -482,27 +446,15 @@
         return;
       }
 
-      // ── DIAGNOSTYKA LINKÓW (konsola): pokazuje dla każdego wydarzenia czy ma link i czy widoczny dla gości ──
-      try {
-        const aid = (rawData && rawData.activeEventId) || '(brak/stary format)';
-        console.group('%c[harmonogram] Diagnostyka linków do map', 'font-weight:bold;color:#1a56db');
-        console.log('Aktywny event:', aid, '· wydarzeń (publicznych):', events.length);
-        events.forEach(ev => {
-          const url = (ev.locationUrl || '').trim();
-          console.log(`• ${ev.name || '(bez nazwy)'} → link: ${url ? '"' + url + '"' : 'BRAK'} · Pokaż gościom: ${ev.showLinkToGuests ? 'TAK' : 'nie'} · wyświetlony: ${mapLinkFor(ev) ? 'TAK' : 'nie'}`);
-        });
-        console.groupEnd();
-      } catch (_) {}
-
       const sorted = sortEvents(events);
       const html = sorted.map(ev => {
         const hh = String(ev.hour).padStart(2, '0');
         const mm = String(ev.minute).padStart(2, '0');
         const icon = SCHED_CATS[ev.category] || '📌';
-        // Link do mapy: gdy wydarzenie ma wpisany URL i zaznaczono „Pokaż gościom" (lub link predefiniowany wg nazwy)
+        // Link do mapy tylko przy ceremonii (kościół) i weselu (sala) — pozostałe bez linku
         const mapUrl = mapLinkFor(ev);
         const locHtml = mapUrl
-          ? `<a class="tl-loc" target="_blank" rel="noopener" href="${mapUrl}">📍 Otwórz mapę / lokalizację</a>`
+          ? `<a class="tl-loc" target="_blank" rel="noopener" href="${mapUrl}">📍 kliknij aby otworzyć mapę</a>`
           : '';
         const descHtml = (ev.description || '').trim()
           ? `<div class="tl-desc">${esc(ev.description)}</div>` : '';

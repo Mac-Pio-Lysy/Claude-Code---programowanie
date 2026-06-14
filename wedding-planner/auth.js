@@ -163,6 +163,8 @@ function _showApp(user) {
   _updateNavUser(user);
   // Przeładuj spersonalizowany układ dashboardu dla zalogowanego użytkownika
   if (typeof onDashboardUserChange === 'function') onDashboardUserChange();
+  // Przewodnik po pierwszym zalogowaniu (per użytkownik)
+  if (typeof maybeStartOnboarding === 'function') setTimeout(maybeStartOnboarding, 700);
 }
 
 function _updateNavUser(user) {

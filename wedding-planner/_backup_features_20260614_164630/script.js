@@ -27,7 +27,7 @@ const EVENT_TYPES = {
   other:        { icon: '🎊', label: 'Inne',         heroTitle: 'Do wydarzenia',    sections: ALL_EVENT_VIEWS.slice() },
 };
 // Widoki zawsze dostępne (zarządzanie aplikacją) niezależnie od typu eventu
-const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard', 'devsettings'];
+const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard'];
 function eventTypeKey() { return EVENT_TYPES[appConfig.eventType] ? appConfig.eventType : 'wedding'; }
 function eventTypeInfo() { return EVENT_TYPES[eventTypeKey()]; }
 function eventTypeLabel() {
@@ -81,33 +81,6 @@ let isEditing = false;           // tryb edycji „Plan sali" (false = podgląd,
 let roomEditSnapshot = null;     // kopia stanu sali do funkcji „Anuluj"
 let isFullscreen = false;        // tryb pełnoekranowy „Plan sali"
 let roomFsScale = 1;             // bieżąca skala dopasowania (fit-to-screen)
-let roomGridOn = false;          // siatka rozmiarów (snap) w planie sali
-const ROOM_GRID = 20;            // krok siatki w px
-let roomScale = 1;               // bieżąca skala kanwy (dopasowanie do okna) — wspólna dla podglądu i edycji
-
-// Rozmiar „pudełka" stołu na kanwie (do wykrywania kolizji)
-function _tableWrapSize(t) {
-  const { tw, th } = rtTableDims(t);
-  const PAD = 20;
-  return { w: tw + PAD * 2, h: th + PAD * 2 + (t.isHonorTable ? 10 : 0) };
-}
-// Czy stół o danym id, ustawiony na (x,y), nachodziłby na inny stół?
-function _tableWouldOverlap(movingId, x, y) {
-  const mt = tables.find(t => t.id === movingId); if (!mt) return false;
-  const ms = _tableWrapSize(mt);
-  return tables.some(o => {
-    if (o.id === movingId) return false;
-    const os = _tableWrapSize(o);
-    return x < o.posX + os.w && x + ms.w > o.posX && y < o.posY + os.h && y + ms.h > o.posY;
-  });
-}
-function toggleRoomGrid() {
-  roomGridOn = !roomGridOn;
-  const canvas = document.getElementById('roomCanvas');
-  if (canvas) canvas.classList.toggle('room-grid-on', roomGridOn);
-  const btn = document.getElementById('roomGridBtn');
-  if (btn) btn.classList.toggle('active', roomGridOn);
-}
 
 const CANVAS_W = 1400;
 const CANVAS_H = 760;
@@ -218,7 +191,6 @@ function _resetGuestForm() {
   c('guestHasCompanion', false); c('guestNeedsAccommodation', false);
   _populateGuestMenuSelect();
   v('guestDiet', '');
-  const hint = document.getElementById('coupleInfoHint'); if (hint) hint.textContent = '';
   _toggleCompanionRow();
   _validateGuestForm();
 }
@@ -240,82 +212,50 @@ function closeGuestFormDirect() {
   if (modal) modal.style.display = 'none';
 }
 
-// Państwo Młodzi (Para Młoda) — dokładnie DWIE osoby
-function _coupleMembers() { return guests.filter(g => (g.category || '') === 'Państwo Młodzi'); }
-function showCoupleInfo() {
-  const m = _coupleMembers();
-  const hint = document.getElementById('coupleInfoHint');
-  let msg;
-  if (!m.length) msg = 'Nie oznaczono jeszcze Pary Młodej (kategoria „Państwo Młodzi").';
-  else msg = '👑 Para Młoda: ' + m.map(g => fullName(g) || 'gość').join(' & ') + (m.length < 2 ? ' (brakuje 1 osoby)' : '');
-  if (hint) hint.textContent = msg;
-  showToast(msg);
-}
-// Wspólny szablon nowego gościa (domyślne pola)
-function _newGuestBase() {
-  return {
-    diet:'standard', dietOther:'', hasCompanion:false, companionName:'',
-    needsAccommodation:false, vehicleId:null, ownTransport:false, hotelId:null,
-    accommodationStatus:null, tableId:null, seatIndex:null, pairId:null,
-    menuChoice:'', preferences:'', allergies:'', cardNotes:'',
-  };
-}
-
 function addGuest() {
   const first = document.getElementById('guestFirstName').value.trim();
   const last  = document.getElementById('guestLastName').value.trim();
   if (!first) { showToast('Podaj imię gościa'); document.getElementById('guestFirstName')?.focus(); return; }
 
-  const category = document.getElementById('guestCategory').value;
-  // Para Młoda = dokładnie dwie osoby (płeć bez znaczenia) — blokada trzeciej
-  if (category === 'Państwo Młodzi' && _coupleMembers().length >= 2) {
-    showToast('Para Młoda to dokładnie dwie osoby — nie można dodać trzeciej.');
-    return;
-  }
-
   const hasCompanion = !!document.getElementById('guestHasCompanion')?.checked;
   const compFirst = (document.getElementById('companionFirstName')?.value || '').trim();
   const compLast  = (document.getElementById('companionLastName')?.value || '').trim();
-  const namedCompanion = hasCompanion && (compFirst || compLast);  // ma dane → osobny gość
-  const invitedBy = document.getElementById('guestInvitedBy')?.value || null;
+  const companionName = hasCompanion ? `${compFirst} ${compLast}`.trim() : '';
 
-  guests.push(Object.assign(_newGuestBase(), {
+  guests.push({
     id: nextGuestId++,
     firstName:  first,
     lastName:   last,
-    category,
+    category:   document.getElementById('guestCategory').value,
     gender:     document.getElementById('guestGender').value,
     photo:      document.getElementById('guestPhoto').value.trim() || null,
-    invitedBy,
+    invitedBy:  document.getElementById('guestInvitedBy')?.value || null,
     witness:    document.getElementById('guestWitness')?.value || null,
-    // osoba towarzysząca: gdy podano dane → dodajemy ją jako osobnego gościa (niżej),
-    // gdy zaznaczono bez danych → zostaje jako znacznik „+1" na tym gościu
-    hasCompanion: hasCompanion && !namedCompanion,
+    diet:       'standard',
+    dietOther:  '',
+    hasCompanion,
+    companionName,
+    needsAccommodation: !!document.getElementById('guestNeedsAccommodation')?.checked,
+    vehicleId:  null,
+    ownTransport: false,
+    hotelId:    null,
+    accommodationStatus: null,
+    tableId:    null,
+    seatIndex:  null,
+    pairId:     null,
+    // Kartoteka gości (rozszerzone informacje)
     menuChoice: document.getElementById('guestDiet')?.value || '',
-  }));
-
-  // Osoba towarzysząca z danymi → od razu osobny gość na liście
-  if (namedCompanion) {
-    guests.push(Object.assign(_newGuestBase(), {
-      id: nextGuestId++,
-      firstName: compFirst,
-      lastName:  compLast,
-      // towarzysząca nie może być Parą Młodą
-      category:  category === 'Państwo Młodzi' ? 'Znajomi' : category,
-      gender:    'K',
-      photo:     null,
-      invitedBy,
-      witness:   null,
-    }));
-  }
+    preferences: '',
+    allergies:  '',
+    cardNotes:  '',
+  });
 
   _resetGuestForm();
   closeGuestFormDirect();
   renderGuests();
   updateStats();
   saveState();
-  const extra = namedCompanion ? ` (+ ${[compFirst, compLast].filter(Boolean).join(' ')})` : '';
-  showToast(`${first}${last ? ' ' + last : ''} dodany/a do listy${extra}`);
+  showToast(`${first}${last ? ' ' + last : ''} dodany/a do listy`);
 }
 
 function removeGuest(guestId) {
@@ -644,11 +584,10 @@ function addTable() {
   const seats = parseInt(document.getElementById('tableSeats')?.value ?? '8');
   const idx = tables.length;
   const pos  = autoTablePos(idx);
-  tables.push({ id: nextTableId++, name, shape, seats, seatsData: new Array(seats).fill(null), posX: pos.x, posY: pos.y, diamM: 0, rectWM: 0, rectLM: 0 });
+  tables.push({ id: nextTableId++, name, shape, seats, seatsData: new Array(seats).fill(null), posX: pos.x, posY: pos.y });
   document.getElementById('tableName').value = '';
   renderTables();
   updateStats();
-  saveState();
 }
 
 function deleteTable(tableId) {
@@ -1253,40 +1192,21 @@ function calcCateringTotal() {
 
 function calcAlcoholTotal()   { return (budgetData.alcoholItems || []).reduce((s, i) => s + (i.bottles || 0) * (i.pricePerBottle || 0), 0); }
 function calcAlcoholBottles() { return (budgetData.alcoholItems || []).reduce((s, i) => s + (i.bottles || 0), 0); }
-// Napoje bezalkoholowe — sumy
-function calcSoftTotal()   { return (budgetData.softItems || []).reduce((s, i) => s + (i.bottles || 0) * (i.pricePerBottle || 0), 0); }
-function calcSoftBottles() { return (budgetData.softItems || []).reduce((s, i) => s + (i.bottles || 0), 0); }
-// Liczba osób do przeliczeń na osobę (opcjonalnie z gośćmi wirtualnymi = min. sali)
-function _bevPersonCount(useVirtual) {
-  const real = guests.length;
-  const virt = useVirtual ? getVirtualGuests() : 0;
-  return real + virt;
-}
 
-function calcExpensesPlanned()    { return budgetData.expenses.reduce((s, e) => s + (e.planned         || 0), 0) + calcAlcoholTotal() + calcSoftTotal(); }
+function calcExpensesPlanned()    { return budgetData.expenses.reduce((s, e) => s + (e.planned         || 0), 0) + calcAlcoholTotal(); }
 function calcExpensesPaid()       { return budgetData.expenses.reduce((s, e) => s + (e.paid             || 0), 0); }
 function calcExpensesEstimated()  { return budgetData.expenses.reduce((s, e) => s + (e.estimatedAmount  || 0), 0); }
-function calcExpensesEffective()  { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0) + calcAlcoholTotal() + calcSoftTotal(); }
-
-// ── Koszty zewnętrzne wchodzące do podsumowania budżetu (Dostawcy/Hotele/Transport) ──
-// Dostawcy powiązani z budżetem są już liczeni jako wydatki — pomijamy ich tu, by nie liczyć podwójnie.
-function calcVendorsExternalTotal() { return vendors.filter(v => !v.isBudgetLinked).reduce((s, v) => s + (v.price || 0), 0); }
-function calcVendorsExternalPaid()  { return vendors.filter(v => !v.isBudgetLinked).reduce((s, v) => s + _vendorInstallmentSums(v).paid, 0); }
-function calcHotelsTotal()    { return hotels.reduce((s, h) => s + ((h.pricePerNight || 0) * (h.personsPerRoom || 1)), 0); }
-function calcTransportTotal() { return vehicles.reduce((s, v) => s + (v.cost || 0), 0); }
-function calcExternalTotal()  { return calcVendorsExternalTotal() + calcHotelsTotal() + calcTransportTotal(); }
+function calcExpensesEffective()  { return budgetData.expenses.reduce((s, e) => s + _payEffective(e.planned || 0, e.estimatedAmount || 0), 0) + calcAlcoholTotal(); }
 
 // ── BUDGET VIEW ──
 function renderBudget() {
   renderTableCosts();
   renderExpenses();
   renderAlcohol();
-  renderSoftDrinks();
   renderHoneymoon();
   renderCostBreakdown();
   renderCoupleSummary();
   renderCostPerTable();
-  renderExternalCosts();
   renderBudgetOverview();
   renderCharts();
   setTimeout(initMobileCollapse, 0);
@@ -1301,11 +1221,9 @@ function renderBudgetOverview() {
   const hmConfirmed      = h.totalAmount || 0;
   const hmEffective      = _payEffective(h.totalAmount || 0, h.estimatedAmount || 0);
   const honeymoonPaid    = calcHoneymoonPaid();
-  const external         = calcExternalTotal();          // Dostawcy (niepowiązani) + Hotele + Transport
-  const externalPaid     = calcVendorsExternalPaid();
-  const totalConfirmed   = catering + expConfirmed + hmConfirmed + external;
-  const totalEffective   = catering + expEffective + hmEffective + external;
-  const totalPaid        = expPaid + honeymoonPaid + externalPaid;
+  const totalConfirmed   = catering + expConfirmed + hmConfirmed;
+  const totalEffective   = catering + expEffective + hmEffective;
+  const totalPaid        = expPaid + honeymoonPaid;
   const hasEstimates     = totalEffective > totalConfirmed;
   const planForCalc      = hasEstimates ? totalEffective : totalConfirmed;
   const remaining        = Math.max(0, planForCalc - totalPaid);
@@ -1359,29 +1277,6 @@ function onBudgetTotalChange(val) {
   budgetData.total = parseFloat(val) || 0;
   renderBudgetOverview();
   saveState();
-}
-
-// Read-only podsumowanie kosztów zewnętrznych (Dostawcy / Noclegi / Transport)
-function renderExternalCosts() {
-  const el = document.getElementById('externalCostsCard');
-  if (!el) return;
-  const vTotal = calcVendorsExternalTotal();
-  const hTotal = calcHotelsTotal();
-  const tTotal = calcTransportTotal();
-  const grand  = vTotal + hTotal + tTotal;
-  const vendorRows = vendors.filter(v => !v.isBudgetLinked).map(v => {
-    const s = _vendorInstallmentSums(v);
-    return `<div class="ext-row"><span>${esc(vendorLabel(v))}</span><span>${fmt(v.price||0)} zł${s.paid ? ` <small>(zapł. ${fmt(s.paid)})</small>` : ''}</span></div>`;
-  }).join('') || '<div class="ext-empty">Brak (lub wszyscy powiązani z budżetem).</div>';
-  const hotelRows = hotels.map(h => `<div class="ext-row"><span>${esc(h.name||'Hotel')}${h.inComplex ? ' 🏨' : ''}</span><span>${fmt((h.pricePerNight||0)*(h.personsPerRoom||1))} zł/noc</span></div>`).join('') || '<div class="ext-empty">Brak hoteli.</div>';
-  const transRows = vehicles.map(v => `<div class="ext-row"><span>${esc(v.description||v.type||'Pojazd')}</span><span>${fmt(v.cost||0)} zł</span></div>`).join('') || '<div class="ext-empty">Brak pojazdów.</div>';
-  el.innerHTML = `
-    <div class="extra-card-title">🔗 Koszty zewnętrzne (podgląd)</div>
-    <p class="ext-note">Wliczają się do całkowitego podsumowania budżetu. Edycja w sekcjach Dostawcy / Noclegi / Transport. Dostawcy powiązani z budżetem są liczeni jako wydatki.</p>
-    <div class="ext-block"><div class="ext-block-hdr"><span>👨‍🍳 Dostawcy</span><b>${fmt(vTotal)} zł</b></div>${vendorRows}</div>
-    <div class="ext-block"><div class="ext-block-hdr"><span>🏨 Noclegi</span><b>${fmt(hTotal)} zł</b></div>${hotelRows}</div>
-    <div class="ext-block"><div class="ext-block-hdr"><span>🚗 Transport</span><b>${fmt(tTotal)} zł</b></div>${transRows}</div>
-    <div class="ext-grand">Razem koszty zewnętrzne: <b>${fmt(grand)} zł</b></div>`;
 }
 
 // ── TABLE COSTS ──
@@ -1754,6 +1649,7 @@ function renderRoomStaffTable(t) {
 }
 
 function startRoomStaffTableDrag(e, id) {
+  if (!isEditing) return;
   if (e.button !== 0) return;
   e.preventDefault();
   const t = staffTables.find(x => x.id === id);
@@ -2563,11 +2459,6 @@ function renderAlcohol() {
   const splitP2 = budgetData.alcoholSplitP2 || 0;
   const splitSum = splitP1 + splitP2;
   const overWarn = splitSum > totalCost + 0.01 && totalCost > 0;
-  // Przeliczenie na osobę (opcjonalnie z gośćmi wirtualnymi)
-  const perVirt   = !!budgetData.alcoholPerPersonVirtual;
-  const pc        = _bevPersonCount(perVirt);
-  const perBottles= pc ? (totalBottles / pc) : 0;
-  const perCost   = pc ? (totalCost / pc) : 0;
 
   summaryEl.innerHTML = `
   <div class="alcohol-summary">
@@ -2581,18 +2472,7 @@ function renderAlcohol() {
         <div class="alc-sum-stat-val alc-cost-val">${fmt(totalCost)} zł</div>
         <div class="alc-sum-stat-lbl">łączny koszt</div>
       </div>
-      <div class="alc-sum-stat-sep"></div>
-      <div class="alc-sum-stat">
-        <div class="alc-sum-stat-val">${pc ? perBottles.toFixed(2) : '—'}</div>
-        <div class="alc-sum-stat-lbl">butelek / os.</div>
-      </div>
-      <div class="alc-sum-stat-sep"></div>
-      <div class="alc-sum-stat">
-        <div class="alc-sum-stat-val alc-cost-val">${pc ? fmt(perCost) + ' zł' : '—'}</div>
-        <div class="alc-sum-stat-lbl">koszt / os.${pc ? ' (' + pc + ' os.)' : ''}</div>
-      </div>
     </div>
-    <label class="bev-perperson-toggle"><input type="checkbox" ${perVirt ? 'checked' : ''} onchange="updateAlcoholSplit('alcoholPerPersonVirtual', this.checked)"> Uwzględniaj gości wirtualnych (min. sali) w przeliczeniu na osobę</label>
     <div class="alc-split-section">
       <div class="alc-split-title">&#9878; Podział kosztów</div>
       <div class="alc-split-row">
@@ -2609,135 +2489,6 @@ function renderAlcohol() {
           <div class="exp-input-wrap">
             <input type="number" value="${splitP2||''}" min="0" step="0.01" placeholder="0,00"
                    onchange="updateAlcoholSplit('alcoholSplitP2',parseFloat(this.value)||0)">
-            <span class="currency-sm">zł</span>
-          </div>
-        </div>
-      </div>
-      ${overWarn ? `<div class="alc-split-warn">&#9888; Suma podziału (${fmt(splitSum)} zł) przekracza łączny koszt (${fmt(totalCost)} zł)</div>` : ''}
-    </div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════════
-//  NAPOJE BEZALKOHOLOWE — sekcja analogiczna do alkoholu
-// ══════════════════════════════════════════════════════
-const SOFT_TYPES = ['Woda','Soki','Napoje gazowane','Kawa / Herbata','Energetyki','Inne'];
-function addSoftDrink() {
-  if (!budgetData.softItems) budgetData.softItems = [];
-  budgetData.softItems.push({
-    id: budgetData.nextSoftId = (budgetData.nextSoftId || 0) + 1,
-    type: 'Woda', name: '', bottles: 0, pricePerBottle: 0,
-  });
-  renderSoftDrinks(); renderBudgetOverview(); renderCharts(); saveState();
-}
-function updateSoftDrink(id, field, value) {
-  const item = (budgetData.softItems || []).find(i => i.id === id);
-  if (!item) return;
-  item[field] = value;
-  renderSoftDrinks(); renderBudgetOverview(); renderCharts(); saveState();
-}
-function updateSoftSplit(field, value) {
-  budgetData[field] = value;
-  renderSoftDrinks(); saveState();
-}
-function deleteSoftDrink(id) {
-  budgetData.softItems = (budgetData.softItems || []).filter(i => i.id !== id);
-  renderSoftDrinks(); renderBudgetOverview(); renderCharts(); saveState();
-}
-function renderSoftDrinks() {
-  const listEl    = document.getElementById('softList');
-  const summaryEl = document.getElementById('softSummary');
-  if (!listEl || !summaryEl) return;
-  const items = budgetData.softItems || [];
-  if (!items.length) {
-    listEl.innerHTML    = '<div class="alcohol-empty">Kliknij + Dodaj, aby dodać napoje bezalkoholowe.</div>';
-    summaryEl.innerHTML = '';
-    return;
-  }
-  listEl.innerHTML = items.map(item => {
-    const total    = (item.bottles || 0) * (item.pricePerBottle || 0);
-    const typeOpts = SOFT_TYPES.map(t => `<option value="${t}"${item.type === t ? ' selected' : ''}>${t}</option>`).join('');
-    return `
-    <div class="alcohol-item-row" id="soft-${item.id}">
-      <div class="alc-row-top">
-        <select class="alc-type-sel" onchange="updateSoftDrink(${item.id},'type',this.value)">${typeOpts}</select>
-        <input type="text" class="alc-name-inp" value="${esc(item.name||'')}" placeholder="Marka / nazwa (opcjonalnie)"
-               onchange="updateSoftDrink(${item.id},'name',this.value)">
-        <button class="btn-alc-del" onclick="deleteSoftDrink(${item.id})" title="Usuń">&#128465;</button>
-      </div>
-      <div class="alc-row-bottom">
-        <div class="alc-field">
-          <label>Sztuki</label>
-          <input type="number" class="alc-num-inp" value="${item.bottles||''}" min="0" step="1" placeholder="0"
-                 onchange="updateSoftDrink(${item.id},'bottles',parseFloat(this.value)||0)">
-        </div>
-        <div class="alc-operator">×</div>
-        <div class="alc-field">
-          <label>Cena/szt. (zł)</label>
-          <input type="number" class="alc-num-inp" value="${item.pricePerBottle||''}" min="0" step="0.01" placeholder="0,00"
-                 onchange="updateSoftDrink(${item.id},'pricePerBottle',parseFloat(this.value)||0)">
-        </div>
-        <div class="alc-operator">=</div>
-        <div class="alc-total-wrap">
-          <label>Łącznie</label>
-          <span class="alc-total-val">${fmt(total)} zł</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-
-  const totalBottles = calcSoftBottles();
-  const totalCost    = calcSoftTotal();
-  const [p1Name, p2Name] = budgetData.coupleNames || ['Osoba 1', 'Osoba 2'];
-  const splitP1 = budgetData.softSplitP1 || 0;
-  const splitP2 = budgetData.softSplitP2 || 0;
-  const splitSum = splitP1 + splitP2;
-  const overWarn = splitSum > totalCost + 0.01 && totalCost > 0;
-  const perVirt   = !!budgetData.softPerPersonVirtual;
-  const pc        = _bevPersonCount(perVirt);
-  const perBottles= pc ? (totalBottles / pc) : 0;
-  const perCost   = pc ? (totalCost / pc) : 0;
-
-  summaryEl.innerHTML = `
-  <div class="alcohol-summary">
-    <div class="alc-sum-stats">
-      <div class="alc-sum-stat">
-        <div class="alc-sum-stat-val">${totalBottles}</div>
-        <div class="alc-sum-stat-lbl">sztuk łącznie</div>
-      </div>
-      <div class="alc-sum-stat-sep"></div>
-      <div class="alc-sum-stat">
-        <div class="alc-sum-stat-val alc-cost-val">${fmt(totalCost)} zł</div>
-        <div class="alc-sum-stat-lbl">łączny koszt</div>
-      </div>
-      <div class="alc-sum-stat-sep"></div>
-      <div class="alc-sum-stat">
-        <div class="alc-sum-stat-val">${pc ? perBottles.toFixed(2) : '—'}</div>
-        <div class="alc-sum-stat-lbl">sztuk / os.</div>
-      </div>
-      <div class="alc-sum-stat-sep"></div>
-      <div class="alc-sum-stat">
-        <div class="alc-sum-stat-val alc-cost-val">${pc ? fmt(perCost) + ' zł' : '—'}</div>
-        <div class="alc-sum-stat-lbl">koszt / os.${pc ? ' (' + pc + ' os.)' : ''}</div>
-      </div>
-    </div>
-    <label class="bev-perperson-toggle"><input type="checkbox" ${perVirt ? 'checked' : ''} onchange="updateSoftSplit('softPerPersonVirtual', this.checked)"> Uwzględniaj gości wirtualnych (min. sali) w przeliczeniu na osobę</label>
-    <div class="alc-split-section">
-      <div class="alc-split-title">&#9878; Podział kosztów</div>
-      <div class="alc-split-row">
-        <div class="alc-split-col">
-          <label>${esc(p1Name)}</label>
-          <div class="exp-input-wrap">
-            <input type="number" value="${splitP1||''}" min="0" step="0.01" placeholder="0,00"
-                   onchange="updateSoftSplit('softSplitP1',parseFloat(this.value)||0)">
-            <span class="currency-sm">zł</span>
-          </div>
-        </div>
-        <div class="alc-split-col">
-          <label>${esc(p2Name)}</label>
-          <div class="exp-input-wrap">
-            <input type="number" value="${splitP2||''}" min="0" step="0.01" placeholder="0,00"
-                   onchange="updateSoftSplit('softSplitP2',parseFloat(this.value)||0)">
             <span class="currency-sm">zł</span>
           </div>
         </div>
@@ -3346,7 +3097,7 @@ function switchView(view) {
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
     gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
-    guestcard: 'viewGuestCard', devsettings: 'viewDevSettings',
+    guestcard: 'viewGuestCard',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -3373,10 +3124,10 @@ function switchView(view) {
   closeNavGroups();
 
   // Widoki z menu ustawień (trybik) — podświetl trybik zamiast zakładki nav
-  const settingsViews = ['config', 'access', 'guestcard', 'devsettings'];
+  const settingsViews = ['config', 'access', 'guestcard'];
   const gearBtn = document.getElementById('settingsGearBtn');
   if (gearBtn) gearBtn.classList.toggle('active', settingsViews.includes(view));
-  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard', devsettings: 'setItemDevSettings' };
+  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard' };
   document.querySelectorAll('.settings-menu-item').forEach(el => el.classList.remove('active'));
   const setItem = document.getElementById(setItemIds[view]);
   if (setItem) setItem.classList.add('active');
@@ -3402,7 +3153,6 @@ function switchView(view) {
     case 'access':        renderAccessView();    break;
     case 'config':        renderConfigView();    break;
     case 'guestcard':     renderGuestCard();     break;
-    case 'devsettings':   if (typeof renderBackupList === 'function') renderBackupList(); break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
     case 'rsvp':          renderRsvpPanel();     break;
@@ -3430,20 +3180,14 @@ function autoTablePos(index) {
 
 // Returns { tw, th } — inner table dimensions in room plan
 function rtTableDims(t) {
-  const ppm = (roomMeta.widthM > 0) ? roomPxPerMeter() : 40;
   if (t.shape === 'round') {
-    // Priorytet: rozmiar per-stół (diamM) → globalna średnica → wg liczby miejsc
-    if (t.diamM > 0) { const d = Math.max(50, Math.min(500, t.diamM * ppm)); return { tw: d, th: d }; }
+    // Gdy podano średnicę stołów i szerokość sali — rysuj w skali (metry → px)
     if (roomMeta.tableDiameterM > 0 && roomMeta.widthM > 0) {
       const d = Math.max(50, Math.min(400, roomMeta.tableDiameterM * roomPxPerMeter()));
       return { tw: d, th: d };
     }
     const d = Math.max(86, 58 + t.seats * 5);
     return { tw: d, th: d };
-  }
-  // prostokątny — per-stół wymiary (rectWM × rectLM) lub wg liczby miejsc
-  if (t.rectWM > 0 && t.rectLM > 0) {
-    return { tw: Math.max(60, Math.min(700, t.rectWM * ppm)), th: Math.max(40, Math.min(500, t.rectLM * ppm)) };
   }
   return { tw: Math.max(118, 68 + t.seats * 9), th: 76 };
 }
@@ -3640,7 +3384,7 @@ function renderRoom() {
   const elementHtml    = roomElements.map(renderRoomElement).join('');
   canvas.innerHTML = `<div class="room-canvas-label">${esc(roomName)}</div>${dimLabel}${elementHtml}${tableHtml}${staffTableHtml}`;
   _applyRoomEditUI();
-  _applyRoomFit();        // dopasowanie do okna (podgląd i edycja) lub pełny ekran
+  _applyRoomFit();        // dopasowanie do okna (podgląd) lub pełny ekran; edycja = naturalny rozmiar
   _updateRoomFsBtn();
 }
 
@@ -3734,7 +3478,7 @@ function selectRoomElement(id) {
 
 // Klik w pustą część kanwy odznacza element
 function roomCanvasMouseDown(e) {
-  if (roomElementDrag || roomElementResize || roomDrag || roomStaffDrag) return;   // właśnie zaczęło się przeciąganie
+  if (roomElementDrag || roomElementResize) return;   // właśnie zaczął się drag/resize elementu
   if (e.target.closest('.rt-element-wrap')) return;
   if (selectedRoomElementId !== null) { selectedRoomElementId = null; renderRoom(); }
 }
@@ -3867,7 +3611,6 @@ function enterRoomEdit() {
   selectedRoomElementId = null;
   renderRoom();
   renderTables();
-  _scheduleRoomRefit();        // przelicz dopasowanie po slide-down paneli
 }
 
 function saveRoomEdit() {
@@ -3877,7 +3620,6 @@ function saveRoomEdit() {
   saveState();                 // utrwal layout (localStorage + Firestore)
   renderRoom();
   renderTables();
-  _scheduleRoomRefit();
   showToast('Zapisano plan sali');
 }
 
@@ -3889,7 +3631,6 @@ function cancelRoomEdit() {
   saveState();                 // utrwal przywrócony stan
   renderRoom();
   renderTables();
-  _scheduleRoomRefit();
   showToast('Anulowano zmiany');
 }
 
@@ -3906,7 +3647,6 @@ function _fitRoomToScreen() {
   // CANVAS_W × roomCanvasH odzwierciedlają proporcje sali (widthM × lengthM)
   const s = Math.max(0.1, Math.min(availW / CANVAS_W, availH / roomCanvasH));
   roomFsScale = s;
-  roomScale = s;
   canvas.style.transformOrigin = 'center center';
   canvas.style.transform = 'scale(' + s + ')';
 }
@@ -3928,13 +3668,11 @@ function _fitRoomPreview() {
   const innerH = Math.max(50, availH - padY);
   // CANVAS_W × roomCanvasH zachowują proporcje sali (widthM × lengthM)
   const s = Math.max(0.05, Math.min(innerW / CANVAS_W, innerH / roomCanvasH));
-  roomScale = s;
   canvas.style.transformOrigin = 'center center';
   canvas.style.transform = 'scale(' + s + ')';
 }
 
-// Wybiera właściwe dopasowanie zależnie od trybu.
-// Podgląd ORAZ edycja: kanwa dopasowana do okna (wyśrodkowana, proporcje sali, bez wychodzenia poza ekran).
+// Wybiera właściwe dopasowanie zależnie od trybu (pełny ekran / podgląd / edycja)
 function _applyRoomFit() {
   const wrap   = document.getElementById('roomCanvasWrapper');
   const canvas = document.getElementById('roomCanvas');
@@ -3942,21 +3680,19 @@ function _applyRoomFit() {
   if (isFullscreen) {
     wrap.classList.remove('room-fit'); wrap.style.height = '';
     _fitRoomToScreen();
-  } else {
-    wrap.classList.add('room-fit');
+  } else if (!isEditing) {
+    wrap.classList.add('room-fit');                // podgląd: auto-dopasowanie
     _fitRoomPreview();
+  } else {
+    // tryb edycji: naturalny rozmiar + przewijanie (precyzyjna edycja)
+    wrap.classList.remove('room-fit'); wrap.style.height = '';
+    canvas.style.transform = ''; canvas.style.transformOrigin = '';
   }
 }
 
-// Ponowne dopasowanie po animacjach (np. slide-down paneli konfiguracji w trybie edycji)
-function _scheduleRoomRefit() {
-  setTimeout(() => { if (currentView === 'room') _applyRoomFit(); }, 80);
-  setTimeout(() => { if (currentView === 'room') _applyRoomFit(); }, 460);
-}
-
-// Przelicz dopasowanie przy zmianie rozmiaru okna (always-on; podgląd i edycja, też na mobile)
+// Przelicz dopasowanie podglądu przy zmianie rozmiaru okna (always-on, działa też na mobile)
 window.addEventListener('resize', () => {
-  if (currentView === 'room' && !isFullscreen) _fitRoomPreview();
+  if (currentView === 'room' && !isFullscreen && !isEditing) _fitRoomPreview();
 });
 
 // Stały referencyjny handler ESC (ten sam obiekt do add/removeEventListener)
@@ -4048,6 +3784,7 @@ function hideGuestTooltip() {
 
 // ── ROOM TABLE DRAG ──
 function startRoomTableDrag(e, tableId) {
+  if (!isEditing) return;
   if (e.button !== 0) return;
   if (roomGuestDrag) return; // guest drag in progress — don't move table
   e.preventDefault();
@@ -4058,24 +3795,17 @@ function startRoomTableDrag(e, tableId) {
 }
 
 document.addEventListener('mousemove', e => {
-  const _sc = roomScale || 1;   // kompensacja skali dopasowania (podgląd/edycja/pełny ekran)
+  const _sc = isFullscreen ? roomFsScale : 1;   // kompensacja skali fit-to-screen
   if (roomDrag) {
     const t  = tables.find(x => x.id === roomDrag.tableId);
     const el = document.querySelector(`.rt-wrap[data-id="${roomDrag.tableId}"]`);
     if (t && el) {
       const dx = (e.clientX - roomDrag.startMouseX) / _sc;
       const dy = (e.clientY - roomDrag.startMouseY) / _sc;
-      // ograniczenie do obrysu sali (kanwy)
-      let nx = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomDrag.startPosX + dx));
-      let ny = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomDrag.startPosY + dy));
-      // snap do siatki, jeśli włączona
-      if (roomGridOn) { nx = Math.round(nx / ROOM_GRID) * ROOM_GRID; ny = Math.round(ny / ROOM_GRID) * ROOM_GRID; }
-      // blokada nachodzenia stołów — zastosuj tylko gdy brak kolizji
-      if (!_tableWouldOverlap(roomDrag.tableId, nx, ny)) {
-        t.posX = nx; t.posY = ny;
-        el.style.left = nx + 'px';
-        el.style.top  = ny + 'px';
-      }
+      t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomDrag.startPosX + dx));
+      t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomDrag.startPosY + dy));
+      el.style.left = t.posX + 'px';
+      el.style.top  = t.posY + 'px';
     }
   }
   if (roomStaffDrag) {
@@ -4173,12 +3903,6 @@ let rsvpEntries    = [];
 let nextRsvpId     = 1;
 let gifts          = [];
 let nextGiftId     = 1;
-let giftsForGuests = [];        // upominki dla gości: {id, category, name, qty, cost, guestIds[]}
-let nextGiftForId  = 1;
-let giftProposals  = [];        // propozycje/lista życzeń: {id, title, desc, link}
-let nextProposalId = 1;
-let giftProposalsPublic = false; // czy pokazać propozycje gościom na /harmonogram
-let giftsTab       = 'received'; // 'received' | 'forguests' | 'proposals'
 let vehicles       = [];
 let nextVehicleId  = 1;
 let hotels         = [];
@@ -5130,37 +4854,8 @@ function addVendor() {
   if (cf) cf.value = '';
   if (sf) sf.value = '';
   vendors.push({id:nextVendorId++,category:'Fotograf',customCategory:'',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:'',mapUrl:'',
-    isBudgetLinked:false,contractAmount:0,budgetCategory:'',budgetExpenseId:null,installments:[]});
+    isBudgetLinked:false,contractAmount:0,budgetCategory:'',budgetExpenseId:null});
   renderVendors(); saveState();
-}
-
-// ── Raty dostawcy (płatności częściowe: zadatek, 1 rata, 2 rata…) ──
-function _nextInstId(arr) { return (arr || []).reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1); }
-function addVendorInstallment(vendorId) {
-  const v = vendors.find(x => x.id === vendorId); if (!v) return;
-  if (!Array.isArray(v.installments)) v.installments = [];
-  const n = v.installments.length;
-  const label = n === 0 ? 'Zadatek' : `${n}. rata`;
-  v.installments.push({ id: _nextInstId(v.installments), label, amount: 0, dueDate: '', status: 'due' });
-  renderVendors(); saveState();
-}
-function updateVendorInstallment(vendorId, instId, field, value) {
-  const v = vendors.find(x => x.id === vendorId); if (!v) return;
-  const it = (v.installments || []).find(x => x.id === instId); if (!it) return;
-  it[field] = field === 'amount' ? (parseFloat(value) || 0) : value;
-  renderVendors(); saveState();
-}
-function deleteVendorInstallment(vendorId, instId) {
-  const v = vendors.find(x => x.id === vendorId); if (!v) return;
-  v.installments = (v.installments || []).filter(x => x.id !== instId);
-  renderVendors(); saveState();
-}
-// Suma rat zapłaconych / pozostałych
-function _vendorInstallmentSums(v) {
-  const list = v.installments || [];
-  const total = list.reduce((s, i) => s + (i.amount || 0), 0);
-  const paid  = list.filter(i => i.status === 'paid').reduce((s, i) => s + (i.amount || 0), 0);
-  return { total, paid, remaining: Math.max(0, total - paid) };
 }
 function updateVendor(id,field,value) {
   const v=vendors.find(x=>x.id===id);
@@ -5273,28 +4968,6 @@ function renderVendors() {
         <input class="vendor-price" type="number" value="${v.price||0}" min="0" onchange="updateVendor(${v.id},'price',this.value)"> zł
         <select class="vendor-status" onchange="updateVendor(${v.id},'paymentStatus',this.value)">${stOpts}</select>
       </div>
-      ${(() => {
-        const list = v.installments || [];
-        const sums = _vendorInstallmentSums(v);
-        const rows = list.map(it => `
-          <div class="vi-row">
-            <input class="vi-label" type="text" value="${esc(it.label||'')}" placeholder="np. Zadatek / 1. rata" onchange="updateVendorInstallment(${v.id},${it.id},'label',this.value)">
-            <input class="vi-amount" type="number" min="0" value="${it.amount||0}" onchange="updateVendorInstallment(${v.id},${it.id},'amount',this.value)" title="Kwota (zł)">
-            <input class="vi-date" type="date" value="${esc(it.dueDate||'')}" onchange="updateVendorInstallment(${v.id},${it.id},'dueDate',this.value)" title="Termin">
-            <select class="vi-status ${it.status==='paid'?'vi-paid':''}" onchange="updateVendorInstallment(${v.id},${it.id},'status',this.value)">
-              <option value="due"${it.status!=='paid'?' selected':''}>Do zapłaty</option>
-              <option value="paid"${it.status==='paid'?' selected':''}>Zapłacona</option>
-            </select>
-            <button class="btn-row-del" onclick="deleteVendorInstallment(${v.id},${it.id})" title="Usuń ratę">&#128465;</button>
-          </div>`).join('');
-        return `<div class="vendor-installments">
-          <div class="vi-hdr"><span>&#128181; Raty / płatności częściowe</span>
-            <button class="btn btn-sm btn-primary" onclick="addVendorInstallment(${v.id})">+ Rata</button>
-          </div>
-          <div class="vi-list">${rows}</div>
-          ${list.length ? `<div class="vi-summary">Zapłacono: <b class="vi-paid-sum">${fmt(sums.paid)} zł</b> · Pozostało: <b class="vi-rem-sum">${fmt(sums.remaining)} zł</b> · Suma rat: ${fmt(sums.total)} zł</div>` : ''}
-        </div>`;
-      })()}
       <textarea class="vendor-notes" placeholder="Notatki…" onchange="updateVendor(${v.id},'notes',this.value)">${esc(v.notes)}</textarea>
     </div>`;
   }).join('')+'</div>';
@@ -5367,7 +5040,6 @@ function _buildRsvpGroups() {
   for (const g of guests) {
     if (shown.has(g.id)) continue;
     shown.add(g.id);
-    if ((g.category || '') === 'Państwo Młodzi') continue;  // Para Młoda nie wymaga potwierdzenia RSVP
     if (g.pairId !== null) {
       const pair = pairs.find(p => p.id === g.pairId);
       if (pair) {
@@ -5462,8 +5134,7 @@ function renderRsvpPanel() {
 
   const attending = rsvpEntries.filter(e => e.guestId && e.status === 'attending').length;
   const notAtt    = rsvpEntries.filter(e => e.guestId && e.status === 'not_attending').length;
-  // Para Młoda (Państwo Młodzi) nie wymaga potwierdzenia — pomiń w statystyce „brak odpowiedzi"
-  const noReply   = guests.filter(g => (g.category||'') !== 'Państwo Młodzi' && !rsvpEntries.some(e => e.guestId === g.id)).length;
+  const noReply   = guests.filter(g => !rsvpEntries.some(e => e.guestId === g.id)).length;
   statsRow.innerHTML = `
     <div class="rsvp-stat rsvp-att"><span class="rsn">${attending}</span><span>Przyjdą</span></div>
     <div class="rsvp-stat rsvp-not"><span class="rsn">${notAtt}</span><span>Nie przyjdą</span></div>
@@ -5504,25 +5175,7 @@ function _refreshGiftsSummary() {
     <div class="sum-stat"><span class="sv">${fmt(total)} zł</span><span>Łączna wartość</span></div>
     <div class="sum-stat"><span class="sv">${thanked}/${gifts.length}</span><span>Podziękowano</span></div>`;
 }
-// ── Zakładki prezentów ──
-function switchGiftsTab(tab) {
-  giftsTab = tab;
-  ['received','forguests','proposals'].forEach(t => {
-    const btn = document.getElementById('gtab-' + t);
-    if (btn) btn.classList.toggle('active', t === tab);
-    const panel = document.getElementById('gtabPanel-' + t);
-    if (panel) panel.style.display = (t === tab) ? '' : 'none';
-  });
-  renderGifts();
-}
-
 function renderGifts() {
-  renderGiftsReceived();
-  renderGiftsForGuests();
-  renderGiftProposals();
-}
-
-function renderGiftsReceived() {
   const c=document.getElementById('giftsList'); if(!c) return;
   _refreshGiftsSummary();
   if(!gifts.length){c.innerHTML='<div class="empty-list">Brak prezentów.</div>';return;}
@@ -5546,116 +5199,10 @@ function renderGiftsReceived() {
   </div>`).join('')+'</div>';
 }
 
-// ── UPOMINKI DLA GOŚCI ──
-const GIFT_GUEST_CATS = [
-  { key:'guests',     label:'Goście',      icon:'🎁' },
-  { key:'witnesses',  label:'Świadkowie',  icon:'🤝' },
-  { key:'parents',    label:'Rodzice',     icon:'👪' },
-  { key:'distinction',label:'Wyróżnienie', icon:'⭐' },
-];
-function addGiftForGuest(catKey) {
-  giftsForGuests.push({ id: nextGiftForId++, category: catKey, name:'', qty:1, cost:0, guestIds:[] });
-  renderGiftsForGuests(); saveState();
-}
-function updateGiftForGuest(id, field, value) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it) return;
-  it[field] = (field === 'qty' || field === 'cost') ? (parseFloat(value) || 0) : value;
-  renderGiftsForGuests(); saveState();
-}
-function deleteGiftForGuest(id) {
-  giftsForGuests = giftsForGuests.filter(x => x.id !== id);
-  renderGiftsForGuests(); saveState();
-}
-function addDistinctionGuest(id, guestId) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it || !guestId) return;
-  const gid = parseInt(guestId);
-  if (!it.guestIds.includes(gid)) it.guestIds.push(gid);
-  renderGiftsForGuests(); saveState();
-}
-function removeDistinctionGuest(id, guestId) {
-  const it = giftsForGuests.find(x => x.id === id); if (!it) return;
-  it.guestIds = it.guestIds.filter(g => g !== parseInt(guestId));
-  renderGiftsForGuests(); saveState();
-}
-function renderGiftsForGuests() {
-  const c = document.getElementById('giftsForGuestsList'); if (!c) return;
-  const sum = document.getElementById('giftsForGuestsSummary');
-  let grand = 0, count = 0;
-  const html = GIFT_GUEST_CATS.map(cat => {
-    const items = giftsForGuests.filter(it => it.category === cat.key);
-    const catTotal = items.reduce((s, it) => s + (it.qty || 0) * (it.cost || 0), 0);
-    grand += catTotal; count += items.length;
-    const rows = items.map(it => {
-      const lineTotal = (it.qty || 0) * (it.cost || 0);
-      const distinctionUI = cat.key === 'distinction' ? `
-        <div class="gforg-distinction">
-          <div class="gforg-chips">
-            ${(it.guestIds || []).map(gid => { const g = guests.find(x => x.id === gid); return g ? `<span class="gforg-chip">${esc(fullName(g) || 'Gość')}<button onclick="removeDistinctionGuest(${it.id},${gid})" title="Usuń">✕</button></span>` : ''; }).join('') || '<span class="gforg-chip-empty">Brak wybranych osób</span>'}
-          </div>
-          <select class="gforg-guestsel" onchange="if(this.value){addDistinctionGuest(${it.id},this.value);this.value='';}">
-            <option value="">+ Dodaj osobę…</option>
-            ${guests.map(g => `<option value="${g.id}">${esc(fullName(g) || 'Gość')}</option>`).join('')}
-          </select>
-        </div>` : '';
-      return `<div class="gforg-item">
-        <input class="gforg-name" type="text" value="${esc(it.name)}" placeholder="Upominek…" onchange="updateGiftForGuest(${it.id},'name',this.value)">
-        <input class="gforg-qty" type="number" min="0" value="${it.qty||0}" title="Ilość" onchange="updateGiftForGuest(${it.id},'qty',this.value)">
-        <span class="gforg-x">×</span>
-        <input class="gforg-cost" type="number" min="0" value="${it.cost||0}" title="Koszt/szt. (zł)" onchange="updateGiftForGuest(${it.id},'cost',this.value)">
-        <span class="gforg-eq">= ${fmt(lineTotal)} zł</span>
-        <button class="btn-row-del" onclick="deleteGiftForGuest(${it.id})" title="Usuń">&#128465;</button>
-        ${distinctionUI}
-      </div>`;
-    }).join('') || '<div class="gforg-empty">Brak upominków w tej kategorii.</div>';
-    return `<div class="gforg-cat">
-      <div class="gforg-cat-hdr">
-        <span class="gforg-cat-title">${cat.icon} ${cat.label}</span>
-        <span class="gforg-cat-total">${fmt(catTotal)} zł</span>
-        <button class="btn btn-sm btn-primary" onclick="addGiftForGuest('${cat.key}')">+ Upominek</button>
-      </div>
-      <div class="gforg-list">${rows}</div>
-    </div>`;
-  }).join('');
-  c.innerHTML = html;
-  if (sum) sum.innerHTML = `<div class="sum-stat"><span class="sv">${count}</span><span>Upominków</span></div>
-    <div class="sum-stat"><span class="sv">${fmt(grand)} zł</span><span>Łączny koszt</span></div>`;
-}
-
-// ── PROPOZYCJE / LISTA ŻYCZEŃ ──
-function addGiftProposal() {
-  giftProposals.push({ id: nextProposalId++, title:'', desc:'', link:'' });
-  renderGiftProposals(); saveState();
-}
-function updateGiftProposal(id, field, value) {
-  const p = giftProposals.find(x => x.id === id); if (!p) return;
-  p[field] = value;
-  saveState();
-}
-function deleteGiftProposal(id) {
-  giftProposals = giftProposals.filter(x => x.id !== id);
-  renderGiftProposals(); saveState();
-}
-function toggleGiftProposalsPublic(checked) {
-  giftProposalsPublic = !!checked;
-  saveState();
-}
-function renderGiftProposals() {
-  const c = document.getElementById('giftProposalsList'); if (!c) return;
-  const cb = document.getElementById('giftProposalsPublic'); if (cb) cb.checked = !!giftProposalsPublic;
-  if (!giftProposals.length) { c.innerHTML = '<div class="empty-list">Brak propozycji. Kliknij „+ Dodaj propozycję".</div>'; return; }
-  c.innerHTML = '<div class="gprop-list">' + giftProposals.map(p => `
-    <div class="gprop-card">
-      <input class="gprop-title" type="text" value="${esc(p.title)}" placeholder="Tytuł propozycji…" onchange="updateGiftProposal(${p.id},'title',this.value)">
-      <textarea class="gprop-desc" placeholder="Opis (np. Zamiast kwiatów prosimy o wpłatę na podróż)…" onchange="updateGiftProposal(${p.id},'desc',this.value)">${esc(p.desc)}</textarea>
-      <input class="gprop-link" type="url" value="${esc(p.link || '')}" placeholder="🔗 Link (opcjonalnie)…" onchange="updateGiftProposal(${p.id},'link',this.value)">
-      <button class="btn-row-del gprop-del" onclick="deleteGiftProposal(${p.id})" title="Usuń">&#128465;</button>
-    </div>`).join('') + '</div>';
-}
-
 // ── TRANSPORT ──
 const VEHICLE_TYPES=['Auto wynajęte','Auto własne','Auto rodziców Pana Młodego','Auto rodziców Panny Młodej','Bus','Taxi/Uber','Inne'];
 function addVehicle() {
-  vehicles.push({id:nextVehicleId++,type:'Auto własne',description:'',driver:'',seats:4,route:'',departureTime:'',guestIds:[],cost:0});
+  vehicles.push({id:nextVehicleId++,type:'Auto własne',description:'',driver:'',seats:4,route:'',departureTime:'',guestIds:[]});
   renderTransport(); saveState();
 }
 function updateVehicle(id,field,value) {
@@ -5823,7 +5370,7 @@ function addHotel() {
   const bodyEl = document.getElementById('editModalBody');
   if (!modal || !bodyEl) return;
   editState = { type: 'hotel-new', id: null };
-  const blank = { name: '', address: '', phone: '', pricePerNight: 0, personsPerRoom: 2, bookingLink: '', notes: '', inComplex: false };
+  const blank = { name: '', address: '', phone: '', pricePerNight: 0, personsPerRoom: 2, bookingLink: '', notes: '' };
   if (titleEl) titleEl.textContent = 'Dodaj hotel';
   bodyEl.innerHTML = _hotelForm(blank);
   modal.style.display = 'flex';
@@ -5872,12 +5419,10 @@ function renderAccommodation() {
     return `<div class="hotel-card">
       <div class="hotel-hdr">
         <input class="hotel-field" type="text" value="${esc(h.name)}" placeholder="Nazwa hotelu" onchange="updateHotel(${h.id},'name',this.value)">
-        ${h.inComplex ? `<span class="hotel-complex-badge" title="Hotel w kompleksie wesela">🏨 Kompleks</span>` : ''}
         <span class="hotel-guests-badge">${gc} gości</span>
         <button class="btn-row-edit" onclick="openEditModal('hotel',${h.id})" title="Edytuj">&#9998;</button>
         <button class="btn-row-del" onclick="deleteHotel(${h.id})">&#128465;</button>
       </div>
-      <label class="hotel-complex-toggle"><input type="checkbox" ${h.inComplex?'checked':''} onchange="updateHotel(${h.id},'inComplex',this.checked)"> 🏨 Hotel w kompleksie wesela</label>
       <input class="hotel-field" type="text" value="${esc(h.address)}" placeholder="Adres" onchange="updateHotel(${h.id},'address',this.value)">
       <div class="h-row">
         ${h.phone?`<a href="tel:${esc(h.phone)}" class="hotel-phone-link">&#128222; ${esc(h.phone)}</a>`:''}
@@ -6558,13 +6103,13 @@ function _eft(id, label, val) {
 }
 
 function _guestForm(g) {
-  const cats  = [['Państwo Młodzi','Państwo Młodzi'],['Świadkowie','Świadkowie'],['Rodzice','Rodzice'],['Rodzina','Rodzina'],['Znajomi','Znajomi'],['Praca','Praca'],['Inne','Inne']];
+  const cats  = [['Państwo Młodzi','Państwo Młodzi'],['Świadkowie','Świadkowie'],['Rodzice','Rodzice'],['Rodzina','Rodzina'],['Znajomi','Znajomi'],['Praca','Praca']];
   const dietV = g.diet || 'standard';
   return `<div class="ef-grid">
     ${_efi('firstName','Imię','text',g.firstName)}
     ${_efi('lastName','Nazwisko','text',g.lastName)}
     ${_efs('category','Kategoria',cats,g.category)}
-    ${_efs('gender','Płeć',[['K','♀ Kobieta'],['M','♂ Mężczyzna'],['N','⚧ Niebinarna']],g.gender)}
+    ${_efs('gender','Płeć',[['K','♀ Kobieta'],['M','♂ Mężczyzna']],g.gender)}
     ${_efs('invitedBy','Zaproszony przez',[['','—'],['groom','🤝 Pan Młody'],['bride','💝 Panna Młoda']],g.invitedBy||'')}
     ${_efs('witness','Rola',[['','Brak roli'],['witness_groom','Świadek Pana'],['witness_bride','Świadkowa Panny']],g.witness||'')}
     ${_efs('diet','Dieta',[['standard','Standardowa'],['vegetarian','Wegetariańska'],['vegan','Wegańska'],['glutenfree','Bezglutenowa'],['other','Inne']],dietV)}
@@ -6580,9 +6125,6 @@ function _tableForm(t) {
     ${_efi('name','Nazwa stołu','text',t.name)}
     ${_efs('shape','Kształt',[['round','⬤ Okrągły'],['rect','▬ Prostokątny']],t.shape)}
     ${_efi('seats','Liczba miejsc','number',t.seats,'min="1" max="30"')}
-    ${_efi('diamM','Średnica (m) — stół okrągły','number',t.diamM||'','min="0" step="0.1" placeholder="auto"')}
-    ${_efi('rectWM','Szerokość (m) — prostokątny','number',t.rectWM||'','min="0" step="0.1" placeholder="auto"')}
-    ${_efi('rectLM','Długość (m) — prostokątny','number',t.rectLM||'','min="0" step="0.1" placeholder="auto"')}
   </div>`;
 }
 // Buduje <option>-y z par [wartość, etykieta]
@@ -6675,7 +6217,6 @@ function _vehicleForm(v) {
     ${_efi('seats','Liczba miejsc','number',v.seats||4,'min="1" max="60"')}
     ${_efi('route','Trasa','text',v.route||'')}
     ${_ef('departureTime','Godzina odjazdu',`<input type="time" id="ef_departureTime" value="${esc(v.departureTime||'')}">`)}
-    ${_efi('cost','Koszt (zł)','number',v.cost||0,'min="0" step="50"')}
   </div>`;
 }
 function _hotelForm(h) {
@@ -6689,7 +6230,6 @@ function _hotelForm(h) {
     ${_efi('phone','Telefon','tel',h.phone||'')}
     ${_efi('pricePerNight','Cena za osobę za noc (zł)','number',h.pricePerNight||0)}
     ${_efi('personsPerRoom','Liczba osób w pokoju','number',h.personsPerRoom||2,'min="1" max="20"')}
-    ${_ef('inComplex','Lokalizacja', `<label class="ef-check"><input type="checkbox" id="ef_inComplex" ${h.inComplex?'checked':''}> 🏨 Hotel w kompleksie wesela</label>`)}
     ${_efi('bookingLink','Link rezerwacji','url',h.bookingLink||'')}
     ${_eft('notes','Notatki',h.notes||'')}
   </div>`;
@@ -6801,14 +6341,7 @@ function saveEdit() {
       const g = guests.find(x=>x.id===id); if (!g) return;
       g.firstName  = _efv('firstName');
       g.lastName   = _efv('lastName');
-      const _newCat = _efv('category') || 'Rodzina';
-      // Para Młoda = dokładnie dwie osoby — nie pozwól oznaczyć trzeciej przy edycji
-      if (_newCat === 'Państwo Młodzi' && g.category !== 'Państwo Młodzi'
-          && _coupleMembers().filter(x => x.id !== id).length >= 2) {
-        showToast('Para Młoda to dokładnie dwie osoby — nie można oznaczyć trzeciej.');
-      } else {
-        g.category = _newCat;
-      }
+      g.category   = _efv('category') || 'Rodzina';
       g.gender     = _efv('gender') || 'K';
       g.invitedBy  = _efv('invitedBy') || null;
       g.witness    = _efv('witness') || null;
@@ -6833,10 +6366,6 @@ function saveEdit() {
         else t.seatsData = t.seatsData.slice(0, safe);
         t.seats = safe;
       }
-      // Per-stół rozmiar (m) — 0/puste = automatyczny
-      t.diamM  = Math.max(0, parseFloat(document.getElementById('ef_diamM')?.value)  || 0);
-      t.rectWM = Math.max(0, parseFloat(document.getElementById('ef_rectWM')?.value) || 0);
-      t.rectLM = Math.max(0, parseFloat(document.getElementById('ef_rectLM')?.value) || 0);
       renderTables();
       if (currentView === 'room') renderRoom();
     } else if (type === 'task') {
@@ -6943,7 +6472,6 @@ function saveEdit() {
       v.seats = Math.max(1, parseInt(document.getElementById('ef_seats')?.value)||1);
       v.route = _efv('route');
       v.departureTime = _efv('departureTime');
-      v.cost = _efn('cost');
       renderTransport();
     } else if (type === 'hotel-new') {
       hotels.push({
@@ -6955,7 +6483,6 @@ function saveEdit() {
         personsPerRoom: Math.max(1, parseInt(document.getElementById('ef_personsPerRoom')?.value)||2),
         bookingLink:    _efv('bookingLink'),
         notes:          _efv('notes'),
-        inComplex:      _efb('inComplex'),
       });
       saveState();
       renderAccommodation();
@@ -6968,7 +6495,6 @@ function saveEdit() {
       h.personsPerRoom = Math.max(1, parseInt(document.getElementById('ef_personsPerRoom')?.value)||2);
       h.bookingLink = _efv('bookingLink');
       h.notes = _efv('notes');
-      h.inComplex = _efb('inComplex');
       renderAccommodation();
     } else if (type === 'payment') {
       const p = payments.find(x=>x.id===id); if (!p) return;
@@ -7325,213 +6851,6 @@ function _currentUserEmail() {
   } catch (_) { return ''; }
 }
 
-// ══════════════════════════════════════════════════════
-//  ONBOARDING — przewodnik krok po kroku dla nowego użytkownika
-// ══════════════════════════════════════════════════════
-const ONBOARDING_STEPS = [
-  { view:'config',   navId:'settingsGearBtn', title:'1. Konfiguracja', desc:'Zacznij tutaj: ustaw nazwę imprezy, datę, godzinę i miejsca. To zasila licznik i nagłówki aplikacji.' },
-  { view:'tables',   navId:'navTables',       title:'2. Goście i stoły', desc:'Dodaj gości („+ Dodaj gościa"), utwórz stoły i przypisz gości do miejsc.' },
-  { view:'room',     navId:'navRoom',         title:'3. Plan sali', desc:'Rozmieść stoły i elementy sali. Włącz „Edytuj plan", aby przeciągać i zmieniać rozmiary; siatka pomaga w równaniu.' },
-  { view:'budget',   navId:'navBudget',       title:'4. Budżet', desc:'Ustaw budżet całkowity, dodaj wydatki, alkohol i napoje. Koszty dostawców, noclegów i transportu też się tu sumują.' },
-  { view:'schedule', navId:'navSchedule',     title:'5. Harmonogram', desc:'Zaplanuj przebieg dnia — punkty programu z godzinami.' },
-  { view:'tasks',    navId:'navTasks',        title:'6. Zadania', desc:'Rozpisz zadania, przypisz osoby i opcjonalnie powiąż je z budżetem, dostawcą lub prezentem.' },
-  { view:'vendors',  navId:'navVendors',      title:'7. Dostawcy', desc:'Dodaj usługodawców, raty płatności i powiązania z budżetem. To już wszystko — powodzenia!' },
-];
-let _onbIndex = 0;
-
-function _onboardingKey() {
-  const email = (typeof _currentUserEmail === 'function' ? _currentUserEmail() : '') || 'anon';
-  return 'weddingOnboardingDone:' + email;
-}
-function maybeStartOnboarding() {
-  try { if (!localStorage.getItem(_onboardingKey())) startOnboarding(false); } catch (_) {}
-}
-function startOnboarding() {
-  _onbIndex = 0;
-  _onboardingShowStep();
-}
-function _onboardingShowStep() {
-  const step = ONBOARDING_STEPS[_onbIndex];
-  if (!step) { finishOnboarding(); return; }
-  if (typeof closeSettingsMenu === 'function') try { closeSettingsMenu(); } catch (_) {}
-  if (typeof switchView === 'function') switchView(step.view);
-  document.querySelectorAll('.onb-highlight').forEach(e => e.classList.remove('onb-highlight'));
-  const navEl = document.getElementById(step.navId);
-  if (navEl) navEl.classList.add('onb-highlight');
-  const ov = document.getElementById('onboardingOverlay');
-  if (ov) ov.style.display = 'flex';
-  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-  set('onbTitle', step.title);
-  set('onbDesc', step.desc);
-  set('onbProgress', `Krok ${_onbIndex + 1} z ${ONBOARDING_STEPS.length}`);
-  const prev = document.getElementById('onbPrevBtn'); if (prev) prev.style.display = _onbIndex > 0 ? '' : 'none';
-  const next = document.getElementById('onbNextBtn'); if (next) next.textContent = (_onbIndex === ONBOARDING_STEPS.length - 1) ? 'Zakończ ✓' : 'Dalej →';
-}
-function onboardingNext() { if (_onbIndex >= ONBOARDING_STEPS.length - 1) finishOnboarding(); else { _onbIndex++; _onboardingShowStep(); } }
-function onboardingPrev() { if (_onbIndex > 0) { _onbIndex--; _onboardingShowStep(); } }
-function onboardingSkip() { finishOnboarding(); }
-function finishOnboarding() {
-  const ov = document.getElementById('onboardingOverlay'); if (ov) ov.style.display = 'none';
-  document.querySelectorAll('.onb-highlight').forEach(e => e.classList.remove('onb-highlight'));
-  try { localStorage.setItem(_onboardingKey(), '1'); } catch (_) {}
-}
-
-// ══════════════════════════════════════════════════════
-//  PDF DO DRUKU — karty z kodami QR (galeria / harmonogram / połączony)
-// ══════════════════════════════════════════════════════
-// Osadzane fonty z polskimi znakami (TTF) — pobierane raz z CDN i cache'owane jako base64.
-let _pdfFontReg = null;   // regular: null=nie próbowano, ''=nieudane, string=gotowy
-let _pdfFontBold = null;  // bold
-const _PDF_FONT_REG  = [
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Regular.ttf',
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/ptsans/PT_Sans-Web-Regular.ttf',
-];
-const _PDF_FONT_BOLD = [
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Bold.ttf',
-  'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/ptsans/PT_Sans-Web-Bold.ttf',
-];
-function _abToBase64(buf) {
-  let bin = ''; const bytes = new Uint8Array(buf); const CH = 0x8000;
-  for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH));
-  return btoa(bin);
-}
-async function _fetchFontB64(urls) {
-  for (const url of urls) {
-    try { const res = await fetch(url); if (res.ok) return _abToBase64(await res.arrayBuffer()); } catch (_) {}
-  }
-  return '';
-}
-// Rejestruje fonty PL w dokumencie. Zwraca true jeśli przynajmniej regular dostępny.
-async function _ensurePdfFont(doc) {
-  if (_pdfFontReg === null)  _pdfFontReg  = await _fetchFontB64(_PDF_FONT_REG);
-  if (_pdfFontBold === null) _pdfFontBold = await _fetchFontB64(_PDF_FONT_BOLD);
-  let ok = false;
-  if (_pdfFontReg) {
-    try { doc.addFileToVFS('PLreg.ttf', _pdfFontReg); doc.addFont('PLreg.ttf', 'PL', 'normal'); ok = true; } catch (_) {}
-  }
-  if (_pdfFontBold) {
-    try { doc.addFileToVFS('PLbold.ttf', _pdfFontBold); doc.addFont('PLbold.ttf', 'PL', 'bold'); } catch (_) {}
-  }
-  return ok;
-}
-
-// Standardowe fonty jsPDF nie wspierają polskich znaków — transliteracja na ASCII (fallback).
-function _plAscii(s) {
-  return String(s == null ? '' : s)
-    .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l').replace(/ń/g,'n')
-    .replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z')
-    .replace(/Ą/g,'A').replace(/Ć/g,'C').replace(/Ę/g,'E').replace(/Ł/g,'L').replace(/Ń/g,'N')
-    .replace(/Ó/g,'O').replace(/Ś/g,'S').replace(/Ź/g,'Z').replace(/Ż/g,'Z');
-}
-const _PL_MONTHS_PDF = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
-function _printDateStr() {
-  if (!weddingDate) return '';
-  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(weddingDate); if (!m) return '';
-  return `${+m[3]} ${_PL_MONTHS_PDF[+m[2] - 1]} ${m[1]}`;
-}
-// Generuje data-URL kodu QR (przez bibliotekę qrcodejs) w tymczasowym, ukrytym elemencie
-function _makeQrDataUrl(url, px) {
-  return new Promise(resolve => {
-    if (typeof QRCode === 'undefined') { resolve(null); return; }
-    const tmp = document.createElement('div');
-    tmp.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
-    document.body.appendChild(tmp);
-    try { new QRCode(tmp, { text: url, width: px, height: px, correctLevel: QRCode.CorrectLevel.M }); } catch (_) {}
-    setTimeout(() => {
-      let data = null;
-      const c = tmp.querySelector('canvas');
-      if (c) { try { data = c.toDataURL('image/png'); } catch (_) {} }
-      if (!data) { const img = tmp.querySelector('img'); if (img) data = img.src; }
-      try { document.body.removeChild(tmp); } catch (_) {}
-      resolve(data);
-    }, 90);
-  });
-}
-async function generatePrintPdf(variantArg, sizeArg) {
-  if (!window.jspdf || !window.jspdf.jsPDF) { showToast('Biblioteka PDF nie została wczytana — sprawdź połączenie z internetem.'); return; }
-  const variant = variantArg || document.getElementById('pdfVariant')?.value || 'gallery';
-  const size    = ((sizeArg || document.getElementById('pdfSize')?.value) === 'a5') ? 'a5' : 'a4';
-  const galUrl  = new URL('galeria.html', location.href).href;
-  const schUrl  = new URL('harmonogram.html', location.href).href;
-
-  showToast('Generuję PDF…');
-  const items = [];
-  if (variant === 'gallery' || variant === 'combined')
-    items.push({ qr: await _makeQrDataUrl(galUrl, 640), title: 'Galeria zdjęć', cap: 'Zeskanuj i podziel się swoimi zdjęciami z naszego wesela' });
-  if (variant === 'schedule' || variant === 'combined')
-    items.push({ qr: await _makeQrDataUrl(schUrl, 640), title: 'Harmonogram dnia', cap: 'Zeskanuj i zobacz harmonogram naszego dnia' });
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: size });
-  const pw  = doc.internal.pageSize.getWidth();
-  const ph  = doc.internal.pageSize.getHeight();
-  const big = (size === 'a4');
-  const cx  = pw / 2;
-
-  // Font z polskimi znakami (Lato); fallback do ASCII gdy brak internetu
-  const plFont = await _ensurePdfFont(doc);
-  const tx  = s => plFont ? String(s == null ? '' : s) : _plAscii(s);
-  const F  = (bold) => { if (plFont) doc.setFont('PL', bold ? 'bold' : 'normal'); else doc.setFont(bold ? 'times' : 'helvetica', bold ? 'bold' : 'normal'); };
-
-  const eventName = (appConfig && appConfig.eventName) || 'Nasze Wesele';
-  const dateStr   = _printDateStr();
-  const couple    = (budgetData && budgetData.coupleNames) || [];
-  const realName  = v => { const s = (v || '').trim(); return (s && s !== 'Osoba 1' && s !== 'Osoba 2') ? s : ''; };
-  const names     = [realName(couple[1]), realName(couple[0])].filter(Boolean).join(' & ');
-
-  // ── Tło i ozdobne ramki ──
-  doc.setFillColor(247, 251, 255); doc.rect(0, 0, pw, ph, 'F');                 // delikatne tło
-  doc.setDrawColor(26, 86, 219);  doc.setLineWidth(0.9); doc.roundedRect(7, 7, pw - 14, ph - 14, 6, 6, 'S');   // ramka zewn.
-  doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.4); doc.roundedRect(11, 11, pw - 22, ph - 22, 4, 4, 'S'); // ramka wewn.
-  // narożne ozdobniki (wektorowe — niezależne od glifów fontu)
-  doc.setFillColor(150, 195, 245);
-  [[17,17],[pw-17,17],[17,ph-17],[pw-17,ph-17]].forEach(([x,yy]) => { doc.circle(x, yy, 1.7, 'F'); });
-
-  // ── Nagłówek ──
-  let y = big ? 34 : 26;
-  F(false); doc.setFontSize(big ? 12 : 10); doc.setTextColor(120, 150, 200);
-  doc.text(tx('• Z radością zapraszamy •'), cx, y, { align: 'center' });
-  y += big ? 14 : 11;
-  F(true); doc.setFontSize(big ? 34 : 25); doc.setTextColor(16, 40, 80);
-  doc.splitTextToSize(tx(eventName), pw - 40).forEach((ln, i) => { doc.text(ln, cx, y + i * (big ? 13 : 10), { align: 'center' }); });
-  y += doc.splitTextToSize(tx(eventName), pw - 40).length * (big ? 13 : 10) + (big ? 2 : 1);
-  if (names) { F(false); doc.setFontSize(big ? 15 : 12); doc.setTextColor(26, 86, 219); doc.text(tx(names), cx, y, { align: 'center' }); y += big ? 9 : 7; }
-  if (dateStr) { F(false); doc.setFontSize(big ? 12 : 10); doc.setTextColor(110, 125, 155); doc.text(tx(dateStr), cx, y, { align: 'center' }); y += big ? 4 : 3; }
-  // ozdobny separator z rombem
-  doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.5);
-  doc.line(cx - (big?32:24), y + 4, cx - 5, y + 4); doc.line(cx + 5, y + 4, cx + (big?32:24), y + 4);
-  doc.setFillColor(26, 86, 219); doc.triangle(cx, y + 2.5, cx - 2.2, y + 4, cx, y + 5.5, 'F'); doc.triangle(cx, y + 2.5, cx + 2.2, y + 4, cx, y + 5.5, 'F');
-  y += big ? 14 : 11;
-
-  // ── Kody QR ──
-  const two = items.length > 1;
-  const qrSize  = two ? (big ? 66 : 46) : (big ? 92 : 64);
-  const boxPad  = big ? 6 : 4;
-  items.forEach(it => {
-    if (two) { F(true); doc.setFontSize(big ? 14 : 11); doc.setTextColor(26, 86, 219); doc.text(tx(it.title), cx, y, { align: 'center' }); y += big ? 6 : 5; }
-    // biała ramka pod QR (z subtelnym „cieniem")
-    const bx = cx - qrSize / 2 - boxPad, by = y, bw = qrSize + boxPad * 2, bh = qrSize + boxPad * 2;
-    doc.setFillColor(225, 234, 248); doc.roundedRect(bx + 1.2, by + 1.2, bw, bh, 3, 3, 'F');   // cień
-    doc.setFillColor(255, 255, 255); doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.5);
-    doc.roundedRect(bx, by, bw, bh, 3, 3, 'FD');
-    if (it.qr) { try { doc.addImage(it.qr, 'PNG', cx - qrSize / 2, by + boxPad, qrSize, qrSize); } catch (_) {} }
-    y += bh + (big ? 7 : 5);
-    F(false); doc.setFontSize(big ? 12 : 9.5); doc.setTextColor(50, 65, 95);
-    const lines = doc.splitTextToSize(tx(it.cap), pw - (big ? 50 : 38));
-    doc.text(lines, cx, y, { align: 'center' });
-    y += lines.length * (big ? 5.6 : 4.6) + (big ? 12 : 9);
-  });
-
-  // ── Stopka ──
-  F(false); doc.setFontSize(big ? 11 : 9); doc.setTextColor(150, 195, 245);
-  doc.text('• • •', cx, ph - 20, { align: 'center' });
-  F(false); doc.setFontSize(big ? 10 : 8); doc.setTextColor(120, 140, 170);
-  doc.text(tx(names ? `${names} • dziękujemy!` : 'Dziękujemy!'), cx, ph - 14, { align: 'center' });
-
-  doc.save(`${variant}-${size}.pdf`);
-  showToast(plFont ? 'PDF gotowy ✓' : 'PDF gotowy ✓ (font PL niedostępny — wersja ASCII)');
-}
-
 function renderAccessList() {
   const cont = document.getElementById('accessList');
   if (!cont) return;
@@ -7799,7 +7118,6 @@ function _serializeState() {
     nextTableDecoId, nextStaffTableId, expenseOrder,
     roomName, roomMeta, roomElements, nextRoomElementId, budgetData, weddingDate, weddingTime, appConfig,
     scheduleEvents, tasks, vendors, rsvpEntries, gifts,
-    giftsForGuests, nextGiftForId, giftProposals, nextProposalId, giftProposalsPublic,
     vehicles, hotels, payments, transportNotes,
     internalTransport, nextInternalTransportId,
     locationLinksSeeded,
@@ -8214,7 +7532,7 @@ function _pruneBackups() {
 function renderBackupList() {
   const box = document.getElementById('backupList');
   if (!box) return;
-  const backups = _listBackups().slice(0, 3);   // pokazuj tylko 3 ostatnie zapisy
+  const backups = _listBackups();
   if (!backups.length) { box.innerHTML = '<p class="backup-empty">Brak kopii zapasowych. Powstają automatycznie przed migracją danych.</p>'; return; }
   box.innerHTML = backups.map(b => {
     const d = new Date(b.ts);
@@ -8384,9 +7702,6 @@ function _applyEventState(s) {
         t.posY = p.y;
       }
       if (t.isHonorTable === undefined) t.isHonorTable = false;
-      if (t.diamM === undefined)  t.diamM = 0;
-      if (t.rectWM === undefined) t.rectWM = 0;
-      if (t.rectLM === undefined) t.rectLM = 0;
     });
 
     // Back-fill new fields
@@ -8446,15 +7761,7 @@ function _applyEventState(s) {
     rsvpEntries    = s.rsvpEntries    || [];
     rsvpEntries.forEach(e => { if (e.companionName === undefined) e.companionName = ''; });
     gifts          = s.gifts          || [];
-    // Upominki dla gości + propozycje (lista życzeń)
-    giftsForGuests = Array.isArray(s.giftsForGuests) ? s.giftsForGuests : [];
-    giftsForGuests.forEach(it => { if (!Array.isArray(it.guestIds)) it.guestIds = []; if (it.qty === undefined) it.qty = 1; if (it.cost === undefined) it.cost = 0; });
-    nextGiftForId  = s.nextGiftForId  || (giftsForGuests.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftProposals  = Array.isArray(s.giftProposals) ? s.giftProposals : [];
-    nextProposalId = s.nextProposalId || (giftProposals.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
-    giftProposalsPublic = !!s.giftProposalsPublic;
     vehicles       = s.vehicles       || [];
-    vehicles.forEach(v => { if (v.cost === undefined) v.cost = 0; });
     hotels         = s.hotels         || [];
     payments       = s.payments       || [];
     transportNotes = s.transportNotes || { weddingCar: '', parking: '' };
@@ -8483,13 +7790,6 @@ function _applyEventState(s) {
     if (!budgetData.nextAlcoholId)                   budgetData.nextAlcoholId   = 1;
     if (budgetData.alcoholSplitP1 === undefined)     budgetData.alcoholSplitP1  = 0;
     if (budgetData.alcoholSplitP2 === undefined)     budgetData.alcoholSplitP2  = 0;
-    if (budgetData.alcoholPerPersonVirtual === undefined) budgetData.alcoholPerPersonVirtual = false;
-    // Napoje bezalkoholowe
-    if (!Array.isArray(budgetData.softItems))        budgetData.softItems       = [];
-    if (!budgetData.nextSoftId)                      budgetData.nextSoftId      = 1;
-    if (budgetData.softSplitP1 === undefined)        budgetData.softSplitP1     = 0;
-    if (budgetData.softSplitP2 === undefined)        budgetData.softSplitP2     = 0;
-    if (budgetData.softPerPersonVirtual === undefined) budgetData.softPerPersonVirtual = false;
     if (!budgetData.tableDeco) budgetData.tableDeco = { honorAddons: [], regularAddons: [] };
     if (budgetData.includeStaffInCalc === undefined) budgetData.includeStaffInCalc = false;
     if (!budgetData.tableDeco.honorAddons)   budgetData.tableDeco.honorAddons   = [];
@@ -8509,9 +7809,8 @@ function _applyEventState(s) {
       if (v.contractAmount === undefined)  v.contractAmount = 0;
       if (v.budgetCategory === undefined)  v.budgetCategory = '';
       if (v.budgetExpenseId === undefined) v.budgetExpenseId = null;
-      if (!Array.isArray(v.installments))  v.installments = [];
     });
-    hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; if (h.inComplex === undefined) h.inComplex = false; });
+    hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 
     // Data ślubu — odśwież licznik (edytowana wyłącznie w Konfiguracji)
     if (typeof tickCountdown === 'function') tickCountdown();
