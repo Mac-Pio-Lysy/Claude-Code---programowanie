@@ -76,6 +76,7 @@ let roomElements = [];           // { id, name, type, wM, lM, posX, posY, rotati
 let nextRoomElementId = 1;
 let roomElementDrag = null;      // { id, startMouseX, startMouseY, startPosX, startPosY }
 let roomElementResize = null;    // { id, corner, startMouseX, startMouseY, startFpW, startFpH, startPosX, startPosY, ppm, swap }
+let roomTableResize = null;      // zmiana rozmiaru stołu z poziomu planu sali
 let selectedRoomElementId = null;
 let isEditing = false;           // tryb edycji „Plan sali" (false = podgląd, true = edycja)
 let roomEditSnapshot = null;     // kopia stanu sali do funkcji „Anuluj"
@@ -90,6 +91,26 @@ function _tableWrapSize(t) {
   const { tw, th } = rtTableDims(t);
   const PAD = 20;
   return { w: tw + PAD * 2, h: th + PAD * 2 + (t.isHonorTable ? 10 : 0) };
+}
+// Po zmianie wymiarów: dopasuj stół do sali (granice) i odsuń od kolizji (szuka wolnego miejsca).
+function _fitTableInRoom(t) {
+  if (!t) return;
+  const sz = _tableWrapSize(t);
+  const maxY = Math.max(0, (roomCanvasH || CANVAS_H) - sz.h);
+  const maxX = Math.max(0, CANVAS_W - sz.w);
+  // 1) musi mieścić się w sali (obrysie kanwy)
+  t.posX = Math.max(0, Math.min(maxX, t.posX || 0));
+  t.posY = Math.max(0, Math.min(maxY, t.posY || 0));
+  // 2) nie może nachodzić na inne stoły — gdy koliduje, znajdź najbliższe wolne miejsce na siatce
+  if (!_tableWouldOverlap(t.id, t.posX, t.posY)) return;
+  const step = 20;
+  for (let y = 0; y <= maxY; y += step) {
+    for (let x = 0; x <= maxX; x += step) {
+      if (!_tableWouldOverlap(t.id, x, y)) { t.posX = x; t.posY = y; return; }
+    }
+  }
+  // brak wolnego miejsca — pozostaw w granicach sali (best effort)
+  if (typeof showToast === 'function') showToast('Brak wolnego miejsca bez kolizji — sprawdź rozmieszczenie stołów.');
 }
 // Czy stół o danym id, ustawiony na (x,y), nachodziłby na inny stół?
 function _tableWouldOverlap(movingId, x, y) {
@@ -3566,12 +3587,18 @@ function renderRoomTable(t) {
     return `<div class="rt-dot rt-dot-empty" style="left:${pos.x}px;top:${pos.y}px"></div>`;
   }).join('');
 
-  return `<div class="rt-wrap" data-id="${t.id}"
+  // Uchwyty zmiany rozmiaru — w trybie edycji, na rogach (widoczne po najechaniu na stół)
+  const handles = isEditing
+    ? ['nw','ne','sw','se'].map(c => `<div class="rt-resize rt-resize-${c} rt-th-resize" onmousedown="startRoomTableResize(event,${t.id},'${c}')" title="Zmień rozmiar"></div>`).join('')
+    : '';
+
+  return `<div class="rt-wrap${isEditing ? ' rt-editable' : ''}" data-id="${t.id}"
     style="left:${t.posX}px;top:${t.posY}px;width:${wrapW}px;height:${wrapH}px"
     onmousedown="startRoomTableDrag(event,${t.id})">
     ${shapeHtml}
     ${dotsHtml}
     <div class="rt-delete" onclick="event.stopPropagation();deleteTable(${t.id})" title="Usuń stół">&#10005;</div>
+    ${handles}
   </div>`;
 }
 
@@ -3772,7 +3799,7 @@ function selectRoomElement(id) {
 
 // Klik w pustą część kanwy odznacza element
 function roomCanvasMouseDown(e) {
-  if (roomElementDrag || roomElementResize || roomDrag || roomStaffDrag) return;   // właśnie zaczęło się przeciąganie
+  if (roomElementDrag || roomElementResize || roomDrag || roomStaffDrag || roomTableResize) return;   // właśnie zaczęło się przeciąganie/zmiana rozmiaru
   if (e.target.closest('.rt-element-wrap')) return;
   if (selectedRoomElementId !== null) { selectedRoomElementId = null; renderRoom(); }
 }
@@ -3811,6 +3838,22 @@ function startRoomElementResize(e, id, corner) {
     id, corner, startMouseX: e.clientX, startMouseY: e.clientY,
     startFpW: g.fpW, startFpH: g.fpH, startPosX: el.posX, startPosY: el.posY,
     ppm: g.ppm, swap: g.swap,
+  };
+}
+
+// Zmiana rozmiaru STOŁU z poziomu planu sali (uchwyty na rogach, tryb edycji)
+function startRoomTableResize(e, id, corner) {
+  if (!isEditing) return;
+  if (e.button !== 0) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const t = tables.find(x => x.id === id); if (!t) return;
+  const { tw, th } = rtTableDims(t);
+  const ppm = (roomMeta.widthM > 0) ? roomPxPerMeter() : 40;
+  roomTableResize = {
+    id, corner, startMouseX: e.clientX, startMouseY: e.clientY,
+    startTW: tw, startTH: th, startPosX: t.posX, startPosY: t.posY,
+    ppm, round: t.shape === 'round',
   };
 }
 
@@ -4171,6 +4214,43 @@ document.addEventListener('mousemove', e => {
       _styleElementNode(node, el);
     }
   }
+  if (roomTableResize) {
+    const r = roomTableResize;
+    const t = tables.find(x => x.id === r.id);
+    const node = document.querySelector(`.rt-wrap[data-id="${r.id}"]`);
+    if (t && node) {
+      const PAD = 20, MIN = 40;
+      const dx = (e.clientX - r.startMouseX) / _sc, dy = (e.clientY - r.startMouseY) / _sc;
+      const c = r.corner;
+      let tw = r.startTW, th = r.startTH, posX = r.startPosX, posY = r.startPosY;
+      if (c.includes('e')) tw = r.startTW + dx;
+      if (c.includes('w')) { tw = r.startTW - dx; posX = r.startPosX + dx; }
+      if (c.includes('s')) th = r.startTH + dy;
+      if (c.includes('n')) { th = r.startTH - dy; posY = r.startPosY + dy; }
+      if (r.round) { const d = Math.max(tw, th); tw = d; th = d; }   // koło — kwadratowy ślad
+      // minimalny rozmiar
+      if (tw < MIN) { if (c.includes('w')) posX -= (MIN - tw); tw = MIN; }
+      if (th < MIN) { if (c.includes('n')) posY -= (MIN - th); th = MIN; }
+      // nie wychodź poza krawędź sali (lewą/górną)
+      if (posX < 0) { if (c.includes('w')) tw += posX; posX = 0; }
+      if (posY < 0) { if (c.includes('n')) th += posY; posY = 0; }
+      // musi mieścić się w sali (prawa/dolna krawędź); wrap = kształt + 2*PAD
+      tw = Math.max(MIN, Math.min(tw, CANVAS_W - 2 * PAD - posX));
+      th = Math.max(MIN, Math.min(th, roomCanvasH - 2 * PAD - posY));
+      if (r.round) { const d = Math.min(tw, th); tw = d; th = d; }
+      // zapamiętaj poprzednie wartości (do cofnięcia przy kolizji)
+      const prev = { diamM: t.diamM, rectWM: t.rectWM, rectLM: t.rectLM, posX: t.posX, posY: t.posY };
+      if (r.round) t.diamM = Math.max(0.3, Math.round((tw / r.ppm) * 10) / 10);
+      else { t.rectWM = Math.max(0.3, Math.round((tw / r.ppm) * 10) / 10); t.rectLM = Math.max(0.3, Math.round((th / r.ppm) * 10) / 10); }
+      t.posX = posX; t.posY = posY;
+      // nie pozwól nachodzić na inne stoły — przy kolizji cofnij tę klatkę
+      if (_tableWouldOverlap(r.id, t.posX, t.posY)) {
+        t.diamM = prev.diamM; t.rectWM = prev.rectWM; t.rectLM = prev.rectLM; t.posX = prev.posX; t.posY = prev.posY;
+      } else {
+        node.outerHTML = renderRoomTable(t);   // lekki re-render pojedynczego stołu (kształt + miejsca + uchwyty)
+      }
+    }
+  }
 });
 
 document.addEventListener('mouseup', e => {
@@ -4192,6 +4272,11 @@ document.addEventListener('mouseup', e => {
   if (roomElementResize) {
     roomElementResize = null;
     renderRoom();   // znormalizuj uchwyty i etykietę
+    saveState();
+  }
+  if (roomTableResize) {
+    roomTableResize = null;
+    renderRoom();   // znormalizuj uchwyty, miejsca i etykiety
     saveState();
   }
 });
@@ -6634,14 +6719,37 @@ function _guestForm(g) {
   </div>`;
 }
 function _tableForm(t) {
+  const isRect = t.shape === 'rect';
   return `<div class="ef-grid">
     ${_efi('name','Nazwa stołu','text',t.name)}
-    ${_efs('shape','Kształt',[['round','⬤ Okrągły'],['rect','▬ Prostokątny']],t.shape)}
+    <div class="ef-field"><label>Kształt</label>
+      <select id="ef_shape" onchange="_toggleTableShapeFields(this.value)">
+        <option value="round"${!isRect?' selected':''}>⬤ Okrągły</option>
+        <option value="rect"${isRect?' selected':''}>▬ Prostokątny</option>
+      </select>
+    </div>
     ${_efi('seats','Liczba miejsc','number',t.seats,'min="1" max="30"')}
-    ${_efi('diamM','Średnica (m) — stół okrągły','number',t.diamM||'','min="0" step="0.1" placeholder="auto"')}
-    ${_efi('rectWM','Szerokość (m) — prostokątny','number',t.rectWM||'','min="0" step="0.1" placeholder="auto"')}
-    ${_efi('rectLM','Długość (m) — prostokątny','number',t.rectLM||'','min="0" step="0.1" placeholder="auto"')}
+    <div class="ef-field" id="ef_diamField" style="${isRect?'display:none':''}">
+      <label>Średnica (m)</label>
+      <input type="number" id="ef_diamM" value="${t.diamM||''}" min="0" step="0.1" placeholder="auto">
+    </div>
+    <div class="ef-field" id="ef_rectWField" style="${isRect?'':'display:none'}">
+      <label>Szerokość (m)</label>
+      <input type="number" id="ef_rectWM" value="${t.rectWM||''}" min="0" step="0.1" placeholder="auto">
+    </div>
+    <div class="ef-field" id="ef_rectLField" style="${isRect?'':'display:none'}">
+      <label>Długość (m)</label>
+      <input type="number" id="ef_rectLM" value="${t.rectLM||''}" min="0" step="0.1" placeholder="auto">
+    </div>
   </div>`;
+}
+// Pokazuje pola wymiarów zależnie od kształtu stołu (okrągły = średnica, prostokątny = szer.+dł.)
+function _toggleTableShapeFields(shape) {
+  const rect = shape === 'rect';
+  const set = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
+  set('ef_diamField', !rect);
+  set('ef_rectWField', rect);
+  set('ef_rectLField', rect);
 }
 // Buduje <option>-y z par [wartość, etykieta]
 function _optsHtml(pairs, cur) {
@@ -6895,6 +7003,7 @@ function saveEdit() {
       t.diamM  = Math.max(0, parseFloat(document.getElementById('ef_diamM')?.value)  || 0);
       t.rectWM = Math.max(0, parseFloat(document.getElementById('ef_rectWM')?.value) || 0);
       t.rectLM = Math.max(0, parseFloat(document.getElementById('ef_rectLM')?.value) || 0);
+      _fitTableInRoom(t);   // po zmianie wymiarów: zmieść w sali i odsuń od kolizji
       renderTables();
       if (currentView === 'room') renderRoom();
     } else if (type === 'task') {

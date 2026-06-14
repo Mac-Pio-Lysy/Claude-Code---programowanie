@@ -3525,6 +3525,12 @@ body.room-fs-lock { overflow: hidden; }
 }
 .rt-wrap:hover { z-index: 20; }
 .rt-wrap.rt-dragging { cursor: grabbing; z-index: 30; }
+/* Elementy sali (parkiet/DJ/bar/scena) to dekoracja — zawsze POD stołami i personelem,
+   a najechanie kursorem NIE wynosi ich na wierzch (inaczej zasłaniały przypisane osoby). */
+.rt-element-wrap { z-index: 4; }
+.rt-element-wrap:hover { z-index: 4; }
+.rt-element-wrap.rt-dragging { z-index: 30; }   /* podczas edycji (przeciągania) na wierzch */
+.rt-element-wrap.rt-selected { z-index: 36; }    /* zaznaczony do edycji — na wierzch */
 
 .rt-shape {
   position: absolute;
@@ -5808,3 +5814,7 @@ body.room-fs-lock { overflow: hidden; }
 .gforg-calc { display: flex; flex-wrap: wrap; gap: 16px; background: var(--blue-pale); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
 .gforg-calc-opt { display: flex; align-items: center; gap: 7px; font-size: 0.84rem; font-weight: 600; color: var(--blue-dark); cursor: pointer; }
 .gforg-calc-opt input { width: auto; }
+
+/* Uchwyty zmiany rozmiaru STOŁU na planie sali (tryb edycji) — widoczne po najechaniu na stół */
+.rt-th-resize { opacity: 0; transition: opacity 0.15s; }
+.rt-wrap.rt-editable:hover .rt-th-resize { opacity: 1; }
