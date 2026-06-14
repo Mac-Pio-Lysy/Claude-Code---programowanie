@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Moje Wesele</title>
-  <!-- Google Fonts: Playfair Display (nagłówki) + Inter (treść) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -56,22 +52,16 @@
 
 <!-- ══ PRAWY GÓRNY RÓG — użytkownik + ustawienia ══ -->
 <div id="topRightBar" class="topright-bar">
-  <div class="topright-user-stack">
-    <div class="nav-user-panel" id="navUserPanel" style="display:none">
-      <button class="nav-user-avatar-btn" id="navUserAvatarBtn" type="button" onclick="toggleUserMenu()" title="Konto" aria-label="Konto">
-        <img id="navUserPhoto" class="nav-user-photo" src="" alt="">
-      </button>
-      <span id="navUserName" class="nav-user-name"></span>
-      <button class="nav-logout-btn" onclick="authSignOut()">&#x2197; Wyloguj</button>
-      <div class="nav-user-pop" id="navUserPop">
-        <span class="nav-user-pop-name" id="navUserPopName"></span>
-        <button class="nav-user-pop-logout" onclick="authSignOut()">&#x2197; Wyloguj</button>
-      </div>
-    </div>
-    <!-- Zakładka „Prezenty" przeniesiona pod panel użytkownika (prawy górny róg) -->
-    <button class="topright-gifts-btn" id="navGifts" onclick="switchView('gifts')" title="Prezenty">
-      <span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span>
+  <div class="nav-user-panel" id="navUserPanel" style="display:none">
+    <button class="nav-user-avatar-btn" id="navUserAvatarBtn" type="button" onclick="toggleUserMenu()" title="Konto" aria-label="Konto">
+      <img id="navUserPhoto" class="nav-user-photo" src="" alt="">
     </button>
+    <span id="navUserName" class="nav-user-name"></span>
+    <button class="nav-logout-btn" onclick="authSignOut()">&#x2197; Wyloguj</button>
+    <div class="nav-user-pop" id="navUserPop">
+      <span class="nav-user-pop-name" id="navUserPopName"></span>
+      <button class="nav-user-pop-logout" onclick="authSignOut()">&#x2197; Wyloguj</button>
+    </div>
   </div>
   <div class="settings-menu-wrap">
     <button class="settings-gear-btn" id="settingsGearBtn" type="button" onclick="toggleSettingsMenu()" title="Ustawienia" aria-label="Ustawienia">&#9881;&#65039;</button>
@@ -139,6 +129,7 @@
       <div class="nav-group-items">
         <button class="nav-btn" id="navTransport" onclick="switchView('transport')"><span class="nav-ico">&#128663;</span><span class="nav-txt">Transport</span></button>
         <button class="nav-btn" id="navAccommodation" onclick="switchView('accommodation')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Noclegi</span></button>
+        <button class="nav-btn" id="navGifts" onclick="switchView('gifts')"><span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span></button>
       </div>
     </div>
   </div>
@@ -169,7 +160,6 @@
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
-    <div class="mob-nav-sep">Prezenty</div>
     <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
     <div class="mob-drawer-footer">
       <div id="mobNavUserPanel" style="display:none">
@@ -250,7 +240,6 @@
       <div class="dash-widgets-grid" id="dashWidgets"></div>
       <div class="dash-widget-addzone" id="dashWidgetAddZone" style="display:none"></div>
     </div>
-
   </div>
 
   <!-- ══ TABLES VIEW ══ -->
@@ -372,18 +361,6 @@
   <!-- ══ ROOM VIEW ══ -->
   <div id="viewRoom" class="view-panel" style="display:none">
     <div class="room-view">
-      <!-- PASEK TRYBU: podgląd (Edytuj) ↔ edycja (Zapisz/Anuluj) -->
-      <div class="room-edit-bar">
-        <span class="room-edit-mode-label" id="roomEditModeLabel">&#128065; Podgląd planu sali</span>
-        <button class="btn btn-primary room-edit-toggle" id="roomEditBtn" onclick="enterRoomEdit()">&#9999;&#65039; Edytuj plan</button>
-        <div class="room-edit-actions" id="roomEditActions" style="display:none">
-          <button class="btn room-edit-cancel" onclick="cancelRoomEdit()">&#10006; Anuluj</button>
-          <button class="btn btn-primary" onclick="saveRoomEdit()">&#128190; Zapisz</button>
-        </div>
-      </div>
-
-      <!-- PANELE KONFIGURACYJNE (widoczne tylko w trybie edycji, animacja slide-down) -->
-      <div class="room-config-panels" id="roomConfigPanels">
       <div class="room-toolbar">
         <span class="room-toolbar-icon">&#127963;</span>
         <input type="text" id="roomNameInput" class="room-name-input" value="Sala weselna"
@@ -426,14 +403,8 @@
         <span class="room-el-unit">m</span>
         <button class="btn btn-primary btn-sm" onclick="addRoomElement()">+ Dodaj</button>
       </div>
-      </div><!-- /.room-config-panels -->
-
       <div class="room-canvas-wrapper" id="roomCanvasWrapper">
-        <button class="room-fs-btn" id="roomFsBtn" type="button" onclick="toggleRoomFullscreen()" title="Pełny ekran">
-          <span class="room-fs-ico">&#10218;&#10219;</span> Pełny ekran
-        </button>
         <div class="room-canvas" id="roomCanvas"
-          onmousedown="roomCanvasMouseDown(event)"
           ondragover="roomCanvasDragOver(event)"
           ondragleave="roomCanvasDragLeave(event)"
           ondrop="roomCanvasDrop(event)">
@@ -993,87 +964,59 @@
 
 <!-- GUEST FORM MODAL -->
 <div class="modal-overlay" id="guestFormModal" style="display:none" onclick="closeGuestForm(event)">
-  <div class="edit-modal-box guest-modal-box">
+  <div class="edit-modal-box" style="max-width:480px">
     <div class="edit-modal-header">
       <span>&#128101; Dodaj gościa</span>
-      <button class="btn-modal-close" onclick="closeGuestFormDirect()" aria-label="Zamknij">&#10005;</button>
+      <button class="btn-modal-close" onclick="closeGuestFormDirect()">&#10005;</button>
     </div>
     <div class="edit-modal-body">
-      <div class="ef-grid">
-        <div class="ef-field">
-          <label for="guestFirstName">Imię <span class="ef-req">*</span></label>
-          <input type="text" id="guestFirstName" placeholder="np. Anna" oninput="_validateGuestForm()">
-        </div>
-        <div class="ef-field">
-          <label for="guestLastName">Nazwisko</label>
-          <input type="text" id="guestLastName" placeholder="np. Kowalska">
-        </div>
-        <div class="ef-field">
-          <label for="guestInvitedBy">Zaproszony przez</label>
-          <select id="guestInvitedBy">
-            <option value="">— wybierz —</option>
-            <option value="groom">&#129309; Pan Młody</option>
-            <option value="bride">&#128144; Panna Młoda</option>
-          </select>
-        </div>
-        <div class="ef-field">
-          <label for="guestCategory">Kategoria</label>
-          <select id="guestCategory">
-            <option value="Państwo Młodzi">Państwo Młodzi</option>
-            <option value="Świadkowie">Świadkowie</option>
-            <option value="Rodzice">Rodzice</option>
-            <option value="Rodzina" selected>Rodzina</option>
-            <option value="Znajomi">Znajomi</option>
-            <option value="Praca">Praca</option>
-            <option value="Inne">Inne</option>
-          </select>
-        </div>
-        <div class="ef-field">
-          <label for="guestGender">Płeć</label>
-          <select id="guestGender">
-            <option value="K">&#9792; Kobieta</option>
-            <option value="M">&#9794; Mężczyzna</option>
-          </select>
-        </div>
-        <div class="ef-field">
-          <label for="guestWitness">Rola</label>
-          <select id="guestWitness">
-            <option value="">Brak roli</option>
-            <option value="witness_groom">Świadek</option>
-            <option value="witness_bride">Świadkowa</option>
-          </select>
-        </div>
-        <div class="ef-field">
-          <label for="guestDiet">Dieta / menu</label>
-          <select id="guestDiet"><!-- opcje ze słownika menu (Konfiguracja) --></select>
-        </div>
-        <div class="ef-field">
-          <label for="guestPhoto">URL zdjęcia (opcjonalne)</label>
-          <input type="url" id="guestPhoto" placeholder="https://...">
-        </div>
+      <div class="form-row">
+        <input type="text" id="guestFirstName" placeholder="Imię">
+        <input type="text" id="guestLastName" placeholder="Nazwisko">
       </div>
-
-      <div class="ef-field ef-field-full guest-form-checkrow">
-        <label class="ef-check"><input type="checkbox" id="guestHasCompanion" onchange="_toggleCompanionRow()"> &#128101; Z osobą towarzyszącą?</label>
+      <div class="form-row">
+        <select id="guestCategory">
+          <option value="Państwo Młodzi">Państwo Młodzi</option>
+          <option value="Świadkowie">Świadkowie</option>
+          <option value="Rodzice">Rodzice</option>
+          <option value="Rodzina" selected>Rodzina</option>
+          <option value="Znajomi">Znajomi</option>
+          <option value="Praca">Praca</option>
+        </select>
+        <select id="guestGender">
+          <option value="K">&#9792; Kobieta</option>
+          <option value="M">&#9794; Mężczyzna</option>
+        </select>
+        <select id="guestInvitedBy">
+          <option value="">Zaproszony przez...</option>
+          <option value="groom">&#129309; Pan Młody</option>
+          <option value="bride">&#128144; Panna Młoda</option>
+        </select>
       </div>
-      <div class="ef-grid guest-companion-grid" id="companionRow" style="display:none">
-        <div class="ef-field">
-          <label for="companionFirstName">Imię os. towarzyszącej</label>
-          <input type="text" id="companionFirstName" placeholder="Imię">
-        </div>
-        <div class="ef-field">
-          <label for="companionLastName">Nazwisko os. towarzyszącej</label>
-          <input type="text" id="companionLastName" placeholder="Nazwisko">
-        </div>
+      <div class="form-row">
+        <select id="guestDiet" style="flex:1">
+          <option value="standard">Standardowa</option>
+          <option value="vegetarian">Wegetariańska</option>
+          <option value="vegan">Wegańska</option>
+          <option value="glutenfree">Bezglutenowa</option>
+          <option value="other">Inne</option>
+        </select>
+        <select id="guestWitness" style="flex:1">
+          <option value="">Brak roli</option>
+          <option value="witness_groom">Świadek Pana</option>
+          <option value="witness_bride">Świadkowa Panny</option>
+        </select>
       </div>
-
-      <div class="ef-field ef-field-full guest-form-checkrow">
-        <label class="ef-check"><input type="checkbox" id="guestNeedsAccommodation"> &#127968; Potrzebuje noclegu</label>
+      <div class="form-row" id="dietOtherRow" style="display:none">
+        <input type="text" id="guestDietOther" placeholder="Opis diety..." style="flex:1">
+      </div>
+      <div class="form-row">
+        <input type="url" id="guestPhoto" placeholder="URL zdjęcia (opcjonalne)" style="flex:1">
       </div>
     </div>
     <div class="edit-modal-footer">
+      <button class="btn btn-primary" onclick="addGuest()">+ Dodaj gościa</button>
       <button class="btn" onclick="closeGuestFormDirect()" style="background:var(--bg);border:1.5px solid var(--border)">Anuluj</button>
-      <button class="btn btn-primary" id="guestSubmitBtn" onclick="addGuest()">+ Dodaj gościa</button>
     </div>
   </div>
 </div>

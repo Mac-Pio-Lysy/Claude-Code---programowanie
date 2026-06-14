@@ -72,15 +72,9 @@ let roomGuestDrag = null; // { guestId, srcTableId }
 
 // ── PLAN SALI: wymiary i własne elementy ──
 let roomMeta = { widthM: 0, lengthM: 0, tableDiameterM: 0 }; // wymiary sali i średnica stołów (metry)
-let roomElements = [];           // { id, name, type, wM, lM, posX, posY, rotation }
+let roomElements = [];           // { id, name, wM, lM, posX, posY }
 let nextRoomElementId = 1;
 let roomElementDrag = null;      // { id, startMouseX, startMouseY, startPosX, startPosY }
-let roomElementResize = null;    // { id, corner, startMouseX, startMouseY, startFpW, startFpH, startPosX, startPosY, ppm, swap }
-let selectedRoomElementId = null;
-let isEditing = false;           // tryb edycji „Plan sali" (false = podgląd, true = edycja)
-let roomEditSnapshot = null;     // kopia stanu sali do funkcji „Anuluj"
-let isFullscreen = false;        // tryb pełnoekranowy „Plan sali"
-let roomFsScale = 1;             // bieżąca skala dopasowania (fit-to-screen)
 
 const CANVAS_W = 1400;
 const CANVAS_H = 760;
@@ -158,45 +152,7 @@ function renderAll() {
 }
 
 // ── GUESTS ──
-// Wypełnia listę „Dieta / menu" opcjami ze słownika menu z Konfiguracji
-function _populateGuestMenuSelect() {
-  const sel = document.getElementById('guestDiet');
-  if (!sel) return;
-  const opts = Array.isArray(appConfig.menuOptions) ? appConfig.menuOptions : [];
-  sel.innerHTML = '<option value="">— wybierz —</option>' +
-    opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
-}
-
-// Pokaż/ukryj pola osoby towarzyszącej
-function _toggleCompanionRow() {
-  const cb  = document.getElementById('guestHasCompanion');
-  const row = document.getElementById('companionRow');
-  if (row) row.style.display = (cb && cb.checked) ? '' : 'none';
-}
-
-// Blokuj „Dodaj gościa" dopóki nie wpisano przynajmniej imienia
-function _validateGuestForm() {
-  const first = (document.getElementById('guestFirstName')?.value || '').trim();
-  const btn   = document.getElementById('guestSubmitBtn');
-  if (btn) btn.disabled = !first;
-}
-
-// Czyści formularz do stanu początkowego
-function _resetGuestForm() {
-  const v = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  const c = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
-  v('guestFirstName', ''); v('guestLastName', ''); v('guestPhoto', '');
-  v('guestInvitedBy', ''); v('guestWitness', ''); v('guestCategory', 'Rodzina'); v('guestGender', 'K');
-  v('companionFirstName', ''); v('companionLastName', '');
-  c('guestHasCompanion', false); c('guestNeedsAccommodation', false);
-  _populateGuestMenuSelect();
-  v('guestDiet', '');
-  _toggleCompanionRow();
-  _validateGuestForm();
-}
-
 function openGuestForm() {
-  _resetGuestForm();
   const modal = document.getElementById('guestFormModal');
   if (modal) modal.style.display = 'flex';
   setTimeout(() => document.getElementById('guestFirstName')?.focus(), 50);
@@ -215,13 +171,9 @@ function closeGuestFormDirect() {
 function addGuest() {
   const first = document.getElementById('guestFirstName').value.trim();
   const last  = document.getElementById('guestLastName').value.trim();
-  if (!first) { showToast('Podaj imię gościa'); document.getElementById('guestFirstName')?.focus(); return; }
+  if (!first && !last) { showToast('Podaj imię lub nazwisko gościa'); return; }
 
-  const hasCompanion = !!document.getElementById('guestHasCompanion')?.checked;
-  const compFirst = (document.getElementById('companionFirstName')?.value || '').trim();
-  const compLast  = (document.getElementById('companionLastName')?.value || '').trim();
-  const companionName = hasCompanion ? `${compFirst} ${compLast}`.trim() : '';
-
+  const diet = document.getElementById('guestDiet')?.value || 'standard';
   guests.push({
     id: nextGuestId++,
     firstName:  first,
@@ -231,11 +183,9 @@ function addGuest() {
     photo:      document.getElementById('guestPhoto').value.trim() || null,
     invitedBy:  document.getElementById('guestInvitedBy')?.value || null,
     witness:    document.getElementById('guestWitness')?.value || null,
-    diet:       'standard',
-    dietOther:  '',
-    hasCompanion,
-    companionName,
-    needsAccommodation: !!document.getElementById('guestNeedsAccommodation')?.checked,
+    diet,
+    dietOther:  diet === 'other' ? (document.getElementById('guestDietOther')?.value || '') : '',
+    needsAccommodation: false,
     vehicleId:  null,
     ownTransport: false,
     hotelId:    null,
@@ -244,18 +194,24 @@ function addGuest() {
     seatIndex:  null,
     pairId:     null,
     // Kartoteka gości (rozszerzone informacje)
-    menuChoice: document.getElementById('guestDiet')?.value || '',
+    menuChoice: '',
     preferences: '',
     allergies:  '',
     cardNotes:  '',
   });
 
-  _resetGuestForm();
+  document.getElementById('guestFirstName').value = '';
+  document.getElementById('guestLastName').value  = '';
+  document.getElementById('guestPhoto').value     = '';
+  if (document.getElementById('guestInvitedBy')) document.getElementById('guestInvitedBy').value = '';
+  if (document.getElementById('guestWitness'))   document.getElementById('guestWitness').value   = '';
+  if (document.getElementById('guestDiet'))      document.getElementById('guestDiet').value      = 'standard';
+  if (document.getElementById('guestDietOther')) document.getElementById('guestDietOther').value = '';
   closeGuestFormDirect();
   renderGuests();
   updateStats();
   saveState();
-  showToast(`${first}${last ? ' ' + last : ''} dodany/a do listy`);
+  showToast(`${first} ${last} dodany/a do listy`);
 }
 
 function removeGuest(guestId) {
@@ -393,7 +349,6 @@ function renderGuests() {
             ${g.witness === 'witness_bride' ? `<span class="badge badge-witness-b">&#9679; Świadkowa</span>` : ''}
             ${g.diet && g.diet !== 'standard' ? `<span class="badge badge-diet">${dietLabel(g.diet, g.dietOther)}</span>` : ''}
             ${g.needsAccommodation ? `<span class="badge badge-accom">&#127968;</span>` : ''}
-            ${g.hasCompanion ? `<span class="badge badge-companion" title="Osoba towarzysząca${g.companionName ? ': ' + esc(g.companionName) : ''}">&#128101; +1${g.companionName ? ' ' + esc(g.companionName) : ''}</span>` : ''}
           </div>
         </div>
         ${!isTarget ? `<button class="guest-expand-btn" type="button" aria-label="Pokaż opcje" title="Pokaż opcje">&#9660;</button>` : ''}
@@ -1649,7 +1604,6 @@ function renderRoomStaffTable(t) {
 }
 
 function startRoomStaffTableDrag(e, id) {
-  if (!isEditing) return;
   if (e.button !== 0) return;
   e.preventDefault();
   const t = staffTables.find(x => x.id === id);
@@ -3145,7 +3099,7 @@ function switchView(view) {
       renderStaffTables();
       updateStats();
       break;
-    case 'room':          isEditing = false; selectedRoomElementId = null; if (isFullscreen) exitRoomFullscreen(); renderRoom(); break;
+    case 'room':          renderRoom();          break;
     case 'budget':        renderBudget(); renderPayments(); break;
     case 'dashboard':     renderDashboard();     break;
     case 'schedule':      renderSchedule(); renderScheduleQR(); break;
@@ -3283,7 +3237,6 @@ function renderRoomTable(t) {
 
 // ── ROOM GUEST DRAG & DROP (event delegation on #roomCanvas) ──
 function roomGuestDragStart(event, guestId, srcTableId) {
-  if (!isEditing) { event.preventDefault(); return; }
   roomGuestDrag = { guestId, srcTableId };
   event.dataTransfer.effectAllowed = 'move';
   event.dataTransfer.setData('text/plain', String(guestId));
@@ -3383,141 +3336,36 @@ function renderRoom() {
   const staffTableHtml = staffTables.map(renderRoomStaffTable).join('');
   const elementHtml    = roomElements.map(renderRoomElement).join('');
   canvas.innerHTML = `<div class="room-canvas-label">${esc(roomName)}</div>${dimLabel}${elementHtml}${tableHtml}${staffTableHtml}`;
-  _applyRoomEditUI();
-  _applyRoomFit();        // dopasowanie do okna (podgląd) lub pełny ekran; edycja = naturalny rozmiar
-  _updateRoomFsBtn();
-}
-
-const ROOM_EL_PAD = 6;
-const ROOM_EL_MIN_PX = 30;
-
-// Rozpoznaje typ elementu z jego nazwy (do tekstury/ikony)
-function _elementType(name) {
-  const n = (name || '').toLowerCase();
-  if (n.includes('parkiet')) return 'parkiet';
-  if (n.includes('orkiestra')) return 'orkiestra';
-  if (n.includes('dj')) return 'dj';
-  if (n.includes('bar')) return 'bar';
-  if (n.includes('scen')) return 'scena';
-  return 'custom';
-}
-
-// Geometria elementu: piksele kształtu (tw×th), kąt obrotu i ślad (footprint) na kanwie.
-// Przy obrocie 90/270 ślad ma zamienione wymiary (szerokość↔długość).
-function _elGeom(el) {
-  const ppm = roomPxPerMeter();
-  const tw  = Math.max(46, Math.round((el.wM || 1) * ppm));
-  const th  = Math.max(36, Math.round((el.lM || 1) * ppm));
-  const rot = (((el.rotation || 0) % 360) + 360) % 360;
-  const swap = (rot === 90 || rot === 270);
-  return { ppm, tw, th, rot, swap, fpW: swap ? th : tw, fpH: swap ? tw : th };
-}
-
-// Utrzymuje element wewnątrz obrysu sali (kanwy)
-function _clampElPos(el) {
-  const g = _elGeom(el);
-  const wrapW = g.fpW + ROOM_EL_PAD * 2, wrapH = g.fpH + ROOM_EL_PAD * 2;
-  el.posX = Math.max(0, Math.min(CANVAS_W - wrapW, el.posX));
-  el.posY = Math.max(0, Math.min(roomCanvasH - wrapH, el.posY));
-}
-
-// Aktualizuje style istniejącego węzła DOM (na żywo, bez przebudowy — zachowuje uchwyty)
-function _styleElementNode(node, el) {
-  const g = _elGeom(el);
-  const wrapW = g.fpW + ROOM_EL_PAD * 2, wrapH = g.fpH + ROOM_EL_PAD * 2;
-  node.style.left = el.posX + 'px'; node.style.top = el.posY + 'px';
-  node.style.width = wrapW + 'px'; node.style.height = wrapH + 'px';
-  const shape = node.querySelector('.rt-shape');
-  if (shape) {
-    shape.style.width = g.tw + 'px'; shape.style.height = g.th + 'px';
-    shape.style.left = ((wrapW - g.tw) / 2) + 'px';
-    shape.style.top  = ((wrapH - g.th) / 2) + 'px';
-    shape.style.transform = 'rotate(' + g.rot + 'deg)';
-  }
-  const dimEl = node.querySelector('.rt-count');
-  if (dimEl && el.wM && el.lM) dimEl.textContent = `${el.wM}×${el.lM} m`;
 }
 
 // Renderuje własny element sali (Orkiestra, DJ, Bar, Scena, Parkiet, własny) jako blok z podpisem
 function renderRoomElement(el) {
-  const g = _elGeom(el);
-  const PAD = ROOM_EL_PAD;
-  const wrapW = g.fpW + PAD * 2, wrapH = g.fpH + PAD * 2;
-  const shapeLeft = (wrapW - g.tw) / 2, shapeTop = (wrapH - g.th) / 2;
-  const type = el.type || _elementType(el.name);
-  const sel  = isEditing && el.id === selectedRoomElementId;
+  const ppm = roomPxPerMeter();
+  const tw = Math.max(46, Math.round((el.wM || 1) * ppm));
+  const th = Math.max(36, Math.round((el.lM || 1) * ppm));
+  const PAD = 6;
+  const wrapW = tw + PAD * 2, wrapH = th + PAD * 2;
   const dims = (el.wM && el.lM) ? `${el.wM}×${el.lM} m` : '';
-  const handles = sel
-    ? ['nw', 'ne', 'sw', 'se'].map(c =>
-        `<div class="rt-resize rt-resize-${c}" onmousedown="startRoomElementResize(event,${el.id},'${c}')"></div>`).join('')
-    : '';
-  const tools = sel ? `
-    <div class="rt-el-tools">
-      <button class="rt-el-tool rt-el-rotate" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();rotateRoomElement(${el.id})" title="Obróć o 90°">&#8635;</button>
-      <button class="rt-el-tool rt-el-trash" onmousedown="event.stopPropagation()" onclick="event.stopPropagation();deleteRoomElement(${el.id})" title="Usuń element">&#128465;</button>
-    </div>` : '';
-  return `<div class="rt-wrap rt-element-wrap${sel ? ' rt-selected' : ''}" data-element-id="${el.id}" data-type="${type}"
+  return `<div class="rt-wrap rt-element-wrap" data-element-id="${el.id}"
     style="left:${el.posX}px;top:${el.posY}px;width:${wrapW}px;height:${wrapH}px"
     onmousedown="startRoomElementDrag(event,${el.id})">
-    <div class="rt-shape rt-rect rt-element rt-el-${type}" style="width:${g.tw}px;height:${g.th}px;left:${shapeLeft}px;top:${shapeTop}px;transform:rotate(${g.rot}deg)">
+    <div class="rt-shape rt-rect rt-element" style="width:${tw}px;height:${th}px;left:${PAD}px;top:${PAD}px">
       <div class="rt-label">
         <div class="rt-name">${esc(el.name)}</div>
         ${dims ? `<div class="rt-count">${dims}</div>` : ''}
       </div>
     </div>
-    ${tools}
-    ${handles}
+    <div class="rt-delete" onclick="event.stopPropagation();deleteRoomElement(${el.id})" title="Usuń element">&#10005;</div>
   </div>`;
 }
 
-function selectRoomElement(id) {
-  if (selectedRoomElementId === id) return;
-  selectedRoomElementId = id;
-  renderRoom();
-}
-
-// Klik w pustą część kanwy odznacza element
-function roomCanvasMouseDown(e) {
-  if (roomElementDrag || roomElementResize) return;   // właśnie zaczął się drag/resize elementu
-  if (e.target.closest('.rt-element-wrap')) return;
-  if (selectedRoomElementId !== null) { selectedRoomElementId = null; renderRoom(); }
-}
-
 function startRoomElementDrag(e, id) {
-  if (!isEditing) return;
   if (e.button !== 0) return;
   e.preventDefault();
   const el = roomElements.find(x => x.id === id);
   if (!el) return;
-  if (selectedRoomElementId !== id) selectRoomElement(id);  // zaznacz (przebudowuje kanwę)
   roomElementDrag = { id, startMouseX: e.clientX, startMouseY: e.clientY, startPosX: el.posX, startPosY: el.posY };
   document.querySelector(`.rt-element-wrap[data-element-id="${id}"]`)?.classList.add('rt-dragging');
-}
-
-// Obrót zaznaczonego elementu o 90° (0→90→180→270→0) z płynną animacją CSS
-function rotateRoomElement(id) {
-  const el = roomElements.find(x => x.id === id);
-  if (!el) return;
-  el.rotation = (((el.rotation || 0) + 90) % 360);
-  _clampElPos(el);                       // ślad mógł zmienić wymiary — utrzymaj w sali
-  const node = document.querySelector(`.rt-element-wrap[data-element-id="${id}"]`);
-  if (node) _styleElementNode(node, el); // animuje transform (transition w CSS)
-  saveState();
-}
-
-function startRoomElementResize(e, id, corner) {
-  if (!isEditing) return;
-  if (e.button !== 0) return;
-  e.preventDefault();
-  e.stopPropagation();
-  const el = roomElements.find(x => x.id === id);
-  if (!el) return;
-  const g = _elGeom(el);
-  roomElementResize = {
-    id, corner, startMouseX: e.clientX, startMouseY: e.clientY,
-    startFpW: g.fpW, startFpH: g.fpH, startPosX: el.posX, startPosY: el.posY,
-    ppm: g.ppm, swap: g.swap,
-  };
 }
 
 // ── DODAWANIE / USUWANIE ELEMENTÓW SALI ──
@@ -3531,22 +3379,17 @@ function addRoomElement() {
   const wM = parseFloat(wIn && wIn.value) || 2;
   const lM = parseFloat(lIn && lIn.value) || 2;
   const idx = roomElements.length;
-  const newEl = {
-    id: nextRoomElementId++, name, type: _elementType(name), wM, lM,
+  roomElements.push({
+    id: nextRoomElementId++, name, wM, lM,
     posX: 40 + (idx % 6) * 130, posY: 40 + Math.floor(idx / 6) * 110,
-    rotation: 0,
-  };
-  _clampElPos(newEl);
-  roomElements.push(newEl);
+  });
   if (cust) { cust.value = ''; cust.style.display = 'none'; }
-  selectedRoomElementId = newEl.id;   // od razu zaznacz nowy element
   renderRoom();
   saveState();
   showToast('Dodano element: ' + name);
 }
 function deleteRoomElement(id) {
   roomElements = roomElements.filter(x => x.id !== id);
-  if (selectedRoomElementId === id) selectedRoomElementId = null;
   renderRoom();
   saveState();
 }
@@ -3555,196 +3398,6 @@ function updateRoomMeta(field, val) {
   renderRoom();
   renderTables();
   saveState();
-}
-
-// ══════════════════════════════════════════════════════
-//  PLAN SALI — TRYB EDYCJI (podgląd ↔ edycja)
-// ══════════════════════════════════════════════════════
-// Stosuje widoczność paneli/przycisków zależnie od isEditing
-function _applyRoomEditUI() {
-  const panels  = document.getElementById('roomConfigPanels');
-  const editBtn = document.getElementById('roomEditBtn');
-  const actions = document.getElementById('roomEditActions');
-  const view    = document.querySelector('#viewRoom .room-view');
-  if (panels)  panels.classList.toggle('open', isEditing);
-  if (editBtn) editBtn.style.display = isEditing ? 'none' : '';
-  if (actions) actions.style.display = isEditing ? 'flex' : 'none';
-  if (view)    view.classList.toggle('room-editing', isEditing);
-}
-
-// Migawka stanu sali (do „Anuluj"): nazwa, wymiary, elementy oraz pozycje
-// i przypisania miejsc stołów/personelu — wszystko, co można zmienić w tej sesji.
-function _snapshotRoomState() {
-  return JSON.stringify({
-    roomName, roomMeta, roomElements, nextRoomElementId,
-    tablePos:  tables.map(t => ({ id: t.id, posX: t.posX, posY: t.posY, seatsData: (t.seatsData || []).slice() })),
-    staffPos:  staffTables.map(t => ({ id: t.id, posX: t.posX, posY: t.posY })),
-    guestSeat: guests.map(g => ({ id: g.id, tableId: g.tableId, seatIndex: g.seatIndex })),
-  });
-}
-
-// Przywraca stan sali z migawki
-function _restoreRoomState(snap) {
-  let s; try { s = JSON.parse(snap); } catch (_) { return; }
-  roomName          = s.roomName;
-  roomMeta          = s.roomMeta;
-  roomElements      = s.roomElements || [];
-  nextRoomElementId = s.nextRoomElementId || 1;
-  (s.tablePos || []).forEach(p => {
-    const t = tables.find(x => x.id === p.id);
-    if (t) { t.posX = p.posX; t.posY = p.posY; if (p.seatsData) t.seatsData = p.seatsData.slice(); }
-  });
-  (s.staffPos || []).forEach(p => { const t = staffTables.find(x => x.id === p.id); if (t) { t.posX = p.posX; t.posY = p.posY; } });
-  (s.guestSeat || []).forEach(p => { const g = guests.find(x => x.id === p.id); if (g) { g.tableId = p.tableId; g.seatIndex = p.seatIndex; } });
-  // odśwież pola wymiarów sali
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-  set('roomWidthInput',     roomMeta.widthM        || '');
-  set('roomLengthInput',    roomMeta.lengthM       || '');
-  set('roomTableDiamInput', roomMeta.tableDiameterM || '');
-  const nameInput = document.getElementById('roomNameInput');
-  if (nameInput) nameInput.value = roomName;
-}
-
-function enterRoomEdit() {
-  isEditing = true;
-  roomEditSnapshot = _snapshotRoomState();   // zapamiętaj stan na potrzeby „Anuluj"
-  selectedRoomElementId = null;
-  renderRoom();
-  renderTables();
-}
-
-function saveRoomEdit() {
-  isEditing = false;
-  selectedRoomElementId = null;
-  roomEditSnapshot = null;
-  saveState();                 // utrwal layout (localStorage + Firestore)
-  renderRoom();
-  renderTables();
-  showToast('Zapisano plan sali');
-}
-
-function cancelRoomEdit() {
-  if (roomEditSnapshot) _restoreRoomState(roomEditSnapshot);
-  roomEditSnapshot = null;
-  isEditing = false;
-  selectedRoomElementId = null;
-  saveState();                 // utrwal przywrócony stan
-  renderRoom();
-  renderTables();
-  showToast('Anulowano zmiany');
-}
-
-// ══════════════════════════════════════════════════════
-//  PLAN SALI — DOPASOWANIE (fit-to-screen) — podgląd i pełny ekran
-// ══════════════════════════════════════════════════════
-// Dopasowuje siatkę sali do okna (pełny ekran) z zachowaniem proporcji (transform: scale)
-function _fitRoomToScreen() {
-  const canvas = document.getElementById('roomCanvas');
-  if (!canvas) return;
-  const PAD = 48; // margines, by krawędzie się nie ucinały
-  const availW = Math.max(100, window.innerWidth  - PAD);
-  const availH = Math.max(100, window.innerHeight - PAD);
-  // CANVAS_W × roomCanvasH odzwierciedlają proporcje sali (widthM × lengthM)
-  const s = Math.max(0.1, Math.min(availW / CANVAS_W, availH / roomCanvasH));
-  roomFsScale = s;
-  canvas.style.transformOrigin = 'center center';
-  canvas.style.transform = 'scale(' + s + ')';
-}
-
-// Dopasowuje siatkę sali do dostępnej przestrzeni w trybie PODGLĄDU (desktop i mobile).
-// Bazuje na szerokości wrappera i wysokości widocznej do dołu okna — bez ucinania i bez przewijania.
-function _fitRoomPreview() {
-  const wrap   = document.getElementById('roomCanvasWrapper');
-  const canvas = document.getElementById('roomCanvas');
-  if (!wrap || !canvas) return;
-  const cs   = getComputedStyle(wrap);
-  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-  const padY = parseFloat(cs.paddingTop)  + parseFloat(cs.paddingBottom);
-  // wysokość = od górnej krawędzi wrappera do dołu okna (działa też na mobile bez sztywnej wysokości)
-  const rectTop = wrap.getBoundingClientRect().top;
-  const availH  = Math.max(140, window.innerHeight - rectTop - 12);
-  wrap.style.height = availH + 'px';               // ogranicz wrapper do widocznej przestrzeni
-  const innerW = Math.max(50, wrap.clientWidth - padX);
-  const innerH = Math.max(50, availH - padY);
-  // CANVAS_W × roomCanvasH zachowują proporcje sali (widthM × lengthM)
-  const s = Math.max(0.05, Math.min(innerW / CANVAS_W, innerH / roomCanvasH));
-  canvas.style.transformOrigin = 'center center';
-  canvas.style.transform = 'scale(' + s + ')';
-}
-
-// Wybiera właściwe dopasowanie zależnie od trybu (pełny ekran / podgląd / edycja)
-function _applyRoomFit() {
-  const wrap   = document.getElementById('roomCanvasWrapper');
-  const canvas = document.getElementById('roomCanvas');
-  if (!wrap || !canvas) return;
-  if (isFullscreen) {
-    wrap.classList.remove('room-fit'); wrap.style.height = '';
-    _fitRoomToScreen();
-  } else if (!isEditing) {
-    wrap.classList.add('room-fit');                // podgląd: auto-dopasowanie
-    _fitRoomPreview();
-  } else {
-    // tryb edycji: naturalny rozmiar + przewijanie (precyzyjna edycja)
-    wrap.classList.remove('room-fit'); wrap.style.height = '';
-    canvas.style.transform = ''; canvas.style.transformOrigin = '';
-  }
-}
-
-// Przelicz dopasowanie podglądu przy zmianie rozmiaru okna (always-on, działa też na mobile)
-window.addEventListener('resize', () => {
-  if (currentView === 'room' && !isFullscreen && !isEditing) _fitRoomPreview();
-});
-
-// Stały referencyjny handler ESC (ten sam obiekt do add/removeEventListener)
-function _roomFsEscKeydown(e) {
-  if (e.key === 'Escape' || e.key === 'Esc') exitRoomFullscreen();
-}
-function _roomFsResize() {
-  if (isFullscreen) _fitRoomToScreen();
-}
-
-function _updateRoomFsBtn() {
-  const btn = document.getElementById('roomFsBtn');
-  if (!btn) return;
-  btn.innerHTML = isFullscreen
-    ? '<span class="room-fs-ico">&#10219;&#10218;</span> Zamknij pełny ekran'
-    : '<span class="room-fs-ico">&#10218;&#10219;</span> Pełny ekran';
-  btn.title = isFullscreen ? 'Zamknij pełny ekran (ESC)' : 'Pełny ekran';
-}
-
-function toggleRoomFullscreen() {
-  if (isFullscreen) exitRoomFullscreen(); else enterRoomFullscreen();
-}
-
-function enterRoomFullscreen() {
-  if (isFullscreen) return;
-  isFullscreen = true;
-  const wrap = document.getElementById('roomCanvasWrapper');
-  if (wrap) {
-    wrap.classList.remove('room-fit');   // zdejmij dopasowanie podglądu
-    wrap.style.height = '';              // wyczyść narzuconą wysokość
-    wrap.classList.add('room-fs-active');
-  }
-  _fitRoomToScreen();
-  document.addEventListener('keydown', _roomFsEscKeydown);   // dodaj listener ESC...
-  window.addEventListener('resize', _roomFsResize);
-  document.body.classList.add('room-fs-lock');
-  _updateRoomFsBtn();
-}
-
-function exitRoomFullscreen() {
-  if (!isFullscreen) return;
-  isFullscreen = false;
-  const wrap = document.getElementById('roomCanvasWrapper');
-  if (wrap) wrap.classList.remove('room-fs-active');
-  const canvas = document.getElementById('roomCanvas');
-  if (canvas) { canvas.style.transform = ''; canvas.style.transformOrigin = ''; }
-  roomFsScale = 1;
-  document.removeEventListener('keydown', _roomFsEscKeydown); // ...i USUŃ go przy wyjściu
-  window.removeEventListener('resize', _roomFsResize);
-  document.body.classList.remove('room-fs-lock');
-  _applyRoomFit();   // powrót do dopasowania podglądu
-  _updateRoomFsBtn();
 }
 
 // ── GUEST TOOLTIP ──
@@ -3784,7 +3437,6 @@ function hideGuestTooltip() {
 
 // ── ROOM TABLE DRAG ──
 function startRoomTableDrag(e, tableId) {
-  if (!isEditing) return;
   if (e.button !== 0) return;
   if (roomGuestDrag) return; // guest drag in progress — don't move table
   e.preventDefault();
@@ -3795,13 +3447,12 @@ function startRoomTableDrag(e, tableId) {
 }
 
 document.addEventListener('mousemove', e => {
-  const _sc = isFullscreen ? roomFsScale : 1;   // kompensacja skali fit-to-screen
   if (roomDrag) {
     const t  = tables.find(x => x.id === roomDrag.tableId);
     const el = document.querySelector(`.rt-wrap[data-id="${roomDrag.tableId}"]`);
     if (t && el) {
-      const dx = (e.clientX - roomDrag.startMouseX) / _sc;
-      const dy = (e.clientY - roomDrag.startMouseY) / _sc;
+      const dx = e.clientX - roomDrag.startMouseX;
+      const dy = e.clientY - roomDrag.startMouseY;
       t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomDrag.startPosX + dx));
       t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomDrag.startPosY + dy));
       el.style.left = t.posX + 'px';
@@ -3812,8 +3463,8 @@ document.addEventListener('mousemove', e => {
     const t  = staffTables.find(x => x.id === roomStaffDrag.id);
     const el = document.querySelector(`.rt-staff-wrap[data-staff-id="${roomStaffDrag.id}"]`);
     if (t && el) {
-      const dx = (e.clientX - roomStaffDrag.startMouseX) / _sc;
-      const dy = (e.clientY - roomStaffDrag.startMouseY) / _sc;
+      const dx = e.clientX - roomStaffDrag.startMouseX;
+      const dy = e.clientY - roomStaffDrag.startMouseY;
       t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomStaffDrag.startPosX + dx));
       t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomStaffDrag.startPosY + dy));
       el.style.left = t.posX + 'px';
@@ -3824,43 +3475,12 @@ document.addEventListener('mousemove', e => {
     const t  = roomElements.find(x => x.id === roomElementDrag.id);
     const el = document.querySelector(`.rt-element-wrap[data-element-id="${roomElementDrag.id}"]`);
     if (t && el) {
-      const dx = (e.clientX - roomElementDrag.startMouseX) / _sc;
-      const dy = (e.clientY - roomElementDrag.startMouseY) / _sc;
+      const dx = e.clientX - roomElementDrag.startMouseX;
+      const dy = e.clientY - roomElementDrag.startMouseY;
       t.posX = Math.max(0, Math.min(CANVAS_W - el.offsetWidth,  roomElementDrag.startPosX + dx));
       t.posY = Math.max(0, Math.min(roomCanvasH - el.offsetHeight, roomElementDrag.startPosY + dy));
       el.style.left = t.posX + 'px';
       el.style.top  = t.posY + 'px';
-    }
-  }
-  if (roomElementResize) {
-    const r  = roomElementResize;
-    const el = roomElements.find(x => x.id === r.id);
-    const node = document.querySelector(`.rt-element-wrap[data-element-id="${r.id}"]`);
-    if (el && node) {
-      const PAD = ROOM_EL_PAD, MIN = ROOM_EL_MIN_PX;
-      const dx = (e.clientX - r.startMouseX) / _sc, dy = (e.clientY - r.startMouseY) / _sc;
-      const c = r.corner;
-      let fpW = r.startFpW, fpH = r.startFpH, posX = r.startPosX, posY = r.startPosY;
-      if (c.includes('e')) fpW = r.startFpW + dx;
-      if (c.includes('w')) { fpW = r.startFpW - dx; posX = r.startPosX + dx; }
-      if (c.includes('s')) fpH = r.startFpH + dy;
-      if (c.includes('n')) { fpH = r.startFpH - dy; posY = r.startPosY + dy; }
-      // minimalny rozmiar
-      if (fpW < MIN) { if (c.includes('w')) posX -= (MIN - fpW); fpW = MIN; }
-      if (fpH < MIN) { if (c.includes('n')) posY -= (MIN - fpH); fpH = MIN; }
-      // nie wychodź poza krawędź sali (lewą/górną)
-      if (posX < 0) { if (c.includes('w')) fpW += posX; posX = 0; }
-      if (posY < 0) { if (c.includes('n')) fpH += posY; posY = 0; }
-      // nie przekraczaj prawej/dolnej krawędzi sali ani jej wymiarów
-      fpW = Math.max(MIN, Math.min(fpW, CANVAS_W - 2 * PAD - posX));
-      fpH = Math.max(MIN, Math.min(fpH, roomCanvasH - 2 * PAD - posY));
-      // ślad → metry (uwzględnij obrót: przy 90/270 szer.↔dł.)
-      const wFromW = Math.max(0.3, Math.round((fpW / r.ppm) * 10) / 10);
-      const hFromH = Math.max(0.3, Math.round((fpH / r.ppm) * 10) / 10);
-      if (r.swap) { el.lM = wFromW; el.wM = hFromH; }
-      else        { el.wM = wFromW; el.lM = hFromH; }
-      el.posX = posX; el.posY = posY;
-      _styleElementNode(node, el);
     }
   }
 });
@@ -3879,11 +3499,6 @@ document.addEventListener('mouseup', e => {
   if (roomElementDrag) {
     document.querySelector(`.rt-element-wrap[data-element-id="${roomElementDrag.id}"]`)?.classList.remove('rt-dragging');
     roomElementDrag = null;
-    saveState();
-  }
-  if (roomElementResize) {
-    roomElementResize = null;
-    renderRoom();   // znormalizuj uchwyty i etykietę
     saveState();
   }
 });
@@ -4611,20 +4226,26 @@ let taskSort = 'none';  // 'none' | 'date' | 'priority' | 'status'
 
 function addTask() {
   tasks.push({ id:nextTaskId++, name:'Nowe zadanie', dueDate:'', startDate:'', endDate:'',
-    responsible:'both', status:'todo', priority:'med', linkType:'', linkId:null,
-    assigneeName:'', vendorId:null, giftId:null,
-    isBudgetLinked:false, estimatedCost:0, budgetCategory:'', budgetExpenseId:null });
+    responsible:'both', status:'todo', priority:'med', linkType:'', linkId:null });
   renderTasks(); saveState();
 }
 
-// Inicjały przypisanej osoby (awatar na karcie)
-function _assigneeInitials(name) {
-  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[1][0]).toUpperCase();
+// Etykieta i link powiązanego obiektu (Dostawca/Budżet/Prezent)
+function taskLinkLabel(t) {
+  if (!t.linkType || t.linkId == null) return null;
+  if (t.linkType === 'vendor') { const v = vendors.find(x=>x.id===t.linkId); return v ? { icon:'👨‍🍳', text: vendorLabel(v), view:'vendors' } : null; }
+  if (t.linkType === 'budget') { const e = budgetData.expenses.find(x=>x.id===t.linkId); return e ? { icon:'💰', text:(e.category==='Inne'?(e.customName||'Wydatek'):e.category), view:'budget' } : null; }
+  if (t.linkType === 'gift')   { const g = gifts.find(x=>x.id===t.linkId); return g ? { icon:'🎁', text:(g.description||g.from||'Prezent'), view:'gifts' } : null; }
+  return null;
 }
-
+function _taskLinkOptions(t) {
+  const cur = (t.linkType && t.linkId != null) ? `${t.linkType}:${t.linkId}` : '';
+  const groups = [['', '— brak —']];
+  vendors.forEach(v => groups.push([`vendor:${v.id}`, '👨‍🍳 ' + vendorLabel(v)]));
+  budgetData.expenses.forEach(e => groups.push([`budget:${e.id}`, '💰 ' + (e.category==='Inne'?(e.customName||'Wydatek'):e.category)]));
+  gifts.forEach(g => groups.push([`gift:${g.id}`, '🎁 ' + (g.description||g.from||'Prezent')]));
+  return { groups, cur };
+}
 function setTaskView(v) {
   taskView = v;
   ['board','gantt'].forEach(m => document.getElementById('tv-'+m)?.classList.toggle('schv-active', m===v));
@@ -4637,19 +4258,7 @@ function updateTask(id,field,value) {
   t[field]=value; renderTasks(); saveState();
 }
 function deleteTask(id) {
-  const t = tasks.find(x => x.id === id);
-  // Powiązany wpis budżetowy — zapytaj, czy usunąć także jego
-  if (t && t.isBudgetLinked && t.budgetExpenseId != null) {
-    const exp = budgetData.expenses.find(x => x.id === t.budgetExpenseId);
-    if (exp && confirm('To zadanie jest powiązane z wpisem w budżecie. Usunąć także powiązany wpis budżetowy?')) {
-      budgetData.expenses = budgetData.expenses.filter(x => x.id !== t.budgetExpenseId);
-      if (typeof expenseOrder !== 'undefined') expenseOrder = expenseOrder.filter(eid => eid !== t.budgetExpenseId);
-      if (typeof renderBudgetOverview === 'function') renderBudgetOverview();
-      if (currentView === 'budget' && typeof renderExpenses === 'function') renderExpenses();
-    }
-  }
-  tasks = tasks.filter(x => x.id !== id);
-  renderTasks(); saveState();
+  tasks=tasks.filter(x=>x.id!==id); renderTasks(); saveState();
 }
 
 function _taskCardHtml(t) {
@@ -4661,20 +4270,9 @@ function _taskCardHtml(t) {
   const dateStr = t.dueDate
     ? `<span class="kcard-date${overdue?' kcard-overdue':''}">${overdue?'⚠ ':'📅 '}${t.dueDate}</span>`
     : '';
-  // Znaczniki powiązań (referencje): budżet, dostawca, prezent
-  const budgetStr = t.isBudgetLinked
-    ? `<span class="kcard-link kcard-budget" title="Budżet${t.budgetCategory?': '+esc(t.budgetCategory):''}" onclick="event.stopPropagation();switchView('budget')">💰 ${fmt(t.estimatedCost||0)} zł</span>`
-    : '';
-  const vendor  = t.vendorId != null ? vendors.find(v => v.id === t.vendorId) : null;
-  const vendorStr = vendor
-    ? `<span class="kcard-link" title="Dostawca" onclick="event.stopPropagation();switchView('vendors')">👨‍🍳 ${esc(vendorLabel(vendor))}</span>`
-    : '';
-  const gift    = t.giftId != null ? gifts.find(g => g.id === t.giftId) : null;
-  const giftStr = gift
-    ? `<span class="kcard-link" title="Prezent" onclick="event.stopPropagation();switchView('gifts')">🎁 ${esc(gift.description||gift.from||'Prezent')}</span>`
-    : '';
-  const assigneeAv = t.assigneeName
-    ? `<span class="kcard-assignee" title="Przypisano: ${esc(t.assigneeName)}">${esc(_assigneeInitials(t.assigneeName))}</span>`
+  const link = taskLinkLabel(t);
+  const linkStr = link
+    ? `<span class="kcard-link" title="Powiązanie" onclick="event.stopPropagation();switchView('${link.view}')">${link.icon} ${esc(link.text)}</span>`
     : '';
   const done = t.status==='done', cancelled = t.status==='cancelled';
   return `<div class="kanban-card${done?' kcard-done':''}${cancelled?' kcard-cancelled':''}"
@@ -4685,14 +4283,11 @@ function _taskCardHtml(t) {
       <span class="kcard-prio" title="Priorytet: ${prio.label}" style="color:${prio.color}">${prio.icon}</span>
       <input class="kcard-name${done||cancelled?' kcard-striked':''}" type="text"
         value="${esc(t.name)}" onchange="updateTask(${t.id},'name',this.value)">
-      ${assigneeAv}
     </div>
     <div class="kcard-footer">
       <span class="kcard-person" style="background:${pc}22;color:${pc}">${pl}</span>
       ${dateStr}
-      ${budgetStr}
-      ${vendorStr}
-      ${giftStr}
+      ${linkStr}
       <div class="kcard-actions">
         <button class="btn-row-edit" onclick="openEditModal('task',${t.id})" title="Edytuj">&#9998;</button>
         <button class="btn-row-del" onclick="deleteTask(${t.id})">&#128465;</button>
@@ -4707,11 +4302,8 @@ function _filteredSortedTasks() {
   let list = tasks.filter(t => {
     if (taskFilters.status !== 'all' && t.status !== taskFilters.status) return false;
     if (taskFilters.person && t.responsible !== taskFilters.person) return false;
-    const hasVendor = t.vendorId != null, hasGift = t.giftId != null, hasBudget = !!t.isBudgetLinked;
-    if (taskFilters.link === 'none'   && (hasVendor || hasGift || hasBudget)) return false;
-    if (taskFilters.link === 'vendor' && !hasVendor) return false;
-    if (taskFilters.link === 'budget' && !hasBudget) return false;
-    if (taskFilters.link === 'gift'   && !hasGift)   return false;
+    if (taskFilters.link === 'none' && t.linkType) return false;
+    if (['vendor','budget','gift'].includes(taskFilters.link) && t.linkType !== taskFilters.link) return false;
     if (taskFilters.date === 'withdate' && !t.dueDate) return false;
     if (taskFilters.date === 'nodate'   && t.dueDate)  return false;
     if (taskFilters.date === 'overdue'  && !(t.dueDate && t.status!=='done' && t.status!=='cancelled' && new Date(t.dueDate) < today)) return false;
@@ -4853,29 +4445,14 @@ function addVendor() {
   const sf = document.getElementById('vendorFilterStatus');
   if (cf) cf.value = '';
   if (sf) sf.value = '';
-  vendors.push({id:nextVendorId++,category:'Fotograf',customCategory:'',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:'',mapUrl:'',
-    isBudgetLinked:false,contractAmount:0,budgetCategory:'',budgetExpenseId:null});
+  vendors.push({id:nextVendorId++,category:'Fotograf',customCategory:'',companyName:'',contactName:'',phone:'',email:'',price:0,paymentStatus:'contacted',notes:'',mapUrl:''});
   renderVendors(); saveState();
 }
 function updateVendor(id,field,value) {
   const v=vendors.find(x=>x.id===id);
   if(v){v[field]=field==='price'?(parseFloat(value)||0):value; renderVendors(); saveState();}
 }
-function deleteVendor(id) {
-  const v = vendors.find(x => x.id === id);
-  // Powiązany wpis budżetowy — zapytaj, czy usunąć także jego
-  if (v && v.isBudgetLinked && v.budgetExpenseId != null) {
-    const exp = budgetData.expenses.find(x => x.id === v.budgetExpenseId);
-    if (exp && confirm('Ten dostawca jest powiązany z wpisem w budżecie. Usunąć także powiązany wpis budżetowy?')) {
-      budgetData.expenses = budgetData.expenses.filter(x => x.id !== v.budgetExpenseId);
-      if (typeof expenseOrder !== 'undefined') expenseOrder = expenseOrder.filter(eid => eid !== v.budgetExpenseId);
-      if (typeof renderBudgetOverview === 'function') renderBudgetOverview();
-      if (currentView === 'budget' && typeof renderExpenses === 'function') renderExpenses();
-    }
-  }
-  vendors = vendors.filter(x => x.id !== id);
-  renderVendors(); saveState();
-}
+function deleteVendor(id) { vendors=vendors.filter(x=>x.id!==id); renderVendors(); saveState(); }
 
 // ── Reużywalny wybór istniejącego dostawcy (Noclegi/Budżet/Plan sali/Zadania) ──
 function vendorLabel(v) {
@@ -4939,15 +4516,10 @@ function renderVendors() {
       ? `<input class="vendor-field vendor-field-custom" type="text" value="${esc(v.customCategory||'')}" placeholder="Wpisz kategorię…" onchange="updateVendor(${v.id},'customCategory',this.value)">`
       : '';
     const displayCat = v.category==='Inne' && v.customCategory ? v.customCategory : v.category;
-    const budgetChip = v.isBudgetLinked
-      ? `<span class="vendor-budget-chip" title="Powiązano z budżetem${v.budgetCategory?': '+esc(v.budgetCategory):''}" onclick="switchView('budget')">💰 ${fmt(v.contractAmount||0)} zł</span>`
-      : '';
     return `<div class="vendor-card">
       <div class="vendor-hdr">
-        <span class="vendor-type-badge" title="Dostawca">🏢 Dostawca</span>
         <select class="vendor-cat" onchange="updateVendor(${v.id},'category',this.value)">${catOpts}</select>
         <span class="vendor-badge" style="background:${st.color}22;color:${st.color}">${st.label}</span>
-        ${budgetChip}
         <button class="btn-row-edit" onclick="openEditModal('vendor',${v.id})" title="Edytuj">&#9998;</button>
         <button class="btn-row-del" onclick="deleteVendor(${v.id})">&#128465;</button>
       </div>
@@ -6127,77 +5699,33 @@ function _tableForm(t) {
     ${_efi('seats','Liczba miejsc','number',t.seats,'min="1" max="30"')}
   </div>`;
 }
-// Buduje <option>-y z par [wartość, etykieta]
-function _optsHtml(pairs, cur) {
-  return pairs.map(([v, l]) => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(l)}</option>`).join('');
-}
 function _taskForm(t) {
+  const link = _taskLinkOptions(t);
   const prio = TASK_PRIORITIES.map(p => [p.value, p.icon + ' ' + p.label]);
-
-  // „Przypisz do" — osoby z konfiguracji + osoby użyte w innych zadaniach + opcja własna
-  const aNames = [];
-  (budgetData.coupleNames || []).forEach(n => { const v = (n || '').trim(); if (v && !aNames.includes(v)) aNames.push(v); });
-  tasks.forEach(x => { if (x.assigneeName && !aNames.includes(x.assigneeName)) aNames.push(x.assigneeName); });
-  const aCur  = t.assigneeName || '';
-  const aOpts = [['', '— nikt —'], ...aNames.map(n => [n, '👤 ' + n]), ['__custom__', '➕ Dodaj inną osobę…']];
-
-  // Powiązania-referencje: dostawca / prezent
-  const vOpts = [['', '— brak —'], ...vendors.map(v => [String(v.id), '👨‍🍳 ' + vendorLabel(v)])];
-  const vCur  = t.vendorId != null ? String(t.vendorId) : '';
-  const gOpts = [['', '— brak —'], ...gifts.map(g => [String(g.id), '🎁 ' + (g.description || g.from || 'Prezent')])];
-  const gCur  = t.giftId != null ? String(t.giftId) : '';
-
-  const bcats  = [['Sala','Sala'],['Strój','Strój'],['Dokumenty','Dokumenty'],['Dekoracje','Dekoracje'],['Inne','Inne']];
-  const linked = !!t.isBudgetLinked;
-
   return `<div class="ef-grid">
     ${_efi('name','Nazwa zadania','text',t.name)}
     ${_efs('status','Status',[['todo','Do zrobienia'],['inprogress','W trakcie'],['done','Zrobione'],['cancelled','Anulowane']],t.status)}
     ${_efs('priority','Priorytet',prio,t.priority||'med')}
     ${_efs('responsible','Odpowiedzialny',[['groom','Pan Młody'],['bride','Panna Młoda'],['both','Oboje']],t.responsible)}
-    <div class="ef-field"><label>Przypisz do</label>
-      <select id="ef_assignee" onchange="document.getElementById('ef_assigneeCustomField').style.display=this.value==='__custom__'?'':'none'">${_optsHtml(aOpts, aCur)}</select>
-    </div>
-    <div class="ef-field" id="ef_assigneeCustomField" style="${aCur==='__custom__'?'':'display:none'}">
-      <label>Imię osoby</label><input type="text" id="ef_assigneeCustom" placeholder="np. Świadek, Mama">
-    </div>
     ${_ef('startDate','Data rozpoczęcia',`<input type="date" id="ef_startDate" value="${esc(t.startDate||'')}">`)}
     ${_ef('endDate','Data zakończenia',`<input type="date" id="ef_endDate" value="${esc(t.endDate||'')}">`)}
     ${_ef('dueDate','Termin',`<input type="date" id="ef_dueDate" value="${esc(t.dueDate||'')}">`)}
-    <div class="ef-field"><label>Dostawca</label><select id="ef_vendorId">${_optsHtml(vOpts, vCur)}</select></div>
-    <div class="ef-field"><label>Prezent</label><select id="ef_giftId">${_optsHtml(gOpts, gCur)}</select></div>
-    <div class="ef-field ef-field-full">
-      <label class="ef-check"><input type="checkbox" id="ef_isBudgetLinked" ${linked?'checked':''} onchange="document.getElementById('ef_budgetSection').style.display=this.checked?'':'none'"> 💰 Powiąż z budżetem</label>
-    </div>
-    <div class="ef-grid ef-field-full task-budget-section" id="ef_budgetSection" style="${linked?'':'display:none'}">
-      ${_efi('estimatedCost','Szacowany koszt (zł)','number',t.estimatedCost||0,'min="0" step="50"')}
-      ${_efs('budgetCategory','Kategoria budżetowa',bcats,t.budgetCategory||'Sala')}
-    </div>
+    ${_efs('taskLink','Powiązanie (Dostawca/Budżet/Prezent)',link.groups,link.cur)}
   </div>`;
 }
 function _vendorForm(v) {
   const cats = ['Fotograf','Kamerzysta','Muzyka','Kwiaty','Tort','Catering','Transport','Inne'].map(c=>[c,c]);
   const sts  = VENDOR_STATUSES.map(s=>[s.value,s.label]);
-  const bcats  = [['Sala','Sala'],['Strój','Strój'],['Dokumenty','Dokumenty'],['Dekoracje','Dekoracje'],['Inne','Inne']];
-  const linked = !!v.isBudgetLinked;
-  const cAmount = v.contractAmount || v.price || 0;   // domyślnie kwota = cena, jeśli nie ustawiono
   return `<div class="ef-grid">
     ${_efs('category','Kategoria',cats,v.category)}
     ${_efi('companyName','Nazwa firmy','text',v.companyName||'')}
-    ${_efi('contactName','Osoba kontaktowa','text',v.contactName||'')}
+    ${_efi('contactName','Imię kontaktu','text',v.contactName||'')}
     ${_efi('phone','Telefon','tel',v.phone||'')}
     ${_efi('email','Email','email',v.email||'')}
     ${_efi('price','Cena (zł)','number',v.price||0)}
     ${_efs('paymentStatus','Status płatności',sts,v.paymentStatus)}
     ${_efi('mapUrl','Link do Google Maps','url',v.mapUrl||'')}
     ${_eft('notes','Notatki',v.notes||'')}
-    <div class="ef-field ef-field-full">
-      <label class="ef-check"><input type="checkbox" id="ef_isBudgetLinked" ${linked?'checked':''} onchange="document.getElementById('ef_budgetSection').style.display=this.checked?'':'none'"> 💰 Powiąż z budżetem</label>
-    </div>
-    <div class="ef-grid ef-field-full task-budget-section" id="ef_budgetSection" style="${linked?'':'display:none'}">
-      ${_efi('contractAmount','Kwota umowy / szac. koszt (zł)','number',cAmount,'min="0" step="50"')}
-      ${_efs('budgetCategory','Kategoria budżetowa',bcats,v.budgetCategory||'Sala')}
-    </div>
   </div>`;
 }
 function _giftForm(g) {
@@ -6377,43 +5905,9 @@ function saveEdit() {
       t.startDate = _efv('startDate');
       t.endDate = _efv('endDate');
       t.dueDate = _efv('dueDate');
-      // Przypisanie do osoby (lista lub własna)
-      let asg = _efv('assignee');
-      if (asg === '__custom__') asg = _efv('assigneeCustom');
-      t.assigneeName = asg || '';
-      // Powiązania-referencje (ID, nie kopie)
-      const vid = _efv('vendorId'); t.vendorId = vid ? parseInt(vid) : null;
-      const gid = _efv('giftId');   t.giftId   = gid ? parseInt(gid) : null;
-      // Powiązanie z budżetem — referencja do wpisu (bez duplikatów)
-      t.isBudgetLinked = _efb('isBudgetLinked');
-      if (t.isBudgetLinked) {
-        t.estimatedCost  = _efn('estimatedCost');
-        t.budgetCategory = _efv('budgetCategory') || 'Inne';
-        let exp = t.budgetExpenseId != null ? budgetData.expenses.find(x => x.id === t.budgetExpenseId) : null;
-        if (exp) {
-          // edytuj TEN SAM wpis (nie twórz nowego)
-          exp.category = t.budgetCategory;
-          exp.customName = t.name;
-          exp.estimatedAmount = t.estimatedCost;
-        } else {
-          // utwórz nowy wpis i zapamiętaj jego ID w zadaniu
-          const newId = nextExpenseId++;
-          budgetData.expenses.push({
-            id: newId, category: t.budgetCategory, customName: t.name,
-            planned: 0, estimatedAmount: t.estimatedCost, paid: 0, paymentDate: '',
-            note: 'Utworzono z zadania: ' + t.name, splitP1: 0, splitP2: 0, sidePanel: false,
-          });
-          if (typeof expenseOrder !== 'undefined') expenseOrder.push(newId);
-          t.budgetExpenseId = newId;
-        }
-        if (typeof renderBudgetOverview === 'function') renderBudgetOverview();
-        if (currentView === 'budget' && typeof renderExpenses === 'function') renderExpenses();
-      } else {
-        // odłączenie od budżetu — czyść referencję (wpis w budżecie pozostaje)
-        t.estimatedCost = 0; t.budgetCategory = ''; t.budgetExpenseId = null;
-      }
-      // legacy: wyczyść stare powiązanie ogólne
-      t.linkType = ''; t.linkId = null;
+      const lk = _efv('taskLink');
+      if (lk) { const [lt, lid] = lk.split(':'); t.linkType = lt; t.linkId = parseInt(lid); }
+      else { t.linkType = ''; t.linkId = null; }
       renderTasks();
     } else if (type === 'vendor') {
       const v = vendors.find(x=>x.id===id); if (!v) return;
@@ -6426,35 +5920,6 @@ function saveEdit() {
       v.paymentStatus = _efv('paymentStatus');
       v.mapUrl = _efv('mapUrl');
       v.notes = _efv('notes');
-      // Powiązanie z budżetem — referencja do wpisu (bez duplikatów)
-      v.isBudgetLinked = _efb('isBudgetLinked');
-      if (v.isBudgetLinked) {
-        v.contractAmount = _efn('contractAmount');
-        v.budgetCategory = _efv('budgetCategory') || 'Inne';
-        let exp = v.budgetExpenseId != null ? budgetData.expenses.find(x => x.id === v.budgetExpenseId) : null;
-        if (exp) {
-          // edytuj TEN SAM wpis (nie twórz nowego)
-          exp.category = v.budgetCategory;
-          exp.customName = vendorLabel(v);
-          exp.estimatedAmount = v.contractAmount;
-          exp.vendorId = v.id;
-        } else {
-          // utwórz nowy wpis i zapamiętaj jego ID w dostawcy
-          const newId = nextExpenseId++;
-          budgetData.expenses.push({
-            id: newId, category: v.budgetCategory, customName: vendorLabel(v),
-            planned: 0, estimatedAmount: v.contractAmount, paid: 0, paymentDate: '',
-            note: 'Dostawca: ' + vendorLabel(v), splitP1: 0, splitP2: 0, sidePanel: false, vendorId: v.id,
-          });
-          if (typeof expenseOrder !== 'undefined') expenseOrder.push(newId);
-          v.budgetExpenseId = newId;
-        }
-        if (typeof renderBudgetOverview === 'function') renderBudgetOverview();
-        if (currentView === 'budget' && typeof renderExpenses === 'function') renderExpenses();
-      } else {
-        // odłączenie od budżetu — czyść referencję (wpis w budżecie pozostaje)
-        v.contractAmount = 0; v.budgetCategory = ''; v.budgetExpenseId = null;
-      }
       renderVendors();
     } else if (type === 'gift') {
       const g = gifts.find(x=>x.id===id); if (!g) return;
@@ -7655,10 +7120,6 @@ function _applyEventState(s) {
     roomName        = s.roomName        || 'Sala weselna';
     roomMeta        = Object.assign({ widthM: 0, lengthM: 0, tableDiameterM: 0 }, s.roomMeta || {});
     roomElements    = s.roomElements    || [];
-    roomElements.forEach(el => {
-      if (el.rotation === undefined) el.rotation = 0;
-      if (el.type === undefined)     el.type = _elementType(el.name);
-    });
     nextRoomElementId = s.nextRoomElementId || (roomElements.reduce((m, e) => Math.max(m, e.id + 1), 1));
     budgetData = s.budgetData || {
       total: 0, pricePerPerson: 0, venueMinGuests: 0,
@@ -7706,8 +7167,6 @@ function _applyEventState(s) {
       if (g.witness === undefined)             g.witness = null;
       if (g.diet === undefined)                g.diet = 'standard';
       if (g.dietOther === undefined)           g.dietOther = '';
-      if (g.hasCompanion === undefined)        g.hasCompanion = false;
-      if (g.companionName === undefined)       g.companionName = '';
       if (g.needsAccommodation === undefined)  g.needsAccommodation = false;
       if (g.vehicleId === undefined)           g.vehicleId = null;
       if (g.ownTransport === undefined)        g.ownTransport = false;
@@ -7732,26 +7191,6 @@ function _applyEventState(s) {
       if (t.linkType === undefined)  t.linkType = '';
       if (t.linkId === undefined)    t.linkId = null;
       if (t.status === undefined)    t.status = 'todo';
-      // Nowe pola: przypisanie + referencje + budżet
-      if (t.assigneeName === undefined)    t.assigneeName = '';
-      if (t.vendorId === undefined)        t.vendorId = null;
-      if (t.giftId === undefined)          t.giftId = null;
-      if (t.isBudgetLinked === undefined)  t.isBudgetLinked = false;
-      if (t.estimatedCost === undefined)   t.estimatedCost = 0;
-      if (t.budgetCategory === undefined)  t.budgetCategory = '';
-      if (t.budgetExpenseId === undefined) t.budgetExpenseId = null;
-      // Migracja starego powiązania (linkType/linkId) → nowe pola
-      if (t.linkType && t.linkId != null) {
-        if (t.linkType === 'vendor' && t.vendorId == null) t.vendorId = t.linkId;
-        else if (t.linkType === 'gift' && t.giftId == null) t.giftId = t.linkId;
-        else if (t.linkType === 'budget' && t.budgetExpenseId == null) {
-          t.isBudgetLinked = true;
-          t.budgetExpenseId = t.linkId;
-          const e = (budgetData.expenses || []).find(x => x.id === t.linkId);
-          if (e) { t.estimatedCost = e.estimatedAmount || e.planned || 0; t.budgetCategory = e.category || 'Inne'; }
-        }
-        t.linkType = ''; t.linkId = null;
-      }
     });
     vendors        = s.vendors        || [];
     rsvpEntries    = s.rsvpEntries    || [];
@@ -7798,14 +7237,7 @@ function _applyEventState(s) {
       if (ev.showLinkToGuests === undefined) ev.showLinkToGuests = false;
     });
     locationLinksSeeded = s.locationLinksSeeded || false;
-    vendors.forEach(v => {
-      if (v.customCategory === undefined) v.customCategory = '';
-      if (v.mapUrl === undefined) v.mapUrl = '';
-      if (v.isBudgetLinked === undefined)  v.isBudgetLinked = false;
-      if (v.contractAmount === undefined)  v.contractAmount = 0;
-      if (v.budgetCategory === undefined)  v.budgetCategory = '';
-      if (v.budgetExpenseId === undefined) v.budgetExpenseId = null;
-    });
+    vendors.forEach(v => { if (v.customCategory === undefined) v.customCategory = ''; if (v.mapUrl === undefined) v.mapUrl = ''; });
     hotels.forEach(h => { if (h.personsPerRoom === undefined) h.personsPerRoom = 2; });
 
     // Data ślubu — odśwież licznik (edytowana wyłącznie w Konfiguracji)
@@ -7839,6 +7271,11 @@ function _applyEventState(s) {
 document.getElementById('guestFirstName').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('guestLastName').focus(); });
 document.getElementById('guestLastName').addEventListener('keydown',  e => { if (e.key==='Enter') addGuest(); });
 document.getElementById('tableName').addEventListener('keydown',      e => { if (e.key==='Enter') addTable(); });
+const _dietSel = document.getElementById('guestDiet');
+if (_dietSel) _dietSel.addEventListener('change', function() {
+  const row = document.getElementById('dietOtherRow');
+  if (row) row.style.display = this.value === 'other' ? '' : 'none';
+});
 
 try { loadState(); } catch(e) { console.error('loadState:', e); }
 // Diagnostyka startowa: pokaż w konsoli wszystkie klucze localStorage (WYMÓG 2).

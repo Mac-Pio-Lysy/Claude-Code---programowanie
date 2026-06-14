@@ -25,7 +25,11 @@
       "Bash(curl -s 'https://firestore.googleapis.com/v1/projects/__TRACKED_VAR__/databases/\\(default\\)/documents/weddingPlanner/main?readTime=__CMDSUB_OUTPUT__&key=__TRACKED_VAR__')",
       "Bash(firebase projects:list)",
       "Bash(firebase deploy *)",
-      "Bash(curl -s 'https://firestore.googleapis.com/v1/projects/__TRACKED_VAR__/databases/\\(default\\)/documents/weddingPlanner?key=__TRACKED_VAR__')"
+      "Bash(curl -s 'https://firestore.googleapis.com/v1/projects/__TRACKED_VAR__/databases/\\(default\\)/documents/weddingPlanner?key=__TRACKED_VAR__')",
+      "Bash(mkdir -p _backup_redesign)",
+      "Bash(cp index.html style.css script.js _backup_redesign/)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(echo \"exit grep=$?\")"
     ]
   }
 }
