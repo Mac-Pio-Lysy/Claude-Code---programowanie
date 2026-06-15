@@ -60,10 +60,6 @@
         <button class="nav-user-pop-logout" onclick="authSignOut()">&#x2197; Wyloguj</button>
       </div>
     </div>
-    <!-- Zakładka „Prezenty" przeniesiona pod panel użytkownika (prawy górny róg) -->
-    <button class="topright-gifts-btn" id="navGifts" onclick="switchView('gifts')" title="Prezenty">
-      <span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span>
-    </button>
   </div>
   <div class="settings-menu-wrap">
     <button class="settings-gear-btn" id="settingsGearBtn" type="button" onclick="toggleSettingsMenu()" title="Ustawienia" aria-label="Ustawienia">&#9881;&#65039;</button>
@@ -77,7 +73,6 @@
       </div>
       <button class="settings-menu-item" id="setItemConfig"    onclick="openSettingsView('config')"><span class="sm-ico">&#9881;&#65039;</span> Konfiguracja</button>
       <button class="settings-menu-item" id="setItemAccess"    onclick="openSettingsView('access')"><span class="sm-ico">&#128272;</span> Dostęp</button>
-      <button class="settings-menu-item" id="setItemGuestCard" onclick="openSettingsView('guestcard')"><span class="sm-ico">&#128100;</span> Kartoteka Gości</button>
       <button class="settings-menu-item" id="setItemDevSettings" onclick="openSettingsView('devsettings')"><span class="sm-ico">&#128295;</span> Ustawienia programistyczne</button>
       <button class="settings-menu-item" id="setItemOnboarding" onclick="startOnboarding()"><span class="sm-ico">&#129517;</span> Przewodnik (od nowa)</button>
     </div>
@@ -107,7 +102,6 @@
       <div class="nav-group-items">
         <button class="nav-btn" id="navTables" onclick="switchView('tables')"><span class="nav-ico">&#128101;</span><span class="nav-txt">Stoły i goście</span></button>
         <button class="nav-btn" id="navRoom" onclick="switchView('room')"><span class="nav-ico">&#127963;</span><span class="nav-txt">Plan sali</span></button>
-        <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Potwierdzenia</span></button>
       </div>
     </div>
 
@@ -124,6 +118,8 @@
         <button class="nav-btn" id="navSchedule" onclick="switchView('schedule')"><span class="nav-ico">&#128197;</span><span class="nav-txt">Harmonogram</span></button>
         <button class="nav-btn" id="navTasks" onclick="switchView('tasks')"><span class="nav-ico">&#9989;</span><span class="nav-txt">Zadania</span></button>
         <button class="nav-btn" id="navVendors" onclick="switchView('vendors')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Dostawcy</span></button>
+        <button class="nav-btn" id="navGifts" onclick="switchView('gifts')"><span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span></button>
+        <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Potwierdzenia</span></button>
         <button class="nav-btn" id="navGallery" onclick="switchView('gallery')"><span class="nav-ico">&#128247;</span><span class="nav-txt">Galeria &amp; QR</span></button>
       </div>
     </div>
@@ -152,19 +148,18 @@
     <div class="mob-nav-sep">Goście</div>
     <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
     <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
-    <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
     <div class="mob-nav-sep">Budżet</div>
     <button class="mob-nav-btn" onclick="switchView('budget')">&#128176; Budżet</button>
     <div class="mob-nav-sep">Organizacja</div>
     <button class="mob-nav-btn" onclick="switchView('schedule')">&#128197; Harmonogram</button>
     <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
     <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
+    <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
+    <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
     <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
-    <div class="mob-nav-sep">Prezenty</div>
-    <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
     <div class="mob-drawer-footer">
       <div id="mobNavUserPanel" style="display:none">
         <span id="mobNavUserName" class="mob-user-name"></span>
@@ -172,6 +167,13 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- PODZAKŁADKI „STOŁY I GOŚCIE" (nad paskiem statystyk; tylko dla widoku stołów) -->
+<div class="tables-tab-bar" id="tablesTabBar" style="display:none">
+  <button class="tables-tab active" id="ttab-plan"    onclick="switchTablesTab('plan')">&#127860; Plan stołów</button>
+  <button class="tables-tab"        id="ttab-card"    onclick="switchTablesTab('card')">&#128100; Kartoteka Gości</button>
+  <button class="tables-tab"        id="ttab-summary" onclick="switchTablesTab('summary')">&#128202; Podsumowanie gości</button>
 </div>
 
 <!-- STATS BAR (only for tables view) -->
@@ -249,6 +251,8 @@
 
   <!-- ══ TABLES VIEW ══ -->
   <div id="viewTables" class="view-panel" style="display:none">
+    <!-- PODZAKŁADKA: PLAN STOŁÓW -->
+    <div id="tablesTabPlan" class="tables-tab-panel tables-tab-plan">
     <div class="main">
       <!-- LEFT: LISTA GOŚCI -->
       <div class="panel-guests" id="panelGuests">
@@ -359,6 +363,28 @@
         <div id="staffTablesList" class="staff-tables-list">
           <div class="empty-list">Brak stolików personelu.</div>
         </div>
+      </div>
+    </div>
+    </div><!-- /#tablesTabPlan -->
+
+    <!-- PODZAKŁADKA: KARTOTEKA GOŚCI -->
+    <div id="tablesTabCard" class="tables-tab-panel" style="display:none">
+      <div class="section-container">
+        <div class="gcard-toolbar">
+          <p class="access-intro" style="margin:0;flex:1">Rozszerzone informacje o gościach: wybór menu (ze słownika w Konfiguracji), preferencje, alergie i notatki specjalne. Podstawowe dane dodajesz w „Plan stołów".</p>
+          <div class="gcard-viewswitch" role="group" aria-label="Wybór widoku kartoteki">
+            <button class="gcv-btn active" id="gcvList" onclick="setGuestCardView('list')" title="Widok listy">&#9776; Lista</button>
+            <button class="gcv-btn"        id="gcvCols" onclick="setGuestCardView('cols')" title="Widok kolumnowy (3 kolumny)">&#9638; Kolumny</button>
+          </div>
+        </div>
+        <div id="guestCardList" class="guest-card-list"></div>
+      </div>
+    </div>
+
+    <!-- PODZAKŁADKA: PODSUMOWANIE GOŚCI -->
+    <div id="tablesTabSummary" class="tables-tab-panel" style="display:none">
+      <div class="section-container">
+        <div id="guestSummaryContent"></div>
       </div>
     </div>
   </div>
@@ -1008,16 +1034,6 @@
     </div>
   </div>
 
-  <!-- ══ KARTOTEKA GOŚCI VIEW ══ -->
-  <div id="viewGuestCard" class="view-panel" style="display:none">
-    <div class="section-container">
-      <div class="section-header">
-        <h2>&#128100; Kartoteka Gości</h2>
-      </div>
-      <p class="access-intro">Rozszerzone informacje o gościach: wybór menu (ze słownika w Konfiguracji), preferencje, alergie i notatki specjalne. Podstawowe dane dodajesz w „Stoły i goście".</p>
-      <div id="guestCardList" class="guest-card-list"></div>
-    </div>
-  </div>
 
 </div><!-- /.views-container -->
 

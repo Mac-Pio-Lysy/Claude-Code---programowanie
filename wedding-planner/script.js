@@ -29,6 +29,9 @@ let tvGuestDrag    = null; // { guestId, srcTableId } — table-view seat drag
 let pairingGuestId = null;
 let currentView          = 'dashboard';
 let currentBudgetTab     = 'summary';
+let currentTablesTab     = 'plan';   // podzakładka w „Stoły i goście": 'plan' | 'card' | 'summary'
+let guestCardViewMode    = 'list';   // widok Kartoteki Gości: 'list' | 'cols'
+let guestSummaryFilters  = { search: '', status: 'all', menu: 'all', diet: 'all', transport: 'all', accom: 'all' };
 let paymentsSourceFilter = 'all';
 
 let expenseFilters = { status: 'all', person: 'all', category: 'all' };
@@ -181,6 +184,8 @@ function renderAll() {
   if (currentView === 'transport')     renderTransport();
   if (currentView === 'accommodation') renderAccommodation();
   if (currentView === 'budget')        renderPayments();
+  if (currentView === 'tables' && currentTablesTab === 'card')    renderGuestCard();
+  if (currentView === 'tables' && currentTablesTab === 'summary') renderGuestSummary();
   saveState();
 }
 
@@ -3384,7 +3389,7 @@ function switchView(view) {
     schedule: 'viewSchedule', tasks: 'viewTasks', vendors: 'viewVendors',
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
     gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
-    guestcard: 'viewGuestCard', devsettings: 'viewDevSettings',
+    devsettings: 'viewDevSettings',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -3398,7 +3403,7 @@ function switchView(view) {
     budget: 'navBudget', schedule: 'navSchedule',
     tasks: 'navTasks', vendors: 'navVendors', transport: 'navTransport',
     accommodation: 'navAccommodation', gifts: 'navGifts', gallery: 'navGallery',
-    access: 'navAccess', config: 'navConfig', guestcard: 'navGuestCard',
+    access: 'navAccess', config: 'navConfig',
   };
   const navBtn = document.getElementById(navIds[view]);
   if (navBtn) navBtn.classList.add('active');
@@ -3411,15 +3416,19 @@ function switchView(view) {
   closeNavGroups();
 
   // Widoki z menu ustawień (trybik) — podświetl trybik zamiast zakładki nav
-  const settingsViews = ['config', 'access', 'guestcard', 'devsettings'];
+  const settingsViews = ['config', 'access', 'devsettings'];
   const gearBtn = document.getElementById('settingsGearBtn');
   if (gearBtn) gearBtn.classList.toggle('active', settingsViews.includes(view));
-  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', guestcard: 'setItemGuestCard', devsettings: 'setItemDevSettings' };
+  const setItemIds = { config: 'setItemConfig', access: 'setItemAccess', devsettings: 'setItemDevSettings' };
   document.querySelectorAll('.settings-menu-item').forEach(el => el.classList.remove('active'));
   const setItem = document.getElementById(setItemIds[view]);
   if (setItem) setItem.classList.add('active');
 
-  // Show stats bar only for tables view
+  // Pasek podzakładek i pasek statystyk — tylko dla widoku „Stoły i goście".
+  // Pasek podzakładek jest nad statystykami, więc przełączanie podzakładek
+  // nie przesuwa statystyk (brak przeskoków w layoucie).
+  const tablesTabBar = document.getElementById('tablesTabBar');
+  if (tablesTabBar) tablesTabBar.style.display = view === 'tables' ? 'flex' : 'none';
   const statsBar = document.getElementById('statsBar');
   if (statsBar) statsBar.style.display = view === 'tables' ? 'flex' : 'none';
 
@@ -3431,6 +3440,7 @@ function switchView(view) {
       renderPairs();
       renderStaffTables();
       updateStats();
+      applyTablesTab();   // przywróć aktywną podzakładkę (Plan stołów / Kartoteka Gości)
       break;
     case 'room':          isEditing = false; selectedRoomElementId = null; if (isFullscreen) exitRoomFullscreen(); renderRoom(); break;
     case 'budget':        renderBudget(); renderPayments(); break;
@@ -3439,7 +3449,6 @@ function switchView(view) {
     case 'gallery':       renderGalleryView();   break;
     case 'access':        renderAccessView();    break;
     case 'config':        renderConfigView();    break;
-    case 'guestcard':     renderGuestCard();     break;
     case 'devsettings':   if (typeof renderBackupList === 'function') renderBackupList(); break;
     case 'tasks':         renderTasks();         break;
     case 'vendors':       renderVendors();       break;
@@ -7890,25 +7899,61 @@ function saveConfig() {
   showToast('Konfiguracja zapisana ✓');
 }
 
+// ── PODZAKŁADKI „STOŁY I GOŚCIE" (Plan stołów ↔ Kartoteka Gości ↔ Podsumowanie gości) ──
+function switchTablesTab(tab) {
+  currentTablesTab = (tab === 'card' || tab === 'summary') ? tab : 'plan';
+  applyTablesTab();
+}
+function applyTablesTab() {
+  const tab = currentTablesTab;
+  const isMobile = window.innerWidth <= 768;
+  const show = (el, on) => { if (el) el.style.display = on ? (isMobile ? 'block' : 'flex') : 'none'; };
+  show(document.getElementById('tablesTabPlan'),    tab === 'plan');
+  show(document.getElementById('tablesTabCard'),    tab === 'card');
+  show(document.getElementById('tablesTabSummary'), tab === 'summary');
+  document.getElementById('ttab-plan')?.classList.toggle('active',    tab === 'plan');
+  document.getElementById('ttab-card')?.classList.toggle('active',    tab === 'card');
+  document.getElementById('ttab-summary')?.classList.toggle('active', tab === 'summary');
+  // Pasek statystyk pozostaje widoczny na każdej podzakładce (stałe miejsce pod nawigacją).
+  if (tab !== 'plan' && typeof closeAllDrawers === 'function') closeAllDrawers(); // schowaj wysuwane panele par/personelu
+  if (tab === 'card')    renderGuestCard();
+  if (tab === 'summary') renderGuestSummary();
+}
+
 // ── KARTOTEKA GOŚCI (rozszerzone informacje) ──
+// Przełącznik widoku: lista (jedna kolumna) ↔ kolumny (siatka 3 kolumn z pełnymi danymi).
+function setGuestCardView(mode) {
+  guestCardViewMode = (mode === 'cols') ? 'cols' : 'list';
+  document.getElementById('gcvList')?.classList.toggle('active', guestCardViewMode === 'list');
+  document.getElementById('gcvCols')?.classList.toggle('active', guestCardViewMode === 'cols');
+  renderGuestCard();
+}
+
 function renderGuestCard() {
   const cont = document.getElementById('guestCardList');
   if (!cont) return;
+  const cols = guestCardViewMode === 'cols';
+  cont.className = cols ? 'guest-card-grid' : 'guest-card-list';
   if (!guests.length) {
-    cont.innerHTML = '<div class="empty-list">Brak gości. Dodaj gości w sekcji „Stoły i goście".</div>';
+    cont.innerHTML = '<div class="empty-list">Brak gości. Dodaj gości w podzakładce „Plan stołów".</div>';
     return;
   }
   const menuOpts = appConfig.menuOptions || [];
   const sorted = [...guests].sort((a, b) => fullName(a).localeCompare(fullName(b), 'pl'));
-  cont.innerHTML = sorted.map(g => {
-    const opts = ['<option value="">— wybierz menu —</option>']
-      .concat(menuOpts.map(m => `<option value="${esc(m)}"${g.menuChoice === m ? ' selected' : ''}>${esc(m)}</option>`)).join('');
-    return `<div class="gcard">
+  cont.innerHTML = sorted.map(g => _guestCardHtml(g, menuOpts, cols)).join('');
+}
+
+// Buduje pojedynczą kartę gościa. W widoku kolumnowym dodaje blok z pełnymi danymi.
+function _guestCardHtml(g, menuOpts, cols) {
+  const opts = ['<option value="">— wybierz menu —</option>']
+    .concat(menuOpts.map(m => `<option value="${esc(m)}"${g.menuChoice === m ? ' selected' : ''}>${esc(m)}</option>`)).join('');
+  return `<div class="gcard${cols ? ' gcard-col' : ''}">
       <div class="gcard-hdr">
         ${avatarHtml(g, 'avatar-sm')}
         <div class="gcard-name">${esc(fullName(g))}</div>
         <span class="badge badge-cat">${esc(g.category)}</span>
       </div>
+      ${cols ? _guestCardMeta(g) : ''}
       <div class="gcard-grid">
         <label class="gcard-field">
           <span>&#127869; Menu</span>
@@ -7928,13 +7973,305 @@ function renderGuestCard() {
         </label>
       </div>
     </div>`;
-  }).join('');
 }
+
+// Blok pełnych danych gościa (tylko widok kolumnowy) — odczyt; edycja danych podstawowych w „Plan stołów".
+function _guestCardMeta(g) {
+  const inv = g.invitedBy === 'groom' ? '&#129309; Pan Młody'
+            : g.invitedBy === 'bride'  ? '&#128144; Panna Młoda' : '';
+  const table = g.tableId !== null
+    ? (tables.find(t => t.id === g.tableId)?.name || 'Stół')
+    : 'Nieprzypisany';
+  const rows = [['&#127860; Stół', table]];
+  if (inv)                                    rows.push(['&#128140; Zaproszenie', inv]);
+  if (g.hasCompanion && (g.companionName || '').trim()) rows.push(['&#10133; Osoba towarzysząca', g.companionName.trim()]);
+  if (g.witness)                              rows.push(['&#11088; Świadek', 'Tak']);
+  if (g.needsAccommodation)                   rows.push(['&#127976; Nocleg', 'Potrzebny']);
+  return `<div class="gcard-meta">${rows.map(([k, v]) =>
+    `<div class="gcm-row"><span class="gcm-k">${k}</span><span class="gcm-v">${esc(v)}</span></div>`).join('')}</div>`;
+}
+
 function updateGuestCardField(id, field, value) {
   const g = guests.find(x => x.id === id);
   if (!g) return;
   g[field] = value;
   saveState();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  PODSUMOWANIE GOŚCI — preferencje i logistyka (tabela + filtry + eksport)
+// ══════════════════════════════════════════════════════════════════════
+
+// Status RSVP → etykieta + klasa „pigułki"
+function _gsRsvp(gId) {
+  const st = getGuestRsvpStatus(gId);
+  if (st === 'attending')     return { key: 'attending',     label: 'Przyjdzie',       cls: 'gs-pill-yes' };
+  if (st === 'not_attending') return { key: 'not_attending', label: 'Nie przyjdzie',   cls: 'gs-pill-no' };
+  return { key: 'none', label: 'Brak odpowiedzi', cls: 'gs-pill-none' };
+}
+// „Z kim przychodzi": sam / z osobą towarzyszącą (imię) / w parze (z kim)
+function _gsCompanion(g) {
+  if (g.pairId != null) {
+    const partner = guests.find(x => x.id !== g.id && x.pairId === g.pairId);
+    return 'W parze' + (partner ? ` (${fullName(partner)})` : '');
+  }
+  if (g.hasCompanion) {
+    const nm = (g.companionName || '').trim();
+    return 'Z osobą towarzyszącą' + (nm ? ` (${nm})` : '');
+  }
+  return 'Sam';
+}
+// Transport: { has, own, label }
+function _gsTransport(g) {
+  if (g.ownTransport) return { has: true, own: true, label: 'Własny' };
+  let v = (g.vehicleId != null) ? vehicles.find(x => x.id === g.vehicleId) : null;
+  if (!v) v = vehicles.find(x => (x.guestIds || []).includes(g.id));
+  if (v) {
+    const desc = (v.description || '').trim();
+    return { has: true, own: false, label: (v.type || 'Pojazd') + (desc ? ` (${desc})` : '') };
+  }
+  return { has: false, own: false, label: '—' };
+}
+// Nocleg: { needs, label }
+function _gsAccom(g) {
+  const hotel = (g.hotelId != null) ? hotels.find(h => h.id === g.hotelId) : null;
+  if (hotel) return { needs: true, label: (hotel.name || 'Hotel') };
+  if (g.needsAccommodation) return { needs: true, label: 'Potrzebuje (nieprzypisany)' };
+  return { needs: false, label: '—' };
+}
+// Dieta specjalna / alergie (tekst)
+function _gsDiet(g) {
+  const parts = [];
+  if (g.diet && g.diet !== 'standard') parts.push(dietLabel(g.diet, g.dietOther));
+  if ((g.allergies || '').trim()) parts.push('Alergie: ' + g.allergies.trim());
+  return parts.join(' · ');
+}
+// Stolik
+function _gsTable(g) {
+  if (g.tableId == null) return '—';
+  const t = tables.find(x => x.id === g.tableId);
+  return t ? (t.name || 'Stół') : '—';
+}
+
+// Lista gości po zastosowaniu filtrów (posortowana po nazwisku)
+function _guestSummaryRows() {
+  const f = guestSummaryFilters;
+  const q = (f.search || '').trim().toLowerCase();
+  return [...guests]
+    .sort((a, b) => fullName(a).localeCompare(fullName(b), 'pl'))
+    .filter(g => {
+      if (q && !fullName(g).toLowerCase().includes(q)) return false;
+      if (f.status !== 'all' && _gsRsvp(g.id).key !== f.status) return false;
+      if (f.menu !== 'all') {
+        const m = (g.menuChoice || '').trim();
+        if (f.menu === '__none__') { if (m) return false; }
+        else if (m !== f.menu) return false;
+      }
+      if (f.diet !== 'all') {
+        const special = !!(g.diet && g.diet !== 'standard');
+        if (f.diet === 'special'  && !special) return false;
+        if (f.diet === 'standard' &&  special) return false;
+      }
+      if (f.transport !== 'all') {
+        const t = _gsTransport(g);
+        if (f.transport === 'own'       && !t.own) return false;
+        if (f.transport === 'organized' && !(t.has && !t.own)) return false;
+        if (f.transport === 'none'      &&  t.has) return false;
+      }
+      if (f.accom !== 'all') {
+        const a = _gsAccom(g);
+        if (f.accom === 'needs' && !a.needs) return false;
+        if (f.accom === 'no'    &&  a.needs) return false;
+      }
+      return true;
+    });
+}
+
+// Podsumowania zbiorcze (liczone po WSZYSTKICH gościach)
+function _guestSummaryStats() {
+  const s = { menu: {}, noMenu: 0, diets: {}, transOwn: 0, transOrg: 0, transNone: 0,
+              accomNeeds: 0, accomAssigned: 0, att: 0, notAtt: 0, noRsvp: 0, total: guests.length };
+  guests.forEach(g => {
+    const m = (g.menuChoice || '').trim();
+    if (m) s.menu[m] = (s.menu[m] || 0) + 1; else s.noMenu++;
+    if (g.diet && g.diet !== 'standard') { const l = dietLabel(g.diet, g.dietOther); s.diets[l] = (s.diets[l] || 0) + 1; }
+    const t = _gsTransport(g);
+    if (t.own) s.transOwn++; else if (t.has) s.transOrg++; else s.transNone++;
+    const a = _gsAccom(g);
+    if (a.needs) { s.accomNeeds++; if (g.hotelId != null) s.accomAssigned++; }
+    const st = _gsRsvp(g.id).key;
+    if (st === 'attending') s.att++; else if (st === 'not_attending') s.notAtt++; else s.noRsvp++;
+  });
+  return s;
+}
+
+function _gsSel(v, cur) { return v === cur ? ' selected' : ''; }
+
+// Renderuje całość: karty zbiorcze + pasek filtrów/eksport + tabelę
+function renderGuestSummary() {
+  const wrap = document.getElementById('guestSummaryContent');
+  if (!wrap) return;
+  if (!guests.length) {
+    wrap.innerHTML = '<div class="empty-list">Brak gości. Dodaj gości w podzakładce „Plan stołów".</div>';
+    return;
+  }
+  const s = _guestSummaryStats();
+  const f = guestSummaryFilters;
+
+  const li = (label, n, muted) => `<li${muted ? ' class="gs-muted"' : ''}><span>${esc(label)}</span><b>${n}&times;</b></li>`;
+  const menuItems = Object.keys(s.menu).sort((a, b) => a.localeCompare(b, 'pl')).map(k => li(k, s.menu[k])).join('')
+    + (s.noMenu ? li('Bez wyboru menu', s.noMenu, true) : '')
+    || '<li class="gs-muted"><span>Brak danych</span><b>0&times;</b></li>';
+  const dietKeys = Object.keys(s.diets);
+  const dietItems = dietKeys.length
+    ? dietKeys.sort((a, b) => a.localeCompare(b, 'pl')).map(k => li(k, s.diets[k])).join('')
+    : '<li class="gs-muted"><span>Brak diet specjalnych</span><b>0&times;</b></li>';
+
+  const aggregates = `
+    <div class="gs-aggregates">
+      <div class="gs-agg-card">
+        <div class="gs-agg-head">&#127869; Menu (co je)</div>
+        <ul class="gs-agg-list">${menuItems}</ul>
+      </div>
+      <div class="gs-agg-card">
+        <div class="gs-agg-head">&#129382; Diety specjalne <span class="gs-agg-badge">${s.total ? dietKeys.reduce((a, k) => a + s.diets[k], 0) : 0}</span></div>
+        <ul class="gs-agg-list">${dietItems}</ul>
+      </div>
+      <div class="gs-agg-card">
+        <div class="gs-agg-head">&#128663; Transport</div>
+        <ul class="gs-agg-list">
+          ${li('Własny', s.transOwn)}
+          ${li('Zorganizowany', s.transOrg)}
+          ${li('Bez transportu', s.transNone, true)}
+        </ul>
+      </div>
+      <div class="gs-agg-card">
+        <div class="gs-agg-head">&#127976; Nocleg</div>
+        <ul class="gs-agg-list">
+          ${li('Potrzebuje', s.accomNeeds)}
+          ${li('Przypisani do hotelu', s.accomAssigned, true)}
+        </ul>
+      </div>
+      <div class="gs-agg-card">
+        <div class="gs-agg-head">&#9993; Potwierdzenia</div>
+        <ul class="gs-agg-list">
+          ${li('Przyjdzie', s.att)}
+          ${li('Nie przyjdzie', s.notAtt)}
+          ${li('Brak odpowiedzi', s.noRsvp, true)}
+        </ul>
+      </div>
+    </div>`;
+
+  const menuOpts = (appConfig.menuOptions || []);
+  const menuSelOpts = ['<option value="all">Menu: wszystkie</option>']
+    .concat(menuOpts.map(m => `<option value="${esc(m)}"${_gsSel(m, f.menu)}>${esc(m)}</option>`))
+    .concat([`<option value="__none__"${_gsSel('__none__', f.menu)}>Bez wyboru menu</option>`]).join('');
+
+  const toolbar = `
+    <div class="gs-toolbar">
+      <input type="text" class="gs-search" id="gsSearch" placeholder="&#128269; Szukaj po nazwisku…"
+             value="${esc(f.search)}" oninput="setGuestSummaryFilter('search', this.value)">
+      <select onchange="setGuestSummaryFilter('status', this.value)">
+        <option value="all"${_gsSel('all', f.status)}>Status: wszyscy</option>
+        <option value="attending"${_gsSel('attending', f.status)}>Przyjdzie</option>
+        <option value="not_attending"${_gsSel('not_attending', f.status)}>Nie przyjdzie</option>
+        <option value="none"${_gsSel('none', f.status)}>Brak odpowiedzi</option>
+      </select>
+      <select onchange="setGuestSummaryFilter('menu', this.value)">${menuSelOpts}</select>
+      <select onchange="setGuestSummaryFilter('diet', this.value)">
+        <option value="all"${_gsSel('all', f.diet)}>Dieta: wszystkie</option>
+        <option value="special"${_gsSel('special', f.diet)}>Tylko specjalne</option>
+        <option value="standard"${_gsSel('standard', f.diet)}>Tylko standardowa</option>
+      </select>
+      <select onchange="setGuestSummaryFilter('transport', this.value)">
+        <option value="all"${_gsSel('all', f.transport)}>Transport: wszyscy</option>
+        <option value="own"${_gsSel('own', f.transport)}>Własny</option>
+        <option value="organized"${_gsSel('organized', f.transport)}>Zorganizowany</option>
+        <option value="none"${_gsSel('none', f.transport)}>Bez transportu</option>
+      </select>
+      <select onchange="setGuestSummaryFilter('accom', this.value)">
+        <option value="all"${_gsSel('all', f.accom)}>Nocleg: wszyscy</option>
+        <option value="needs"${_gsSel('needs', f.accom)}>Potrzebuje</option>
+        <option value="no"${_gsSel('no', f.accom)}>Bez noclegu</option>
+      </select>
+      <button class="btn btn-sm gs-reset-btn" onclick="resetGuestSummaryFilters()">&#10006; Wyczyść</button>
+      <button class="btn btn-primary btn-sm gs-export-btn" onclick="exportGuestSummaryCSV()">&#11015; Eksportuj CSV</button>
+    </div>
+    <div id="gsTableHost"></div>`;
+
+  wrap.innerHTML = aggregates + toolbar;
+  renderGuestSummaryTable();
+}
+
+// Renderuje samą tabelę (wywoływane przy zmianie filtrów — nie resetuje pól filtrów ani fokusu)
+function renderGuestSummaryTable() {
+  const host = document.getElementById('gsTableHost');
+  if (!host) return;
+  const rows = _guestSummaryRows();
+  const count = `<div class="gs-count">Wyświetlono <b>${rows.length}</b> z ${guests.length} gości</div>`;
+  if (!rows.length) {
+    host.innerHTML = count + '<div class="empty-list">Brak gości spełniających wybrane filtry.</div>';
+    return;
+  }
+  const trs = rows.map(g => {
+    const r = _gsRsvp(g.id);
+    return `<tr>
+      <td class="gs-name">${esc(fullName(g))}</td>
+      <td><span class="gs-pill ${r.cls}">${r.label}</span></td>
+      <td>${esc(_gsCompanion(g))}</td>
+      <td>${esc((g.menuChoice || '').trim() || '—')}</td>
+      <td>${esc(_gsDiet(g) || '—')}</td>
+      <td>${esc(_gsTransport(g).label)}</td>
+      <td>${esc(_gsAccom(g).label)}</td>
+      <td>${esc(_gsTable(g))}</td>
+    </tr>`;
+  }).join('');
+  host.innerHTML = count + `
+    <div class="gs-table-wrap">
+      <table class="gs-table">
+        <thead><tr>
+          <th>Imię i nazwisko</th><th>Status</th><th>Z kim przychodzi</th><th>Menu (co je)</th>
+          <th>Dieta / alergie</th><th>Transport</th><th>Nocleg</th><th>Stolik</th>
+        </tr></thead>
+        <tbody>${trs}</tbody>
+      </table>
+    </div>`;
+}
+
+function setGuestSummaryFilter(key, value) {
+  guestSummaryFilters[key] = value;
+  renderGuestSummaryTable();
+}
+function resetGuestSummaryFilters() {
+  guestSummaryFilters = { search: '', status: 'all', menu: 'all', diet: 'all', transport: 'all', accom: 'all' };
+  renderGuestSummary();
+}
+
+// Eksport bieżącej (przefiltrowanej) listy do pliku CSV (separator „;", BOM dla Excela)
+function _csvCell(v) {
+  const sStr = String(v == null ? '' : v);
+  return /[";\r\n]/.test(sStr) ? '"' + sStr.replace(/"/g, '""') + '"' : sStr;
+}
+function exportGuestSummaryCSV() {
+  const rows = _guestSummaryRows();
+  if (!rows.length) { showToast('Brak gości do wyeksportowania'); return; }
+  const headers = ['Imię i nazwisko', 'Status potwierdzenia', 'Z kim przychodzi', 'Menu (co je)',
+                   'Dieta / alergie', 'Transport', 'Nocleg', 'Stolik'];
+  const data = rows.map(g => [
+    fullName(g), _gsRsvp(g.id).label, _gsCompanion(g),
+    (g.menuChoice || '').trim() || '—', _gsDiet(g) || '—',
+    _gsTransport(g).label, _gsAccom(g).label, _gsTable(g),
+  ]);
+  const csv = [headers, ...data].map(r => r.map(_csvCell).join(';')).join('\r\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const d = new Date(); const pad = n => String(n).padStart(2, '0');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `podsumowanie-gosci_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast('📄 Wyeksportowano listę gości do CSV');
 }
 
 // ── LOCALSTORAGE ──

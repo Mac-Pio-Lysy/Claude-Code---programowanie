@@ -36,7 +36,9 @@
       "Bash(curl -s -D - -o /tmp/lato.ttf --max-time 15 -L \"https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Regular.ttf\")",
       "Bash(awk '{print \"rozmiar:\",$5,\"bajtów\"}')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 12 -L \"https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Bold.ttf\")",
-      "Bash(cp index.html script.js style.css harmonogram.html _backup_features___TRACKED_VAR__/)"
+      "Bash(cp index.html script.js style.css harmonogram.html _backup_features___TRACKED_VAR__/)",
+      "PowerShell(New-Item *)",
+      "Bash(git check-ignore *)"
     ]
   }
 }
