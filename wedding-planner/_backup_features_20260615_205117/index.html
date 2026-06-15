@@ -17,10 +17,8 @@
   <script src="auth.js"></script>
   <!-- QR Code generator -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- jsPDF — generowanie PDF do druku (materiały na stoliki, winietki) -->
+  <!-- jsPDF — generowanie PDF do druku (materiały na stoliki) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Chart.js — wykresy w sekcji Analityka -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script>emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });</script>
@@ -96,7 +94,6 @@
     <div class="nav-group nav-group-solo">
       <div class="nav-group-items">
         <button class="nav-btn" id="navDashboard" onclick="switchView('dashboard')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Dashboard</span></button>
-        <button class="nav-btn" id="navAnalytics" onclick="switchView('analytics')"><span class="nav-ico">&#128202;</span><span class="nav-txt">Analityka</span></button>
       </div>
     </div>
 
@@ -120,7 +117,6 @@
       <div class="nav-group-items">
         <button class="nav-btn" id="navSchedule" onclick="switchView('schedule')"><span class="nav-ico">&#128197;</span><span class="nav-txt">Harmonogram</span></button>
         <button class="nav-btn" id="navTasks" onclick="switchView('tasks')"><span class="nav-ico">&#9989;</span><span class="nav-txt">Zadania</span></button>
-        <button class="nav-btn" id="navMusic" onclick="switchView('music')"><span class="nav-ico">&#127925;</span><span class="nav-txt">Muzyka</span></button>
         <button class="nav-btn" id="navVendors" onclick="switchView('vendors')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Dostawcy</span></button>
         <button class="nav-btn" id="navGifts" onclick="switchView('gifts')"><span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span></button>
         <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Potwierdzenia</span></button>
@@ -149,7 +145,6 @@
   </div>
   <div class="mob-drawer-body">
     <button class="mob-nav-btn" onclick="switchView('dashboard')">&#127968; Dashboard</button>
-    <button class="mob-nav-btn" onclick="switchView('analytics')">&#128202; Analityka</button>
     <div class="mob-nav-sep">Goście</div>
     <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
     <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
@@ -158,7 +153,6 @@
     <div class="mob-nav-sep">Organizacja</div>
     <button class="mob-nav-btn" onclick="switchView('schedule')">&#128197; Harmonogram</button>
     <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
-    <button class="mob-nav-btn" onclick="switchView('music')">&#127925; Muzyka</button>
     <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
     <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
     <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
@@ -253,121 +247,6 @@
       <div class="dash-widget-addzone" id="dashWidgetAddZone" style="display:none"></div>
     </div>
 
-  </div>
-
-  <!-- ══ ANALITYKA VIEW ══ -->
-  <div id="viewAnalytics" class="view-panel" style="display:none">
-    <div class="section-container">
-      <div class="section-header">
-        <h2>&#128202; Analityka</h2>
-        <p class="section-sub">Wykresy i statystyki budżetu oraz gości. Kliknij wykres, aby powiększyć.</p>
-      </div>
-      <div class="analytics-stats" id="analyticsStats"></div>
-      <div class="analytics-grid" id="analyticsGrid">
-        <div class="analytics-card" onclick="openAnalyticsModal('expenseCat')">
-          <div class="analytics-card-hdr"><span>&#129689; Wydatki wg kategorii</span><span class="analytics-zoom">&#128269;</span></div>
-          <div class="analytics-canvas-wrap"><canvas id="acExpenseCat"></canvas></div>
-        </div>
-        <div class="analytics-card" onclick="openAnalyticsModal('budgetCompare')">
-          <div class="analytics-card-hdr"><span>&#128202; Planowany vs realny vs przewidywany</span><span class="analytics-zoom">&#128269;</span></div>
-          <div class="analytics-canvas-wrap"><canvas id="acBudgetCompare"></canvas></div>
-        </div>
-        <div class="analytics-card" onclick="openAnalyticsModal('payTimeline')">
-          <div class="analytics-card-hdr"><span>&#128181; Płatności w czasie</span><span class="analytics-zoom">&#128269;</span></div>
-          <div class="analytics-canvas-wrap"><canvas id="acPayTimeline"></canvas></div>
-        </div>
-        <div class="analytics-card" onclick="openAnalyticsModal('guestStatus')">
-          <div class="analytics-card-hdr"><span>&#128101; Potwierdzenia gości</span><span class="analytics-zoom">&#128269;</span></div>
-          <div class="analytics-canvas-wrap"><canvas id="acGuestStatus"></canvas></div>
-        </div>
-        <div class="analytics-card" onclick="openAnalyticsModal('menu')">
-          <div class="analytics-card-hdr"><span>&#127869; Rozkład menu</span><span class="analytics-zoom">&#128269;</span></div>
-          <div class="analytics-canvas-wrap"><canvas id="acMenu"></canvas></div>
-        </div>
-        <div class="analytics-card" onclick="openAnalyticsModal('diet')">
-          <div class="analytics-card-hdr"><span>&#129382; Diety specjalne</span><span class="analytics-zoom">&#128269;</span></div>
-          <div class="analytics-canvas-wrap"><canvas id="acDiet"></canvas></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ MUZYKA VIEW ══ -->
-  <div id="viewMusic" class="view-panel" style="display:none">
-    <div class="section-container">
-      <div class="section-header">
-        <h2>&#127925; Muzyka</h2>
-        <div class="sched-toolbar">
-          <button class="btn btn-sm btn-pdf" onclick="exportMusicCsv()" title="Eksport listy do CSV (dla DJa)">&#11015; Eksport CSV</button>
-          <button class="btn btn-sm btn-pdf" onclick="exportMusicTxt()" title="Eksport listy do pliku tekstowego">&#11015; Eksport TXT</button>
-          <button class="btn btn-sm" onclick="openMusicImportModal()" title="Import listy od DJa (CSV/tekst)">&#11014; Import od DJa</button>
-        </div>
-      </div>
-
-      <div class="music-tab-bar">
-        <button class="music-tab music-tab-active" id="mtab-list" onclick="switchMusicTab('list')">&#127925; Nasza lista</button>
-        <button class="music-tab" id="mtab-guests" onclick="switchMusicTab('guests')">&#128483;&#65039; Propozycje gości <span class="music-tab-badge" id="musicGuestBadge" style="display:none">0</span></button>
-      </div>
-
-      <!-- NASZA LISTA -->
-      <div id="musicPanelList">
-        <div class="music-search-card">
-          <div class="music-search-row">
-            <input type="text" id="musicSearchInput" class="music-search-input" placeholder="&#128269; Wyszukaj utwór lub wykonawcę (Deezer)…" onkeydown="if(event.key==='Enter')searchDeezer()">
-            <button class="btn btn-primary" onclick="searchDeezer()">Szukaj</button>
-            <button class="btn btn-sm" onclick="openManualSongForm()" title="Dodaj utwór ręcznie">&#10133; Ręcznie</button>
-          </div>
-          <div id="musicSearchResults" class="music-search-results"></div>
-          <div id="musicManualForm" class="music-manual-form" style="display:none">
-            <input type="text" id="manualSongTitle" placeholder="Tytuł utworu">
-            <input type="text" id="manualSongArtist" placeholder="Wykonawca">
-            <button class="btn btn-primary btn-sm" onclick="addManualSong()">Dodaj</button>
-            <button class="btn btn-sm" onclick="closeManualSongForm()">Anuluj</button>
-          </div>
-        </div>
-
-        <div class="music-filters" id="musicFilters">
-          <select class="task-filter-sel" onchange="setMusicFilter('moment',this.value)" title="Moment imprezy">
-            <option value="all">Moment: wszystkie</option>
-          </select>
-          <select class="task-filter-sel" onchange="setMusicFilter('status',this.value)" title="Status">
-            <option value="all">Status: wszystkie</option>
-            <option value="proposal">Propozycja</option>
-            <option value="approved">Zatwierdzone</option>
-            <option value="rejected">Odrzucone</option>
-            <option value="dj">Zostawiamy DJowi</option>
-          </select>
-          <input type="text" id="musicGenreFilter" class="task-filter-sel" placeholder="Gatunek/gust…" oninput="setMusicFilter('genre',this.value)">
-          <select class="task-filter-sel" onchange="setMusicSort(this.value)" title="Sortuj">
-            <option value="added">Sortuj: dodane</option>
-            <option value="title">wg tytułu</option>
-            <option value="artist">wg wykonawcy</option>
-            <option value="moment">wg momentu</option>
-            <option value="status">wg statusu</option>
-          </select>
-        </div>
-        <div class="music-list" id="musicList"></div>
-      </div>
-
-      <!-- PROPOZYCJE GOŚCI -->
-      <div id="musicPanelGuests" style="display:none">
-        <div class="qr-card">
-          <div class="qr-card-canvas"><div id="qrMusic"></div></div>
-          <div class="qr-card-info">
-            <div class="qr-card-title">&#127925; Strona muzyczna dla gości</div>
-            <p class="qr-card-desc">Udostępnij ten kod QR lub link, aby goście mogli proponować piosenki na wesele — bez logowania.</p>
-            <div class="qr-card-link"><a id="qrMusicLink" href="muzyka.html" target="_blank" rel="noopener">muzyka</a></div>
-            <div class="qr-card-actions">
-              <button class="btn btn-primary btn-sm" onclick="downloadQR('qrMusic','muzyka-qr.png')">&#11015; Pobierz PNG</button>
-              <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('music','a4')" title="Karta A4 z kodem QR do druku">&#128424;&#65039; QR PDF A4</button>
-              <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('music','a5')" title="Karta A5 z kodem QR do druku">&#128424;&#65039; QR PDF A5</button>
-              <a class="btn btn-sm" id="qrMusicOpen" href="muzyka.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#127925; Otwórz propozycje muzyki</a>
-            </div>
-          </div>
-        </div>
-        <div class="music-list" id="musicGuestList"></div>
-      </div>
-    </div>
   </div>
 
   <!-- ══ TABLES VIEW ══ -->
@@ -505,17 +384,6 @@
     <!-- PODZAKŁADKA: PODSUMOWANIE GOŚCI -->
     <div id="tablesTabSummary" class="tables-tab-panel" style="display:none">
       <div class="section-container">
-        <!-- WINIETKI DO DRUKU -->
-        <div class="placecard-card">
-          <div class="placecard-hdr">&#127991;&#65039; Winietki na stoły (PDF do druku)</div>
-          <p class="access-intro" style="margin:0 0 8px">Eleganckie identyfikatory na stół: imię i nazwisko gościa + nazwa/numer stolika. Arkusz A4 do wydruku i pocięcia.</p>
-          <div class="placecard-controls">
-            <button class="btn btn-primary btn-sm" onclick="generatePlaceCards('all')">&#128424;&#65039; Winietki — wszyscy goście</button>
-            <span class="placecard-sep">lub wybrany stół:</span>
-            <select id="placeCardTableSel" class="task-filter-sel"></select>
-            <button class="btn btn-sm btn-pdf" onclick="generatePlaceCardsForSelectedTable()">&#128424;&#65039; Winietki dla stołu</button>
-          </div>
-        </div>
         <div id="guestSummaryContent"></div>
       </div>
     </div>
@@ -784,7 +652,7 @@
     <div class="section-container">
       <div class="section-header">
         <h2>&#128197; Harmonogram Dnia Ślubu</h2>
-        <div class="sched-toolbar" id="scheduleToolbar">
+        <div class="sched-toolbar">
           <div class="schv-switcher">
             <button id="schv-list"    class="schv-btn schv-active" onclick="switchScheduleView('list')"    title="Lista">&#9776; Lista</button>
             <button id="schv-columns" class="schv-btn"             onclick="switchScheduleView('columns')" title="Kolumny">&#9638; Kolumny</button>
@@ -800,12 +668,6 @@
         </div>
       </div>
 
-      <div class="music-tab-bar">
-        <button class="music-tab music-tab-active" id="stab-plan" onclick="switchScheduleTab('plan')">&#128197; Harmonogram</button>
-        <button class="music-tab" id="stab-checklist" onclick="switchScheduleTab('checklist')">&#9745;&#65039; Checklista</button>
-      </div>
-
-      <div id="schedulePanelPlan">
       <!-- QR KOD — HARMONOGRAM DLA GOŚCI -->
       <div class="qr-card">
         <div class="qr-card-canvas">
@@ -828,16 +690,6 @@
       </div>
 
       <div id="scheduleTimeline"></div>
-      </div>
-
-      <!-- CHECKLISTA NA DZIEŃ ŚLUBU -->
-      <div id="schedulePanelChecklist" style="display:none">
-        <div class="tasks-progress-bar-wrap">
-          <div class="tasks-progress-label" id="checklistProgressLabel">0 / 0 odhaczonych</div>
-          <div class="tasks-progress-bg"><div class="tasks-progress-fill" id="checklistProgressFill" style="width:0%"></div></div>
-        </div>
-        <div id="checklistContent"></div>
-      </div>
     </div>
   </div>
 
@@ -1030,8 +882,7 @@
               <option value="gallery">Galeria (zdjęcia gości)</option>
               <option value="schedule">Harmonogram — kod QR</option>
               <option value="scheduleList">Harmonogram — lista wydarzeń</option>
-              <option value="music">Muzyka — kod QR</option>
-              <option value="combined">Połączony (galeria + harmonogram + muzyka)</option>
+              <option value="combined">Połączony (galeria + harmonogram)</option>
             </select>
           </label>
           <label class="pdf-ctrl">Rozmiar
@@ -1221,56 +1072,6 @@
       <button class="btn-modal-close" onclick="closeChartModalDirect()">&#10005;</button>
     </div>
     <div class="chart-modal-body" id="chartModalBody"></div>
-  </div>
-</div>
-
-<!-- ANALITYKA — MODAL POWIĘKSZENIA WYKRESU -->
-<div class="modal-overlay" id="analyticsModal" style="display:none" onclick="closeAnalyticsModal(event)">
-  <div class="chart-modal-box">
-    <div class="chart-modal-header">
-      <span id="analyticsModalTitle">Wykres</span>
-      <button class="btn-modal-close" onclick="closeAnalyticsModalDirect()">&#10005;</button>
-    </div>
-    <div class="chart-modal-body"><div class="analytics-modal-canvas-wrap"><canvas id="analyticsModalCanvas"></canvas></div></div>
-  </div>
-</div>
-
-<!-- MUZYKA — MODAL IMPORTU LISTY -->
-<div class="modal-overlay" id="musicImportModal" style="display:none" onclick="closeMusicImport(event)">
-  <div class="chart-modal-box" style="max-width:580px">
-    <div class="chart-modal-header">
-      <span>&#11014;&#65039; Import listy piosenek</span>
-      <button class="btn-modal-close" onclick="closeMusicImportDirect()">&#10005;</button>
-    </div>
-    <div class="chart-modal-body music-import-body">
-      <p class="music-import-lead">Wgraj plik z listą utworów. Obsługiwane formaty: <b>.csv</b> oraz <b>.txt</b>.</p>
-
-      <div class="music-import-fmt">
-        <div class="mif-title">&#128203; Format CSV (kolumny)</div>
-        <p>Pierwszy wiersz to nagłówek, kolejne to utwory. Kolumny rozdzielone przecinkiem <code>,</code> lub średnikiem <code>;</code>:</p>
-        <pre class="music-import-pre">Tytuł,Wykonawca,Moment imprezy,Status
-Mężczyzna i kobieta,Krzysztof Krawczyk,Pierwszy taniec,Zatwierdzone
-Sweet Caroline,Neil Diamond,Imprezowe,Propozycja
-Hej Sokoły,Ludowa,Oczepiny,Zostawiamy DJowi</pre>
-        <p class="mif-note">Kolumny „Moment imprezy" i „Status" są opcjonalne. Dozwolone momenty: Pierwszy taniec, Wejście, Oczepiny, Wolne, Imprezowe, Inne.</p>
-      </div>
-
-      <div class="music-import-fmt">
-        <div class="mif-title">&#128221; Format tekstowy (prosty)</div>
-        <p>Jedna linia = jeden utwór w postaci <code>Tytuł - Wykonawca</code>:</p>
-        <pre class="music-import-pre">Mężczyzna i kobieta - Krzysztof Krawczyk
-Sweet Caroline - Neil Diamond
-Hej Sokoły</pre>
-        <p class="mif-note">Sam tytuł (bez „- Wykonawca") również zadziała.</p>
-      </div>
-
-      <p class="mif-note">&#128161; Utwory, których nie uda się dopasować do bazy Deezer, trafią do sekcji „Niedopasowane / do weryfikacji" — będzie je można potwierdzić lub poprawić.</p>
-
-      <div class="music-import-actions">
-        <button class="btn btn-primary" onclick="document.getElementById('musicImportFile').click()">&#128193; Wybierz plik (.csv / .txt)</button>
-        <input type="file" id="musicImportFile" accept=".csv,.txt" style="display:none" onchange="importMusicFile(event)">
-      </div>
-    </div>
   </div>
 </div>
 
