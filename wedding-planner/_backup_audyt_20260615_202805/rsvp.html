@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Potwierdzenie Obecności — Wesele Piotra i Patrycji</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #f0f5ff; --text: #1a2744; --border: #c5d8f6;
+      --green: #16a34a; --red: #dc2626; --shadow: rgba(26,86,219,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+    header { background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff; text-align: center; padding: 28px 20px; }
+    header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
+    header p  { opacity: 0.8; margin-top: 6px; font-size: 0.9rem; }
+    .container { max-width: 540px; margin: 32px auto; padding: 0 16px 40px; }
+
+    /* ── Nawigacja gości ── */
+    .guest-nav {
+      max-width: 540px; margin: 22px auto 0; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap; padding: 0 16px;
+    }
+    .guest-nav.bottom { margin: 4px auto 36px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+    .card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px var(--shadow); }
+    .card h2 { font-size: 1.1rem; color: var(--blue-dark); margin-bottom: 20px; text-align: center; }
+    .field { margin-bottom: 16px; }
+    label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="text"], input[type="email"], textarea {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 10px 14px;
+      font-size: 0.92rem; font-family: inherit; color: var(--text); background: var(--white);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* Attendance buttons */
+    .attendance-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .att-btn { border: 2px solid var(--border); border-radius: 10px; padding: 14px 6px; cursor: pointer; text-align: center; font-size: 0.85rem; font-weight: 600; background: var(--white); transition: all 0.18s; user-select: none; }
+    .att-btn:hover { border-color: var(--blue-dark); }
+    .att-yes.selected  { border-color: var(--green); background: #f0fdf4; color: var(--green); }
+    .att-no.selected   { border-color: var(--red);   background: #fff5f5; color: var(--red); }
+    .att-icon { font-size: 1.4rem; display: block; margin-bottom: 5px; }
+
+    /* Companion toggle section */
+    .companion-section {
+      margin-top: 4px; padding: 14px 16px;
+      background: var(--blue-pale); border: 1.5px solid var(--border);
+      border-radius: 12px; display: none;
+    }
+    .companion-section.show { display: block; }
+    .companion-section h3 { font-size: 0.8rem; font-weight: 700; color: var(--blue-dark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .company-toggle { display: flex; gap: 8px; }
+    .company-btn {
+      flex: 1; padding: 11px 8px; border-radius: 9px; border: 2px solid var(--border);
+      font-size: 0.84rem; font-weight: 600; font-family: inherit; cursor: pointer;
+      background: var(--white); transition: all 0.18s; text-align: center; color: var(--text);
+    }
+    .company-btn:hover { border-color: var(--blue); }
+    .company-solo.selected { border-color: var(--blue); background: var(--blue-pale); color: var(--blue-dark); }
+    .company-duo.selected  { border-color: var(--green); background: #f0fdf4; color: var(--green); }
+    .companion-name-wrap { margin-top: 12px; display: none; }
+    .companion-name-wrap.show { display: block; }
+
+    .error-msg { color: var(--red); font-size: 0.78rem; margin-top: 4px; display: none; }
+    .error-msg.show { display: block; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%; padding: 13px; background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; font-family: inherit; margin-top: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(26,86,219,0.35); }
+    .submit-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+    .submit-spinner {
+      display: none; width: 17px; height: 17px; border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50; animation: spin-rsvp 0.75s linear infinite;
+    }
+    .submit-spinner.show { display: block; border-radius: 50%; }
+    @keyframes spin-rsvp { to { transform: rotate(360deg); } }
+
+    /* Email error state */
+    input.field-error { border-color: var(--red) !important; }
+
+    .confirm-box { background: #f0fdf4; border: 2px solid #86efac; border-radius: 12px; padding: 18px; margin-top: 14px; display: none; }
+    .confirm-box.show { display: block; }
+    .confirm-box h3 { color: var(--green); margin-bottom: 8px; font-size: 1rem; }
+    .confirm-box p { font-size: 0.85rem; color: #166534; }
+    .confirm-email-note { font-size: 0.78rem; color: #15803d; margin-top: 8px; opacity: 0.8; }
+
+    .email-warn-box { background: #fffbeb; border: 1.5px solid #fde047; border-radius: 10px; padding: 10px 14px; margin-top: 10px; display: none; }
+    .email-warn-box.show { display: block; }
+    .email-warn-box p { font-size: 0.78rem; color: #a16207; }
+
+    .match-box { background: var(--blue-pale); border: 2px solid var(--blue); border-radius: 12px; padding: 14px; margin-top: 12px; display: none; }
+    .match-box.show { display: block; }
+    .match-box p { font-size: 0.85rem; color: var(--blue-dark); margin-bottom: 10px; }
+    .match-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-yes-me { background: var(--blue); color: #fff; border: none; border-radius: 7px; padding: 7px 16px; cursor: pointer; font-size: 0.82rem; font-family: inherit; font-weight: 600; }
+    .btn-yes-me:hover { background: var(--blue-dark); }
+    .btn-no-me  { background: var(--white); color: var(--text); border: 1.5px solid var(--border); border-radius: 7px; padding: 6px 14px; cursor: pointer; font-size: 0.82rem; font-family: inherit; }
+
+    @media (max-width: 540px) {
+      header { padding: 18px 14px; }
+      header h1 { font-size: 1.3rem; }
+      .container { margin: 14px auto; padding: 0 10px 32px; }
+      .card { padding: 18px 14px; }
+      .att-btn { padding: 12px 4px; font-size: 0.82rem; }
+      .submit-btn { min-height: 48px; font-size: 1rem; }
+      .match-btns { flex-direction: column; }
+      .btn-yes-me, .btn-no-me { width: 100%; padding: 11px 14px; min-height: 44px; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>&#128149; Potwierdzenie Obecności</h1>
+  <p>Prosimy o potwierdzenie swojego udziału w naszym weselu</p>
+</header>
+
+<nav class="guest-nav">
+  <a href="harmonogram.html">📅 Harmonogram</a>
+  <a href="galeria.html">📸 Galeria zdjęć</a>
+</nav>
+
+<div class="container">
+  <div class="card" id="formCard">
+    <h2>&#10084; Czy będziesz z nami?</h2>
+
+    <div class="field">
+      <label>Twoje imię i nazwisko *</label>
+      <input type="text" id="rsvpName" placeholder="np. Jan Kowalski" autocomplete="name" oninput="onNameInput()">
+      <div class="error-msg" id="nameError">Podaj imię i nazwisko (min. 3 znaki)</div>
+    </div>
+
+    <div class="field">
+      <label>Twój adres email *</label>
+      <input type="email" id="rsvpEmail" placeholder="np. jan.kowalski@gmail.com" autocomplete="email">
+      <div class="error-msg" id="emailError">Podaj prawidłowy adres email</div>
+    </div>
+
+    <div class="field">
+      <label>Twoja odpowiedź *</label>
+      <div class="attendance-row">
+        <div class="att-btn att-yes" id="btnYes" onclick="selectAttendance('attending')">
+          <span class="att-icon">&#10003;</span>Przyjdę
+        </div>
+        <div class="att-btn att-no" id="btnNo" onclick="selectAttendance('not_attending')">
+          <span class="att-icon">&#10007;</span>Nie przyjdę
+        </div>
+      </div>
+      <div class="error-msg" id="attError">Wybierz odpowiedź</div>
+    </div>
+
+    <!-- Sekcja osoby towarzyszącej (widoczna po wybraniu "Przyjdę") -->
+    <div class="companion-section" id="companionSection">
+      <h3>&#128100; Czy przyjdziesz sam/a czy we dwoje?</h3>
+      <div class="company-toggle">
+        <button class="company-btn company-solo" id="btnSolo" onclick="setCompanyMode('solo')">&#128100; Przychodzę sam/a</button>
+        <button class="company-btn company-duo"  id="btnDuo"  onclick="setCompanyMode('duo')">&#128145; Przychodzimy we dwoje</button>
+      </div>
+      <div class="companion-name-wrap" id="companionNameWrap">
+        <div class="field" style="margin-bottom:0; margin-top:12px">
+          <label>Imię i nazwisko osoby towarzyszącej *</label>
+          <input type="text" id="rsvpCompanion" placeholder="np. Anna Kowalska" autocomplete="off">
+          <div class="error-msg" id="companionError">Podaj imię i nazwisko osoby towarzyszącej</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:12px">
+      <label>Wiadomość dla Pary Młodej (opcjonalnie)</label>
+      <textarea id="rsvpMessage" placeholder="Możesz napisać krótką wiadomość…"></textarea>
+    </div>
+
+    <div class="match-box" id="matchBox">
+      <p id="matchText">Czy chodziło Ci o <strong id="matchName"></strong>?</p>
+      <div class="match-btns">
+        <button class="btn-yes-me" id="btnYesMe" onclick="confirmMatch()">Tak, to ja</button>
+        <button class="btn-no-me" onclick="denyMatch()">Nie, to nie ja</button>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitRsvp()">
+      <span class="submit-spinner" id="submitSpinner"></span>
+      <span id="submitBtnText">Wyślij potwierdzenie</span>
+    </button>
+  </div>
+
+  <div class="confirm-box" id="confirmBox">
+    <h3>&#127881; Dziękujemy za potwierdzenie!</h3>
+    <p id="confirmText">Twoja odpowiedź została zapisana.</p>
+    <p class="confirm-email-note" id="confirmEmailNote"></p>
+  </div>
+
+  <div class="email-warn-box" id="emailWarnBox">
+    <p>&#9888; Nie udało się wysłać emaila potwierdzającego, ale Twoja odpowiedź została zapisana.</p>
+  </div>
+</div>
+
+<nav class="guest-nav bottom">
+  <a href="harmonogram.html">📅 Harmonogram</a>
+  <a href="galeria.html">📸 Galeria zdjęć</a>
+</nav>
+
+<script>
+  const STORAGE_KEY  = 'wedding-planner-v2';
+  const EMAILJS_SVC       = 'service_8y44w48';
+  const EMAILJS_TPL_YES   = 'template_1so5ltg';   // Przyjdę
+  const EMAILJS_TPL_NO    = 'template_zpg16jc';   // Nie przyjdę
+  const ORGANIZERS_BCC    = 'macholak.piotr@gmail.com,ceremonia.panstwa.macholak@gmail.com';
+
+  let selectedStatus          = null;
+  let companyMode             = null; // 'solo' | 'duo'
+  let matchedGuestId          = null;
+  let pendingSuggestedGuestId = null;
+  let partnerGuestId          = null;
+  let partnerGuestName        = '';
+  let pairAnswer              = null;
+
+  // ── Inicjalizacja EmailJS ──
+  let _ejsReady = false;
+  try {
+    if (typeof emailjs === 'undefined') {
+      console.error('[EmailJS] BŁĄD: SDK nie załadowany. Sprawdź script tag i połączenie z internetem.');
+    } else {
+      emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });
+      _ejsReady = true;
+      console.log('[EmailJS] Zainicjalizowany. Service:', EMAILJS_SVC, '| Szablony: TAK→', EMAILJS_TPL_YES, '| NIE→', EMAILJS_TPL_NO);
+    }
+  } catch (e) {
+    console.error('[EmailJS] Błąd inicjalizacji:', e);
+  }
+
+  async function _sendEmail(toEmail, templateId, params) {
+    if (!_ejsReady) {
+      console.error('[EmailJS] Nie jest zainicjalizowany — pomijam wysyłkę do:', toEmail);
+      return false;
+    }
+    const fullParams = { ...params, to_email: toEmail };
+    console.log('[EmailJS] Adresat (TO):', toEmail, '| BCC:', fullParams.bcc_email || '–', '| Szablon:', templateId);
+    console.log('[EmailJS] Pełne parametry:', JSON.stringify(fullParams, null, 2));
+    try {
+      const res = await emailjs.send(EMAILJS_SVC, templateId, fullParams);
+      console.log('[EmailJS] Sukces →', toEmail, '| status:', res.status, '| text:', res.text);
+      return true;
+    } catch (e) {
+      console.error('[EmailJS] BŁĄD wysyłki do:', toEmail);
+      console.error('  HTTP status:', e.status);
+      console.error('  Treść odpowiedzi:', e.text);
+      console.error('  Pełny obiekt błędu:', e);
+      return false;
+    }
+  }
+
+  // ── Inicjalizacja Firebase ──
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof initFirebaseSync === 'function') initFirebaseSync();
+    if (typeof firestoreLoad === 'function') firestoreLoad(applyPublicConfig);
+  });
+
+  // Rozpakuj aktywny event z kontenera wielu eventów (obsługuje też stary, płaski zapis)
+  function _activeEvent(data) {
+    if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+    return data || {};
+  }
+  // Zastosuj konfigurowalne napisy (wspólne, z Firestore)
+  function applyPublicConfig(rawData) {
+    const data = _activeEvent(rawData);
+    const cfg = (data && data.appConfig) || {};
+    const names = (cfg.displayNames || '').trim();
+    if (cfg.eventName) document.title = 'Potwierdzenie Obecności — ' + cfg.eventName;
+    else if (names)    document.title = 'Potwierdzenie Obecności — Wesele ' + names;
+  }
+
+  // ── Normalizacja i Levenshtein ──
+  function normalizePL(str) {
+    return (str || '').toLowerCase()
+      .replace(/ą/g,'a').replace(/ć/g,'c').replace(/ę/g,'e').replace(/ł/g,'l')
+      .replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z')
+      .replace(/\s+/g,' ').trim();
+  }
+  function levenshtein(a, b) {
+    if (!a.length) return b.length;
+    if (!b.length) return a.length;
+    const dp = Array.from({length: a.length + 1}, (_, i) =>
+      Array.from({length: b.length + 1}, (_, j) => i ? (j ? 0 : i) : j));
+    for (let i = 1; i <= a.length; i++)
+      for (let j = 1; j <= b.length; j++)
+        dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    return dp[a.length][b.length];
+  }
+  function findMatch(input, guests) {
+    const norm = normalizePL(input);
+    if (norm.length < 2) return null;
+    let best = null, bestScore = 999;
+    for (const g of guests) {
+      const fn = (g.firstName || '') + ' ' + (g.lastName || '');
+      const score = Math.min(
+        levenshtein(norm, normalizePL(fn)),
+        levenshtein(norm, normalizePL(g.firstName || '')),
+        levenshtein(norm, normalizePL(g.lastName  || ''))
+      );
+      if (score < bestScore) { bestScore = score; best = g; }
+    }
+    const threshold = Math.max(2, Math.floor(norm.length / 3));
+    return bestScore <= threshold ? best : null;
+  }
+
+  // ── Wczytaj dane (aktywny event z kontenera) ──
+  function loadAppData() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? _activeEvent(JSON.parse(raw)) : {};
+    } catch (_) { return {}; }
+  }
+
+  // ── Sprawdź parę dla dopasowanego gościa ──
+  function detectPartner(guestId) {
+    const data   = loadAppData();
+    const guests = data.guests || [];
+    const pairs  = data.pairs  || [];
+    const g = guests.find(x => x.id === guestId);
+    if (!g || g.pairId === null) return null;
+    const pair = pairs.find(p => p.id === g.pairId);
+    if (!pair) return null;
+    const partnerId = pair.g1 === guestId ? pair.g2 : pair.g1;
+    return guests.find(x => x.id === partnerId) || null;
+  }
+
+  // ── Wybór odpowiedzi ──
+  function selectAttendance(status) {
+    selectedStatus = status;
+    document.getElementById('btnYes').classList.toggle('selected', status === 'attending');
+    document.getElementById('btnNo').classList.toggle('selected',  status === 'not_attending');
+    document.getElementById('attError').classList.remove('show');
+    matchedGuestId = null;
+    pendingSuggestedGuestId = null;
+    document.getElementById('matchBox').classList.remove('show');
+    const compSection = document.getElementById('companionSection');
+    if (status === 'attending') {
+      compSection.classList.add('show');
+      // Zachowaj wybrany tryb jeśli był już ustawiony
+      if (companyMode) setCompanyMode(companyMode);
+    } else {
+      compSection.classList.remove('show');
+      companyMode = null;
+      document.getElementById('btnSolo').classList.remove('selected');
+      document.getElementById('btnDuo').classList.remove('selected');
+      document.getElementById('companionNameWrap').classList.remove('show');
+    }
+  }
+
+  function setCompanyMode(mode) {
+    companyMode = mode;
+    document.getElementById('btnSolo').classList.toggle('selected', mode === 'solo');
+    document.getElementById('btnDuo').classList.toggle('selected',  mode === 'duo');
+    const wrap = document.getElementById('companionNameWrap');
+    wrap.classList.toggle('show', mode === 'duo');
+    if (mode !== 'duo') {
+      document.getElementById('rsvpCompanion').value = '';
+      document.getElementById('companionError').classList.remove('show');
+    }
+  }
+
+  // ── Wykrywanie pary podczas wpisywania nazwy ──
+  function onNameInput() {
+    const name = document.getElementById('rsvpName').value.trim();
+    if (name.length < 3) { partnerGuestId = null; partnerGuestName = ''; return; }
+    const data   = loadAppData();
+    const guests = data.guests || [];
+    const match  = findMatch(name, guests);
+    if (match) {
+      const partner = detectPartner(match.id);
+      if (partner) {
+        partnerGuestId   = partner.id;
+        partnerGuestName = ((partner.firstName || '') + ' ' + (partner.lastName || '')).trim();
+      } else {
+        partnerGuestId = null; partnerGuestName = '';
+      }
+    } else {
+      partnerGuestId = null; partnerGuestName = '';
+    }
+  }
+
+  // ── Fuzzy match confirm/deny ──
+  function confirmMatch() {
+    if (pendingSuggestedGuestId) {
+      matchedGuestId = pendingSuggestedGuestId;
+      const partner = detectPartner(matchedGuestId);
+      if (partner) {
+        partnerGuestId   = partner.id;
+        partnerGuestName = ((partner.firstName || '') + ' ' + (partner.lastName || '')).trim();
+      }
+      pendingSuggestedGuestId = null;
+      document.getElementById('matchBox').classList.remove('show');
+      doSubmit(true);
+    }
+  }
+  function denyMatch() {
+    pendingSuggestedGuestId = null;
+    matchedGuestId = null;
+    document.getElementById('matchBox').classList.remove('show');
+    doSubmit(false);
+  }
+
+  // ── Walidacja email ──
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // ── Submit ──
+  function submitRsvp() {
+    const name  = document.getElementById('rsvpName').value.trim();
+    const email = document.getElementById('rsvpEmail').value.trim();
+    let valid = true;
+
+    if (name.length < 3) { document.getElementById('nameError').classList.add('show'); valid = false; }
+    else document.getElementById('nameError').classList.remove('show');
+
+    if (!isValidEmail(email)) { document.getElementById('emailError').classList.add('show'); valid = false; }
+    else document.getElementById('emailError').classList.remove('show');
+
+    if (!selectedStatus) { document.getElementById('attError').classList.add('show'); valid = false; }
+    else document.getElementById('attError').classList.remove('show');
+
+    if (selectedStatus === 'attending' && companyMode === 'duo') {
+      const comp = document.getElementById('rsvpCompanion').value.trim();
+      if (comp.length < 2) { document.getElementById('companionError').classList.add('show'); valid = false; }
+      else document.getElementById('companionError').classList.remove('show');
+    }
+
+    if (!valid) return;
+
+    let guests = [];
+    try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) guests = (_activeEvent(JSON.parse(raw)).guests) || []; } catch (_) {}
+    const match = findMatch(name, guests);
+    const normInput = normalizePL(name);
+    if (match && matchedGuestId === null) {
+      const fullN = ((match.firstName || '') + ' ' + (match.lastName || '')).trim();
+      if (normalizePL(fullN) === normInput) {
+        matchedGuestId = match.id;
+        doSubmit(true);
+      } else {
+        pendingSuggestedGuestId = match.id;
+        document.getElementById('matchName').textContent = fullN;
+        document.getElementById('matchBox').classList.add('show');
+      }
+      return;
+    }
+    doSubmit(matchedGuestId !== null);
+  }
+
+  // ── Zapis i wysyłka emaila ──
+  async function doSubmit(matched) {
+    const btn     = document.getElementById('submitBtn');
+    const spinner = document.getElementById('submitSpinner');
+    const btnText = document.getElementById('submitBtnText');
+    btn.disabled = true;
+    spinner.classList.add('show');
+    btnText.textContent = 'Wysyłanie…';
+
+    const name         = document.getElementById('rsvpName').value.trim();
+    const email        = document.getElementById('rsvpEmail').value.trim();
+    const message      = document.getElementById('rsvpMessage').value.trim();
+    const companionName = (selectedStatus === 'attending' && companyMode === 'duo')
+      ? document.getElementById('rsvpCompanion').value.trim()
+      : '';
+
+    // ── Zapis do localStorage i Firestore (pojedynczy, płaski zestaw danych) ──
+    try {
+      const raw   = localStorage.getItem(STORAGE_KEY);
+      let state = raw ? JSON.parse(raw) : {};
+      // Zgodność wstecz: jeśli trafi się stary kontener wielu eventów — wyodrębnij aktywny event.
+      if (state && state.events && typeof state.events === 'object') {
+        state = state.events[state.activeEventId] || state.events['default'] || {};
+      }
+      if (!state || typeof state !== 'object') state = {};
+      if (!state.rsvpEntries) state.rsvpEntries = [];
+      if (!state.nextRsvpId)  state.nextRsvpId  = 1;
+
+      if (matchedGuestId) {
+        state.rsvpEntries = state.rsvpEntries.filter(e => e.guestId !== matchedGuestId);
+      }
+      state.rsvpEntries.push({
+        id: state.nextRsvpId++,
+        rawName: name,
+        email,
+        status: selectedStatus,
+        message,
+        guestId: matchedGuestId || null,
+        manual: false,
+        timestamp: new Date().toISOString(),
+        companionName: selectedStatus === 'attending' ? companionName : '',
+      });
+
+      if (partnerGuestId && pairAnswer) {
+        state.rsvpEntries = state.rsvpEntries.filter(e => e.guestId !== partnerGuestId);
+        state.rsvpEntries.push({
+          id: state.nextRsvpId++,
+          rawName: partnerGuestName,
+          status: pairAnswer,
+          message: '',
+          guestId: partnerGuestId,
+          manual: false,
+          timestamp: new Date().toISOString(),
+          companionName: '',
+        });
+      }
+
+      state._savedAt = Date.now();
+      state._app     = 'wedding-planner';
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (typeof firestoreSaveNow === 'function') firestoreSaveNow(state);
+    } catch (_) {}
+
+    // ── Wysyłka emaili przez EmailJS ──
+    const isAttending = selectedStatus === 'attending';
+    const templateId  = isAttending ? EMAILJS_TPL_YES : EMAILJS_TPL_NO;
+    const rsvpStatus  = isAttending ? 'Przyjdę ✅' : 'Nie przyjdę ❌';
+    const emailParams = {
+      guest_name:     name,
+      rsvp_status:    rsvpStatus,
+      companion_name: companionName || '',
+      bcc_email:      ORGANIZERS_BCC,
+    };
+
+    const emailOk = await _sendEmail(email, templateId, emailParams);
+
+    // ── Pokaż potwierdzenie ──
+    const labels = {
+      attending:     'Cieszymy się, że będziesz z nami! &#127881;',
+      not_attending: 'Szkoda, że nie dasz rady. Dziękujemy za odpowiedź.',
+    };
+    let extra = '';
+    if (partnerGuestId && pairAnswer === 'attending')     extra = `<br>Potwierdzono też obecność: <strong>${partnerGuestName}</strong> &#10003;`;
+    if (partnerGuestId && pairAnswer === 'not_attending') extra = `<br>${partnerGuestName} nie przyjdzie.`;
+
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('confirmText').innerHTML   = (labels[selectedStatus] || 'Dziękujemy!') + extra;
+    document.getElementById('confirmBox').classList.add('show');
+
+    const emailNote = document.getElementById('confirmEmailNote');
+    if (emailOk) {
+      emailNote.textContent = `📧 Potwierdzenie zostało wysłane na adres ${email}`;
+    }
+    if (!emailOk) {
+      document.getElementById('emailWarnBox').classList.add('show');
+    }
+  }
+</script>
+</body>
+</html>

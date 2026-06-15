@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Zalogowani użytkownicy (organizatorzy): pełny dostęp do WSZYSTKICH kolekcji ──
+    // Naprawia błąd „Missing or insufficient permissions" przy skanowaniu/odczycie
+    // i zapisie kolekcji (np. listowanie weddingPlanner, dashboardLayouts).
+    // Reguły w Firestore sumują się (OR) — wyjątki publiczne poniżej tylko ROZSZERZAJĄ dostęp.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── Wyjątki PUBLICZNE (goście bez logowania) ──
+
+    // Dane planera: odczyt przed zalogowaniem (initFirebaseSync) oraz odczyt+zapis
+    // potwierdzeń RSVP przez gości (rsvp.html, bez logowania).
+    // `read` obejmuje get i list — umożliwia też skan/diagnostykę kolekcji.
+    match /weddingPlanner/{doc} {
+      allow read, write: if true;
+    }
+
+    // Galeria zdjęć gości: publiczny odczyt i dodawanie; usuwanie tylko organizatorzy.
+    match /gallery/{photoId} {
+      allow read, create: if true;
+      allow delete: if request.auth != null
+        && request.auth.token.email in [
+          'macholak.piotr@gmail.com',
+          'ceremonia.panstwa.macholak@gmail.com',
+          'patrycja.staniow@gmail.com'
+        ];
+    }
+
+    // Zarządzanie dostępem (czarna lista emaili): odczyt dla zalogowanych
+    // (sprawdzenie blokady przy logowaniu). UWAGA: zapis jest objęty regułą ogólną
+    // powyżej (każdy zalogowany), więc dawna ochrona przed „samo-odblokowaniem"
+    // jest złagodzona — zgodnie z wymogiem „dostęp do wszystkich kolekcji dla zalogowanych".
+    match /accessControl/main {
+      allow read: if request.auth != null;
+    }
+  }
+}

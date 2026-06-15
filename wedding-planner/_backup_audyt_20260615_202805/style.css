@@ -4594,14 +4594,6 @@ body.room-fs-lock { overflow: hidden; }
   margin-top: 4px;
   display: inline-block;
 }
-.rtt-extra {
-  font-size: 0.7rem;
-  line-height: 1.5;
-  margin-top: 5px;
-  padding-top: 5px;
-  border-top: 1px solid rgba(255,255,255,0.2);
-  max-width: 220px;
-}
 
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 5px; }

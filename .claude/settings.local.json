@@ -38,7 +38,10 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 12 -L \"https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/lato/Lato-Bold.ttf\")",
       "Bash(cp index.html script.js style.css harmonogram.html _backup_features___TRACKED_VAR__/)",
       "PowerShell(New-Item *)",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(sed -E 's/.*\"\\([a-zA-Z_]+\\)\\\\\\(/\\\\1/')",
+      "Bash(read fn *)",
+      "Bash(grep -qE 'function __TRACKED_VAR__\\\\b|__TRACKED_VAR__\\\\s*=\\\\s*function|__TRACKED_VAR__\\\\s*=\\\\s*\\\\\\(|window\\\\.__TRACKED_VAR__\\\\s*=' script.js auth.js firebase-config.js)"
     ]
   }
 }

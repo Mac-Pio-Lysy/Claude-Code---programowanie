@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moje Wesele</title>
+  <!-- Google Fonts: Playfair Display (nagłówki) + Inter (treść) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+  <!-- QR Code generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- jsPDF — generowanie PDF do druku (materiały na stoliki) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init({ publicKey: 'GiG24DhyVlpiPRDM0' });</script>
+</head>
+<body>
+
+<!-- ══ EKRAN LOGOWANIA ══ -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-icon">💍</div>
+    <h1 class="login-title" id="loginTitle">Ceremonia<br>Patrycji i&nbsp;Piotra</h1>
+    <p class="login-subtitle" id="loginSubtitle">Panel organizacji wesela</p>
+    <div class="login-divider"></div>
+    <button id="googleSignInBtn" class="btn-google-signin" onclick="signInWithGoogle()">
+      <span id="googleSignInSpinner" class="gsi-spinner" style="display:none"></span>
+      <span class="gsi-g-badge">G</span>
+      <span id="googleSignInText">Zaloguj się przez Google</span>
+    </button>
+    <div id="loginError" class="login-error" style="display:none"></div>
+    <p class="login-privacy">&#128274; Aplikacja prywatna — dostęp tylko dla zaproszonych</p>
+    <a class="login-public-link" href="harmonogram.html" target="_blank" rel="noopener">&#128197; Zobacz harmonogram dnia ślubu &#8599;</a>
+  </div>
+</div>
+
+<!-- ══ GŁÓWNA APLIKACJA ══ -->
+<div id="appContent" style="display:none">
+
+<!-- ══ PRAWY GÓRNY RÓG — użytkownik + ustawienia ══ -->
+<div id="topRightBar" class="topright-bar">
+  <div class="topright-user-stack">
+    <div class="nav-user-panel" id="navUserPanel" style="display:none">
+      <button class="nav-user-avatar-btn" id="navUserAvatarBtn" type="button" onclick="toggleUserMenu()" title="Konto" aria-label="Konto">
+        <img id="navUserPhoto" class="nav-user-photo" src="" alt="">
+      </button>
+      <span id="navUserName" class="nav-user-name"></span>
+      <button class="nav-logout-btn" onclick="authSignOut()">&#x2197; Wyloguj</button>
+      <div class="nav-user-pop" id="navUserPop">
+        <span class="nav-user-pop-name" id="navUserPopName"></span>
+        <button class="nav-user-pop-logout" onclick="authSignOut()">&#x2197; Wyloguj</button>
+      </div>
+    </div>
+  </div>
+  <div class="settings-menu-wrap">
+    <button class="settings-gear-btn" id="settingsGearBtn" type="button" onclick="toggleSettingsMenu()" title="Ustawienia" aria-label="Ustawienia">&#9881;&#65039;</button>
+    <div class="settings-menu" id="settingsMenu">
+      <div class="settings-menu-hdr">&#9881;&#65039; Ustawienia</div>
+      <div class="settings-sync-row">
+        <span class="settings-sync-label">&#128259; Synchronizacja</span>
+        <div id="syncStatusBadge" class="sync-badge sync-offline">
+          <span class="sync-icon">○</span><span class="sync-label">Tryb offline</span>
+        </div>
+      </div>
+      <button class="settings-menu-item" id="setItemConfig"    onclick="openSettingsView('config')"><span class="sm-ico">&#9881;&#65039;</span> Konfiguracja</button>
+      <button class="settings-menu-item" id="setItemAccess"    onclick="openSettingsView('access')"><span class="sm-ico">&#128272;</span> Dostęp</button>
+      <button class="settings-menu-item" id="setItemDevSettings" onclick="openSettingsView('devsettings')"><span class="sm-ico">&#128295;</span> Ustawienia programistyczne</button>
+      <button class="settings-menu-item" id="setItemOnboarding" onclick="startOnboarding()"><span class="sm-ico">&#129517;</span> Przewodnik (od nowa)</button>
+    </div>
+  </div>
+</div>
+<div id="settingsBackdrop" class="settings-backdrop" onclick="closeSettingsMenu()"></div>
+
+<header>
+  <h1 id="appHeaderTitle">&#9834; Impreza Weselna Piotra i Patrycji  &#9834;</h1>
+  <p id="appHeaderSubtitle">Panel organizacji wesela</p>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="main-nav">
+  <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
+  <span class="nav-mob-title" id="navMobTitle">&#9834; Wesele</span>
+
+  <div class="nav-groups">
+    <div class="nav-group nav-group-solo">
+      <div class="nav-group-items">
+        <button class="nav-btn" id="navDashboard" onclick="switchView('dashboard')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Dashboard</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button type="button" class="nav-group-label" onclick="toggleNavGroup(this)">Goście</button>
+      <div class="nav-group-items">
+        <button class="nav-btn" id="navTables" onclick="switchView('tables')"><span class="nav-ico">&#128101;</span><span class="nav-txt">Stoły i goście</span></button>
+        <button class="nav-btn" id="navRoom" onclick="switchView('room')"><span class="nav-ico">&#127963;</span><span class="nav-txt">Plan sali</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button type="button" class="nav-group-label" onclick="toggleNavGroup(this)">Budżet</button>
+      <div class="nav-group-items">
+        <button class="nav-btn" id="navBudget" onclick="switchView('budget')"><span class="nav-ico">&#128176;</span><span class="nav-txt">Budżet</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button type="button" class="nav-group-label" onclick="toggleNavGroup(this)">Organizacja</button>
+      <div class="nav-group-items">
+        <button class="nav-btn" id="navSchedule" onclick="switchView('schedule')"><span class="nav-ico">&#128197;</span><span class="nav-txt">Harmonogram</span></button>
+        <button class="nav-btn" id="navTasks" onclick="switchView('tasks')"><span class="nav-ico">&#9989;</span><span class="nav-txt">Zadania</span></button>
+        <button class="nav-btn" id="navVendors" onclick="switchView('vendors')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Dostawcy</span></button>
+        <button class="nav-btn" id="navGifts" onclick="switchView('gifts')"><span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span></button>
+        <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Potwierdzenia</span></button>
+        <button class="nav-btn" id="navGallery" onclick="switchView('gallery')"><span class="nav-ico">&#128247;</span><span class="nav-txt">Galeria &amp; QR</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button type="button" class="nav-group-label" onclick="toggleNavGroup(this)">Logistyka</button>
+      <div class="nav-group-items">
+        <button class="nav-btn" id="navTransport" onclick="switchView('transport')"><span class="nav-ico">&#128663;</span><span class="nav-txt">Transport</span></button>
+        <button class="nav-btn" id="navAccommodation" onclick="switchView('accommodation')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Noclegi</span></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MOBILE BACKDROP -->
+<div id="mobileBackdrop" class="mob-backdrop" onclick="closeMobileNav()"></div>
+
+<!-- MOBILE DRAWER -->
+<div id="mobileDrawer" class="mob-drawer">
+  <div class="mob-drawer-hdr">
+    <span>&#9834; Menu</span>
+    <button class="mob-drawer-close" onclick="closeMobileNav()">&#10005;</button>
+  </div>
+  <div class="mob-drawer-body">
+    <button class="mob-nav-btn" onclick="switchView('dashboard')">&#127968; Dashboard</button>
+    <div class="mob-nav-sep">Goście</div>
+    <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
+    <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
+    <div class="mob-nav-sep">Budżet</div>
+    <button class="mob-nav-btn" onclick="switchView('budget')">&#128176; Budżet</button>
+    <div class="mob-nav-sep">Organizacja</div>
+    <button class="mob-nav-btn" onclick="switchView('schedule')">&#128197; Harmonogram</button>
+    <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
+    <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
+    <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
+    <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
+    <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
+    <div class="mob-nav-sep">Logistyka</div>
+    <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
+    <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
+    <div class="mob-drawer-footer">
+      <div id="mobNavUserPanel" style="display:none">
+        <span id="mobNavUserName" class="mob-user-name"></span>
+        <button class="mob-logout-btn" onclick="authSignOut()">&#x2197; Wyloguj</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PODZAKŁADKI „STOŁY I GOŚCIE" (nad paskiem statystyk; tylko dla widoku stołów) -->
+<div class="tables-tab-bar" id="tablesTabBar" style="display:none">
+  <button class="tables-tab active" id="ttab-plan"    onclick="switchTablesTab('plan')">&#127860; Plan stołów</button>
+  <button class="tables-tab"        id="ttab-card"    onclick="switchTablesTab('card')">&#128100; Kartoteka Gości</button>
+  <button class="tables-tab"        id="ttab-summary" onclick="switchTablesTab('summary')">&#128202; Podsumowanie gości</button>
+</div>
+
+<!-- STATS BAR (only for tables view) -->
+<div class="stats-bar" id="statsBar" style="display:none">
+  <div class="stat">
+    <div class="stat-dot dot-total"></div>
+    <div class="stat-num" id="statTotal">0</div>
+    <div class="stat-label">Gości</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot dot-seated"></div>
+    <div class="stat-num" id="statSeated">0</div>
+    <div class="stat-label">Przypisanych</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot dot-unassigned"></div>
+    <div class="stat-num" id="statUnassigned">0</div>
+    <div class="stat-label">Nieprzypisanych</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot" style="background:#7ab4f7"></div>
+    <div class="stat-num" id="statTables">0</div>
+    <div class="stat-label">Stołów</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot" style="background:#a0b8d8"></div>
+    <div class="stat-num" id="statSeats">0</div>
+    <div class="stat-label">Miejsc</div>
+  </div>
+  <div class="stat">
+    <div class="stat-dot dot-pairs"></div>
+    <div class="stat-num" id="statPairs">0</div>
+    <div class="stat-label">Par</div>
+  </div>
+</div>
+
+<!-- ALL VIEWS -->
+<div class="views-container">
+
+  <!-- ══ DASHBOARD VIEW ══ -->
+  <div id="viewDashboard" class="view-panel active-view">
+    <div class="dashboard-hero">
+      <div class="dashboard-title" id="dashboardTitle">&#128149; Do Waszego Ślubu</div>
+      <div class="countdown-wrapper">
+        <div class="countdown-display" id="countdownDisplay">
+          <div class="countdown-unit"><span class="cd-num" id="cdDays">--</span><span class="cd-lbl">dni</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit"><span class="cd-num" id="cdHours">--</span><span class="cd-lbl">godz</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit"><span class="cd-num" id="cdMins">--</span><span class="cd-lbl">min</span></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-unit"><span class="cd-num" id="cdSecs">--</span><span class="cd-lbl">sek</span></div>
+        </div>
+        <div class="countdown-nodate" id="countdownNoDate" style="display:none">
+          &#128197; Ustaw datę w Konfiguracji
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD — jeden spójny system kafelków (skrót + dane na żywo), zapis w Firestore per użytkownik -->
+    <div class="dash-widgets-wrap">
+      <div class="dash-widgets-head">
+        <div class="dash-widgets-title">&#128202; Dashboard</div>
+        <div class="dash-widgets-tools">
+          <button class="dash-wtool-btn dash-wtool-add"   id="dwAddBtn"   onclick="toggleAddWidget()"   style="display:none">&#10133; Dodaj kafelek</button>
+          <button class="dash-wtool-btn dash-wtool-reset" id="dwResetBtn" onclick="resetDashLayout()"   style="display:none">&#128260; Resetuj</button>
+          <button class="dash-wtool-btn dash-wtool-edit"  id="dwEditBtn"  onclick="toggleDashEdit()">&#9999;&#65039; Edytuj</button>
+        </div>
+      </div>
+      <div class="dash-widgets-grid" id="dashWidgets"></div>
+      <div class="dash-widget-addzone" id="dashWidgetAddZone" style="display:none"></div>
+    </div>
+
+  </div>
+
+  <!-- ══ TABLES VIEW ══ -->
+  <div id="viewTables" class="view-panel" style="display:none">
+    <!-- PODZAKŁADKA: PLAN STOŁÓW -->
+    <div id="tablesTabPlan" class="tables-tab-panel tables-tab-plan">
+    <div class="main">
+      <!-- LEFT: LISTA GOŚCI -->
+      <div class="panel-guests" id="panelGuests">
+        <div class="panel-title">
+          <span>&#128101;</span> Lista Gości
+          <button class="btn btn-primary btn-sm" onclick="openGuestForm()" style="margin-left:auto;font-size:0.8rem">+ Dodaj gościa</button>
+        </div>
+        <div class="guest-filters">
+          <div class="gf-row" id="gfRow1">
+            <button class="gf-btn gf-active" data-filter="quick" data-value="" onclick="setGuestQuickFilter('')">Wszyscy</button>
+            <button class="gf-btn" data-filter="quick" data-value="assigned" onclick="setGuestQuickFilter('assigned')">Przypisani</button>
+            <button class="gf-btn" data-filter="quick" data-value="unassigned" onclick="setGuestQuickFilter('unassigned')">Nieprzypisani</button>
+            <button class="gf-btn" data-filter="quick" data-value="groom" onclick="setGuestQuickFilter('groom')">Od Pana Młodego</button>
+            <button class="gf-btn" data-filter="quick" data-value="bride" onclick="setGuestQuickFilter('bride')">Od Panny Młodej</button>
+          </div>
+          <div class="gf-row" id="gfRow2">
+            <button class="gf-btn gf-active" data-filter="cat" data-value="" onclick="setGuestCatFilter('')">Wszyscy</button>
+            <button class="gf-btn" data-filter="cat" data-value="Rodzina" onclick="setGuestCatFilter('Rodzina')">Rodzina</button>
+            <button class="gf-btn" data-filter="cat" data-value="Znajomi" onclick="setGuestCatFilter('Znajomi')">Znajomi</button>
+            <button class="gf-btn" data-filter="cat" data-value="Współpracownicy" onclick="setGuestCatFilter('Współpracownicy')">Współpracownicy</button>
+            <button class="gf-btn" data-filter="cat" data-value="Inne" onclick="setGuestCatFilter('Inne')">Inne</button>
+          </div>
+          <!-- hidden inputs carry state for renderGuests() -->
+          <input type="hidden" id="filterQuick" value="">
+          <input type="hidden" id="filterCat"   value="">
+        </div>
+        <div class="guest-list" id="guestList">
+          <div class="empty-list">Brak gości. Kliknij „+ Dodaj gościa", aby dodać pierwszego gościa.</div>
+        </div>
+      </div>
+
+      <!-- CENTER: PLAN STOŁÓW -->
+      <div class="panel-tables" id="panelTables">
+        <div class="panel-title"><span>&#127860;</span> Plan Stołów</div>
+        <div class="table-add">
+          <input type="text" id="tableName" placeholder="Nazwa stołu" style="flex:1;min-width:130px">
+          <select id="tableShape" style="min-width:130px">
+            <option value="round">&#9711; Okrągły</option>
+            <option value="rect">&#9645; Prostokątny</option>
+          </select>
+          <select id="tableSeats" style="min-width:100px">
+            <option value="4">4 miejsca</option>
+            <option value="6">6 miejsc</option>
+            <option value="8" selected>8 miejsc</option>
+            <option value="10">10 miejsc</option>
+            <option value="12">12 miejsc</option>
+          </select>
+          <button class="btn btn-primary" onclick="addTable()">+ Dodaj stół</button>
+        </div>
+        <div class="tables-grid" id="tablesGrid">
+          <div class="empty-tables">
+            <span class="empty-tables-icon">&#127869;</span>
+            Brak stołów. Dodaj pierwszy stół powyżej.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PRZYCISKI/BANERY: wysuwane panele z prawej -->
+    <button class="side-tab side-tab-pairs" id="pairsToggleTab" type="button" onclick="togglePairsPanel()" title="Pokaż/ukryj legendę par">
+      <span class="ptt-icon">&#128107;</span>
+      <span class="ptt-label">Pary</span>
+      <span class="ptt-count" id="pairsCount"></span>
+    </button>
+    <button class="side-tab side-tab-staff" id="staffToggleTab" type="button" onclick="toggleStaffPanel()" title="Pokaż/ukryj stoły personelu">
+      <span class="ptt-icon">&#128119;</span>
+      <span class="ptt-label">Personel</span>
+      <span class="ptt-count" id="staffCount"></span>
+    </button>
+
+    <!-- TŁO (klik zamyka oba panele) -->
+    <div class="side-drawer-backdrop" id="drawersBackdrop" onclick="closeAllDrawers()"></div>
+
+    <!-- LEGENDA PAR — wysuwany panel z prawej -->
+    <div class="panel-pairs side-drawer" id="panelPairs">
+      <div class="panel-title">
+        <span>&#128107;</span> Legenda Par
+        <button class="pairs-close-btn" type="button" onclick="togglePairsPanel(false)" title="Zamknij">&#10006;</button>
+      </div>
+      <div class="pairs-list" id="pairsList">
+        <div class="empty-list">Brak par.<br>Kliknij &#10084; przy gościu.</div>
+      </div>
+    </div>
+
+    <!-- STOŁY PERSONELU — wysuwany panel z prawej -->
+    <div class="panel-pairs side-drawer" id="panelStaff">
+      <div class="panel-title">
+        <span>&#128119;</span> Stoły personelu
+        <button class="pairs-close-btn" type="button" onclick="toggleStaffPanel(false)" title="Zamknij">&#10006;</button>
+      </div>
+      <div class="staff-drawer-body">
+        <div class="staff-add-row">
+          <select id="staffTableName" onchange="document.getElementById('staffTableCustomName').style.display=this.value==='Inne'?'':'none'">
+            <option value="DJ">&#127911; DJ</option>
+            <option value="Barman">&#127379; Barman</option>
+            <option value="Fotograf">&#128247; Fotograf</option>
+            <option value="Fotobuda">&#128248; Fotobuda</option>
+            <option value="Obs&#322;uga">&#127869; Obs&#322;uga</option>
+            <option value="Inne">&#128119; Inne...</option>
+          </select>
+          <input type="text" id="staffTableCustomName" placeholder="Wpisz nazwę..." style="display:none;flex:1;min-width:80px">
+          <select id="staffVendorPick" class="vendor-pick-sel" onchange="_prefillStaffFromVendor(this.value)" title="Wstaw z istniejącego dostawcy"></select>
+          <input type="number" id="staffTablePersons" value="2" min="1" max="99" style="width:64px" title="Liczba osób">
+          <span style="font-size:0.78rem;color:var(--text-light)">os.</span>
+          <button class="btn btn-primary btn-sm" onclick="addStaffTable()">+ Dodaj</button>
+        </div>
+        <div id="staffTablesList" class="staff-tables-list">
+          <div class="empty-list">Brak stolików personelu.</div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /#tablesTabPlan -->
+
+    <!-- PODZAKŁADKA: KARTOTEKA GOŚCI -->
+    <div id="tablesTabCard" class="tables-tab-panel" style="display:none">
+      <div class="section-container">
+        <div class="gcard-toolbar">
+          <p class="access-intro" style="margin:0;flex:1">Rozszerzone informacje o gościach: wybór menu (ze słownika w Konfiguracji), preferencje, alergie i notatki specjalne. Podstawowe dane dodajesz w „Plan stołów".</p>
+          <div class="gcard-viewswitch" role="group" aria-label="Wybór widoku kartoteki">
+            <button class="gcv-btn active" id="gcvList" onclick="setGuestCardView('list')" title="Widok listy">&#9776; Lista</button>
+            <button class="gcv-btn"        id="gcvCols" onclick="setGuestCardView('cols')" title="Widok kolumnowy (3 kolumny)">&#9638; Kolumny</button>
+          </div>
+        </div>
+        <div id="guestCardList" class="guest-card-list"></div>
+      </div>
+    </div>
+
+    <!-- PODZAKŁADKA: PODSUMOWANIE GOŚCI -->
+    <div id="tablesTabSummary" class="tables-tab-panel" style="display:none">
+      <div class="section-container">
+        <div id="guestSummaryContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ROOM VIEW ══ -->
+  <div id="viewRoom" class="view-panel" style="display:none">
+    <div class="room-view">
+      <!-- PASEK TRYBU: podgląd (Edytuj) ↔ edycja (Zapisz/Anuluj) -->
+      <div class="room-edit-bar">
+        <span class="room-edit-mode-label" id="roomEditModeLabel">&#128065; Podgląd planu sali</span>
+        <button class="btn room-grid-btn" id="roomGridBtn" onclick="toggleRoomGrid()" title="Włącz/wyłącz siatkę rozmiarów">&#9638; Siatka</button>
+        <button class="btn btn-primary room-edit-toggle" id="roomEditBtn" onclick="enterRoomEdit()">&#9999;&#65039; Edytuj plan</button>
+        <div class="room-edit-actions" id="roomEditActions" style="display:none">
+          <button class="btn room-edit-cancel" onclick="cancelRoomEdit()">&#10006; Anuluj</button>
+          <button class="btn btn-primary" onclick="saveRoomEdit()">&#128190; Zapisz</button>
+        </div>
+      </div>
+
+      <!-- PANELE KONFIGURACYJNE (widoczne tylko w trybie edycji, animacja slide-down) -->
+      <div class="room-config-panels" id="roomConfigPanels">
+      <div class="room-toolbar">
+        <span class="room-toolbar-icon">&#127963;</span>
+        <input type="text" id="roomNameInput" class="room-name-input" value="Sala weselna"
+               oninput="updateRoomName(this.value)" placeholder="Nazwa sali">
+        <div class="room-dims">
+          <label class="room-dim-field">Szer. (m)
+            <input type="number" id="roomWidthInput" min="0" step="0.1" placeholder="np. 20"
+                   onchange="updateRoomMeta('widthM',this.value)">
+          </label>
+          <span class="room-dim-x">×</span>
+          <label class="room-dim-field">Dł. (m)
+            <input type="number" id="roomLengthInput" min="0" step="0.1" placeholder="np. 12"
+                   onchange="updateRoomMeta('lengthM',this.value)">
+          </label>
+          <label class="room-dim-field">&#9711; Średnica stołów (m)
+            <input type="number" id="roomTableDiamInput" min="0" step="0.1" placeholder="np. 1.5"
+                   onchange="updateRoomMeta('tableDiameterM',this.value)">
+          </label>
+        </div>
+        <span class="room-hint">Przeciągnij elementy, aby ustawić rozmieszczenie &nbsp;·&nbsp; Najechaj, aby usunąć</span>
+      </div>
+      <div class="room-el-toolbar">
+        <span class="room-el-label">&#10133; Dodaj element:</span>
+        <select id="roomElName" onchange="document.getElementById('roomElCustom').style.display=this.value==='Inne'?'':'none'">
+          <option value="Orkiestra">&#127931; Orkiestra</option>
+          <option value="DJ">&#127911; DJ</option>
+          <option value="Parkiet">&#128131; Parkiet</option>
+          <option value="Bar">&#127864; Bar</option>
+          <option value="Scena">&#127917; Scena</option>
+          <option value="Inne">&#10133; Inne...</option>
+        </select>
+        <input type="text" id="roomElCustom" placeholder="Nazwa..." style="display:none">
+        <label class="room-el-dim">szer.
+          <input type="number" id="roomElW" min="0.5" step="0.5" value="3" title="Szerokość (m)">
+        </label>
+        <span class="room-dim-x">×</span>
+        <label class="room-el-dim">dł.
+          <input type="number" id="roomElL" min="0.5" step="0.5" value="2" title="Długość (m)">
+        </label>
+        <span class="room-el-unit">m</span>
+        <button class="btn btn-primary btn-sm" onclick="addRoomElement()">+ Dodaj</button>
+      </div>
+      </div><!-- /.room-config-panels -->
+
+      <div class="room-canvas-wrapper" id="roomCanvasWrapper">
+        <button class="room-fs-btn" id="roomFsBtn" type="button" onclick="toggleRoomFullscreen()" title="Pełny ekran">
+          <span class="room-fs-ico">&#10218;&#10219;</span> Pełny ekran
+        </button>
+        <div class="room-canvas" id="roomCanvas"
+          onmousedown="roomCanvasMouseDown(event)"
+          ondragover="roomCanvasDragOver(event)"
+          ondragleave="roomCanvasDragLeave(event)"
+          ondrop="roomCanvasDrop(event)">
+          <div class="room-canvas-label" id="roomCanvasLabel">Sala weselna</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ RSVP VIEW ══ -->
+  <div id="viewRsvp" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128203; Panel potwierdzeń</h2>
+        <a href="rsvp.html" target="_blank" class="btn btn-primary">&#128279; Otwórz formularz potwierdzeń</a>
+      </div>
+      <div class="rsvp-admin">
+        <div class="rsvp-stats-row" id="rsvpStatsRow"></div>
+        <div class="rsvp-responses-header">
+          <h3>Odpowiedzi gości</h3>
+          <button class="btn btn-sm btn-danger" onclick="clearAllRsvp()">Wyczyść wszystkie</button>
+        </div>
+        <div id="rsvpResponsesList"></div>
+        <div class="rsvp-unmatched-section">
+          <h3>Nieprzypisane odpowiedzi</h3>
+          <div id="rsvpUnmatchedList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BUDGET VIEW ══ -->
+  <div id="viewBudget" class="view-panel budget-view" style="display:none">
+    <!-- OVERVIEW BAR -->
+    <div class="budget-overview">
+      <div class="budget-input-group">
+        <label class="budget-total-lbl">Budżet całkowity</label>
+        <div class="budget-input-row">
+          <input type="number" id="budgetTotalInput" class="budget-total-input" placeholder="0" min="0" step="100"
+                 oninput="onBudgetTotalChange(this.value)">
+          <span class="bunit">zł</span>
+        </div>
+      </div>
+      <div class="bstats">
+        <div class="bstat"><div class="bstat-val" id="bstatPlanned">0,00 zł</div><div class="bstat-lbl">Potwierdzone</div></div>
+        <div class="bstat-sep" id="bstatExpEstSep" style="display:none"></div>
+        <div class="bstat" id="bstatExpEstRow" style="display:none"><div class="bstat-val bval-est" id="bstatExpEst">0,00 zł</div><div class="bstat-lbl">~ Przewidywane</div></div>
+        <div class="bstat-sep bstat-sep-est" style="display:none"></div>
+        <div class="bstat bstat-est" style="display:none"><div class="bstat-val bval-est" id="bstatEstimated">0,00 zł</div><div class="bstat-lbl">&#126; Orientacyjnie</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val" id="bstatCatering">0,00 zł</div><div class="bstat-lbl">Catering</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val bval-green" id="bstatPaid">0,00 zł</div><div class="bstat-lbl">Opłacono</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat bstat-remaining"><div class="bstat-val bval-orange" id="bstatRemaining">0,00 zł</div><div class="bstat-lbl">Pozostało</div></div>
+        <div class="bstat-sep"></div>
+        <div class="bstat"><div class="bstat-val" id="bstatDiff">0,00 zł</div><div class="bstat-lbl">Budżet ‒ plan</div></div>
+      </div>
+      <div class="budget-prog-wrap">
+        <div class="budget-prog-labels">
+          <span id="budgetProgLabel">0% wydano</span>
+          <span id="budgetProgBudget">Budżet: 0 zł</span>
+        </div>
+        <div class="budget-prog-bg">
+          <div class="budget-prog-planned"   id="budgetProgPlanned"   style="width:0%"></div>
+          <div class="budget-prog-estimated" id="budgetProgEstimated" style="width:0%;left:0%"></div>
+          <div class="budget-prog-paid"      id="budgetProgPaid"      style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+    <!-- BUDGET TAB BAR -->
+    <div class="budget-tab-bar">
+      <button class="budget-tab active" id="btab-summary"   onclick="switchBudgetTab('summary')">&#128202; Podsumowanie</button>
+      <button class="budget-tab"        id="btab-catering"  onclick="switchBudgetTab('catering')">&#127960; Sala</button>
+      <button class="budget-tab"        id="btab-expenses"  onclick="switchBudgetTab('expenses')">&#128203; Wydatki</button>
+      <button class="budget-tab"        id="btab-honeymoon" onclick="switchBudgetTab('honeymoon')">&#9992; Podróż poślubna</button>
+      <button class="budget-tab"        id="btab-payments"  onclick="switchBudgetTab('payments')">&#128179; Płatności</button>
+    </div>
+
+    <!-- SCROLLABLE CONTENT -->
+    <div class="budget-scroll">
+
+      <!-- TAB: CATERING -->
+      <div id="btabPanel-catering" class="btab-panel">
+        <div class="budget-col-hdr">
+          <span>&#127860;</span> Koszty stołów
+          <span class="col-total-badge" id="cateringTotalBadge">0,00 zł</span>
+        </div>
+        <div id="tableCostsList"><div class="empty-list">Brak stołów.</div></div>
+      </div>
+
+      <!-- TAB: WYDATKI -->
+      <div id="btabPanel-expenses" class="btab-panel" style="display:none">
+        <div class="expenses-layout">
+          <!-- LEWA KOLUMNA: Wydatki (2/3) -->
+          <div class="expenses-main-col">
+            <div class="budget-col-hdr">
+              <span>&#128203;</span> Moje wydatki
+              <button class="btn btn-primary btn-sm" onclick="addExpense()">+ Dodaj</button>
+              <button class="btn btn-sm" onclick="addExpense(true)" title="Dodaj wydatek jako osobny panel boczny">+ Panel boczny</button>
+              <select class="vendor-pick-sel" id="expVendorPick" onchange="if(this.value){addExpenseFromVendor(this.value);this.value='';}" title="Dodaj wydatek z istniejącego dostawcy"></select>
+              <button class="btn btn-sm" id="restoreAlcoholBtn" onclick="showAlcoholPanel()" style="display:none">&#127870; Pokaż alkohol</button>
+            </div>
+            <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
+            <div class="exp-summary" id="expSummary" style="display:none">
+              <div class="exp-sum-row"><span>Zaplanowano:</span><span id="expSumPlanned" class="exp-sum-val">0,00 zł</span></div>
+              <div class="exp-sum-row"><span>~ Przewidywane:</span><span id="expSumEstimated" class="exp-sum-val bval-est">0,00 zł</span></div>
+              <div class="exp-sum-row"><span>Opłacono:</span><span id="expSumPaid" class="exp-sum-val bval-green">0,00 zł</span></div>
+              <div class="exp-sum-row exp-sum-total"><span>Pozostało:</span><span id="expSumRem" class="exp-sum-val bval-orange">0,00 zł</span></div>
+            </div>
+            <div id="expensesList"><div class="empty-list">Brak wydatków. Kliknij + Dodaj.</div></div>
+          </div>
+          <!-- PRAWA KOLUMNA: panele boczne (Alkohol + własne) -->
+          <div class="expenses-alcohol-col">
+            <div class="alcohol-section" id="alcoholSection">
+              <div class="alcohol-section-hdr">
+                <span class="alcohol-section-icon">&#127870;</span>
+                <span class="alcohol-section-title">Alkohol</span>
+                <button class="btn btn-primary btn-sm" onclick="addAlcohol()">+ Dodaj</button>
+                <button class="alc-hide-btn" onclick="hideAlcoholPanel()" title="Usuń panel alkoholu">&#10006;</button>
+              </div>
+              <div id="alcoholList" class="alcohol-list"></div>
+              <div id="alcoholSummary"></div>
+            </div>
+            <!-- NAPOJE BEZALKOHOLOWE — sekcja analogiczna do alkoholu -->
+            <div class="alcohol-section" id="softSection">
+              <div class="alcohol-section-hdr">
+                <span class="alcohol-section-icon">&#129380;</span>
+                <span class="alcohol-section-title">Napoje bezalkoholowe</span>
+                <button class="btn btn-primary btn-sm" onclick="addSoftDrink()">+ Dodaj</button>
+              </div>
+              <div id="softList" class="alcohol-list"></div>
+              <div id="softSummary"></div>
+            </div>
+            <div id="expenseSidePanels"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: PODRÓŻ POŚLUBNA -->
+      <div id="btabPanel-honeymoon" class="btab-panel" style="display:none">
+        <div class="budget-extra-card" id="honeymoonCard" style="max-width:640px"></div>
+      </div>
+
+      <!-- TAB: PŁATNOŚCI -->
+      <div id="btabPanel-payments" class="btab-panel" style="display:none">
+        <div id="paymentAlerts" class="payment-alerts"></div>
+        <div id="paymentsList"></div>
+      </div>
+
+      <!-- TAB: PODSUMOWANIE -->
+      <div id="btabPanel-summary" class="btab-panel" style="display:none">
+        <div class="budget-extras-row">
+          <div class="budget-extra-card" id="costBreakdownCard"></div>
+          <div class="budget-extra-card" id="coupleCard"></div>
+        </div>
+        <div class="budget-extras-row">
+          <div class="budget-extra-card" id="costPerTableCard"></div>
+        </div>
+        <!-- Koszty zewnętrzne (read-only): Dostawcy, Noclegi, Transport -->
+        <div class="budget-extras-row">
+          <div class="budget-extra-card" id="externalCostsCard"></div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">&#128200; Podział wydatków</span>
+              <button class="btn-chart-expand" onclick="openChartModal('pie')" title="Powiększ">&#128269;</button>
+            </div>
+            <div class="chart-body" id="chartPieBody"></div>
+            <div class="chart-legend" id="chartPieLegend"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">&#128202; Planowane vs opłacone</span>
+              <button class="btn-chart-expand" onclick="openChartModal('bar')" title="Powiększ">&#128269;</button>
+            </div>
+            <div class="chart-body" id="chartBarBody"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title-row">
+              <span class="chart-title">&#9989; Postęp płatności</span>
+              <button class="btn-chart-expand" onclick="openChartModal('prog')" title="Powiększ">&#128269;</button>
+            </div>
+            <div class="chart-body" id="chartProgBody"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SCHEDULE VIEW ══ -->
+  <div id="viewSchedule" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128197; Harmonogram Dnia Ślubu</h2>
+        <div class="sched-toolbar">
+          <div class="schv-switcher">
+            <button id="schv-list"    class="schv-btn schv-active" onclick="switchScheduleView('list')"    title="Lista">&#9776; Lista</button>
+            <button id="schv-columns" class="schv-btn"             onclick="switchScheduleView('columns')" title="Kolumny">&#9638; Kolumny</button>
+            <button id="schv-gantt"   class="schv-btn"             onclick="switchScheduleView('gantt')"   title="Gantt">&#9646; Gantt</button>
+          </div>
+          <div class="sched-cols-ctrl" id="schedColsCtrl" style="display:none">
+            <span class="scc-label">Kolumny:</span>
+            <button class="scc-btn" onclick="setScheduleCols(scheduleCols-1)" title="Mniej kolumn">&#8722;</button>
+            <span class="scc-num" id="schedColsNum">3</span>
+            <button class="scc-btn" onclick="setScheduleCols(scheduleCols+1)" title="Więcej kolumn">&#43;</button>
+          </div>
+          <button class="btn btn-primary" onclick="addScheduleEvent()">+ Dodaj wydarzenie</button>
+        </div>
+      </div>
+
+      <!-- QR KOD — HARMONOGRAM DLA GOŚCI -->
+      <div class="qr-card">
+        <div class="qr-card-canvas">
+          <div id="qrSchedule"></div>
+        </div>
+        <div class="qr-card-info">
+          <div class="qr-card-title">&#128241; Harmonogram dla gości</div>
+          <p class="qr-card-desc">Zeskanuj lub udostępnij ten kod QR, aby goście zobaczyli elegancką ulotkę z harmonogramem dnia ślubu — bez logowania.</p>
+          <div class="qr-card-link">
+            <a id="qrScheduleLink" href="harmonogram.html" target="_blank" rel="noopener">harmonogram</a>
+          </div>
+          <div class="qr-card-actions">
+            <button class="btn btn-primary btn-sm" onclick="downloadQR('qrSchedule','harmonogram-qr.png')">&#11015; Pobierz PNG</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('scheduleList','a4')" title="Lista wydarzeń — karta A4 na stół">&#128221; Harmonogram PDF A4</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('scheduleList','a5')" title="Lista wydarzeń — karta A5 na stół">&#128221; Harmonogram PDF A5</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('schedule','a5')" title="Sama karta z kodem QR">&#128424;&#65039; QR PDF</button>
+            <a class="btn btn-sm" id="qrScheduleOpen" href="harmonogram.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
+          </div>
+        </div>
+      </div>
+
+      <div id="scheduleTimeline"></div>
+    </div>
+  </div>
+
+  <!-- ══ TASKS VIEW ══ -->
+  <div id="viewTasks" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#9989; Lista Zadań</h2>
+        <div class="sched-toolbar">
+          <div class="schv-switcher">
+            <button id="tv-board" class="schv-btn schv-active" onclick="setTaskView('board')" title="Tablica">&#9638; Tablica</button>
+            <button id="tv-gantt" class="schv-btn"             onclick="setTaskView('gantt')" title="Harmonogram zadań (Gantt)">&#9646; Harmonogram</button>
+          </div>
+          <button class="btn btn-primary" onclick="addTask()">+ Dodaj zadanie</button>
+        </div>
+      </div>
+      <div class="tasks-progress-bar-wrap">
+        <div class="tasks-progress-label" id="tasksProgressLabel">0 / 0 zadań ukończonych</div>
+        <div class="tasks-progress-bg"><div class="tasks-progress-fill" id="tasksProgressFill" style="width:0%"></div></div>
+      </div>
+      <div class="tasks-filters" id="taskFilters">
+        <button class="gf-btn gf-active" data-value=""      onclick="setTaskPersonFilter('')">Wszyscy</button>
+        <button class="gf-btn"           data-value="groom" onclick="setTaskPersonFilter('groom')">Pan Młody</button>
+        <button class="gf-btn"           data-value="bride" onclick="setTaskPersonFilter('bride')">Panna Młoda</button>
+        <button class="gf-btn"           data-value="both"  onclick="setTaskPersonFilter('both')">Oboje</button>
+        <input type="hidden" id="taskFilterPerson" value="">
+        <span class="task-filter-sep"></span>
+        <select class="task-filter-sel" onchange="setTaskFilter('status',this.value)" title="Filtruj po statusie">
+          <option value="all">Status: wszystkie</option>
+          <option value="todo">Do zrobienia</option>
+          <option value="inprogress">W trakcie</option>
+          <option value="done">Zrobione</option>
+          <option value="cancelled">Anulowane</option>
+        </select>
+        <select class="task-filter-sel" onchange="setTaskFilter('link',this.value)" title="Filtruj po powiązaniu">
+          <option value="all">Powiązanie: wszystkie</option>
+          <option value="vendor">Z dostawcą</option>
+          <option value="budget">Z budżetem</option>
+          <option value="gift">Z prezentem</option>
+          <option value="none">Bez powiązania</option>
+        </select>
+        <select class="task-filter-sel" onchange="setTaskFilter('date',this.value)" title="Filtruj po dacie">
+          <option value="all">Data: wszystkie</option>
+          <option value="withdate">Z terminem</option>
+          <option value="nodate">Bez terminu</option>
+          <option value="overdue">Przeterminowane</option>
+        </select>
+        <select class="task-filter-sel" onchange="setTaskSort(this.value)" title="Sortuj">
+          <option value="none">Sortuj: domyślnie</option>
+          <option value="date">wg daty</option>
+          <option value="priority">wg priorytetu</option>
+          <option value="status">wg statusu</option>
+        </select>
+      </div>
+      <div id="kanbanBoard" class="kanban-board"></div>
+      <div id="tasksGantt" class="tasks-gantt" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ══ VENDORS VIEW ══ -->
+  <div id="viewVendors" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128203; Dostawcy i Usługodawcy</h2>
+        <button class="btn btn-primary" onclick="addVendor()">+ Dodaj dostawcę</button>
+      </div>
+      <div class="vendors-filters">
+        <select id="vendorFilterCat" onchange="renderVendors()">
+          <option value="">Wszystkie kategorie</option>
+          <option value="Fotograf">Fotograf</option>
+          <option value="Kamerzysta">Kamerzysta</option>
+          <option value="Muzyka">Muzyka / DJ</option>
+          <option value="Kwiaty">Kwiaty / Dekoracje</option>
+          <option value="Tort">Tort weselny</option>
+          <option value="Catering">Catering</option>
+          <option value="Transport">Transport</option>
+          <option value="Inne">Inne</option>
+        </select>
+        <select id="vendorFilterStatus" onchange="renderVendors()">
+          <option value="">Wszystkie statusy</option>
+          <option value="contacted">Skontaktowano</option>
+          <option value="confirmed">Potwierdzony</option>
+          <option value="paid">Opłacony</option>
+          <option value="cancelled">Anulowany</option>
+        </select>
+      </div>
+      <div id="vendorsList"></div>
+    </div>
+  </div>
+
+  <!-- ══ TRANSPORT VIEW ══ -->
+  <div id="viewTransport" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128663; Transport</h2>
+        <button class="btn btn-primary" onclick="addVehicle()">+ Dodaj pojazd</button>
+      </div>
+      <div id="vehiclesList"></div>
+    </div>
+  </div>
+
+  <!-- ══ ACCOMMODATION VIEW ══ -->
+  <div id="viewAccommodation" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#127968; Noclegi</h2>
+        <button class="btn btn-primary" onclick="addHotel()">+ Dodaj hotel</button>
+      </div>
+      <div class="accom-summary" id="accomSummary"></div>
+      <div id="hotelsList"></div>
+    </div>
+  </div>
+
+  <!-- ══ GIFTS VIEW ══ -->
+  <div id="viewGifts" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#127873; Prezenty</h2>
+      </div>
+
+      <!-- Zakładki prezentów -->
+      <div class="gifts-tabbar">
+        <button class="gifts-tab active" id="gtab-received"  onclick="switchGiftsTab('received')">&#127873; Otrzymane</button>
+        <button class="gifts-tab"        id="gtab-forguests" onclick="switchGiftsTab('forguests')">&#127872; Dla gości (upominki)</button>
+        <button class="gifts-tab"        id="gtab-proposals" onclick="switchGiftsTab('proposals')">&#128172; Propozycje (lista życzeń)</button>
+      </div>
+
+      <!-- ZAKŁADKA: PREZENTY OTRZYMANE -->
+      <div id="gtabPanel-received" class="gtab-panel">
+        <div class="gtab-hdr">
+          <span class="gtab-title">&#127873; Prezenty otrzymane</span>
+          <button class="btn btn-primary btn-sm" onclick="addGift()">+ Dodaj prezent</button>
+        </div>
+        <div class="gifts-summary" id="giftsSummary"></div>
+        <div id="giftsList"></div>
+      </div>
+
+      <!-- ZAKŁADKA: UPOMINKI DLA GOŚCI -->
+      <div id="gtabPanel-forguests" class="gtab-panel" style="display:none">
+        <div class="gforg-summary" id="giftsForGuestsSummary"></div>
+        <div id="giftsForGuestsList"></div>
+      </div>
+
+      <!-- ZAKŁADKA: PROPOZYCJE / LISTA ŻYCZEŃ -->
+      <div id="gtabPanel-proposals" class="gtab-panel" style="display:none">
+        <div class="gtab-hdr">
+          <span class="gtab-title">&#128172; Propozycje prezentów (lista życzeń)</span>
+          <button class="btn btn-primary btn-sm" onclick="addGiftProposal()">+ Dodaj propozycję</button>
+        </div>
+        <p class="access-intro">Sugestie prezentów dla gości (np. „Zamiast kwiatów prosimy o wpłatę na podróż"). Każdą propozycję możesz osobno udostępnić gościom — zaznacz „Pokaż tę propozycję gościom" przy wybranych pozycjach. Na stronie harmonogramu pojawią się tylko zaznaczone.</p>
+        <div id="giftProposalsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ GALLERY VIEW ══ -->
+  <div id="viewGallery" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128247; Galeria Gości &amp; Kody QR</h2>
+      </div>
+
+      <!-- QR KOD — GALERIA -->
+      <div class="qr-card">
+        <div class="qr-card-canvas">
+          <div id="qrGallery"></div>
+        </div>
+        <div class="qr-card-info">
+          <div class="qr-card-title">&#128241; Galeria zdjęć gości</div>
+          <p class="qr-card-desc">Goście skanują ten kod QR, aby wrzucać zdjęcia i filmy ze swoich telefonów oraz oglądać zdjęcia dodane przez innych — bez logowania.</p>
+          <div class="qr-card-link">
+            <a id="qrGalleryLink" href="galeria.html" target="_blank" rel="noopener">galeria</a>
+          </div>
+          <div class="qr-card-actions">
+            <button class="btn btn-primary btn-sm" onclick="downloadQR('qrGallery','galeria-qr.png')">&#11015; Pobierz PNG</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('gallery','a4')" title="Karta A4 do druku">&#128424;&#65039; PDF A4</button>
+            <button class="btn btn-sm btn-pdf" onclick="generatePrintPdf('gallery','a5')" title="Karta A5 do druku">&#128424;&#65039; PDF A5</button>
+            <a class="btn btn-sm" id="qrGalleryOpen" href="galeria.html" target="_blank" rel="noopener" style="background:var(--bg);border:1.5px solid var(--border)">&#128279; Otwórz stronę</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATERIAŁY DO DRUKU (PDF) -->
+      <div class="pdf-print-card">
+        <div class="pdf-print-title">&#128424;&#65039; Materiały do druku (PDF)</div>
+        <p class="pdf-print-desc">Wygeneruj elegancką kartę z kodem QR do wydrukowania i postawienia w ramce na stoliku.</p>
+        <div class="pdf-print-controls">
+          <label class="pdf-ctrl">Wariant
+            <select id="pdfVariant">
+              <option value="gallery">Galeria (zdjęcia gości)</option>
+              <option value="schedule">Harmonogram — kod QR</option>
+              <option value="scheduleList">Harmonogram — lista wydarzeń</option>
+              <option value="combined">Połączony (galeria + harmonogram)</option>
+            </select>
+          </label>
+          <label class="pdf-ctrl">Rozmiar
+            <select id="pdfSize">
+              <option value="a4">A4</option>
+              <option value="a5">A5</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" onclick="generatePrintPdf()">&#11015; Pobierz PDF</button>
+        </div>
+      </div>
+
+      <!-- LICZNIK MIEJSCA -->
+      <div class="gallery-storage">
+        <div class="gs-top">
+          <span class="gs-label">&#128190; Wykorzystane miejsce (Cloudinary)</span>
+          <span class="gs-value" id="galleryStorageUsage">Wykorzystano: 0 MB / 25 GB</span>
+        </div>
+        <div class="gs-bar-bg"><div class="gs-bar" id="galleryStorageBar" style="width:0%"></div></div>
+      </div>
+
+      <!-- ADMIN GALERII -->
+      <div class="gallery-admin-header">
+        <h3>&#128444; Wszystkie zdjęcia i filmy</h3>
+        <span class="gallery-admin-count" id="galleryAdminCount"></span>
+      </div>
+      <div class="gallery-filters" id="galleryAdminFilters" style="display:none"></div>
+      <div id="galleryAdminGrid"></div>
+    </div>
+  </div>
+
+  <!-- ══ ACCESS VIEW ══ -->
+  <div id="viewAccess" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128272; Zarządzanie dostępem</h2>
+      </div>
+      <p class="access-intro">Lista kont z dostępem do panelu. Zablokowany użytkownik zostanie wylogowany po odświeżeniu strony i zobaczy komunikat „Twój dostęp został zablokowany". Dostęp można w każdej chwili przywrócić.</p>
+      <div id="accessList" class="access-list"></div>
+    </div>
+  </div>
+
+  <!-- ══ CONFIG VIEW ══ -->
+  <div id="viewConfig" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#9881;&#65039; Konfiguracja</h2>
+      </div>
+      <p class="access-intro">Edytuj stałe napisy używane w całej aplikacji. Zmiany są wspólne dla wszystkich zalogowanych i widoczne natychmiast po zapisaniu.</p>
+
+      <form class="config-form" onsubmit="event.preventDefault();saveConfig()">
+        <div class="config-grid">
+          <div class="config-field config-field-wide">
+            <label for="cfgEventName">Nazwa eventu</label>
+            <input type="text" id="cfgEventName" placeholder="np. Komunia Zosi, Moje Chrzciny">
+            <small>Wyświetlana w nagłówku aplikacji i tytule karty.</small>
+          </div>
+
+          <div class="config-field">
+            <label for="cfgPerson1">Imię Osoby 1</label>
+            <input type="text" id="cfgPerson1" placeholder="np. Piotr">
+            <small>Używane w podziale kosztów.</small>
+          </div>
+          <div class="config-field">
+            <label for="cfgPerson2">Imię Osoby 2</label>
+            <input type="text" id="cfgPerson2" placeholder="np. Patrycja">
+            <small>Używane w podziale kosztów.</small>
+          </div>
+
+          <div class="config-field">
+            <label for="cfgWeddingDate">Data eventu</label>
+            <input type="date" id="cfgWeddingDate">
+            <small>Wspólna z odliczaniem na Dashboardzie.</small>
+          </div>
+          <div class="config-field">
+            <label for="cfgWeddingTime">Godzina eventu</label>
+            <input type="time" id="cfgWeddingTime">
+            <small>Strefa Europe/Warsaw — odliczanie do dokładnej godziny (np. 16:00).</small>
+          </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgDisplayNames">Imiona w nawigacji i nagłówkach</label>
+            <input type="text" id="cfgDisplayNames" placeholder="np. Patrycji i Piotra">
+            <small>np. „Patrycji i Piotra" (dopełniacz).</small>
+          </div>
+
+          <div class="config-field">
+            <label for="cfgCeremonyPlace">Miejsce ceremonii</label>
+            <input type="text" id="cfgCeremonyPlace" placeholder="np. Kościół św. Anny">
+          </div>
+          <div class="config-field">
+            <label for="cfgReceptionPlace">Miejsce wesela</label>
+            <input type="text" id="cfgReceptionPlace" placeholder="np. Sala weselna Pod Dębem">
+          </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgSubtitle">Podtytuł aplikacji</label>
+            <input type="text" id="cfgSubtitle" placeholder="np. Panel organizacji wesela">
+          </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgMenuOptions">Słownik menu (Kartoteka Gości)</label>
+            <textarea id="cfgMenuOptions" rows="5" placeholder="Jedna opcja menu w linii, np.&#10;Danie mięsne&#10;Wegetariańskie"></textarea>
+            <small>Każda opcja w osobnej linii — używane przy wyborze menu w Kartotece Gości.</small>
+          </div>
+
+          <div class="config-field config-field-wide">
+            <label for="cfgExpenseCategories">Kategorie wydatków (Budżet)</label>
+            <textarea id="cfgExpenseCategories" rows="6" placeholder="Jedna kategoria w linii, np.&#10;Garnitur&#10;Suknia ślubna&#10;Bukiet&#10;Obrączki&#10;Fotograf"></textarea>
+            <small>Każda kategoria w osobnej linii — możesz dodawać, edytować i usuwać. Używane przy dodawaniu wydatków w Budżecie. „Inne" warto zostawić.</small>
+          </div>
+        </div>
+
+        <div class="config-actions">
+          <button type="submit" class="btn btn-primary">&#128190; Zapisz konfigurację</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ USTAWIENIA PROGRAMISTYCZNE VIEW ══ -->
+  <div id="viewDevSettings" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#128295; Ustawienia programistyczne</h2>
+      </div>
+
+      <!-- ══ EKSPORT / IMPORT DANYCH ══ -->
+      <div class="backup-section">
+        <h3>&#128190; Eksport i import danych</h3>
+        <p class="access-intro">Zapisz wszystkie dane (wszystkie eventy) do pliku JSON na dysku — to Twoja niezależna kopia bezpieczeństwa. Plik możesz później wczytać przez „Importuj dane". Aplikacja co tydzień przypomni o wykonaniu kopii.</p>
+        <div class="config-actions">
+          <button type="button" class="btn btn-primary" onclick="exportData()">&#128190; Eksportuj dane</button>
+          <button type="button" class="btn" onclick="importData()">&#128194; Importuj dane</button>
+        </div>
+        <input type="file" id="importFileInput" accept="application/json,.json" style="display:none" onchange="_handleImportFile(event)">
+      </div>
+
+      <!-- ══ ODZYSKIWANIE I KOPIE ZAPASOWE DANYCH ══ -->
+      <div class="backup-section">
+        <h3>&#9851; Kopie zapasowe i odzyskiwanie danych</h3>
+        <p class="access-intro">Kopie zapasowe powstają automatycznie przed każdą migracją danych. Poniżej widoczne są 3 ostatnie zapisy. Jeśli dane zniknęły, użyj „Skanuj i odzyskaj dane" — przeszukuje localStorage oraz Firestore i przywraca znalezione dane do eventu. Szczegóły skanu pojawią się w konsoli przeglądarki (F12).</p>
+        <div class="config-actions">
+          <button type="button" class="btn btn-primary" onclick="runDataRecovery()">&#128270; Skanuj i odzyskaj dane</button>
+          <button type="button" class="btn" onclick="restoreLatestBackup()" title="Przywróć najnowszą kopię backup_* z niepustymi danymi">&#9851; Przywróć najnowszą kopię z danymi</button>
+        </div>
+        <div id="backupList" class="backup-list"></div>
+      </div>
+    </div>
+  </div>
+
+
+</div><!-- /.views-container -->
+
+<!-- ONBOARDING — przewodnik krok po kroku -->
+<div id="onboardingOverlay" class="onboarding-overlay" style="display:none">
+  <div class="onboarding-card">
+    <div class="onb-progress" id="onbProgress"></div>
+    <h3 class="onb-title" id="onbTitle"></h3>
+    <p class="onb-desc" id="onbDesc"></p>
+    <div class="onb-actions">
+      <button class="btn onb-skip" onclick="onboardingSkip()">Pomiń</button>
+      <span class="onb-spacer"></span>
+      <button class="btn onb-prev" id="onbPrevBtn" onclick="onboardingPrev()" style="display:none">&#8592; Wstecz</button>
+      <button class="btn btn-primary" id="onbNextBtn" onclick="onboardingNext()">Dalej &#8594;</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="drag-ghost" id="dragGhost"></div>
+<div class="toast" id="toast"></div>
+<div id="rtTooltip" class="rt-tooltip" style="display:none"></div>
+
+<div class="pairing-overlay" id="pairingOverlay" style="display:none">
+  <div class="pairing-banner">
+    <span id="pairingMsg">Wybierz gościa do sparowania</span>
+    <button class="btn-cancel-pair" onclick="cancelPairing()">✕ Anuluj</button>
+  </div>
+</div>
+
+<!-- CHART MODAL -->
+<div class="modal-overlay" id="chartModal" style="display:none" onclick="closeChartModal(event)">
+  <div class="chart-modal-box">
+    <div class="chart-modal-header">
+      <span id="chartModalTitle">Wykres</span>
+      <button class="btn-modal-close" onclick="closeChartModalDirect()">&#10005;</button>
+    </div>
+    <div class="chart-modal-body" id="chartModalBody"></div>
+  </div>
+</div>
+
+<!-- GUEST FORM MODAL -->
+<div class="modal-overlay" id="guestFormModal" style="display:none" onclick="closeGuestForm(event)">
+  <div class="edit-modal-box guest-modal-box">
+    <div class="edit-modal-header">
+      <span>&#128101; Dodaj gościa</span>
+      <button class="btn-modal-close" onclick="closeGuestFormDirect()" aria-label="Zamknij">&#10005;</button>
+    </div>
+    <div class="edit-modal-body">
+      <div class="ef-grid">
+        <div class="ef-field">
+          <label for="guestFirstName">Imię <span class="ef-req">*</span></label>
+          <input type="text" id="guestFirstName" placeholder="np. Anna" oninput="_validateGuestForm()">
+        </div>
+        <div class="ef-field">
+          <label for="guestLastName">Nazwisko</label>
+          <input type="text" id="guestLastName" placeholder="np. Kowalska">
+        </div>
+        <div class="ef-field">
+          <label for="guestInvitedBy">Zaproszony przez</label>
+          <select id="guestInvitedBy">
+            <option value="">— wybierz —</option>
+            <option value="groom">&#129309; Pan Młody</option>
+            <option value="bride">&#128144; Panna Młoda</option>
+          </select>
+        </div>
+        <div class="ef-field">
+          <label for="guestCategory">Kategoria</label>
+          <select id="guestCategory">
+            <option value="Państwo Młodzi">Państwo Młodzi</option>
+            <option value="Świadkowie">Świadkowie</option>
+            <option value="Rodzice">Rodzice</option>
+            <option value="Rodzina" selected>Rodzina</option>
+            <option value="Znajomi">Znajomi</option>
+            <option value="Praca">Praca</option>
+            <option value="Inne">Inne</option>
+          </select>
+        </div>
+        <div class="ef-field">
+          <label for="guestGender">Płeć</label>
+          <select id="guestGender">
+            <option value="K">&#9792; Kobieta</option>
+            <option value="M">&#9794; Mężczyzna</option>
+            <option value="N">&#9895; Niebinarna</option>
+          </select>
+        </div>
+        <div class="ef-field">
+          <label for="guestWitness">Rola</label>
+          <select id="guestWitness">
+            <option value="">Brak roli</option>
+            <option value="witness_groom">Świadek</option>
+            <option value="witness_bride">Świadkowa</option>
+          </select>
+        </div>
+        <div class="ef-field">
+          <label for="guestDiet">Dieta / menu</label>
+          <select id="guestDiet"><!-- opcje ze słownika menu (Konfiguracja) --></select>
+        </div>
+        <div class="ef-field">
+          <label for="guestPhoto">URL zdjęcia (opcjonalne)</label>
+          <input type="url" id="guestPhoto" placeholder="https://...">
+        </div>
+      </div>
+
+      <div class="ef-field ef-field-full guest-couple-row">
+        <button type="button" class="btn btn-sm couple-info-btn" onclick="showCoupleInfo()">&#128081; Pokaż kto jest Parą Młodą</button>
+        <span class="couple-info-hint" id="coupleInfoHint"></span>
+      </div>
+
+      <div class="ef-field ef-field-full guest-form-checkrow">
+        <label class="ef-check"><input type="checkbox" id="guestHasCompanion" onchange="_toggleCompanionRow()"> &#128101; Z osobą towarzyszącą?</label>
+      </div>
+      <div class="ef-grid guest-companion-grid" id="companionRow" style="display:none">
+        <div class="ef-field">
+          <label for="companionFirstName">Imię os. towarzyszącej</label>
+          <input type="text" id="companionFirstName" placeholder="Imię">
+        </div>
+        <div class="ef-field">
+          <label for="companionLastName">Nazwisko os. towarzyszącej</label>
+          <input type="text" id="companionLastName" placeholder="Nazwisko">
+        </div>
+      </div>
+
+      <div class="ef-field ef-field-full guest-form-checkrow">
+        <label class="ef-check"><input type="checkbox" id="guestNeedsAccommodation"> &#127968; Potrzebuje noclegu</label>
+      </div>
+    </div>
+    <div class="edit-modal-footer">
+      <button class="btn" onclick="closeGuestFormDirect()" style="background:var(--bg);border:1.5px solid var(--border)">Anuluj</button>
+      <button class="btn btn-primary" id="guestSubmitBtn" onclick="addGuest()">+ Dodaj gościa</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal" style="display:none" onclick="closeEditModal(event)">
+  <div class="edit-modal-box">
+    <div class="edit-modal-header">
+      <span id="editModalTitle">Edytuj</span>
+      <button class="btn-modal-close" onclick="closeEditModalDirect()">&#10005;</button>
+    </div>
+    <div class="edit-modal-body" id="editModalBody"></div>
+    <div class="edit-modal-footer">
+      <button class="btn btn-primary" onclick="saveEdit()">&#10003; Zapisz zmiany</button>
+      <button class="btn" onclick="closeEditModalDirect()" style="background:var(--bg);border:1.5px solid var(--border)">Anuluj</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /#appContent -->
+
+<script src="script.js"></script>
+
+</body>
+</html>

@@ -328,10 +328,6 @@ function removeGuest(guestId) {
   if (!g) return;
   if (g.tableId !== null) _unsetSeat(g);
   if (g.pairId  !== null) _breakPair(g.pairId, false);
-  // Spójność danych: usuń powiązania gościa w pozostałych sekcjach, by nie zostawały „osierocone" odwołania
-  vehicles.forEach(v => { if (Array.isArray(v.guestIds)) v.guestIds = v.guestIds.filter(id => id !== guestId); });
-  giftsForGuests.forEach(it => { if (Array.isArray(it.guestIds)) it.guestIds = it.guestIds.filter(id => id !== guestId); });
-  rsvpEntries = rsvpEntries.filter(e => e.guestId !== guestId);
   guests = guests.filter(x => x.id !== guestId);
   renderAll();
 }
@@ -740,19 +736,6 @@ function getSeatPositions(shape, n, isHonorTable = false) {
   });
 }
 
-// Tooltip miejsca przy stole — imię + najważniejsze dane gościa
-// (spójnie z Listą gości / Kartoteką / Podsumowaniem gości)
-function _guestSeatTitle(g) {
-  const parts = [fullName(g)];
-  const menu = (g.menuChoice || '').trim();
-  if (menu) parts.push('Menu: ' + menu);
-  if (g.diet && g.diet !== 'standard') parts.push('Dieta: ' + dietLabel(g.diet, g.dietOther));
-  if ((g.allergies || '').trim()) parts.push('Alergie: ' + g.allergies.trim());
-  if (g.needsAccommodation) parts.push('Nocleg');
-  if (g.hasCompanion) parts.push('+1' + ((g.companionName || '').trim() ? ' ' + g.companionName.trim() : ''));
-  return parts.join(' · ');
-}
-
 function renderTableVisual(t) {
   const isRound = t.shape === 'round';
   const cW = isRound ? 200 : 260;
@@ -792,7 +775,7 @@ function renderTableVisual(t) {
         ondragover="onSeatDragOver(event)"
         ondragleave="onSeatDragLeave(event)"
         ondrop="onSeatDrop(event)"
-        title="${esc(_guestSeatTitle(g))}">
+        title="${esc(fullName(g))}">
         ${label}
       </div>`;
     } else {
@@ -2189,13 +2172,6 @@ function updateExpense(expId, field, value) {
 function deleteExpense(expId) {
   budgetData.expenses = budgetData.expenses.filter(x => x.id !== expId);
   expenseOrder = expenseOrder.filter(id => id !== expId);
-  // Spójność: odłącz zadania/dostawców powiązanych z usuwanym wpisem (bez „osieroconych" referencji)
-  tasks.forEach(t => {
-    if (t.budgetExpenseId === expId) { t.budgetExpenseId = null; t.isBudgetLinked = false; t.estimatedCost = 0; t.budgetCategory = ''; }
-  });
-  vendors.forEach(v => {
-    if (v.budgetExpenseId === expId) { v.budgetExpenseId = null; v.isBudgetLinked = false; v.contractAmount = 0; v.budgetCategory = ''; }
-  });
   renderExpenses();
   renderCoupleSummary();
   renderCostPerTable();
@@ -4115,20 +4091,10 @@ function showGuestTooltip(event, guestId) {
                  : g.invitedBy === 'bride'  ? '&#128144; Panna Młoda'
                  : null;
 
-  // Dane logistyczno-żywieniowe — spójnie z Listą gości / Kartoteką / Podsumowaniem
-  const extra = [];
-  const menu = (g.menuChoice || '').trim();
-  if (menu) extra.push(`&#127869; ${esc(menu)}`);
-  if (g.diet && g.diet !== 'standard') extra.push(`&#129382; ${esc(dietLabel(g.diet, g.dietOther))}`);
-  if ((g.allergies || '').trim()) extra.push(`&#9888;&#65039; ${esc(g.allergies.trim())}`);
-  if (g.needsAccommodation) extra.push('&#127968; Nocleg');
-  if (g.hasCompanion) extra.push(`&#128101; +1${(g.companionName || '').trim() ? ' ' + esc(g.companionName.trim()) : ''}`);
-
   tip.innerHTML =
     `<div class="rtt-name">${esc(fullName(g))}</div>` +
     `<div class="rtt-cat">${esc(g.category)}</div>` +
-    (invLabel ? `<div class="rtt-invited">Zaproszony przez: ${invLabel}</div>` : '') +
-    (extra.length ? `<div class="rtt-extra">${extra.join(' · ')}</div>` : '');
+    (invLabel ? `<div class="rtt-invited">Zaproszony przez: ${invLabel}</div>` : '');
 
   tip.style.display = 'block';
   tip.style.left = '0px';
@@ -5325,8 +5291,6 @@ function deleteVendor(id) {
     }
   }
   vendors = vendors.filter(x => x.id !== id);
-  // Spójność: wyczyść powiązanie w zadaniach wskazujących na usuniętego dostawcę
-  tasks.forEach(t => { if (t.vendorId === id) t.vendorId = null; });
   renderVendors(); saveState();
 }
 
@@ -5643,12 +5607,7 @@ function renderRsvpPanel() {
 // ── GIFTS ──
 function addGift() { gifts.push({id:nextGiftId++,from:'',description:'',value:null,thanked:false}); renderGifts(); saveState(); }
 function updateGift(id,field,value) { const g=gifts.find(x=>x.id===id); if(g){g[field]=value; _refreshGiftsSummary(); saveState();} }
-function deleteGift(id) {
-  gifts=gifts.filter(x=>x.id!==id);
-  // Spójność: wyczyść powiązanie w zadaniach wskazujących na usunięty prezent
-  tasks.forEach(t => { if (t.giftId === id) t.giftId = null; });
-  renderGifts(); saveState();
-}
+function deleteGift(id) { gifts=gifts.filter(x=>x.id!==id); renderGifts(); saveState(); }
 function _refreshGiftsSummary() {
   const s=document.getElementById('giftsSummary'); if(!s) return;
   const total=gifts.reduce((sum,g)=>sum+(g.value||0),0);
