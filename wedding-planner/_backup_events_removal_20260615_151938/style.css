@@ -26,13 +26,48 @@
   --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }
 
+/* Warianty gradientu tła per typ eventu (jasny odcień bazowego koloru) */
+:root[data-event-theme="baptism"]     { --app-bg-gradient: linear-gradient(180deg,#ffffff 0%,#fffbe9 45%,#fdf6da 100%); --glass-bg: rgba(254,246,213,0.72); }
+:root[data-event-theme="communion"]   { --app-bg-gradient: linear-gradient(180deg,#ffffff 0%,#f8f4ec 45%,#efe7d8 100%); --glass-bg: rgba(245,240,232,0.74); }
+:root[data-event-theme="confirmation"]{ --app-bg-gradient: linear-gradient(180deg,#ffffff 0%,#f5eefb 45%,#ece2f6 100%); --glass-bg: rgba(239,231,248,0.72); }
+:root[data-event-theme="eighteenth"]  { --app-bg-gradient: linear-gradient(180deg,#ffffff 0%,#fdeef0 45%,#f9e3e5 100%); --glass-bg: rgba(253,234,236,0.72); }
+:root[data-event-theme="birthday"]    { --app-bg-gradient: linear-gradient(180deg,#ffffff 0%,#fff2e9 45%,#ffe7d8 100%); --glass-bg: rgba(255,240,232,0.72); }
+:root[data-event-theme="other"]       { --app-bg-gradient: linear-gradient(180deg,#ffffff 0%,#eef7f1 45%,#dff0e6 100%); --glass-bg: rgba(230,244,236,0.72); }
+
+/* ── SCHEMATY KOLORÓW PER TYP EVENTU ── */
+/* Ślub = wartości domyślne powyżej (niebieski). Pozostałe nadpisują paletę. */
+:root[data-event-theme="baptism"] {
+  --blue:#f5c518; --blue-light:#f9d94f; --blue-dark:#a87d00; --blue-pale:#fef6d5; --blue-mid:#f0c800;
+  --bg:#fffdf2; --bg-dark:#fdf6da; --border:#f0dca0; --shadow:rgba(245,197,24,0.16);
+}
+:root[data-event-theme="communion"] {
+  --blue:#c9a23f; --blue-light:#e8dcc0; --blue-dark:#8a6d3b; --blue-pale:#f5f0e8; --blue-mid:#d4b15a;
+  --bg:#faf7f1; --bg-dark:#efe7d8; --border:#e4d6b8; --shadow:rgba(201,162,63,0.14);
+}
+:root[data-event-theme="confirmation"] {
+  --blue:#6b3fa0; --blue-light:#a87fd0; --blue-dark:#4e2d77; --blue-pale:#efe7f8; --blue-mid:#8a5cc0;
+  --bg:#f7f3fc; --bg-dark:#ece2f6; --border:#d8c6ee; --shadow:rgba(107,63,160,0.16);
+}
+:root[data-event-theme="eighteenth"] {
+  --blue:#e63946; --blue-light:#f4a3aa; --blue-dark:#1a1a1a; --blue-pale:#fdeaec; --blue-mid:#e63946;
+  --bg:#fdf3f4; --bg-dark:#f9e3e5; --border:#f3c2c6; --shadow:rgba(230,57,70,0.16);
+}
+:root[data-event-theme="birthday"] {
+  --blue:#ff6b35; --blue-light:#ffb494; --blue-dark:#c44a1a; --blue-pale:#fff0e8; --blue-mid:#ff8a5c;
+  --bg:#fff6f0; --bg-dark:#ffe7d8; --border:#ffcbb0; --shadow:rgba(255,107,53,0.16);
+}
+:root[data-event-theme="other"] {
+  --blue:#2d6a4f; --blue-light:#74c69d; --blue-dark:#1b4332; --blue-pale:#e6f4ec; --blue-mid:#40916c;
+  --bg:#f1f9f4; --bg-dark:#dff0e6; --border:#bfe3cd; --shadow:rgba(45,106,79,0.16);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── NAWIGACJA — nowoczesny pasek z grupami ── */
 .main-nav {
   background: linear-gradient(180deg, var(--white) 0%, var(--bg) 100%);
   border-bottom: 1px solid var(--border);
-  padding: 5px 16px;
+  padding: 5px 16px 5px 84px;   /* lewy margines na menu kołowe (lewy górny róg) */
   display: flex;
   align-items: stretch;
   gap: 8px;
@@ -122,6 +157,119 @@
 .nav-btn.nav-link-ext:hover { background: #d8e7fc; color: var(--blue-dark); }
 .nav-ext-icon { font-size: 0.78rem; opacity: 0.7; }
 .nav-sep { display: none; }
+
+/* ── MENU KOŁOWE — wybór typu imprezy (lewa strona) ── */
+.radial-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(26,40,80,0.18);
+  z-index: 1190;
+}
+.radial-backdrop.radial-bd-open { display: block; }
+.radial-menu {
+  position: fixed;
+  left: 40px; top: 40px;        /* origin = środek przycisku centralnego (lewy górny róg) */
+  width: 0; height: 0;
+  z-index: 1200;
+}
+.radial-core {
+  position: absolute;
+  left: 0; top: 0;
+  margin: -29px 0 0 -29px;       /* wyśrodkowanie 58px na origin */
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.85);
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 22px var(--shadow), 0 2px 8px rgba(0,0,0,0.22);
+  transition: transform 0.25s cubic-bezier(.34,1.56,.64,1), box-shadow 0.2s;
+  font-family: inherit;
+}
+.radial-core-icon { font-size: 1.7rem; line-height: 1; }
+.radial-core-caret {
+  position: absolute;
+  right: 5px; bottom: 5px;
+  font-size: 0.6rem;
+  opacity: 0.85;
+  transition: transform 0.25s;
+}
+.radial-core:hover { transform: scale(1.07); }
+.radial-menu[data-open="true"] .radial-core {
+  box-shadow: 0 8px 30px rgba(0,0,0,0.32);
+}
+.radial-menu[data-open="true"] .radial-core-caret { transform: rotate(135deg); }
+
+.radial-items { position: absolute; left: 0; top: 0; }
+.radial-item {
+  position: absolute;
+  left: 0; top: 0;
+  width: 50px; height: 50px;
+  margin: -25px 0 0 -25px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px var(--shadow);
+  font-family: inherit;
+  transform: translate(0, 0) scale(0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(.34,1.56,.64,1) var(--d, 0s),
+              opacity 0.2s var(--d, 0s),
+              border-color 0.15s, box-shadow 0.15s;
+}
+.radial-menu[data-open="true"] .radial-item {
+  transform: translate(var(--rx), var(--ry)) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+.radial-item-ico { font-size: 1.42rem; line-height: 1; }
+.radial-item:hover {
+  border-color: var(--blue);
+  z-index: 3;
+}
+.radial-menu[data-open="true"] .radial-item:hover {
+  transform: translate(var(--rx), var(--ry)) scale(1.15);
+}
+.radial-item.radial-active {
+  border-color: var(--blue);
+  background: var(--blue-pale);
+  box-shadow: 0 0 0 3px var(--blue-light), 0 4px 16px var(--shadow);
+}
+.radial-item-lbl {
+  position: absolute;
+  left: 56px;
+  white-space: nowrap;
+  background: var(--blue-dark);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 7px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+}
+.radial-item-lbl::before {
+  content: '';
+  position: absolute;
+  left: -5px; top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--blue-dark);
+}
+.radial-item:hover .radial-item-lbl { opacity: 1; }
+/* Nie nakładaj menu kołowego na wysuwane menu mobilne */
+body.mob-nav-open .radial-menu,
+body.mob-nav-open .radial-backdrop { display: none !important; }
 
 /* ── VIEWS CONTAINER ── */
 .views-container {
@@ -1417,7 +1565,7 @@ body.mob-nav-open { overflow: hidden; }
   .nav-hamburger  { display: flex; align-items: center; }
   .nav-mob-title  { display: block; }
   .main-nav {
-    padding: 4px 6px;
+    padding: 4px 6px 4px 70px;   /* miejsce na menu kołowe w lewym górnym rogu */
     flex-wrap: nowrap;
     overflow: hidden;
   }
@@ -5496,6 +5644,8 @@ body.room-fs-lock { overflow: hidden; }
    NOWE FUNKCJE — przyciski/sekcje (jasnoniebieski design)
    ══════════════════════════════════════════════════════ */
 /* Konfiguracja: przycisk nowego eventu */
+.btn-newevent { background: var(--white); border: 1.5px solid var(--blue); color: var(--blue-dark); font-weight: 700; }
+.btn-newevent:hover { background: var(--blue); color: #fff; }
 
 /* Gość: przycisk „Pokaż kto jest Parą Młodą" */
 .guest-couple-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }

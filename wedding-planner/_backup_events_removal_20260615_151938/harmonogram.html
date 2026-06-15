@@ -489,8 +489,9 @@
 
       // ── DIAGNOSTYKA LINKÓW (konsola): pokazuje dla każdego wydarzenia czy ma link i czy widoczny dla gości ──
       try {
+        const aid = (rawData && rawData.activeEventId) || '(brak/stary format)';
         console.group('%c[harmonogram] Diagnostyka linków do map', 'font-weight:bold;color:#1a56db');
-        console.log('Wydarzeń (publicznych):', events.length);
+        console.log('Aktywny event:', aid, '· wydarzeń (publicznych):', events.length);
         events.forEach(ev => {
           const url = (ev.locationUrl || '').trim();
           console.log(`• ${ev.name || '(bez nazwy)'} → link: ${url ? '"' + url + '"' : 'BRAK'} · Pokaż gościom: ${ev.showLinkToGuests ? 'TAK' : 'nie'} · wyświetlony: ${mapLinkFor(ev) ? 'TAK' : 'nie'}`);

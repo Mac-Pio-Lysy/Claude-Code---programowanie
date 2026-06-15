@@ -11,15 +11,36 @@ const DEFAULT_APP_CONFIG = {
   ceremonyPlace:  '',
   receptionPlace: '',
   menuOptions:    ['Danie mięsne', 'Danie rybne', 'Wegetariańskie', 'Wegańskie', 'Dla dziecka'],
+  eventType:      'wedding',
+  eventTypeCustom: '',
 };
 
-// Aplikacja jest na stałe aplikacją weselną — ikona nagłówka i tytuł odliczania.
-const WEDDING_ICON = '💍';
-const WEDDING_HERO_TITLE = 'Do Waszego Ślubu';
+// ── TYPY EVENTÓW (kolory, ikony, dostępne sekcje) ──
+const ALL_EVENT_VIEWS = ['tables','room','rsvp','budget','schedule','tasks','vendors','gifts','transport','accommodation','gallery'];
+const EVENT_TYPES = {
+  wedding:      { icon: '💍', label: 'Ślub',         heroTitle: 'Do Waszego Ślubu', sections: ALL_EVENT_VIEWS.slice() },
+  baptism:      { icon: '👶', label: 'Chrzciny',     heroTitle: 'Do Chrzcin',       sections: ['tables','room','rsvp','budget','schedule','tasks','vendors','transport','accommodation'] },
+  communion:    { icon: '🕊️', label: 'Komunia',      heroTitle: 'Do Komunii',       sections: ['tables','room','rsvp','budget','schedule','tasks','vendors','gifts'] },
+  confirmation: { icon: '✝️', label: 'Bierzmowanie', heroTitle: 'Do Bierzmowania',  sections: ['tables','room','rsvp','budget','schedule','tasks'] },
+  eighteenth:   { icon: '🎂', label: '18-stka',      heroTitle: 'Do Osiemnastki',   sections: ['tables','room','rsvp','budget','schedule','tasks','vendors','transport'] },
+  birthday:     { icon: '🎉', label: 'Urodziny',     heroTitle: 'Do Urodzin',       sections: ['tables','room','rsvp','budget','schedule','tasks','vendors'] },
+  other:        { icon: '🎊', label: 'Inne',         heroTitle: 'Do wydarzenia',    sections: ALL_EVENT_VIEWS.slice() },
+};
+// Widoki zawsze dostępne (zarządzanie aplikacją) niezależnie od typu eventu
+const ALWAYS_VIEWS = ['dashboard', 'config', 'access', 'guestcard', 'devsettings'];
+function eventTypeKey() { return EVENT_TYPES[appConfig.eventType] ? appConfig.eventType : 'wedding'; }
+function eventTypeInfo() { return EVENT_TYPES[eventTypeKey()]; }
+function eventTypeLabel() {
+  const k = eventTypeKey();
+  return (k === 'other' && (appConfig.eventTypeCustom || '').trim()) ? appConfig.eventTypeCustom.trim() : EVENT_TYPES[k].label;
+}
 // Imiona Osoby 1/2 (podział kosztów) trzymane są w budgetData.coupleNames,
 // a data ślubu w globalnym weddingDate — Konfiguracja edytuje te same źródła.
 let appConfig = Object.assign({}, DEFAULT_APP_CONFIG);
 
+// ── WIELE EVENTÓW: kontener { events: {id: stanEventu}, activeEventId } ──
+let EVENTS = {};            // mapa id → pełny stan eventu (serializowany)
+let activeEventId = 'default';
 let _stateReady = false;    // true dopiero po udanym wczytaniu — chroni przed nadpisaniem danych pustym stanem
 let nextGuestId = 1;
 let nextTableId = 1;
@@ -7815,29 +7836,75 @@ function applyConfig() {
   const names    = cfg('displayNames') || 'Patrycji i Piotra';
   const eventNm  = cfg('eventName')    || DEFAULT_APP_CONFIG.eventName;
   const subtitle = cfg('subtitle')     || DEFAULT_APP_CONFIG.subtitle;
+  const ti       = eventTypeInfo();
+  const isWedding = eventTypeKey() === 'wedding';
+
+  // Kolory i widoczne sekcje zależne od typu eventu
+  applyEventTheme();
+  applyEventSections();
 
   // Tytuł karty
   document.title = eventNm;
 
-  // Nagłówek aplikacji (z ikoną ślubną)
+  // Nagłówek aplikacji (z ikoną typu)
   const hdrTitle = document.getElementById('appHeaderTitle');
-  if (hdrTitle) hdrTitle.innerHTML = WEDDING_ICON + ' ' + esc(eventNm) + ' ' + WEDDING_ICON;
+  if (hdrTitle) hdrTitle.innerHTML = ti.icon + ' ' + esc(eventNm) + ' ' + ti.icon;
   const hdrSub = document.getElementById('appHeaderSubtitle');
   if (hdrSub) hdrSub.textContent = subtitle;
 
-  // Ekran logowania — „Ceremonia"
+  // Ekran logowania — dla ślubu „Ceremonia", dla innych typów nazwa eventu
   const loginTitle = document.getElementById('loginTitle');
-  if (loginTitle) loginTitle.innerHTML = 'Ceremonia<br>' + esc(names);
+  if (loginTitle) loginTitle.innerHTML = isWedding ? ('Ceremonia<br>' + esc(names)) : esc(eventNm);
   const loginSub = document.getElementById('loginSubtitle');
   if (loginSub) loginSub.textContent = subtitle;
 
   // Tytuł w nawigacji mobilnej
   const navMobTitle = document.getElementById('navMobTitle');
-  if (navMobTitle) navMobTitle.innerHTML = WEDDING_ICON + ' ' + esc(names);
+  if (navMobTitle) navMobTitle.innerHTML = ti.icon + ' ' + esc(isWedding ? names : eventTypeLabel());
 
   // Tytuł licznika na Dashboardzie
   const heroTitle = document.getElementById('dashboardTitle');
-  if (heroTitle) heroTitle.innerHTML = WEDDING_ICON + ' ' + esc(WEDDING_HERO_TITLE);
+  if (heroTitle) heroTitle.innerHTML = ti.icon + ' ' + esc(ti.heroTitle);
+
+  // Przełącznik eventów
+  if (typeof renderEventSwitcher === 'function') renderEventSwitcher();
+}
+
+// Zastosuj schemat kolorów typu eventu (przez atrybut data-event-theme na <html>)
+function applyEventTheme() {
+  document.documentElement.setAttribute('data-event-theme', eventTypeKey());
+}
+
+// Pokaż/ukryj zakładki nawigacji zależnie od typu eventu
+const _VIEW_NAV_IDS = {
+  dashboard:'navDashboard', tables:'navTables', room:'navRoom', rsvp:'navRsvp', budget:'navBudget',
+  schedule:'navSchedule', tasks:'navTasks', vendors:'navVendors', gallery:'navGallery', access:'navAccess',
+  config:'navConfig', guestcard:'navGuestCard', transport:'navTransport', accommodation:'navAccommodation', gifts:'navGifts',
+};
+function allowedViewSet() {
+  return new Set([...(eventTypeInfo().sections || ALL_EVENT_VIEWS), ...ALWAYS_VIEWS]);
+}
+function applyEventSections() {
+  const allowed = allowedViewSet();
+  Object.entries(_VIEW_NAV_IDS).forEach(([view, navId]) => {
+    const show = allowed.has(view);
+    const btn = document.getElementById(navId);
+    if (btn) btn.style.display = show ? '' : 'none';
+    document.querySelectorAll(`.mob-nav-btn[onclick*="switchView('${view}')"]`).forEach(b => {
+      b.style.display = show ? '' : 'none';
+    });
+  });
+  // Ukryj całą grupę nawigacji, jeśli żaden jej przycisk nie jest widoczny
+  // (chroni przed osieroconymi etykietami/separatorami przy zmianie typu imprezy)
+  document.querySelectorAll('.main-nav .nav-group').forEach(group => {
+    const hasVisible = Array.from(group.querySelectorAll('.nav-btn'))
+      .some(b => b.style.display !== 'none');
+    group.style.display = hasVisible ? '' : 'none';
+  });
+  // Jeśli bieżący widok został ukryty — wróć na Dashboard
+  if (typeof currentView !== 'undefined' && !allowed.has(currentView)) {
+    if (typeof switchView === 'function') switchView('dashboard');
+  }
 }
 
 function renderConfigView() {
@@ -7855,7 +7922,16 @@ function renderConfigView() {
   set('cfgDisplayNames',   cfg('displayNames'));
   set('cfgMenuOptions',    (appConfig.menuOptions || []).join('\n'));
   set('cfgExpenseCategories', getExpenseCategories().join('\n'));
+  set('cfgEventType',      eventTypeKey());
+  set('cfgEventTypeCustom', appConfig.eventTypeCustom || '');
+  _toggleEventTypeCustom();
   try { renderBackupList(); } catch (_) {}
+}
+// Pokazuje pole własnej nazwy tylko dla typu „Inne"
+function _toggleEventTypeCustom() {
+  const sel = document.getElementById('cfgEventType');
+  const wrap = document.getElementById('cfgEventTypeCustomWrap');
+  if (sel && wrap) wrap.style.display = sel.value === 'other' ? '' : 'none';
 }
 
 function saveConfig() {
@@ -7871,6 +7947,8 @@ function saveConfig() {
                       .split('\n').map(s => s.trim()).filter(Boolean),
     expenseCategories: (document.getElementById('cfgExpenseCategories')?.value || '')
                       .split('\n').map(s => s.trim()).filter(Boolean),
+    eventType:      val('cfgEventType') || 'wedding',
+    eventTypeCustom: val('cfgEventTypeCustom'),
   });
 
   // Imiona Osoby 1/2 — wspólne ze splitem kosztów (budgetData.coupleNames)
@@ -7966,13 +8044,67 @@ function saveState() {
     // renderAll() kończy się saveState(); gdyby zadziałał w trakcie stosowania zmiany
     // zdalnej, odesłałby ją z powrotem do Firestore → pętla/ping-pong między urządzeniami.
     if (window.__applyingRemote) return;
-    // Pojedynczy, „płaski" zestaw danych aplikacji weselnej (bez podziału na eventy).
-    const flat = _serializeState();
-    flat._savedAt   = Date.now();
-    flat._app       = 'wedding-planner';
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(flat));
-    if (typeof firestoreSave === 'function') firestoreSave(flat);
+    if (!activeEventId) activeEventId = 'default';
+    EVENTS[activeEventId] = _serializeState();
+    const container = { events: EVENTS, activeEventId, _savedAt: Date.now() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(container));
+    if (typeof firestoreSave === 'function') firestoreSave(container);
   } catch (_) {}
+}
+
+// ── ZARZĄDZANIE WIELOMA EVENTAMI ──
+function _eventMeta(id) {
+  const c = (id === activeEventId) ? appConfig : ((EVENTS[id] && EVENTS[id].appConfig) || {});
+  const type = EVENT_TYPES[c.eventType] ? c.eventType : 'wedding';
+  return { icon: EVENT_TYPES[type].icon, name: (c.eventName || '').trim() || EVENT_TYPES[type].label };
+}
+// ── MENU KOŁOWE — wybór imprezy (radial, lewy górny róg) ──
+// Pokazuje TYLKO już utworzone imprezy (EVENTS); klik przełącza na wybraną.
+// Aktywna impreza jest wyróżniona, a ikona środka pokazuje bieżącą imprezę.
+function renderRadialMenu() {
+  const items = document.getElementById('radialItems');
+  const coreIcon = document.getElementById('radialCoreIcon');
+  if (!items) return;
+  const ids = Object.keys(EVENTS);
+  if (coreIcon) coreIcon.textContent = _eventMeta(activeEventId).icon;
+  if (!ids.length) { items.innerHTML = ''; return; }
+
+  const n = ids.length;
+  const startA = 8, endA = 90;               // ćwiartka rozwijająca się w prawo-dół (stopnie)
+  const R = 104;                             // promień rozłożenia ikon
+  items.innerHTML = ids.map((id, i) => {
+    const deg = n > 1 ? startA + (endA - startA) * i / (n - 1) : 48;
+    const rad = deg * Math.PI / 180;
+    const x = (Math.cos(rad) * R).toFixed(1);
+    const y = (Math.sin(rad) * R).toFixed(1);
+    const m = _eventMeta(id);
+    const isActive = id === activeEventId;
+    const delay = (i * 0.03).toFixed(2);
+    return `<button type="button" class="radial-item${isActive ? ' radial-active' : ''}"
+        style="--rx:${x}px;--ry:${y}px;--d:${delay}s"
+        onclick="onRadialPick('${id}')" title="${esc(m.name)}" aria-label="${esc(m.name)}">
+        <span class="radial-item-ico">${m.icon}</span>
+        <span class="radial-item-lbl">${esc(m.name)}</span>
+      </button>`;
+  }).join('');
+}
+function toggleRadialMenu() {
+  const m = document.getElementById('radialEventMenu');
+  if (!m) return;
+  const open = m.getAttribute('data-open') === 'true';
+  m.setAttribute('data-open', open ? 'false' : 'true');
+  const bd = document.getElementById('radialBackdrop');
+  if (bd) bd.classList.toggle('radial-bd-open', !open);
+}
+function closeRadialMenu() {
+  const m = document.getElementById('radialEventMenu');
+  if (m) m.setAttribute('data-open', 'false');
+  const bd = document.getElementById('radialBackdrop');
+  if (bd) bd.classList.remove('radial-bd-open');
+}
+function onRadialPick(id) {
+  closeRadialMenu();
+  if (id !== activeEventId) switchEvent(id);   // switchEvent odświeży menu i widoki
 }
 
 // ── MENU USTAWIEŃ (prawy górny róg — trybik) ──
@@ -8033,9 +8165,56 @@ document.addEventListener('click', (e) => {
   if (panel && panel.classList.contains('user-open') && !panel.contains(e.target)) closeUserMenu();
 }, true);
 
+// Alias zachowany dla istniejących wywołań — przełącznik eventów zastąpiony menu kołowym.
+function renderEventSwitcher() { renderRadialMenu(); }
+function switchEvent(id) {
+  if (!EVENTS[id] || id === activeEventId) return;
+  EVENTS[activeEventId] = _serializeState();   // zapisz bieżący event
+  activeEventId = id;
+  _applyEventState(EVENTS[id] || {});          // wczytaj wybrany
+  saveState();
+  renderAll();
+  switchView('dashboard');
+  renderEventSwitcher();
+  showToast('Przełączono na: ' + _eventMeta(id).name);
+}
+function createNewEvent() {
+  const name = prompt('Nazwa nowego eventu:', 'Nowy event');
+  if (name === null) return; // anulowano
+  EVENTS[activeEventId] = _serializeState();   // zapisz bieżący
+  const id = 'e' + Date.now().toString(36);
+  EVENTS[id] = {};                             // pusty stan → backfill do domyślnych
+  activeEventId = id;
+  _applyEventState({});                        // domyślne wartości
+  appConfig = Object.assign({}, DEFAULT_APP_CONFIG, { eventName: (name.trim() || 'Nowy event') });
+  saveState();
+  renderAll();
+  switchView('config');
+  renderEventSwitcher();
+  showToast('Utworzono event: ' + appConfig.eventName);
+}
+function deleteActiveEvent() {
+  const ids = Object.keys(EVENTS);
+  if (ids.length <= 1) { alert('Nie można usunąć jedynego eventu.'); return; }
+  if (!confirm('Usunąć ten event i wszystkie jego dane?\nTej operacji nie można cofnąć.')) return;
+  delete EVENTS[activeEventId];
+  activeEventId = Object.keys(EVENTS)[0];
+  _applyEventState(EVENTS[activeEventId] || {});
+  saveState();
+  renderAll();
+  switchView('dashboard');
+  renderEventSwitcher();
+  showToast('Event usunięty');
+}
+
 const LEGACY_BACKUP_KEY = 'wedding-planner-v2:legacy';
 
-// Czy stan zawiera jakiekolwiek istotne dane?
+// Czy obiekt to stary, „płaski" zapis (sprzed systemu eventów)?
+function _isFlatState(o) {
+  return !!(o && typeof o === 'object' && !(o.events && o.activeEventId) &&
+    (o.guests || o.scheduleEvents || o.appConfig || o.budgetData || o.tasks || o.vendors || o.tables));
+}
+// Czy stan eventu zawiera jakiekolwiek istotne dane?
 function _eventHasData(s) {
   if (!s || typeof s !== 'object') return false;
   const len = a => Array.isArray(a) && a.length;
@@ -8045,19 +8224,17 @@ function _eventHasData(s) {
     !!(s.appConfig && s.appConfig.eventName) || !!s.weddingDate;
 }
 
-// Wyodrębnia pojedynczy, „płaski" zestaw danych z dowolnego zapisu.
-// Obsługuje stary kontener wielu eventów { events: {id: stan}, activeEventId } —
-// migrując dane z eventu „default" (a w razie braku z aktywnego / dowolnego z danymi).
-function _extractFlatState(obj) {
-  if (!obj || typeof obj !== 'object') return {};
-  if (obj.events && typeof obj.events === 'object') {
-    const ev = obj.events;
-    return (ev['default'] && _eventHasData(ev['default']) && ev['default'])
-        || (ev[obj.activeEventId] && _eventHasData(ev[obj.activeEventId]) && ev[obj.activeEventId])
-        || Object.values(ev).find(_eventHasData)
-        || ev['default'] || ev[obj.activeEventId] || Object.values(ev)[0] || {};
+// Rozpakowuje zapis do kontenera wielu eventów (migruje stary, „płaski" zapis)
+function _normalizeContainer(parsed) {
+  if (parsed && parsed.events && typeof parsed.events === 'object' && parsed.activeEventId) {
+    const events = parsed.events;
+    let active = parsed.activeEventId;
+    if (!Object.keys(events).length) events['default'] = {};
+    if (!events[active]) active = Object.keys(events)[0];
+    return { events, activeEventId: active };
   }
-  return obj; // już płaski (pojedynczy zestaw danych)
+  // Stary zapis (pojedynczy event) → opakuj jako „default"
+  return { events: { default: parsed || {} }, activeEventId: 'default' };
 }
 
 function loadState() {
@@ -8068,46 +8245,66 @@ function loadState() {
     let parsed;
     try { parsed = JSON.parse(raw); } catch (_) { _stateReady = true; return; }
 
-    // Przed JAKĄKOLWIEK migracją utwórz datowaną kopię zapasową bieżących danych.
+    // Wymóg 4: przed JAKĄKOLWIEK migracją utwórz datowaną kopię zapasową bieżących danych.
     if (_anyHasData(parsed)) { try { _backupBeforeMigration(raw); } catch (_) {} }
 
-    const wasContainer = !!(parsed && parsed.events && typeof parsed.events === 'object');
-    let flat = _extractFlatState(parsed);
+    // Stary, „płaski" zapis → zachowaj jednorazowo kopię zapasową, nim cokolwiek nadpiszemy
+    if (_isFlatState(parsed)) {
+      try { if (!localStorage.getItem(LEGACY_BACKUP_KEY)) localStorage.setItem(LEGACY_BACKUP_KEY, raw); } catch (_) {}
+    }
 
-    // Odzyskiwanie: jeśli wyodrębniony stan jest pusty, a istnieje kopia zapasowa danych — użyj jej.
+    const container = _normalizeContainer(parsed);
+
+    // Odzyskiwanie: jeśli aktywny event jest pusty, a istnieje kopia zapasowa starych danych —
+    // przypisz je do domyślnego eventu (Ślub), aby nie zniknęły.
     let _recovered = false;
-    if (!_eventHasData(flat)) {
+    if (!_eventHasData(container.events[container.activeEventId])) {
       try {
         const legacyRaw = localStorage.getItem(LEGACY_BACKUP_KEY);
-        const legacyFlat = _extractFlatState(legacyRaw ? JSON.parse(legacyRaw) : null);
-        if (_eventHasData(legacyFlat)) { flat = legacyFlat; _recovered = true; }
+        const legacy = legacyRaw ? JSON.parse(legacyRaw) : null;
+        if (_isFlatState(legacy) && _eventHasData(legacy)) {
+          container.events['default'] = legacy;
+          container.activeEventId = 'default';
+          _recovered = true;
+        }
       } catch (_) {}
     }
 
-    _applyEventState(flat || {});
+    EVENTS = container.events;
+    activeEventId = container.activeEventId;
+    _applyEventState(EVENTS[activeEventId] || {});
 
-    // Jeśli wczytano stary kontener wielu eventów lub odzyskano dane — utrwal w płaskiej strukturze,
-    // by struktura eventów nie wróciła i pusty zapis nie nadpisał danych przy przeładowaniu.
-    if (wasContainer || _recovered) { try { saveState(); } catch (_) {} }
+    // Po odzyskaniu utrwal stan, by pusty kontener w localStorage/Firestore nie wracał przy przeładowaniu.
+    if (_recovered) { try { saveState(); } catch (_) {} }
   } catch (_) {
-    // Awaryjny fallback: jeśli wczytanie zawiedzie, spróbuj odczytać dane bezpośrednio.
+    // Awaryjny fallback (wymóg 4): jeśli migracja do systemu eventów zawiedzie,
+    // wczytaj dane „po staremu" (płaski zapis) bezpośrednio — tymczasowe rozwiązanie,
+    // by użytkownik nie stracił dostępu do danych.
     try { _loadFlatFallback(); } catch (_) {}
   }
 }
 
-// Awaryjne wczytanie danych z kopii zapasowej lub głównego klucza (omija pełną logikę load).
+// Awaryjne wczytanie starego, „płaskiego" zapisu (sprzed systemu eventów).
+// Szuka danych w kopii zapasowej, głównym kluczu lub wewnątrz kontenera eventów
+// i ładuje je do domyślnego eventu „Ślub", omijając pełną logikę migracji.
 function _loadFlatFallback() {
   let flat = null;
   for (const key of [LEGACY_BACKUP_KEY, STORAGE_KEY]) {
     try {
       const raw = localStorage.getItem(key);
-      const cand = _extractFlatState(raw ? JSON.parse(raw) : null);
-      if (_eventHasData(cand)) { flat = cand; break; }
+      const obj = raw ? JSON.parse(raw) : null;
+      if (_isFlatState(obj) && _eventHasData(obj)) { flat = obj; break; }
+      if (obj && obj.events && typeof obj.events === 'object') {
+        const id = Object.keys(obj.events).find(k => _eventHasData(obj.events[k]));
+        if (id) { flat = obj.events[id]; break; }
+      }
     } catch (_) {}
   }
   if (!flat) { _stateReady = true; return; } // brak czegokolwiek do odzyskania
+  EVENTS = { default: flat };
+  activeEventId = 'default';
   _applyEventState(flat); // ustawia _stateReady = true po pełnym wczytaniu
-  console.warn('[wedding-planner] Awaryjne wczytanie: użyto kopii zapasowej danych weselnych.');
+  console.warn('[wedding-planner] Awaryjny tryb płaski: migracja eventów zawiodła — wczytano stare dane do eventu „Ślub".');
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -8158,12 +8355,16 @@ function scanLocalStorage() {
   return candidates;
 }
 
-// Wczytuje dowolny znaleziony zapis (płaski lub stary kontener eventów) jako główne dane aplikacji.
+// Migruje dowolny znaleziony zapis (płaski lub kontener) do systemu eventów (domyślny event „Ślub").
 function _migrateParsedIntoEvents(parsed, sourceLabel) {
-  _applyEventState(_extractFlatState(parsed));
+  const container = _normalizeContainer(parsed);
+  EVENTS = container.events;
+  activeEventId = container.activeEventId;
+  _applyEventState(EVENTS[activeEventId] || {});
   saveState();
   try { renderAll(); } catch (_) {}
-  console.log('[wedding-planner] Wczytano dane ze źródła:', sourceLabel);
+  try { renderEventSwitcher(); } catch (_) {}
+  console.log('[wedding-planner] Zmigrowano dane do systemu eventów ze źródła:', sourceLabel);
 }
 
 // Efektywny znacznik czasu kandydata: dla kluczy „backup_[timestamp]" bierzemy
@@ -8295,13 +8496,10 @@ function restoreLatestBackup() {
 // bez żadnych automatycznych powiadomień ani pop-upów.
 const APP_VERSION = '2026.06.13-3';
 
-// Buduje pełny, płaski zestaw danych aplikacji do eksportu/zapisu.
+// Buduje pełny kontener wszystkich eventów do eksportu/zapisu.
 function _exportContainer() {
-  const flat = _serializeState();
-  flat._savedAt    = Date.now();
-  flat._exportedAt = Date.now();
-  flat._app        = 'wedding-planner';
-  return flat;
+  try { if (typeof saveState === 'function') saveState(); } catch (_) {} // utrwal bieżący event w EVENTS
+  return { events: EVENTS, activeEventId, _savedAt: Date.now(), _exportedAt: Date.now(), _app: 'wedding-planner' };
 }
 
 // 1) Eksport wszystkich danych do pliku JSON na dysku

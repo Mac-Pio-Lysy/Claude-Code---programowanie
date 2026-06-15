@@ -88,11 +88,6 @@ function initFirebaseSync() {
               try { saveState(); } catch (_) {}
             }
           }
-          // Jednorazowa migracja: jeśli chmura wciąż trzyma stary kontener wielu eventów,
-          // odeślij dane w nowej, płaskiej strukturze (są już wczytane do pamięci aplikacji).
-          if (remote && remote.events && typeof remote.events === 'object' && typeof saveState === 'function') {
-            try { saveState(); } catch (_) {}
-          }
         }
         _badge('synced');
         _startListener();

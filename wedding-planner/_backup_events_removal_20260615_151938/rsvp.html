@@ -484,15 +484,17 @@
       ? document.getElementById('rsvpCompanion').value.trim()
       : '';
 
-    // ── Zapis do localStorage i Firestore (pojedynczy, płaski zestaw danych) ──
+    // ── Zapis do localStorage i Firestore (do aktywnego eventu w kontenerze) ──
     try {
       const raw   = localStorage.getItem(STORAGE_KEY);
-      let state = raw ? JSON.parse(raw) : {};
-      // Zgodność wstecz: jeśli trafi się stary kontener wielu eventów — wyodrębnij aktywny event.
-      if (state && state.events && typeof state.events === 'object') {
-        state = state.events[state.activeEventId] || state.events['default'] || {};
+      let container = raw ? JSON.parse(raw) : {};
+      // Znormalizuj do kontenera wielu eventów (migracja starego, płaskiego zapisu)
+      if (!(container && container.events && container.activeEventId)) {
+        const flat = container && Object.keys(container).length ? container : {};
+        container = { events: { default: flat }, activeEventId: 'default' };
       }
-      if (!state || typeof state !== 'object') state = {};
+      const _eid = container.activeEventId;
+      const state = container.events[_eid] || (container.events[_eid] = {});
       if (!state.rsvpEntries) state.rsvpEntries = [];
       if (!state.nextRsvpId)  state.nextRsvpId  = 1;
 
@@ -525,10 +527,9 @@
         });
       }
 
-      state._savedAt = Date.now();
-      state._app     = 'wedding-planner';
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      if (typeof firestoreSaveNow === 'function') firestoreSaveNow(state);
+      container._savedAt = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(container));
+      if (typeof firestoreSaveNow === 'function') firestoreSaveNow(container);
     } catch (_) {}
 
     // ── Wysyłka emaili przez EmailJS ──

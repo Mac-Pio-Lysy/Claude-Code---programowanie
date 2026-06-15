@@ -46,6 +46,16 @@
 <!-- ══ GŁÓWNA APLIKACJA ══ -->
 <div id="appContent" style="display:none">
 
+<!-- ══ MENU KOŁOWE — WYBÓR IMPREZY (lewy górny róg) ══ -->
+<div id="radialEventMenu" class="radial-menu" data-open="false">
+  <div class="radial-items" id="radialItems"></div>
+  <button class="radial-core" id="radialCore" type="button" onclick="toggleRadialMenu()" title="Wybierz imprezę">
+    <span class="radial-core-icon" id="radialCoreIcon">&#128141;</span>
+    <span class="radial-core-caret">&#9656;</span>
+  </button>
+</div>
+<div id="radialBackdrop" class="radial-backdrop" onclick="closeRadialMenu()"></div>
+
 <!-- ══ PRAWY GÓRNY RÓG — użytkownik + ustawienia ══ -->
 <div id="topRightBar" class="topright-bar">
   <div class="topright-user-stack">
@@ -909,6 +919,24 @@
 
       <form class="config-form" onsubmit="event.preventDefault();saveConfig()">
         <div class="config-grid">
+          <div class="config-field">
+            <label for="cfgEventType">Typ eventu</label>
+            <select id="cfgEventType" onchange="_toggleEventTypeCustom()">
+              <option value="wedding">💍 Ślub</option>
+              <option value="baptism">👶 Chrzciny</option>
+              <option value="communion">🕊️ Komunia</option>
+              <option value="confirmation">✝️ Bierzmowanie</option>
+              <option value="eighteenth">🎂 18-stka</option>
+              <option value="birthday">🎉 Urodziny</option>
+              <option value="other">🎊 Inne</option>
+            </select>
+            <small>Zmienia kolory aplikacji i dostępne sekcje.</small>
+          </div>
+          <div class="config-field" id="cfgEventTypeCustomWrap" style="display:none">
+            <label for="cfgEventTypeCustom">Własna nazwa typu</label>
+            <input type="text" id="cfgEventTypeCustom" placeholder="np. Jubileusz, Rocznica">
+          </div>
+
           <div class="config-field config-field-wide">
             <label for="cfgEventName">Nazwa eventu</label>
             <input type="text" id="cfgEventName" placeholder="np. Komunia Zosi, Moje Chrzciny">
@@ -972,6 +1000,8 @@
 
         <div class="config-actions">
           <button type="submit" class="btn btn-primary">&#128190; Zapisz konfigurację</button>
+          <button type="button" class="btn btn-newevent" onclick="createNewEvent()" title="Utwórz nową imprezę/event">&#10133; Nowy event</button>
+          <button type="button" class="btn btn-danger" onclick="deleteActiveEvent()" title="Usuń bieżący event i jego dane">&#128465; Usuń ten event</button>
         </div>
       </form>
     </div>
