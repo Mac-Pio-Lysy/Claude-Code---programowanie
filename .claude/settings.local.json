@@ -42,7 +42,19 @@
       "Bash(sed -E 's/.*\"\\([a-zA-Z_]+\\)\\\\\\(/\\\\1/')",
       "Bash(read fn *)",
       "Bash(grep -qE 'function __TRACKED_VAR__\\\\b|__TRACKED_VAR__\\\\s*=\\\\s*function|__TRACKED_VAR__\\\\s*=\\\\s*\\\\\\(|window\\\\.__TRACKED_VAR__\\\\s*=' script.js auth.js firebase-config.js)",
-      "Bash(grep -qE 'function __TRACKED_VAR__\\\\b' script.js auth.js firebase-config.js)"
+      "Bash(grep -qE 'function __TRACKED_VAR__\\\\b' script.js auth.js firebase-config.js)",
+      "Bash(grep -nB3 \"z-index: 9500\\\\|z-index: 9000\\\\|z-index: 9999\\\\|z-index: 10000\\\\|z-index: 99999\" style.css)",
+      "Bash(timeout 15 curl -sI https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(npm init *)",
+      "Bash(npm i *)",
+      "Bash(npx playwright *)",
+      "Bash(python -m http.server 8765)",
+      "Bash(curl -sI http://localhost:8765/index.html)",
+      "Bash(NODE_PATH=/tmp/node_modules node drive.js)",
+      "Bash(cygpath -w /tmp/drive.js)",
+      "Bash(cygpath -w /tmp/node_modules)",
+      "Bash(pkill -f \"http.server 8765\")"
     ]
   }
 }

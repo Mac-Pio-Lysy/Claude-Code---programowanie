@@ -2120,6 +2120,73 @@ function _refreshTableDecoLines(type, id) {
 }
 
 // ── EXPENSES ──
+// ── SZYBKIE POZYCJE — gotowe, typowe wydatki ślubne (z konfigurowalnej listy kategorii) ──
+// Lista chipów = getExpenseCategories() (ta sama, którą konfiguruje się w Konfiguracji),
+// dzięki czemu pozostaje spójna z kategoriami wydatków. Klik tworzy gotową pozycję wydatku.
+function _expenseQuickCats() {
+  return getExpenseCategories().filter(c => c !== 'Inne');
+}
+function renderExpenseQuickAdd() {
+  const wrap = document.getElementById('expQuickAdd');
+  if (!wrap) return;
+  const cats = _expenseQuickCats();
+  const counts = {};
+  budgetData.expenses.forEach(e => { counts[e.category] = (counts[e.category] || 0) + 1; });
+  wrap.innerHTML = `
+    <div class="exp-qa-head">
+      <span class="exp-qa-title">&#9889; Szybkie pozycje</span>
+      <span class="exp-qa-hint">kliknij, aby dodać gotowy wydatek &mdash; listę zmienisz w Konfiguracji</span>
+    </div>
+    <div class="exp-qa-chips">
+      ${cats.map((name, i) => {
+        const n = counts[name] || 0;
+        return `<button class="exp-qa-chip${n ? ' added' : ''}" onclick="addExpenseForCategoryIdx(${i})" title="Dodaj wydatek: ${esc(name)}">
+          <span class="exp-qa-ico">${_expenseCatIcon(name)}</span>
+          <span class="exp-qa-name">${esc(name)}</span>
+          ${n ? `<span class="exp-qa-badge" title="Tyle pozycji już dodano">${n}</span>` : `<span class="exp-qa-plus">+</span>`}
+        </button>`;
+      }).join('')}
+      <button class="exp-qa-chip exp-qa-custom" onclick="addExpense()" title="Dodaj własny, dowolny wydatek">
+        <span class="exp-qa-ico">&#10133;</span><span class="exp-qa-name">Własna pozycja</span>
+      </button>
+    </div>`;
+}
+function addExpenseForCategoryIdx(i) {
+  const name = _expenseQuickCats()[i];
+  if (name) addExpenseForCategory(name);
+}
+function addExpenseForCategory(name) {
+  const newId = nextExpenseId++;
+  const known = getExpenseCategories().includes(name);
+  budgetData.expenses.push({
+    id: newId,
+    category: known ? name : 'Inne',
+    customName: known ? '' : name,
+    planned: 0,
+    estimatedAmount: 0,
+    paid: 0,
+    paymentDate: '',
+    note: '',
+    splitP1: 0,
+    splitP2: 0,
+    sidePanel: false,
+  });
+  expenseOrder.push(newId);
+  expenseFilters = { status: 'all', person: 'all', category: 'all' };
+  renderExpenses();
+  renderCoupleSummary();
+  renderCostPerTable();
+  renderBudgetOverview();
+  renderCharts();
+  saveState();
+  const newTile = document.getElementById('exp-' + newId);
+  if (newTile) {
+    newTile.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    newTile.classList.add('exp-highlight');
+    setTimeout(() => newTile.classList.remove('exp-highlight'), 1200);
+  }
+}
+
 function addExpense(asSidePanel) {
   const newId = nextExpenseId++;
   budgetData.expenses.push({
@@ -2470,6 +2537,7 @@ function renderExpenses() {
   const summary   = document.getElementById('expSummary');
   const filtersBar = document.getElementById('expFiltersBar');
   _fillVendorPicker('expVendorPick', '+ Z dostawcy');
+  renderExpenseQuickAdd();
 
   const hasExpenses = budgetData.expenses.length > 0;
   if (filtersBar) filtersBar.style.display = hasExpenses ? '' : 'none';
@@ -4366,6 +4434,24 @@ let nextChecklistId  = 1;
 const CHECKLIST_CATEGORIES = ['Co zabrać', 'Kto co przynosi', 'Przed ceremonią', 'Po ceremonii'];
 let scheduleTab = 'plan';   // 'plan' | 'checklist'
 
+// ── „OD CZEGO ZACZĄĆ?" — sugerowana kolejność organizacji wesela ──
+// pozycja: { id, label, note, done } — edytowalna i synchronizowana per event
+let planningSteps      = [];
+let nextPlanningStepId = 1;
+let planningEditMode   = false;
+const DEFAULT_PLANNING_STEPS = [
+  { label: 'Wybór i rezerwacja sali weselnej' },
+  { label: 'Ustalenie daty (zależnie od dostępności sali i kościoła)' },
+  { label: 'Rezerwacja kościoła / USC', note: 'Dotyczy ślubu kościelnego lub konkordatowego' },
+  { label: 'Dodanie listy gości' },
+  { label: 'Znalezienie i rezerwacja DJ / zespołu' },
+  { label: 'Fotograf / kamerzysta' },
+  { label: 'Florystka / dekoracje' },
+  { label: 'Garnitur i suknia ślubna' },
+  { label: 'Obrączki' },
+  { label: 'Plan stołów i pozostałe szczegóły' },
+];
+
 // ── GUEST FIELD HELPERS ──
 function dietLabel(diet, dietOther) {
   const labels = { standard:'Std', vegetarian:'Vege', vegan:'Vegan', glutenfree:'GF', other: dietOther || 'Inne' };
@@ -4474,7 +4560,134 @@ function tickCountdown() {
 
 // ── DASHBOARD ──
 function renderDashboard() {
+  renderPlanningBanner();
   renderDashboardWidgets();
+}
+
+// ══════════════════════════════════════════════════════
+//  „OD CZEGO ZACZĄĆ?" — sugerowana kolejność planowania (karta na Dashboardzie)
+// ══════════════════════════════════════════════════════
+function _ensurePlanningSteps() {
+  if (!Array.isArray(planningSteps) || !planningSteps.length) {
+    planningSteps = DEFAULT_PLANNING_STEPS.map((s, i) => ({ id: i + 1, label: s.label, note: s.note || '', done: false }));
+    nextPlanningStepId = planningSteps.length + 1;
+  }
+}
+function renderPlanningGuide() {
+  const list = document.getElementById('pgList');
+  if (!list) return;
+  _ensurePlanningSteps();
+  const steps = planningSteps;
+  const done = steps.filter(s => s.done).length;
+  const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+  const bar = document.getElementById('pgProgressBar'); if (bar) bar.style.width = pct + '%';
+  const lbl = document.getElementById('pgProgressLabel'); if (lbl) lbl.textContent = `${done} z ${steps.length} ukończonych · ${pct}%`;
+  list.innerHTML = steps.map((s, i) => `
+    <div class="pg-item${s.done ? ' done' : ''}">
+      <input type="checkbox" class="pg-cb" id="pg-cb-${s.id}" ${s.done ? 'checked' : ''} onchange="togglePlanningStep(${s.id})">
+      <span class="pg-num">${i + 1}</span>
+      ${planningEditMode
+        ? `<input class="pg-edit-input" value="${esc(s.label)}" onchange="editPlanningStep(${s.id}, this.value)">`
+        : `<label class="pg-label" for="pg-cb-${s.id}">${esc(s.label)}${s.note ? `<span class="pg-note">${esc(s.note)}</span>` : ''}</label>`}
+      ${planningEditMode ? `<button class="pg-del" onclick="deletePlanningStep(${s.id})" title="Usuń krok">&#10006;</button>` : ''}
+    </div>`).join('');
+  const editBtn  = document.getElementById('pgEditBtn');  if (editBtn)  editBtn.innerHTML  = planningEditMode ? '&#10003; Gotowe' : '&#9999;&#65039; Edytuj';
+  const addBtn   = document.getElementById('pgAddBtn');   if (addBtn)   addBtn.style.display   = planningEditMode ? '' : 'none';
+  const resetBtn = document.getElementById('pgResetBtn'); if (resetBtn) resetBtn.style.display = planningEditMode ? '' : 'none';
+  // Utrzymaj baner na Dashboardzie w zgodzie z postępem/edycją kroków
+  renderPlanningBanner();
+}
+function togglePlanningStep(id) {
+  const s = planningSteps.find(x => x.id === id); if (!s) return;
+  s.done = !s.done;
+  renderPlanningGuide();
+  saveState();
+}
+function togglePlanningEdit() {
+  planningEditMode = !planningEditMode;
+  renderPlanningGuide();
+}
+function editPlanningStep(id, val) {
+  const s = planningSteps.find(x => x.id === id); if (!s) return;
+  s.label = (val || '').trim() || s.label;
+  s.note = '';   // własna treść zastępuje domyślną adnotację
+  renderPlanningGuide();
+  saveState();
+}
+function addPlanningStep() {
+  _ensurePlanningSteps();
+  const id = nextPlanningStepId++;
+  planningSteps.push({ id, label: 'Nowy krok', note: '', done: false });
+  planningEditMode = true;
+  renderPlanningGuide();
+  saveState();
+  const inp = document.querySelector(`#pgList .pg-item:last-child .pg-edit-input`);
+  if (inp) { inp.focus(); inp.select(); }
+}
+function deletePlanningStep(id) {
+  planningSteps = planningSteps.filter(x => x.id !== id);
+  renderPlanningGuide();
+  saveState();
+}
+function resetPlanningSteps() {
+  if (!confirm('Przywrócić domyślną listę kroków „Od czego zacząć?"? Wprowadzone zmiany zostaną utracone.')) return;
+  planningSteps = [];
+  _ensurePlanningSteps();
+  renderPlanningGuide();
+  saveState();
+}
+// Modal „Od czego zacząć?" — otwierany z menu Ustawień oraz automatycznie w przewodniku
+function openPlanningGuide() {
+  if (typeof closeSettingsMenu === 'function') try { closeSettingsMenu(); } catch (_) {}
+  // Otwarcie z menu = „pokaż ponownie" — przywróć baner na Dashboardzie
+  try { localStorage.removeItem(_planningBannerKey()); } catch (_) {}
+  renderPlanningBanner();
+  planningEditMode = false;
+  const m = document.getElementById('planningGuideModal');
+  if (m) m.style.display = 'flex';
+  renderPlanningGuide();
+}
+function closePlanningGuide() {
+  const m = document.getElementById('planningGuideModal');
+  if (m) m.style.display = 'none';
+}
+
+// ── BANER „Od czego zacząć?" na Dashboardzie (między tytułem a licznikiem) ──
+function _planningBannerKey() {
+  const email = (typeof _currentUserEmail === 'function' ? _currentUserEmail() : '') || 'anon';
+  return 'weddingPlanningBannerHidden:' + email;
+}
+function isPlanningBannerHidden() {
+  try { return !!localStorage.getItem(_planningBannerKey()); } catch (_) { return false; }
+}
+function hidePlanningBanner() {
+  try { localStorage.setItem(_planningBannerKey(), '1'); } catch (_) {}
+  renderPlanningBanner();
+}
+function renderPlanningBanner() {
+  const banner = document.getElementById('planningBanner');
+  if (!banner) return;
+  const hero = banner.closest('.dashboard-hero');
+  if (isPlanningBannerHidden()) {
+    banner.style.display = 'none';
+    if (hero) hero.classList.remove('has-planning-banner');
+    return;
+  }
+  _ensurePlanningSteps();
+  const steps = planningSteps;
+  const done = steps.filter(s => s.done).length;
+  const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+  const sub = document.getElementById('pbSub');
+  if (sub) sub.textContent = `Sugerowana kolejność planowania · ${done}/${steps.length} ukończonych · ${pct}%`;
+  const stepsEl = document.getElementById('pbSteps');
+  if (stepsEl) {
+    const preview = steps.slice(0, 3);
+    stepsEl.innerHTML = preview.map((s, i) =>
+      `<span class="pb-step${s.done ? ' done' : ''}"><span class="pb-step-num">${i + 1}</span><span class="pb-step-txt">${esc(s.label)}</span></span>`
+    ).join('') + (steps.length > 3 ? `<span class="pb-more">+${steps.length - 3} więcej</span>` : '');
+  }
+  banner.style.display = '';
+  if (hero) hero.classList.add('has-planning-banner');
 }
 
 // ══════════════════════════════════════════════════════
@@ -7551,52 +7764,197 @@ function _currentUserEmail() {
 // ══════════════════════════════════════════════════════
 //  ONBOARDING — przewodnik krok po kroku dla nowego użytkownika
 // ══════════════════════════════════════════════════════
-const ONBOARDING_STEPS = [
-  { view:'config',   navId:'settingsGearBtn', title:'1. Konfiguracja', desc:'Zacznij tutaj: ustaw nazwę imprezy, datę, godzinę i miejsca. To zasila licznik i nagłówki aplikacji.' },
-  { view:'tables',   navId:'navTables',       title:'2. Goście i stoły', desc:'Dodaj gości („+ Dodaj gościa"), utwórz stoły i przypisz gości do miejsc.' },
-  { view:'room',     navId:'navRoom',         title:'3. Plan sali', desc:'Rozmieść stoły i elementy sali. Włącz „Edytuj plan", aby przeciągać i zmieniać rozmiary; siatka pomaga w równaniu.' },
-  { view:'budget',   navId:'navBudget',       title:'4. Budżet', desc:'Ustaw budżet całkowity, dodaj wydatki, alkohol i napoje. Koszty dostawców, noclegów i transportu też się tu sumują.' },
-  { view:'schedule', navId:'navSchedule',     title:'5. Harmonogram', desc:'Zaplanuj przebieg dnia — punkty programu z godzinami.' },
-  { view:'tasks',    navId:'navTasks',        title:'6. Zadania', desc:'Rozpisz zadania, przypisz osoby i opcjonalnie powiąż je z budżetem, dostawcą lub prezentem.' },
-  { view:'vendors',  navId:'navVendors',      title:'7. Dostawcy', desc:'Dodaj usługodawców, raty płatności i powiązania z budżetem. To już wszystko — powodzenia!' },
+// Pełna lista kroków. lvl:'b' = zakładka główna (tryb podstawowy i pełny),
+// lvl:'s' = podzakładka/sekcja (tylko tryb pełny). sub() przełącza podzakładkę.
+const ONB_ALL_STEPS = [
+  { lvl:'b', view:'dashboard', openPlanning:true, target:'#planningGuideModalCard', title:'Od czego zacząć?', desc:'Zacznij tutaj: sugerowana kolejność planowania wesela. Odhaczaj ukończone kroki — pasek pokaże postęp. Otworzysz to okno w każdej chwili z menu Ustawień (trybik).' },
+  { lvl:'b', view:'dashboard', target:'#navDashboard', title:'Dashboard', desc:'Twój pulpit dowodzenia — licznik dni do ślubu, skróty i najważniejsze statystyki w jednym miejscu.' },
+
+  { lvl:'b', view:'tables', target:'#navTables', title:'Stoły i goście', desc:'Serce organizacji gości: lista zaproszonych, układ stołów i przypisanie miejsc.' },
+  { lvl:'s', view:'tables', sub:()=>switchTablesTab('plan'),    target:'#ttab-plan',    title:'Plan stołów', desc:'Twórz stoły i przeciągaj na nie gości, aby zaplanować rozsadzenie.' },
+  { lvl:'s', view:'tables', sub:()=>switchTablesTab('card'),    target:'#ttab-card',    title:'Kartoteka gości', desc:'Pełna lista gości z danymi, statusem potwierdzenia i preferencjami.' },
+  { lvl:'s', view:'tables', sub:()=>switchTablesTab('summary'), target:'#ttab-summary', title:'Podsumowanie gości', desc:'Zbiorcze statystyki: liczba gości, potwierdzenia, dzieci i diety.' },
+
+  { lvl:'b', view:'room', target:'#navRoom', title:'Plan sali', desc:'Rozmieść stoły i elementy sali na interaktywnym planie. Włącz „Edytuj plan", aby przeciągać i zmieniać rozmiary.' },
+
+  { lvl:'b', view:'rsvp', target:'#navRsvp', title:'Potwierdzenia', desc:'Zarządzaj potwierdzeniami obecności (RSVP) i udostępniaj gościom formularz online.' },
+
+  { lvl:'b', view:'budget', target:'#navBudget', title:'Budżet', desc:'Kontroluj wszystkie koszty wesela — od sali po napoje — w jednym, przejrzystym miejscu.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('summary'),   target:'#btab-summary',   title:'Podsumowanie budżetu', desc:'Budżet całkowity kontra wydatki — szybki podgląd, ile już rozdysponowano.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('catering'),  target:'#btab-catering',  title:'Sala', desc:'Koszt sali i cateringu — stawka za osobę automatycznie przelicza się z liczbą gości.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('expenses'),  target:'#btab-expenses',  title:'Wydatki', desc:'Dodawaj pozostałe wydatki wesela i grupuj je w kategorie.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('expenses'),  target:'#alcoholSection', title:'Alkohol', desc:'Osobny panel na alkohol — planuj rodzaje, ilości i koszty trunków.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('expenses'),  target:'#softSection',    title:'Napoje bezalkoholowe', desc:'Analogiczny panel na napoje bezalkoholowe — woda, soki, napoje gazowane.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('honeymoon'), target:'#btab-honeymoon', title:'Podróż poślubna', desc:'Zaplanuj budżet miesiąca miodowego osobno od kosztów wesela.' },
+  { lvl:'s', view:'budget', sub:()=>switchBudgetTab('payments'),  target:'#btab-payments',  title:'Płatności', desc:'Harmonogram wpłat i zaliczek — pilnuj terminów i tego, co już zapłacone.' },
+
+  { lvl:'b', view:'schedule', target:'#navSchedule', title:'Harmonogram', desc:'Rozpisz przebieg dnia ślubu — od ceremonii po ostatni taniec.' },
+  { lvl:'s', view:'schedule', sub:()=>switchScheduleTab('plan'),      target:'#stab-plan',      title:'Harmonogram — wydarzenia', desc:'Dodawaj punkty programu z godzinami. Podgląd jako lista, kolumny lub wykres Gantta.' },
+  { lvl:'s', view:'schedule', sub:()=>switchScheduleTab('checklist'), target:'#stab-checklist', title:'Checklista', desc:'Lista rzeczy do odhaczenia przed weselem i w jego trakcie.' },
+
+  { lvl:'b', view:'tasks', target:'#navTasks', title:'Zadania', desc:'Rozpisz zadania, przypisz osoby i powiąż je z budżetem, dostawcą lub prezentem.' },
+
+  { lvl:'b', view:'vendors', target:'#navVendors', title:'Dostawcy', desc:'Baza usługodawców — kontakty, umowy, raty płatności i powiązania z budżetem.' },
+
+  { lvl:'b', view:'music', target:'#navMusic', title:'Muzyka', desc:'Twórz playlistę wesela i zbieraj propozycje utworów od gości.' },
+  { lvl:'s', view:'music', sub:()=>switchMusicTab('list'),   target:'#mtab-list',   title:'Nasza lista', desc:'Wasza oficjalna lista utworów — to, co ma zagrać, i to, czego unikamy.' },
+  { lvl:'s', view:'music', sub:()=>switchMusicTab('guests'), target:'#mtab-guests', title:'Propozycje gości', desc:'Utwory zaproponowane przez gości przez kod QR — zatwierdzaj je do listy.' },
+
+  { lvl:'b', view:'gallery', target:'#navGallery', title:'Galeria & QR', desc:'Wspólna galeria zdjęć z wesela oraz kody QR do udostępniania gościom.' },
+
+  { lvl:'b', view:'analytics', target:'#navAnalytics', title:'Analityka', desc:'Wykresy i statystyki organizacji — postępy, koszty i frekwencja na jednym ekranie.' },
+
+  { lvl:'b', view:'transport', target:'#navTransport', title:'Transport', desc:'Zorganizuj dojazd gości — trasy, pojazdy i przypisanie pasażerów.' },
+
+  { lvl:'b', view:'accommodation', target:'#navAccommodation', title:'Noclegi', desc:'Zarządzaj noclegami dla gości — obiekty, pokoje i rezerwacje.' },
+
+  { lvl:'b', view:'gifts', target:'#navGifts', title:'Prezenty', desc:'Ewidencja prezentów otrzymanych, upominków dla gości i listy życzeń.' },
+  { lvl:'s', view:'gifts', sub:()=>switchGiftsTab('received'),  target:'#gtab-received',  title:'Prezenty otrzymane', desc:'Zapisuj, co i od kogo dostaliście — przyda się przy podziękowaniach.' },
+  { lvl:'s', view:'gifts', sub:()=>switchGiftsTab('forguests'), target:'#gtab-forguests', title:'Dla gości (upominki)', desc:'Planuj podziękowania i upominki, które wręczacie gościom.' },
+  { lvl:'s', view:'gifts', sub:()=>switchGiftsTab('proposals'), target:'#gtab-proposals', title:'Propozycje (lista życzeń)', desc:'Wasza lista życzeń — podpowiedzcie gościom, co sprawi Wam radość.' },
+
+  { lvl:'b', view:'config', target:'#settingsGearBtn', title:'Ustawienia / Konfiguracja', desc:'Tu ustawisz nazwę imprezy, datę, miejsca i pozostałe dane. Przewodnik wznowisz spod tego trybika. To już wszystko — powodzenia!' },
 ];
 let _onbIndex = 0;
+let _onbMode = 'full';      // 'basic' | 'full'
+let _onbSteps = [];          // aktywna lista kroków (po filtrze trybu)
 
 function _onboardingKey() {
   const email = (typeof _currentUserEmail === 'function' ? _currentUserEmail() : '') || 'anon';
   return 'weddingOnboardingDone:' + email;
 }
 function maybeStartOnboarding() {
-  try { if (!localStorage.getItem(_onboardingKey())) startOnboarding(false); } catch (_) {}
+  try { if (!localStorage.getItem(_onboardingKey())) startOnboarding(); } catch (_) {}
 }
+// Pokaż ekran powitalny z wyborem tempa
 function startOnboarding() {
+  const ov = document.getElementById('onboardingOverlay'); if (ov) ov.style.display = 'none';
+  const intro = document.getElementById('onbIntro'); if (intro) intro.style.display = 'flex';
+}
+// Rozpocznij właściwy przewodnik w wybranym trybie
+function onboardingBegin(mode) {
+  _onbMode = (mode === 'basic') ? 'basic' : 'full';
+  _onbSteps = ONB_ALL_STEPS.filter(s => _onbMode === 'full' ? true : s.lvl === 'b');
   _onbIndex = 0;
+  const intro = document.getElementById('onbIntro'); if (intro) intro.style.display = 'none';
+  _onbBindReposition();
   _onboardingShowStep();
 }
 function _onboardingShowStep() {
-  const step = ONBOARDING_STEPS[_onbIndex];
+  const step = _onbSteps[_onbIndex];
   if (!step) { finishOnboarding(); return; }
   if (typeof closeSettingsMenu === 'function') try { closeSettingsMenu(); } catch (_) {}
-  if (typeof switchView === 'function') switchView(step.view);
-  document.querySelectorAll('.onb-highlight').forEach(e => e.classList.remove('onb-highlight'));
-  const navEl = document.getElementById(step.navId);
-  if (navEl) navEl.classList.add('onb-highlight');
-  const ov = document.getElementById('onboardingOverlay');
-  if (ov) ov.style.display = 'flex';
+  // Modal „Od czego zacząć?" — otwórz tylko na kroku, który go prezentuje; w innych krokach zamknij
+  if (typeof closePlanningGuide === 'function') try { closePlanningGuide(); } catch (_) {}
+  if (typeof switchView === 'function') try { switchView(step.view); } catch (_) {}
+  if (step.sub) try { step.sub(); } catch (_) {}
+  if (step.openPlanning && typeof openPlanningGuide === 'function') try { openPlanningGuide(); } catch (_) {}
   const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
   set('onbTitle', step.title);
   set('onbDesc', step.desc);
-  set('onbProgress', `Krok ${_onbIndex + 1} z ${ONBOARDING_STEPS.length}`);
+  set('onbProgress', `Krok ${_onbIndex + 1} z ${_onbSteps.length}`);
   const prev = document.getElementById('onbPrevBtn'); if (prev) prev.style.display = _onbIndex > 0 ? '' : 'none';
-  const next = document.getElementById('onbNextBtn'); if (next) next.textContent = (_onbIndex === ONBOARDING_STEPS.length - 1) ? 'Zakończ ✓' : 'Dalej →';
+  const next = document.getElementById('onbNextBtn'); if (next) next.innerHTML = (_onbIndex === _onbSteps.length - 1) ? 'Zakończ &#10003;' : 'Dalej &#8594;';
+  const ov = document.getElementById('onboardingOverlay'); if (ov) ov.style.display = 'block';
+  // Poczekaj na przerysowanie widoku/podzakładki, dopiero potem ustaw spotlight
+  setTimeout(() => _onbPositionStep(step), 230);
 }
-function onboardingNext() { if (_onbIndex >= ONBOARDING_STEPS.length - 1) finishOnboarding(); else { _onbIndex++; _onboardingShowStep(); } }
+function _onbPositionStep(step) {
+  const spot = document.getElementById('onbSpotlight');
+  const tip = document.getElementById('onbTooltip');
+  if (!tip) return;
+  const tEl = step.target ? document.querySelector(step.target) : null;
+  const rect = tEl ? tEl.getBoundingClientRect() : null;
+  const visible = !!(rect && rect.width > 2 && rect.height > 2 &&
+                     rect.bottom > 0 && rect.right > 0 &&
+                     rect.top < window.innerHeight && rect.left < window.innerWidth);
+  if (!visible) {
+    // Element niewidoczny (np. ukryty na wąskim ekranie) — wyśrodkuj dymek bez spotlightu
+    if (spot) spot.style.display = 'none';
+    tip.className = 'onb-tooltip onb-pos-center';
+    tip.style.left = Math.max(12, (window.innerWidth - tip.offsetWidth) / 2) + 'px';
+    tip.style.top = Math.max(12, (window.innerHeight - tip.offsetHeight) / 2) + 'px';
+    return;
+  }
+  if (tEl.scrollIntoView) try { tEl.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' }); } catch (_) {}
+  // Po ewentualnym przewinięciu zmierz ponownie i ustaw spotlight + dymek
+  setTimeout(() => {
+    const r = tEl.getBoundingClientRect();
+    const pad = 6;
+    if (spot) {
+      spot.style.display = 'block';
+      spot.style.left = (r.left - pad) + 'px';
+      spot.style.top = (r.top - pad) + 'px';
+      spot.style.width = (r.width + pad * 2) + 'px';
+      spot.style.height = (r.height + pad * 2) + 'px';
+    }
+    _onbPlaceTooltip(r, tip);
+  }, 240);
+}
+function _onbPlaceTooltip(r, tip) {
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const gap = 16;
+  const space = { right: vw - r.right, left: r.left, bottom: vh - r.bottom, top: r.top };
+  let pos;
+  if (space.right >= tw + gap) pos = 'right';
+  else if (space.bottom >= th + gap) pos = 'bottom';
+  else if (space.top >= th + gap) pos = 'top';
+  else if (space.left >= tw + gap) pos = 'left';
+  else pos = 'bottom';
+  let left, top;
+  if (pos === 'right') { left = r.right + gap; top = r.top + r.height / 2 - th / 2; }
+  else if (pos === 'left') { left = r.left - gap - tw; top = r.top + r.height / 2 - th / 2; }
+  else if (pos === 'bottom') { left = r.left + r.width / 2 - tw / 2; top = r.bottom + gap; }
+  else { left = r.left + r.width / 2 - tw / 2; top = r.top - gap - th; }
+  left = Math.max(12, Math.min(left, vw - tw - 12));
+  top = Math.max(12, Math.min(top, vh - th - 12));
+  tip.className = 'onb-tooltip onb-pos-' + pos;
+  tip.style.left = left + 'px';
+  tip.style.top = top + 'px';
+  // Ustaw strzałkę tak, by wskazywała środek podświetlonego elementu (nawet po dosunięciu dymka)
+  const arrow = document.getElementById('onbArrow');
+  if (arrow) {
+    if (pos === 'right' || pos === 'left') {
+      let ay = (r.top + r.height / 2) - top;
+      ay = Math.max(14, Math.min(ay, th - 14));
+      arrow.style.top = ay + 'px'; arrow.style.marginTop = '-7px';
+      arrow.style.left = ''; arrow.style.marginLeft = '';
+    } else {
+      let ax = (r.left + r.width / 2) - left;
+      ax = Math.max(14, Math.min(ax, tw - 14));
+      arrow.style.left = ax + 'px'; arrow.style.marginLeft = '-7px';
+      arrow.style.top = ''; arrow.style.marginTop = '';
+    }
+  }
+}
+function onboardingNext() { if (_onbIndex >= _onbSteps.length - 1) finishOnboarding(); else { _onbIndex++; _onboardingShowStep(); } }
 function onboardingPrev() { if (_onbIndex > 0) { _onbIndex--; _onboardingShowStep(); } }
 function onboardingSkip() { finishOnboarding(); }
 function finishOnboarding() {
   const ov = document.getElementById('onboardingOverlay'); if (ov) ov.style.display = 'none';
-  document.querySelectorAll('.onb-highlight').forEach(e => e.classList.remove('onb-highlight'));
+  const intro = document.getElementById('onbIntro'); if (intro) intro.style.display = 'none';
+  const spot = document.getElementById('onbSpotlight'); if (spot) spot.style.display = 'none';
+  if (typeof closePlanningGuide === 'function') try { closePlanningGuide(); } catch (_) {}
+  _onbUnbindReposition();
   try { localStorage.setItem(_onboardingKey(), '1'); } catch (_) {}
+}
+// Reposycjonowanie spotlightu/dymka przy zmianie rozmiaru okna
+let _onbRepoHandler = null;
+function _onbBindReposition() {
+  if (_onbRepoHandler) return;
+  _onbRepoHandler = () => {
+    const ov = document.getElementById('onboardingOverlay');
+    if (!ov || ov.style.display === 'none') return;
+    const step = _onbSteps[_onbIndex];
+    if (step) _onbPositionStep(step);
+  };
+  window.addEventListener('resize', _onbRepoHandler);
+}
+function _onbUnbindReposition() {
+  if (!_onbRepoHandler) return;
+  window.removeEventListener('resize', _onbRepoHandler);
+  _onbRepoHandler = null;
 }
 
 // ══════════════════════════════════════════════════════
@@ -8365,6 +8723,7 @@ function _serializeState() {
     internalTransport, nextInternalTransportId,
     locationLinksSeeded,
     songs, nextSongId, checklist, nextChecklistId,
+    planningSteps, nextPlanningStepId,
   };
 }
 
@@ -8963,6 +9322,15 @@ function _applyEventState(s) {
     checklist = Array.isArray(s.checklist) ? s.checklist : [];
     checklist.forEach(it => { if (it.done === undefined) it.done = false; if (!it.category) it.category = CHECKLIST_CATEGORIES[0]; });
     nextChecklistId = s.nextChecklistId || (checklist.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
+
+    // „Od czego zacząć?" — sugerowana kolejność planowania (z domyślną listą przy pierwszym uruchomieniu)
+    if (Array.isArray(s.planningSteps)) {
+      planningSteps = s.planningSteps;
+    } else {
+      planningSteps = DEFAULT_PLANNING_STEPS.map((d, i) => ({ id: i + 1, label: d.label, note: d.note || '', done: false }));
+    }
+    planningSteps.forEach(st => { if (st.done === undefined) st.done = false; if (st.note === undefined) st.note = ''; });
+    nextPlanningStepId = s.nextPlanningStepId || (planningSteps.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
     vendors.forEach(v => {
       if (v.customCategory === undefined) v.customCategory = '';
       if (v.mapUrl === undefined) v.mapUrl = '';

@@ -76,7 +76,8 @@
       <button class="settings-menu-item" id="setItemConfig"    onclick="openSettingsView('config')"><span class="sm-ico">&#9881;&#65039;</span> Konfiguracja</button>
       <button class="settings-menu-item" id="setItemAccess"    onclick="openSettingsView('access')"><span class="sm-ico">&#128272;</span> Dostęp</button>
       <button class="settings-menu-item" id="setItemDevSettings" onclick="openSettingsView('devsettings')"><span class="sm-ico">&#128295;</span> Ustawienia programistyczne</button>
-      <button class="settings-menu-item" id="setItemOnboarding" onclick="startOnboarding()"><span class="sm-ico">&#129517;</span> Przewodnik (od nowa)</button>
+      <button class="settings-menu-item" id="setItemPlanning" onclick="openPlanningGuide()"><span class="sm-ico">&#129517;</span> Od czego zacząć?</button>
+      <button class="settings-menu-item" id="setItemOnboarding" onclick="startOnboarding()"><span class="sm-ico">&#127891;</span> Przewodnik (od nowa)</button>
     </div>
   </div>
 </div>
@@ -223,6 +224,19 @@
   <div id="viewDashboard" class="view-panel active-view">
     <div class="dashboard-hero">
       <div class="dashboard-title" id="dashboardTitle">&#128149; Do Waszego Ślubu</div>
+
+      <!-- BANER „Od czego zacząć?" — skrót do przewodnika, zamykalny (stan per użytkownik) -->
+      <div class="planning-banner" id="planningBanner" style="display:none">
+        <button class="pb-close" onclick="hidePlanningBanner()" title="Zamknij baner" aria-label="Zamknij baner">&#10006;</button>
+        <div class="pb-icon">&#129517;</div>
+        <div class="pb-body">
+          <div class="pb-title">Od czego zacząć?</div>
+          <div class="pb-sub" id="pbSub"></div>
+          <div class="pb-steps" id="pbSteps"></div>
+        </div>
+        <button class="pb-cta" onclick="openPlanningGuide()">Otwórz przewodnik &#8594;</button>
+      </div>
+
       <div class="countdown-wrapper">
         <div class="countdown-display" id="countdownDisplay">
           <div class="countdown-unit"><span class="cd-num" id="cdDays">--</span><span class="cd-lbl">dni</span></div>
@@ -690,6 +704,7 @@
               <select class="vendor-pick-sel" id="expVendorPick" onchange="if(this.value){addExpenseFromVendor(this.value);this.value='';}" title="Dodaj wydatek z istniejącego dostawcy"></select>
               <button class="btn btn-sm" id="restoreAlcoholBtn" onclick="showAlcoholPanel()" style="display:none">&#127870; Pokaż alkohol</button>
             </div>
+            <div id="expQuickAdd" class="exp-quickadd"></div>
             <div id="expFiltersBar" class="exp-filters-bar" style="display:none"></div>
             <div class="exp-summary" id="expSummary" style="display:none">
               <div class="exp-sum-row"><span>Zaplanowano:</span><span id="expSumPlanned" class="exp-sum-val">0,00 zł</span></div>
@@ -1186,18 +1201,60 @@
 
 </div><!-- /.views-container -->
 
-<!-- ONBOARDING — przewodnik krok po kroku -->
+<!-- ONBOARDING — przewodnik krok po kroku (efekt spotlight) -->
 <div id="onboardingOverlay" class="onboarding-overlay" style="display:none">
-  <div class="onboarding-card">
+  <div class="onb-backdrop" id="onbBackdrop"></div>
+  <div class="onb-spotlight" id="onbSpotlight"></div>
+  <div class="onb-tooltip onb-pos-bottom" id="onbTooltip">
+    <span class="onb-arrow" id="onbArrow"></span>
     <div class="onb-progress" id="onbProgress"></div>
     <h3 class="onb-title" id="onbTitle"></h3>
     <p class="onb-desc" id="onbDesc"></p>
     <div class="onb-actions">
-      <button class="btn onb-skip" onclick="onboardingSkip()">Pomiń</button>
+      <button class="btn onb-skip" onclick="onboardingSkip()">Pomiń przewodnik</button>
       <span class="onb-spacer"></span>
       <button class="btn onb-prev" id="onbPrevBtn" onclick="onboardingPrev()" style="display:none">&#8592; Wstecz</button>
       <button class="btn btn-primary" id="onbNextBtn" onclick="onboardingNext()">Dalej &#8594;</button>
     </div>
+  </div>
+</div>
+
+<!-- ONBOARDING — ekran powitalny z wyborem tempa -->
+<div id="onbIntro" class="onb-intro-overlay" style="display:none">
+  <div class="onb-intro-card">
+    <div class="onb-intro-emoji">&#129517;</div>
+    <h2 class="onb-intro-title">Witaj w organizatorze wesela!</h2>
+    <p class="onb-intro-text">Oprowadzę Cię po aplikacji i pokażę, gdzie co znajdziesz. Wybierz tempo &mdash; przewodnik możesz przerwać w każdej chwili.</p>
+    <div class="onb-intro-actions">
+      <button class="onb-intro-btn onb-intro-primary" onclick="onboardingBegin('basic')">
+        <span class="onb-intro-btn-title">Pokaż mi tylko podstawy</span>
+        <span class="onb-intro-btn-sub">Główne zakładki &mdash; szybki przegląd</span>
+      </button>
+      <button class="onb-intro-btn" onclick="onboardingBegin('full')">
+        <span class="onb-intro-btn-title">Pełny przewodnik</span>
+        <span class="onb-intro-btn-sub">Wszystkie zakładki i podzakładki</span>
+      </button>
+    </div>
+    <button class="onb-intro-skip" onclick="onboardingSkip()">Pomiń przewodnik</button>
+  </div>
+</div>
+
+<!-- OD CZEGO ZACZĄĆ? — modal z sugerowaną kolejnością planowania (otwierany z menu Ustawień / w przewodniku) -->
+<div id="planningGuideModal" class="planning-modal-overlay" style="display:none" onclick="if(event.target===this)closePlanningGuide()">
+  <div class="planning-guide-card" id="planningGuideModalCard">
+    <div class="pg-head">
+      <div class="pg-title">&#129517; Od czego zacząć?</div>
+      <div class="pg-tools">
+        <button class="pg-tool-btn" id="pgResetBtn" onclick="resetPlanningSteps()" style="display:none">&#128260; Reset</button>
+        <button class="pg-tool-btn" id="pgEditBtn" onclick="togglePlanningEdit()">&#9999;&#65039; Edytuj</button>
+        <button class="pg-close-btn" onclick="closePlanningGuide()" title="Zamknij" aria-label="Zamknij">&#10006;</button>
+      </div>
+    </div>
+    <div class="pg-sub">Sugerowana kolejność organizacji wesela. Odhaczaj ukończone kroki, edytuj i dodawaj własne.</div>
+    <div class="pg-progress-track"><div class="pg-progress-bar" id="pgProgressBar"></div></div>
+    <div class="pg-progress-label" id="pgProgressLabel"></div>
+    <div class="pg-list" id="pgList"></div>
+    <button class="pg-add-btn" id="pgAddBtn" onclick="addPlanningStep()" style="display:none">&#10133; Dodaj własny krok</button>
   </div>
 </div>
 
