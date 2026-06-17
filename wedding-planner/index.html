@@ -599,6 +599,13 @@
         <button class="room-fs-btn" id="roomFsBtn" type="button" onclick="toggleRoomFullscreen()" title="Pełny ekran">
           <span class="room-fs-ico">&#10218;&#10219;</span> Pełny ekran
         </button>
+        <!-- STEROWANIE ZOOMEM: przybliż/oddal + procent + dopasuj do ekranu -->
+        <div class="room-zoom-ctrl" id="roomZoomCtrl">
+          <button class="room-zoom-btn" type="button" onclick="roomZoomOut()" title="Oddal (Ctrl + kółko myszy)" aria-label="Oddal">&#8722;</button>
+          <span class="room-zoom-label" id="roomZoomLabel" title="Poziom powiększenia">100%</span>
+          <button class="room-zoom-btn" type="button" onclick="roomZoomIn()" title="Przybliż (Ctrl + kółko myszy)" aria-label="Przybliż">&#43;</button>
+          <button class="room-zoom-btn room-zoom-fit" type="button" onclick="roomZoomFit()" title="Dopasuj do ekranu">&#9974; Dopasuj</button>
+        </div>
         <div class="room-canvas" id="roomCanvas"
           onmousedown="roomCanvasMouseDown(event)"
           ondragover="roomCanvasDragOver(event)"

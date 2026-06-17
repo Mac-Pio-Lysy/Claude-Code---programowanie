@@ -42,6 +42,12 @@
   top: 0;
   z-index: 100;
 }
+/* Desktop (szeroki): pasek użytkownika (avatar + imię + Wyloguj) i trybik są stałe (fixed)
+   w prawym górnym rogu. Rezerwujemy na nie miejsce po prawej w nawigacji, aby zakładki
+   (np. „Potwierdzenia", „Galeria & QR") nigdy nie chowały się pod nim — także po przewinięciu. */
+@media (min-width: 1201px) {
+  .main-nav { padding-right: 340px; }
+}
 .nav-groups {
   display: flex;
   align-items: stretch;
@@ -1346,6 +1352,8 @@ body.mob-nav-open { overflow: hidden; }
   }
 
   /* ── Nawigacja: kategorie jako rozwijane listy ── */
+  /* Pasek zwęża się do avatara + trybika — rezerwujemy węższy margines po prawej */
+  .main-nav { padding-right: 104px; }
   .nav-group { padding: 3px 6px; }
   .nav-group-label {
     display: inline-flex;
@@ -1605,11 +1613,9 @@ body.mob-nav-open { overflow: hidden; }
   .guest-expand-btn { width: 30px; height: 30px; font-size: 0.66rem; }
 
   /* ── Plan sali ── */
-  .room-canvas {
-    overflow: auto;
-    touch-action: pan-x pan-y;
-    -webkit-overflow-scrolling: touch;
-  }
+  /* Gesty (pinch-to-zoom / pan jednym palcem) obsługujemy w JS — wyłączamy domyślne
+     przewijanie/zoom przeglądarki, by gesty były płynne i nie kolidowały z widokiem. */
+  .room-canvas { touch-action: none; }
   .room-toolbar { flex-wrap: wrap; gap: 6px; }
 
   /* ── Budżet ── */
@@ -3153,6 +3159,51 @@ body.room-fs-lock { overflow: hidden; }
 
 /* płynne skalowanie siatki */
 .room-canvas { transition: transform 0.3s ease; }
+/* podczas gestów ciągłych (kółko/pinch/pan) wyłączamy animację — płynność 1:1 z palcem/kursorem */
+.room-canvas.room-no-transition { transition: none; }
+/* kursory przesuwania widoku (pan) po tle */
+.room-canvas { cursor: grab; }
+.room-canvas.room-panning { cursor: grabbing; }
+.room-canvas-wrapper { touch-action: none; }   /* przejmujemy gesty (pinch/pan) z poziomu JS */
+
+/* ── PLAN SALI: STEROWANIE ZOOMEM (przybliż/oddal/dopasuj) ── */
+/* Stały (fixed) pływający panel — zawsze widoczny w prawym dolnym rogu obszaru planu,
+   niezależnie od przewijania strony. Renderuje się tylko gdy widok „Plan sali" jest aktywny
+   (rodzic #viewRoom ma wtedy display:flex). Nad treścią, ale pod menu ustawień/modalami. */
+.room-zoom-ctrl {
+  position: fixed;
+  bottom: 18px; right: 22px;
+  z-index: 200;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,0.7);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--soft-shadow);
+}
+.room-zoom-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 34px; height: 34px;
+  padding: 0 10px;
+  border: none; border-radius: 18px;
+  background: transparent;
+  color: var(--blue-dark);
+  font-family: inherit; font-size: 1.05rem; font-weight: 700; line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.room-zoom-btn:hover { background: var(--blue); color: #fff; }
+.room-zoom-btn:active { transform: translateY(1px); }
+.room-zoom-fit { font-size: 0.8rem; font-weight: 700; }
+.room-zoom-label {
+  min-width: 46px; text-align: center;
+  font-size: 0.82rem; font-weight: 700; color: var(--blue-dark);
+  user-select: none; pointer-events: none;
+}
+/* w pełnym ekranie sterowanie zoomem zakotwiczone w rogu okna */
+.room-canvas-wrapper.room-fs-active .room-zoom-ctrl { position: fixed; bottom: 22px; right: 22px; }
 
 /* ── ROOM TOOLBAR ── */
 .room-toolbar {

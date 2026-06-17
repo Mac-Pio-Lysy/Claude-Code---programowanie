@@ -66,7 +66,18 @@ let isFullscreen = false;        // tryb pełnoekranowy „Plan sali"
 let roomFsScale = 1;             // bieżąca skala dopasowania (fit-to-screen)
 let roomGridOn = false;          // siatka rozmiarów (snap) w planie sali
 const ROOM_GRID = 20;            // krok siatki w px
-let roomScale = 1;               // bieżąca skala kanwy (dopasowanie do okna) — wspólna dla podglądu i edycji
+let roomScale = 1;               // bieżąca skala EFEKTYWNA kanwy (dopasowanie × zoom) — używana przez logikę przeciągania
+// ── PLAN SALI: ZOOM (powiększanie/oddalanie) i PAN (przesuwanie widoku) ──
+// roomZoom to mnożnik powiększenia NAD bazowym dopasowaniem do ekranu (1 = dopasowane).
+// Zoom i pan zmieniają wyłącznie widok (transform CSS) — nie ruszają danych ani rzeczywistych wymiarów.
+let roomZoom    = 1;             // mnożnik powiększenia użytkownika (1 = „dopasuj do ekranu")
+let roomPanX    = 0;             // przesunięcie widoku w poziomie (px ekranowe)
+let roomPanY    = 0;             // przesunięcie widoku w pionie (px ekranowe)
+let roomFitScale = 1;            // bazowa skala dopasowania sali do widoku (bez zoomu użytkownika)
+let roomPan     = null;          // stan przeciągania tła (pan): { startX, startY, startPanX, startPanY }
+let roomPinch   = null;          // stan gestu pinch: { startDist, startZoom }
+let _roomZoomInit = false;       // czy podłączono już nasłuchy zoom/pan (kółko myszy / dotyk)
+const ROOM_ZOOM_MIN = 0.4, ROOM_ZOOM_MAX = 5, ROOM_ZOOM_STEP = 1.25;
 
 // Rozmiar „pudełka" stołu na kanwie (do wykrywania kolizji)
 function _tableWrapSize(t) {
@@ -3535,7 +3546,7 @@ function switchView(view) {
       updateStats();
       applyTablesTab();   // przywróć aktywną podzakładkę (Plan stołów / Kartoteka Gości)
       break;
-    case 'room':          isEditing = false; selectedRoomElementId = null; if (isFullscreen) exitRoomFullscreen(); renderRoom(); break;
+    case 'room':          isEditing = false; selectedRoomElementId = null; if (isFullscreen) exitRoomFullscreen(); _resetRoomZoom(); renderRoom(); break;
     case 'budget':        renderBudget(); renderPayments(); break;
     case 'dashboard':     renderDashboard();     break;
     case 'analytics':     renderAnalytics();     break;
@@ -3788,6 +3799,7 @@ function renderRoom() {
   const elementHtml    = roomElements.map(renderRoomElement).join('');
   canvas.innerHTML = `<div class="room-canvas-label">${esc(roomName)}</div>${dimLabel}${elementHtml}${tableHtml}${staffTableHtml}`;
   _applyRoomEditUI();
+  _initRoomZoomControls();   // podłącz (raz) zoom kółkiem i gesty dotykowe
   _applyRoomFit();        // dopasowanie do okna (podgląd i edycja) lub pełny ekran
   _updateRoomFsBtn();
 }
@@ -3885,6 +3897,13 @@ function roomCanvasMouseDown(e) {
   if (roomElementDrag || roomElementResize || roomDrag || roomStaffDrag || roomTableResize) return;   // właśnie zaczęło się przeciąganie/zmiana rozmiaru
   if (e.target.closest('.rt-element-wrap')) return;
   if (selectedRoomElementId !== null) { selectedRoomElementId = null; renderRoom(); }
+  // Pan tła — przeciąganie widoku, gdy klikamy tło (nie stół/element). Działa w podglądzie i edycji.
+  if (e.button === 0 && !e.target.closest('.rt-wrap, .rt-staff-wrap, .rt-element-wrap')) {
+    e.preventDefault();
+    _roomInstantZoom();
+    roomPan = { startX: e.clientX, startY: e.clientY, startPanX: roomPanX, startPanY: roomPanY };
+    document.getElementById('roomCanvas')?.classList.add('room-panning');
+  }
 }
 
 function startRoomElementDrag(e, id) {
@@ -4069,10 +4088,21 @@ function _fitRoomToScreen() {
   const availH = Math.max(100, window.innerHeight - PAD);
   // CANVAS_W × roomCanvasH odzwierciedlają proporcje sali (widthM × lengthM)
   const s = Math.max(0.1, Math.min(availW / CANVAS_W, availH / roomCanvasH));
-  roomFsScale = s;
-  roomScale = s;
+  roomFitScale = s;
+  _applyRoomTransform();   // nałóż zoom użytkownika i pan na bazowe dopasowanie
+}
+
+// Stosuje aktualny transform kanwy: bazowe dopasowanie × zoom użytkownika + przesunięcie (pan).
+// Zoom/pan to wyłącznie widok — nie zmieniają danych ani rzeczywistych wymiarów stołów/elementów.
+function _applyRoomTransform() {
+  const canvas = document.getElementById('roomCanvas');
+  if (!canvas) return;
+  const eff = roomFitScale * roomZoom;
+  roomScale  = eff;        // skala efektywna — kompensacja w logice przeciągania (mousemove)
+  roomFsScale = eff;
   canvas.style.transformOrigin = 'center center';
-  canvas.style.transform = 'scale(' + s + ')';
+  canvas.style.transform = `translate(${roomPanX}px, ${roomPanY}px) scale(${eff})`;
+  _updateRoomZoomUI();
 }
 
 // Dopasowuje siatkę sali do dostępnej przestrzeni w trybie PODGLĄDU (desktop i mobile).
@@ -4092,9 +4122,109 @@ function _fitRoomPreview() {
   const innerH = Math.max(50, availH - padY);
   // CANVAS_W × roomCanvasH zachowują proporcje sali (widthM × lengthM)
   const s = Math.max(0.05, Math.min(innerW / CANVAS_W, innerH / roomCanvasH));
-  roomScale = s;
-  canvas.style.transformOrigin = 'center center';
-  canvas.style.transform = 'scale(' + s + ')';
+  roomFitScale = s;
+  _applyRoomTransform();   // nałóż zoom użytkownika i pan na bazowe dopasowanie
+}
+
+// ── PLAN SALI: STEROWANIE ZOOMEM I PRZESUWANIEM (pan) ──
+function _roomWrapperCenter() {
+  const wrap = document.getElementById('roomCanvasWrapper');
+  if (!wrap) return null;
+  const r = wrap.getBoundingClientRect();
+  return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+}
+// Ustawia poziom zoomu; opcjonalnie utrzymuje punkt (focalX,focalY) nieruchomo — kursor lub środek gestu pinch.
+function _setRoomZoom(newZoom, focalX, focalY) {
+  newZoom = Math.max(ROOM_ZOOM_MIN, Math.min(ROOM_ZOOM_MAX, newZoom));
+  if (focalX != null && roomZoom > 0) {
+    const c = _roomWrapperCenter();
+    if (c) {
+      // transform-origin = środek kanwy (pokrywa się ze środkiem wrappera + pan).
+      // Utrzymujemy punkt focal nieruchomo, korygując przesunięcie proporcjonalnie do zmiany skali.
+      const ratio = newZoom / roomZoom;
+      const dX = focalX - c.x, dY = focalY - c.y;
+      roomPanX = dX - (dX - roomPanX) * ratio;
+      roomPanY = dY - (dY - roomPanY) * ratio;
+    }
+  }
+  roomZoom = newZoom;
+  _applyRoomTransform();
+}
+function roomZoomIn()  { _roomSmoothZoom(); _setRoomZoom(roomZoom * ROOM_ZOOM_STEP); }
+function roomZoomOut() { _roomSmoothZoom(); _setRoomZoom(roomZoom / ROOM_ZOOM_STEP); }
+// „Dopasuj do ekranu" — reset zoomu i przesunięcia oraz ponowne dopasowanie do widoku.
+function roomZoomFit() {
+  _roomSmoothZoom();
+  roomZoom = 1; roomPanX = 0; roomPanY = 0;
+  _applyRoomFit();
+}
+function _resetRoomZoom() { roomZoom = 1; roomPanX = 0; roomPanY = 0; }
+function _updateRoomZoomUI() {
+  const lbl = document.getElementById('roomZoomLabel');
+  if (lbl) lbl.textContent = Math.round(roomZoom * 100) + '%';
+}
+// Płynne przejście (przyciski/dopasowanie) vs. natychmiastowe (gesty ciągłe: kółko/pinch/pan)
+function _roomSmoothZoom()  { document.getElementById('roomCanvas')?.classList.remove('room-no-transition'); }
+function _roomInstantZoom() { document.getElementById('roomCanvas')?.classList.add('room-no-transition'); }
+function _touchDist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+function _touchMid(t)  { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
+
+// Podłącza nasłuchy: Ctrl+kółko (zoom do kursora) oraz dotyk (pinch-to-zoom 2 palce, pan 1 palcem po tle).
+// Wywoływane raz — wrapper jest stały w DOM, więc działa też w trybie pełnoekranowym.
+function _initRoomZoomControls() {
+  if (_roomZoomInit) return;
+  const wrap = document.getElementById('roomCanvasWrapper');
+  if (!wrap) return;
+  _roomZoomInit = true;
+
+  wrap.addEventListener('wheel', e => {
+    if (currentView !== 'room' || !e.ctrlKey) return;   // zoom tylko z Ctrl — bez Ctrl działa normalne przewijanie
+    e.preventDefault();
+    _roomInstantZoom();
+    _setRoomZoom(roomZoom * (e.deltaY < 0 ? 1.12 : 1 / 1.12), e.clientX, e.clientY);
+  }, { passive: false });
+
+  wrap.addEventListener('touchstart', e => {
+    if (currentView !== 'room') return;
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      _roomInstantZoom();
+      roomPinch = { startDist: _touchDist(e.touches), startZoom: roomZoom };
+      roomPan = null;
+    } else if (e.touches.length === 1) {
+      const t = e.touches[0];
+      // jeden palec po tle (nie po stole/elemencie) = przesuwanie widoku
+      if (!(t.target && t.target.closest && t.target.closest('.rt-wrap, .rt-staff-wrap, .rt-element-wrap'))) {
+        _roomInstantZoom();
+        roomPan = { startX: t.clientX, startY: t.clientY, startPanX: roomPanX, startPanY: roomPanY };
+      }
+    }
+  }, { passive: false });
+
+  wrap.addEventListener('touchmove', e => {
+    if (currentView !== 'room') return;
+    if (roomPinch && e.touches.length === 2) {
+      e.preventDefault();
+      const dist = _touchDist(e.touches);
+      if (roomPinch.startDist > 0) {
+        const mid = _touchMid(e.touches);
+        _setRoomZoom(roomPinch.startZoom * (dist / roomPinch.startDist), mid.x, mid.y);
+      }
+    } else if (roomPan && e.touches.length === 1) {
+      e.preventDefault();
+      const t = e.touches[0];
+      roomPanX = roomPan.startPanX + (t.clientX - roomPan.startX);
+      roomPanY = roomPan.startPanY + (t.clientY - roomPan.startY);
+      _applyRoomTransform();
+    }
+  }, { passive: false });
+
+  const endTouch = e => {
+    if (e.touches.length < 2) roomPinch = null;
+    if (e.touches.length === 0) roomPan = null;
+  };
+  wrap.addEventListener('touchend', endTouch);
+  wrap.addEventListener('touchcancel', endTouch);
 }
 
 // Wybiera właściwe dopasowanie zależnie od trybu.
@@ -4147,6 +4277,7 @@ function toggleRoomFullscreen() {
 function enterRoomFullscreen() {
   if (isFullscreen) return;
   isFullscreen = true;
+  _resetRoomZoom();   // wejście do pełnego ekranu zaczyna od czystego dopasowania
   const wrap = document.getElementById('roomCanvasWrapper');
   if (wrap) {
     wrap.classList.remove('room-fit');   // zdejmij dopasowanie podglądu
@@ -4168,6 +4299,7 @@ function exitRoomFullscreen() {
   const canvas = document.getElementById('roomCanvas');
   if (canvas) { canvas.style.transform = ''; canvas.style.transformOrigin = ''; }
   roomFsScale = 1;
+  _resetRoomZoom();   // wyjście z pełnego ekranu wraca do dopasowania podglądu
   document.removeEventListener('keydown', _roomFsEscKeydown); // ...i USUŃ go przy wyjściu
   window.removeEventListener('resize', _roomFsResize);
   document.body.classList.remove('room-fs-lock');
@@ -4233,6 +4365,13 @@ function startRoomTableDrag(e, tableId) {
 
 document.addEventListener('mousemove', e => {
   const _sc = roomScale || 1;   // kompensacja skali dopasowania (podgląd/edycja/pełny ekran)
+  if (roomPan) {
+    // pan = przesunięcie w pikselach ekranowych (1:1), niezależnie od skali
+    roomPanX = roomPan.startPanX + (e.clientX - roomPan.startX);
+    roomPanY = roomPan.startPanY + (e.clientY - roomPan.startY);
+    _applyRoomTransform();
+    return;
+  }
   if (roomDrag) {
     const t  = tables.find(x => x.id === roomDrag.tableId);
     const el = document.querySelector(`.rt-wrap[data-id="${roomDrag.tableId}"]`);
@@ -4347,6 +4486,10 @@ document.addEventListener('mousemove', e => {
 });
 
 document.addEventListener('mouseup', e => {
+  if (roomPan) {
+    roomPan = null;
+    document.getElementById('roomCanvas')?.classList.remove('room-panning');
+  }
   if (roomDrag) {
     document.querySelector(`.rt-wrap[data-id="${roomDrag.tableId}"]`)?.classList.remove('rt-dragging');
     roomDrag = null;

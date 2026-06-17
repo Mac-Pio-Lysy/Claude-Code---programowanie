@@ -59,7 +59,10 @@
       "Bash(grep -q 'function __TRACKED_VAR__\\\\b' script.js)",
       "Bash(grep -q '__TRACKED_VAR__ *=' script.js)",
       "Bash(git --no-pager diff --stat)",
-      "Bash(git --no-pager diff script.js)"
+      "Bash(git --no-pager diff script.js)",
+      "Bash(git --no-pager diff --stat -- script.js style.css index.html)",
+      "Bash(git --no-pager diff --stat -- style.css)",
+      "Bash(git --no-pager diff --stat -- script.js index.html)"
     ]
   }
 }
