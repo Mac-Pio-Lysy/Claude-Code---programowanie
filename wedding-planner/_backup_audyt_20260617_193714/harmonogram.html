@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harmonogram — Ceremonia Patrycji i Piotra</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- QR Code generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-mid: #2563eb; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #eef4ff; --text: #1a2744; --text-soft: #4a5d80;
+      --border: #c5d8f6; --shadow: rgba(26,86,219,0.14); --gold: #c9a23f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, #dbe7ff 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, #d6e4ff 0%, transparent 45%),
+        var(--bg);
+      min-height: 100vh; color: var(--text); padding: 24px 14px 60px;
+    }
+
+    /* ── Nawigacja gości ── */
+    .guest-nav {
+      max-width: 600px; margin: 0 auto 18px; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap;
+    }
+    .guest-nav.bottom { margin: 26px auto 0; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+
+    .flyer {
+      max-width: 600px; margin: 0 auto; background: var(--white);
+      border-radius: 26px; overflow: hidden;
+      box-shadow: 0 18px 60px var(--shadow), 0 2px 8px rgba(26,86,219,0.08);
+      border: 1px solid #dbe7ff;
+    }
+
+    /* ── Nagłówek ── */
+    .flyer-head {
+      background: linear-gradient(150deg, var(--blue-dark) 0%, var(--blue) 55%, var(--blue-mid) 100%);
+      color: #fff; text-align: center; padding: 40px 26px 34px; position: relative;
+    }
+    .flyer-head::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 26px;
+      background: var(--white); border-radius: 26px 26px 0 0;
+    }
+    .head-rings { font-size: 2.6rem; margin-bottom: 10px; }
+    .head-sub { font-size: 0.72rem; letter-spacing: 4px; text-transform: uppercase; opacity: 0.85; margin-bottom: 12px; }
+    .head-names {
+      font-size: 2.15rem; font-weight: 700; line-height: 1.15; letter-spacing: 0.5px;
+      font-family: 'Georgia', 'Times New Roman', serif;
+    }
+    .head-amp { display: block; font-size: 1.3rem; color: #ffe9a8; margin: 4px 0; font-weight: 400; }
+    .head-date {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 18px;
+      background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
+      padding: 9px 20px; border-radius: 30px; font-size: 0.98rem; font-weight: 600;
+      backdrop-filter: blur(2px); position: relative; z-index: 1;
+    }
+
+    /* ── Licznik do ceremonii ── */
+    .wed-countdown {
+      margin-top: 18px; position: relative; z-index: 1;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 18px; padding: 14px 20px; backdrop-filter: blur(2px);
+    }
+    .wc-label {
+      font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase;
+      opacity: 0.9; margin-bottom: 8px; font-weight: 600;
+    }
+    .wc-time {
+      font-size: 1.85rem; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1;
+      font-variant-numeric: tabular-nums; text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    .wc-msg { font-size: 1.5rem; font-weight: 800; line-height: 1.2; }
+    @media (max-width: 520px) {
+      .wc-time { font-size: 1.5rem; }
+      .wc-msg  { font-size: 1.25rem; }
+    }
+
+    /* ── Transport wewnętrzny (Jak dojechać) ── */
+    .it-box { margin-top: 22px; }
+    .it-item {
+      background: var(--blue-pale); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .it-item-type { font-weight: 700; color: var(--blue-dark); font-size: 0.92rem; }
+    .it-item-info { font-size: 0.86rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
+    /* Propozycje prezentów (lista życzeń) */
+    .gp-box { margin-top: 22px; }
+    .gp-item {
+      background: var(--blue-pale); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .gp-item-title { font-weight: 700; color: var(--blue-dark); font-size: 0.95rem; }
+    .gp-item-desc { font-size: 0.88rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; white-space: pre-line; }
+    .gp-item-link { display: inline-block; margin-top: 8px; font-size: 0.84rem; font-weight: 600; color: var(--blue); text-decoration: none; background: #fff; border: 1.5px solid var(--border); padding: 5px 12px; border-radius: 18px; }
+    .gp-item-link:hover { background: #d8e7fc; }
+
+    /* ── Treść ── */
+    .flyer-body { padding: 14px 24px 34px; }
+    .section-tag {
+      text-align: center; font-size: 0.74rem; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--blue); font-weight: 700; margin: 18px 0 26px;
+    }
+    .section-tag::before, .section-tag::after {
+      content: "✦"; color: var(--gold); margin: 0 10px; font-size: 0.7rem;
+    }
+
+    /* ── Oś czasu ── */
+    .timeline { position: relative; padding-left: 8px; }
+    .tl-item { position: relative; padding: 0 0 22px 64px; }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-line {
+      position: absolute; left: 23px; top: 30px; bottom: -4px; width: 2px;
+      background: linear-gradient(var(--border), #e3ecfb);
+    }
+    .tl-item:last-child .tl-line { display: none; }
+    .tl-time {
+      position: absolute; left: 0; top: 2px; width: 48px; text-align: center;
+      font-size: 0.92rem; font-weight: 700; color: var(--blue-dark);
+    }
+    .tl-dot {
+      position: absolute; left: 16px; top: 26px; width: 16px; height: 16px;
+      border-radius: 50%; background: var(--white); border: 3px solid var(--blue);
+      box-shadow: 0 0 0 4px var(--blue-pale); z-index: 1;
+    }
+    .tl-card {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 13px 16px; box-shadow: 0 3px 12px rgba(26,86,219,0.07);
+      border-left: 4px solid var(--blue);
+    }
+    .tl-name { font-size: 1.04rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .tl-cat-icon { font-size: 1.1rem; }
+    .tl-desc { font-size: 0.86rem; color: var(--text-soft); margin-top: 4px; line-height: 1.45; }
+    .tl-loc {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 9px;
+      font-size: 0.82rem; font-weight: 600; color: var(--blue);
+      text-decoration: none; background: var(--blue-pale); padding: 6px 12px; border-radius: 20px;
+      transition: background 0.18s;
+    }
+    .tl-loc:hover { background: #d8e7fc; }
+    .tl-loc-plain {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 9px;
+      font-size: 0.82rem; color: var(--text-soft);
+    }
+
+    /* ── Sekcja kodów QR ── */
+    .qr-section {
+      padding: 8px 24px 30px; text-align: center;
+      border-top: 1px dashed var(--border); margin-top: 6px;
+    }
+    .qr-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;
+    }
+    .qr-box {
+      background: linear-gradient(160deg, #ffffff 0%, var(--blue-pale) 100%);
+      border: 1.5px solid var(--border); border-radius: 16px;
+      padding: 18px 14px 16px; box-shadow: 0 3px 12px rgba(26,86,219,0.08);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .qr-box-code {
+      background: var(--white); padding: 9px; border-radius: 12px;
+      border: 1.5px solid var(--border); line-height: 0;
+    }
+    .qr-box-code canvas, .qr-box-code img { display: block; width: 150px; height: 150px; }
+    .qr-box-title { font-size: 1rem; font-weight: 700; color: var(--blue-dark); }
+    .qr-box-desc { font-size: 0.83rem; color: var(--text-soft); line-height: 1.4; }
+    .qr-box-link {
+      display: inline-flex; align-items: center; gap: 6px; margin-top: 2px;
+      font-size: 0.84rem; font-weight: 600; text-decoration: none;
+      color: var(--blue-dark); background: var(--white);
+      border: 1.5px solid var(--blue); border-radius: 22px; padding: 8px 16px;
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .qr-box-link:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+    .qr-hint { font-size: 0.8rem; color: var(--text-soft); margin-top: 16px; }
+
+    /* ── Stopka ── */
+    .flyer-foot {
+      text-align: center; padding: 24px; color: var(--text-soft);
+      border-top: 1px dashed var(--border); margin-top: 8px;
+    }
+    .foot-heart { font-size: 1.5rem; color: var(--blue); }
+    .foot-text { font-size: 0.9rem; margin-top: 8px; font-style: italic; }
+
+    .state-msg { text-align: center; padding: 50px 20px; color: var(--text-soft); }
+    .spinner {
+      width: 38px; height: 38px; border: 3px solid var(--blue-pale);
+      border-top-color: var(--blue); border-radius: 50%; margin: 0 auto 16px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 520px) {
+      body { padding: 12px 8px 40px; }
+      .flyer { border-radius: 20px; }
+      .head-names { font-size: 1.7rem; }
+      .head-rings { font-size: 2.1rem; }
+      .flyer-body { padding: 10px 14px 26px; }
+      .tl-item { padding-left: 56px; }
+      .tl-time { width: 44px; font-size: 0.84rem; }
+      .tl-dot { left: 14px; }
+      .tl-line { left: 21px; }
+      .qr-section { padding: 8px 14px 24px; }
+      .qr-grid { gap: 12px; }
+      .qr-box { padding: 14px 8px; }
+      .qr-box-code canvas, .qr-box-code img { width: 130px; height: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="guest-nav">
+    <a href="galeria.html">📸 Galeria zdjęć</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="muzyka.html">🎵 Zaproponuj piosenkę</a>
+  </nav>
+
+  <div class="flyer">
+    <div class="flyer-head">
+      <div class="head-rings">💍</div>
+      <div class="head-sub">Zapraszamy na nasz ślub</div>
+      <div class="head-names">
+        <span id="headName1">Patrycja</span>
+        <span class="head-amp">&amp;</span>
+        <span id="headName2">Piotr</span>
+      </div>
+      <div class="head-date">📅 <span id="weddingDateLabel">10 lipca 2027</span></div>
+
+      <!-- Licznik czasu do ceremonii -->
+      <div class="wed-countdown" id="wedCountdown" style="display:none">
+        <div class="wc-label" id="wcLabel">⏳ Do ceremonii pozostało</div>
+        <div class="wc-time" id="wcTime">—</div>
+        <div class="wc-msg" id="wcMsg" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="flyer-body">
+      <div class="section-tag">Harmonogram dnia</div>
+      <div id="scheduleContainer">
+        <div class="state-msg">
+          <div class="spinner"></div>
+          Wczytywanie harmonogramu…
+        </div>
+      </div>
+      <div id="internalTransportBox" class="it-box" style="display:none"></div>
+      <div id="giftProposalsBox" class="gp-box" style="display:none"></div>
+    </div>
+
+    <div class="qr-section">
+      <div class="section-tag">Dla gości</div>
+      <div class="qr-grid">
+        <div class="qr-box">
+          <div class="qr-box-code" id="qrGaleria"></div>
+          <div class="qr-box-title">📸 Galeria zdjęć</div>
+          <div class="qr-box-desc">Wrzuć swoje zdjęcia i filmy</div>
+          <a class="qr-box-link" href="galeria.html" target="_blank" rel="noopener">📸 Otwórz galerię zdjęć</a>
+        </div>
+        <div class="qr-box">
+          <div class="qr-box-code" id="qrRsvp"></div>
+          <div class="qr-box-title">💌 Potwierdzenie</div>
+          <div class="qr-box-desc">Potwierdź swoją obecność</div>
+          <a class="qr-box-link" href="rsvp.html" target="_blank" rel="noopener">✅ Potwierdź obecność</a>
+        </div>
+      </div>
+      <div class="qr-hint">Zeskanuj kod telefonem 📱</div>
+    </div>
+
+    <div class="flyer-foot">
+      <div class="foot-heart">❤</div>
+      <div class="foot-text">Dziękujemy, że będziecie z nami w tym wyjątkowym dniu</div>
+    </div>
+  </div>
+
+  <nav class="guest-nav bottom">
+    <a href="galeria.html">📸 Galeria zdjęć</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="muzyka.html">🎵 Zaproponuj piosenkę</a>
+  </nav>
+
+  <script>
+    const SCHED_CATS = {
+      'Przygotowania': '💄', 'Ceremonia': '💒', 'Sesja': '📷',
+      'Wesele': '🥂', 'Tort': '🎂', 'Taniec': '💃', 'Inne': '📌',
+    };
+    const PL_MONTHS = ['stycznia','lutego','marca','kwietnia','maja','czerwca',
+      'lipca','sierpnia','września','października','listopada','grudnia'];
+
+    // Linki do map widoczne dla gości — TYLKO przy dwóch wydarzeniach.
+    // Dopasowanie po nazwie wydarzenia (bez względu na wielkość liter i odstępy).
+    const GUEST_MAP_LINKS = {
+      'ceremonia ślubna': 'https://maps.app.goo.gl/i4wi2VWk5Fk1HWTY9',
+      'przyjazd na wesele': 'https://maps.app.goo.gl/y4iuPfPuRzFuJdkZA',
+    };
+    function mapLinkFor(ev) {
+      // Priorytet: link ustawiony przy wydarzeniu z zaznaczonym „Pokaż gościom".
+      // (Wcześniej brano tylko predefiniowane linki wg nazwy — dlatego link czasem się nie pokazywał.)
+      const url = (ev.locationUrl || '').trim();
+      if (ev.showLinkToGuests && url) {
+        return /^https?:\/\//i.test(url) ? url : ('https://' + url.replace(/^\/+/, ''));
+      }
+      // Zgodność wstecz: predefiniowane linki wg nazwy wydarzenia
+      const key = (ev.name || '').trim().toLowerCase();
+      return GUEST_MAP_LINKS[key] || null;
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function formatPolishDate(iso) {
+      if (!iso) return '10 lipca 2027';
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+      if (!m) return '10 lipca 2027';
+      const y = +m[1], mo = +m[2], d = +m[3];
+      return `${d} ${PL_MONTHS[mo - 1]} ${y}`;
+    }
+
+    function sortEvents(events) {
+      return [...events].sort((a, b) => {
+        const ah = a.hour < 6 ? a.hour + 24 : a.hour;
+        const bh = b.hour < 6 ? b.hour + 24 : b.hour;
+        return (ah * 60 + a.minute) - (bh * 60 + b.minute);
+      });
+    }
+
+    // Rozpakuj aktywny event z kontenera wielu eventów (obsługuje też stary, płaski zapis)
+    function _activeEvent(data) {
+      if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+      return data || {};
+    }
+
+    // ── Licznik do ceremonii (strefa Europe/Warsaw, z obsługą DST) ──
+    let wedTargetMs = null, wedInterval = null;
+    const CEREMONY_DURATION_MS = 60 * 60 * 1000; // okno „trwa ceremonia" = 1 godzina
+
+    function _warsawOffsetMinutes(date) {
+      const dtf = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Europe/Warsaw', hour12: false,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+      });
+      const map = {};
+      for (const p of dtf.formatToParts(date)) map[p.type] = p.value;
+      let hour = +map.hour; if (hour === 24) hour = 0;
+      const asUTC = Date.UTC(+map.year, +map.month - 1, +map.day, hour, +map.minute, +map.second);
+      return Math.round((asUTC - date.getTime()) / 60000);
+    }
+    function _warsawWallClockToMs(y, mo, d, h, mi) {
+      const guess = Date.UTC(y, mo - 1, d, h, mi, 0);
+      const o1 = _warsawOffsetMinutes(new Date(guess));
+      let ms = guess - o1 * 60000;
+      const o2 = _warsawOffsetMinutes(new Date(ms));
+      if (o2 !== o1) ms = guess - o2 * 60000;
+      return ms;
+    }
+    const _pad = n => String(n).padStart(2, '0');
+    function _dayWord(n) {
+      if (n === 1) return 'dzień';
+      const d2 = n % 100, d1 = n % 10;
+      if (d1 >= 2 && d1 <= 4 && !(d2 >= 12 && d2 <= 14)) return 'dni';
+      return 'dni';
+    }
+
+    function setupCountdown(data) {
+      const band = document.getElementById('wedCountdown');
+      const iso  = data && data.weddingDate;
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+      if (!m) { if (band) band.style.display = 'none'; return; }
+      const t  = /^(\d{1,2}):(\d{2})/.exec((data && data.weddingTime) || '16:00');
+      const hh = t ? Math.min(23, +t[1]) : 16;
+      const mi = t ? Math.min(59, +t[2]) : 0;
+      wedTargetMs = _warsawWallClockToMs(+m[1], +m[2], +m[3], hh, mi);
+      if (band) band.style.display = '';
+      tickCountdown();
+      if (!wedInterval) wedInterval = setInterval(tickCountdown, 1000);
+    }
+
+    function tickCountdown() {
+      if (wedTargetMs === null) return;
+      const lbl  = document.getElementById('wcLabel');
+      const time = document.getElementById('wcTime');
+      const msg  = document.getElementById('wcMsg');
+      const diff = wedTargetMs - Date.now();
+
+      const showMsg = (text) => {
+        if (lbl)  lbl.style.display  = 'none';
+        if (time) time.style.display = 'none';
+        if (msg)  { msg.style.display = ''; msg.textContent = text; }
+      };
+
+      if (diff > 0) {
+        const d  = Math.floor(diff / 86400000);
+        const h  = Math.floor((diff % 86400000) / 3600000);
+        const mn = Math.floor((diff % 3600000) / 60000);
+        const s  = Math.floor((diff % 60000) / 1000);
+        if (lbl)  lbl.style.display  = '';
+        if (msg)  msg.style.display  = 'none';
+        // Dni, godziny, minuty I sekundy — odliczane na żywo (co sekundę)
+        if (time) { time.style.display = ''; time.textContent = `${d} ${_dayWord(d)} · ${_pad(h)} godz · ${_pad(mn)} min · ${_pad(s)} sek`; }
+      } else if (diff > -CEREMONY_DURATION_MS) {
+        showMsg('🎉 Właśnie trwa ceremonia!');
+      } else {
+        showMsg('💍 Już po ślubie!');
+        if (wedInterval) { clearInterval(wedInterval); wedInterval = null; }
+      }
+    }
+
+    // Zastosuj konfigurowalne napisy (wspólne, z Firestore)
+    function applyPublicConfig(data) {
+      const cfg    = (data && data.appConfig) || {};
+      const couple = (data && data.budgetData && data.budgetData.coupleNames) || [];
+      // Pomijamy domyślne zastępcze nazwy, by nie nadpisywać nagłówka „Osobą 1/2"
+      const real = v => { const s = (v || '').trim(); return (s && s !== 'Osoba 1' && s !== 'Osoba 2') ? s : ''; };
+      const n1 = real(couple[1]);   // w nagłówku: Osoba 2 (np. Patrycja) jako pierwsza
+      const n2 = real(couple[0]);
+      if (n1) { const e = document.getElementById('headName1'); if (e) e.textContent = n1; }
+      if (n2) { const e = document.getElementById('headName2'); if (e) e.textContent = n2; }
+      const names = (cfg.displayNames || '').trim();
+      if (cfg.eventName) document.title = 'Harmonogram — ' + cfg.eventName;
+      else if (names)    document.title = 'Harmonogram — Ceremonia ' + names;
+    }
+
+    // Transport wewnętrzny widoczny dla gości (Bolt/Taxi/inne) — „Jak dojechać"
+    function renderInternalTransport(data) {
+      const box = document.getElementById('internalTransportBox');
+      if (!box) return;
+      const list = ((data && data.internalTransport) || []).filter(it => it.showToGuests && (it.info || '').trim());
+      if (!list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+      const icon = ty => { const s = (ty||'').toLowerCase(); return s.includes('taxi')?'🚖':s.includes('bolt')||s.includes('uber')||s.includes('free')?'🚗':'🚐'; };
+      box.style.display = '';
+      box.innerHTML = '<div class="section-tag">Jak dojechać</div>' +
+        list.map(it => `<div class="it-item"><span class="it-item-type">${icon(it.type)} ${esc(it.type)}</span><div class="it-item-info">${esc(it.info)}</div></div>`).join('');
+    }
+
+    // Propozycje prezentów (lista życzeń) — widoczne dla gości TYLKO gdy organizator zaznaczył
+    function renderGiftProposals(data) {
+      const box = document.getElementById('giftProposalsBox');
+      if (!box) return;
+      // Widoczność per propozycja: pokaż tylko te z indywidualnie zaznaczonym „Pokaż gościom".
+      // Zgodność wstecz: gdy brak pola showToGuests, użyj dawnej globalnej flagi.
+      const globalOn = !!(data && data.giftProposalsPublic);
+      const list = ((data && data.giftProposals) || []).filter(p => {
+        const vis = (p.showToGuests === undefined) ? globalOn : !!p.showToGuests;
+        return vis && ((p.title || '').trim() || (p.desc || '').trim());
+      });
+      if (!list.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+      box.style.display = '';
+      box.innerHTML = '<div class="section-tag">Propozycje prezentów</div>' +
+        list.map(p => `<div class="gp-item">
+          ${p.title ? `<div class="gp-item-title">🎁 ${esc(p.title)}</div>` : ''}
+          ${p.desc ? `<div class="gp-item-desc">${esc(p.desc)}</div>` : ''}
+          ${(p.link || '').trim() ? `<a class="gp-item-link" target="_blank" rel="noopener" href="${esc(/^https?:\/\//i.test(p.link) ? p.link : 'https://' + p.link.replace(/^\/+/, ''))}">🔗 Zobacz szczegóły</a>` : ''}
+        </div>`).join('');
+    }
+
+    function renderSchedule(rawData) {
+      const data = _activeEvent(rawData);
+      applyPublicConfig(data);
+      setupCountdown(data);
+      renderInternalTransport(data);
+      renderGiftProposals(data);
+      const cont = document.getElementById('scheduleContainer');
+      // Pomijamy wydarzenia prywatne — widoczne tylko w panelu organizatora
+      const events = ((data && data.scheduleEvents) || []).filter(ev => !ev.private);
+
+      if (data && data.weddingDate) {
+        document.getElementById('weddingDateLabel').textContent = formatPolishDate(data.weddingDate);
+      }
+
+      if (!events.length) {
+        cont.innerHTML = '<div class="state-msg">Harmonogram zostanie wkrótce uzupełniony. 💙</div>';
+        return;
+      }
+
+      // ── DIAGNOSTYKA LINKÓW (konsola): pokazuje dla każdego wydarzenia czy ma link i czy widoczny dla gości ──
+      try {
+        console.group('%c[harmonogram] Diagnostyka linków do map', 'font-weight:bold;color:#1a56db');
+        console.log('Wydarzeń (publicznych):', events.length);
+        events.forEach(ev => {
+          const url = (ev.locationUrl || '').trim();
+          console.log(`• ${ev.name || '(bez nazwy)'} → link: ${url ? '"' + url + '"' : 'BRAK'} · Pokaż gościom: ${ev.showLinkToGuests ? 'TAK' : 'nie'} · wyświetlony: ${mapLinkFor(ev) ? 'TAK' : 'nie'}`);
+        });
+        console.groupEnd();
+      } catch (_) {}
+
+      const sorted = sortEvents(events);
+      const html = sorted.map(ev => {
+        const hh = String(ev.hour).padStart(2, '0');
+        const mm = String(ev.minute).padStart(2, '0');
+        const icon = SCHED_CATS[ev.category] || '📌';
+        // Link do mapy: gdy wydarzenie ma wpisany URL i zaznaczono „Pokaż gościom" (lub link predefiniowany wg nazwy)
+        const mapUrl = mapLinkFor(ev);
+        const locHtml = mapUrl
+          ? `<a class="tl-loc" target="_blank" rel="noopener" href="${mapUrl}">📍 Otwórz mapę / lokalizację</a>`
+          : '';
+        const descHtml = (ev.description || '').trim()
+          ? `<div class="tl-desc">${esc(ev.description)}</div>` : '';
+        return `<div class="tl-item">
+          <div class="tl-line"></div>
+          <div class="tl-time">${hh}:${mm}</div>
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-name"><span class="tl-cat-icon">${icon}</span>${esc(ev.name)}</div>
+            ${descHtml}
+            ${locHtml}
+          </div>
+        </div>`;
+      }).join('');
+
+      cont.innerHTML = `<div class="timeline">${html}</div>`;
+    }
+
+    // ── Wczytaj dane z Firestore ──
+    (function load() {
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        db.collection(FS_COLLECTION).doc(FS_DOC_ID).get()
+          .then(doc => renderSchedule(doc.exists ? doc.data() : null))
+          .catch(err => {
+            console.error('Błąd wczytywania harmonogramu:', err);
+            document.getElementById('scheduleContainer').innerHTML =
+              '<div class="state-msg">Nie udało się wczytać harmonogramu. Odśwież stronę. 🙏</div>';
+          });
+      } catch (e) {
+        console.error('Błąd inicjalizacji Firebase:', e);
+        document.getElementById('scheduleContainer').innerHTML =
+          '<div class="state-msg">Nie udało się połączyć z serwerem.</div>';
+      }
+    })();
+
+    // ── Kody QR (galeria + RSVP) ──
+    function qrUrl(path) {
+      const o = (location.origin && location.origin !== 'null') ? location.origin : '';
+      return o + '/' + path;
+    }
+    function makeQR(id, url) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (typeof QRCode === 'undefined') { setTimeout(() => makeQR(id, url), 300); return; }
+      el.innerHTML = '';
+      try {
+        new QRCode(el, {
+          text: url, width: 150, height: 150,
+          colorDark: '#1040b0', colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } catch (e) { console.error('Błąd generowania QR:', e); }
+    }
+    makeQR('qrGaleria', qrUrl('galeria.html'));
+    makeQR('qrRsvp', qrUrl('rsvp.html'));
+  </script>
+</body>
+</html>

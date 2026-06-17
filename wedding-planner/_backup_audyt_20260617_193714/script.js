@@ -4771,7 +4771,6 @@ const DASH_WIDGETS = {
   },
   alcohol: {
     icon: '🍾', title: 'Alkohol', view: 'budget',
-    onClick: "switchView('budget');switchBudgetTab('expenses')",
     body: () => ({
       num: fmt(calcAlcoholTotal()) + ' zł',
       sub: `${calcAlcoholBottles()} butelek`,
@@ -4779,7 +4778,6 @@ const DASH_WIDGETS = {
   },
   honeymoon: {
     icon: '✈️', title: 'Podróż poślubna', view: 'budget',
-    onClick: "switchView('budget');switchBudgetTab('honeymoon')",
     body: () => {
       const h = budgetData.honeymoon || {};
       return { num: fmt(h.totalAmount || 0) + ' zł', sub: (h.name || '').trim() || 'Podróż poślubna' };
@@ -4787,7 +4785,6 @@ const DASH_WIDGETS = {
   },
   payments: {
     icon: '💳', title: 'Płatności', view: 'budget',
-    onClick: "switchView('budget');switchBudgetTab('payments')",
     body: () => {
       const allInst = payments.flatMap(p => p.installments);
       const overdue = allInst.filter(i => i.status !== 'paid' && i.dueDate && new Date(i.dueDate) < new Date()).length;
@@ -4808,22 +4805,6 @@ const DASH_WIDGETS = {
       num: (typeof _galleryAdminItems !== 'undefined' ? _galleryAdminItems.length : 0),
       sub: 'zdjęć i filmów',
     }),
-  },
-  music: {
-    icon: '🎵', title: 'Muzyka', view: 'music',
-    body: () => {
-      const approved = songs.filter(s => s.status === 'approved').length;
-      const fromGuests = songs.filter(s => s.fromGuest).length;
-      return { num: songs.length, sub: `${approved} zatwierdzonych · ${fromGuests} od gości` };
-    },
-  },
-  checklist: {
-    icon: '☑️', title: 'Checklista', view: 'schedule',
-    onClick: "switchView('schedule');switchScheduleTab('checklist')",
-    body: () => {
-      const done = checklist.filter(it => it.done).length;
-      return { num: `${done}/${checklist.length}`, sub: `${checklist.length - done} do zrobienia` };
-    },
   },
 };
 const DASH_WIDGET_SIZES = ['small', 'medium', 'large'];
@@ -4927,7 +4908,7 @@ function renderDashboardWidgets() {
       ? `<button class="dw-remove" title="Ukryj widżet" onclick="event.stopPropagation();hideWidget('${w.id}')">&#10006;</button>
          <div class="dw-sizes">${sizeCtrl}</div>`
       : '';
-    const onclick = dashEditMode ? '' : `onclick="${def.onClick || `switchView('${def.view}')`}"`;
+    const onclick = dashEditMode ? '' : `onclick="switchView('${def.view}')"`;
     const drag = dashEditMode
       ? `draggable="true" ondragstart="dwDragStart(event,'${w.id}')" ondragover="dwDragOver(event,'${w.id}')" ondrop="dwDrop(event,'${w.id}')" ondragend="dwDragEnd(event)"` : '';
     return `<div class="dash-widget dw-${w.size}${data.alert ? ' dw-alert' : ''}${dashEditMode ? ' editing' : ''}" data-id="${w.id}" ${onclick} ${drag}>

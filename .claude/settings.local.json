@@ -54,7 +54,12 @@
       "Bash(NODE_PATH=/tmp/node_modules node drive.js)",
       "Bash(cygpath -w /tmp/drive.js)",
       "Bash(cygpath -w /tmp/node_modules)",
-      "Bash(pkill -f \"http.server 8765\")"
+      "Bash(pkill -f \"http.server 8765\")",
+      "Bash(sed -E \"s/.*switchView\\\\\\('\\([^']+\\)'\\\\\\).*nav-txt\\\\\">\\([^<]+\\)<.*/\\\\1 => \\\\2/\")",
+      "Bash(grep -q 'function __TRACKED_VAR__\\\\b' script.js)",
+      "Bash(grep -q '__TRACKED_VAR__ *=' script.js)",
+      "Bash(git --no-pager diff --stat)",
+      "Bash(git --no-pager diff script.js)"
     ]
   }
 }
