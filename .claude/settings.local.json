@@ -62,7 +62,10 @@
       "Bash(git --no-pager diff script.js)",
       "Bash(git --no-pager diff --stat -- script.js style.css index.html)",
       "Bash(git --no-pager diff --stat -- style.css)",
-      "Bash(git --no-pager diff --stat -- script.js index.html)"
+      "Bash(git --no-pager diff --stat -- script.js index.html)",
+      "Bash(rm -f _real.html _real_1600.png)",
+      "Bash(which firebase *)",
+      "Bash(firebase --version)"
     ]
   }
 }

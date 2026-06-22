@@ -3493,6 +3493,7 @@ function switchView(view) {
     transport: 'viewTransport', accommodation: 'viewAccommodation', gifts: 'viewGifts',
     gallery: 'viewGallery', access: 'viewAccess', config: 'viewConfig',
     devsettings: 'viewDevSettings', analytics: 'viewAnalytics', music: 'viewMusic',
+    bingo: 'viewBingo',
   };
   const panelId = viewIds[view];
   if (panelId) {
@@ -3507,7 +3508,7 @@ function switchView(view) {
     tasks: 'navTasks', vendors: 'navVendors', transport: 'navTransport',
     accommodation: 'navAccommodation', gifts: 'navGifts', gallery: 'navGallery',
     access: 'navAccess', config: 'navConfig',
-    analytics: 'navAnalytics', music: 'navMusic',
+    analytics: 'navAnalytics', music: 'navMusic', bingo: 'navBingo',
   };
   const navBtn = document.getElementById(navIds[view]);
   if (navBtn) navBtn.classList.add('active');
@@ -3551,6 +3552,7 @@ function switchView(view) {
     case 'dashboard':     renderDashboard();     break;
     case 'analytics':     renderAnalytics();     break;
     case 'music':         renderMusic(); renderMusicQR(); break;
+    case 'bingo':         renderBingo(); break;
     case 'schedule':      renderSchedule(); renderScheduleQR(); applyScheduleTab(); break;
     case 'gallery':       renderGalleryView();   break;
     case 'access':        renderAccessView();    break;
@@ -4576,6 +4578,67 @@ let checklist        = [];
 let nextChecklistId  = 1;
 const CHECKLIST_CATEGORIES = ['Co zabrać', 'Kto co przynosi', 'Przed ceremonią', 'Po ceremonii'];
 let scheduleTab = 'plan';   // 'plan' | 'checklist'
+
+// ── ŚLUBNE BINGO — drukowane plansze dla gości ──
+// pole: { id, text, enabled } — baza pól losowanych na plansze 5×5
+let bingoFields          = [];
+let nextBingoFieldId     = 1;
+let bingoUseSchedule     = true;   // dołącz pola generowane z harmonogramu
+let bingoScheduleExclude = [];     // id wydarzeń wykluczonych z losowania
+let bingoCenterMode      = 'gratis'; // 'gratis' | 'names' — środkowe pole planszy
+let _bingoPreviewPicks   = null;   // bieżący układ widoczny w podglądzie
+const DEFAULT_BINGO_FIELDS = [
+  'Znajdź kogoś, kto płakał podczas ceremonii',
+  'Zrób selfie z Parą Młodą',
+  'Zatańcz z kimś, kogo nie znasz',
+  'Złap bukiet lub podwiązkę',
+  'Zjedz kawałek tortu weselnego',
+  'Wznieś toast za Młodą Parę',
+  'Znajdź kogoś ubranego w tym samym kolorze co Ty',
+  'Zatańcz w kółku podczas wspólnej zabawy',
+  'Zrób zdjęcie w fotobudce',
+  'Poznaj świadka lub świadkową',
+  'Wpisz się do księgi gości',
+  'Zaśpiewaj podczas oczepin',
+  'Znajdź gościa, który przyjechał z najdalsza',
+  'Złóż życzenia Parze Młodej osobiście',
+  'Zdobądź autograf Pana Młodego',
+  'Zdobądź autograf Panny Młodej',
+  'Zatańcz z osobą starszą od Ciebie o 20 lat',
+  'Znajdź gościa w okularach',
+  'Zrób zdjęcie pierwszego tańca',
+  'Spróbuj przystawki z bufetu',
+  'Krzyknij „Gorzko! Gorzko!"',
+  'Pomóż komuś znaleźć jego stolik',
+  'Znajdź kogoś z rodziny Panny Młodej',
+  'Znajdź kogoś z rodziny Pana Młodego',
+  'Zrób grupowe selfie z całym stołem',
+  'Zatańcz przy ulubionej piosence Pary',
+  'Poproś DJ-a o piosenkę',
+  'Znajdź najlepiej ubranego gościa',
+  'Poznaj imię nowej osoby',
+  'Opowiedz dowcip osobie obok',
+  'Zjedz coś ze słodkiego bufetu',
+  'Wznieś toast szampanem',
+  'Zrób zdjęcie dekoracji stołu',
+  'Pogratuluj rodzicom Pary Młodej',
+  'Znajdź gościa w krawacie lub muszce',
+  'Zatańcz belgijkę lub kaczuszki',
+  'Poznaj kogoś, kogo wcześniej nie znałeś',
+  'Złap moment wzruszenia na zdjęciu',
+  'Znajdź kogoś, kto zna Parę od dziecka',
+  'Pomachaj do kamerzysty',
+  'Zrób zdjęcie z tortem weselnym',
+  'Znajdź gościa, który przyjechał autem ślubnym',
+  'Powiedz Parze Młodej komplement',
+  'Zatańcz z kimś ze swojego stolika',
+  'Znajdź gościa z kwiatkiem w klapie',
+  'Ustaw się do wspólnego zdjęcia grupowego',
+  'Zdobądź uśmiech od nieznajomego gościa',
+  'Wypij drinka z palemką lub parasolką',
+  'Znajdź dwie osoby o tym samym imieniu',
+  'Złap wzrokiem pierwszy pocałunek Pary',
+];
 
 // ── „OD CZEGO ZACZĄĆ?" — sugerowana kolejność organizacji wesela ──
 // pozycja: { id, label, note, done } — edytowalna i synchronizowana per event
@@ -8338,6 +8401,321 @@ async function generatePrintPdf(variantArg, sizeArg) {
   showToast(plFont ? 'PDF gotowy ✓' : 'PDF gotowy ✓ (font PL niedostępny — wersja ASCII)');
 }
 
+// ══════════════════════════════════════════════════════
+//  ŚLUBNE BINGO — baza pól, podgląd i wydruk PDF
+// ══════════════════════════════════════════════════════
+
+// Losowe potasowanie kopii tablicy (Fisher–Yates) — nie modyfikuje oryginału.
+function _shuffleArr(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Pola dynamiczne generowane z harmonogramu (tylko wydarzenia widoczne dla gości).
+function _bingoScheduleFields() {
+  if (!bingoUseSchedule) return [];
+  return scheduleEvents
+    .filter(ev => !ev.private && ev.name && ev.name.trim() && !bingoScheduleExclude.includes(ev.id))
+    .map(ev => ({ srcId: ev.id, text: 'Bądź obecny/a na: ' + ev.name.trim() }));
+}
+
+// Pełna pula tekstów do losowania (statyczne włączone + dynamiczne), bez duplikatów.
+function _bingoPool() {
+  const seen = new Set();
+  const pool = [];
+  const add = t => {
+    const txt = (t || '').trim();
+    const key = txt.toLowerCase();
+    if (txt && !seen.has(key)) { seen.add(key); pool.push(txt); }
+  };
+  bingoFields.filter(f => f.enabled).forEach(f => add(f.text));
+  _bingoScheduleFields().forEach(f => add(f.text));
+  return pool;
+}
+
+// Tekst środkowego pola planszy: „GRATIS" lub imiona Pary Młodej.
+function _bingoCenterLabel() {
+  if (bingoCenterMode === 'names') {
+    const couple = (budgetData && budgetData.coupleNames) || [];
+    const real = v => { const s = (v || '').trim(); return (s && s !== 'Osoba 1' && s !== 'Osoba 2') ? s : ''; };
+    const names = [real(couple[1]), real(couple[0])].filter(Boolean).join(' & ');
+    return names || 'GRATIS';
+  }
+  return 'GRATIS';
+}
+
+// Wylosuj unikalny układ 24 pól (środek planszy jest polem darmowym).
+function _generateBingoBoard() {
+  return _shuffleArr(_bingoPool()).slice(0, 24);
+}
+
+// ── PODGLĄD (HTML) ──
+function renderBingo() {
+  // Lista pól bazowych
+  const list = document.getElementById('bingoFieldsList');
+  if (list) {
+    list.innerHTML = bingoFields.length
+      ? bingoFields.map(f => `
+        <div class="bingo-field-item">
+          <label class="bingo-chk" title="Włącz do losowania">
+            <input type="checkbox" ${f.enabled ? 'checked' : ''} onchange="toggleBingoField(${f.id}, this.checked)">
+          </label>
+          <input class="bingo-field-text" type="text" value="${esc(f.text)}" onchange="updateBingoField(${f.id}, this.value)">
+          <button class="bingo-field-del" title="Usuń pole" onclick="deleteBingoField(${f.id})">&#128465;&#65039;</button>
+        </div>`).join('')
+      : '<div class="empty-list">Brak pól. Dodaj pierwsze pole powyżej lub <button class="btn btn-sm btn-primary" onclick="resetBingoFields()">przywróć domyślny zestaw</button>.</div>';
+  }
+
+  // Pola z harmonogramu
+  const schWrap = document.getElementById('bingoSchedList');
+  const useChk = document.getElementById('bingoUseSchedule');
+  if (useChk) useChk.checked = bingoUseSchedule;
+  if (schWrap) {
+    const evs = scheduleEvents.filter(ev => !ev.private && ev.name && ev.name.trim());
+    if (!evs.length) {
+      schWrap.innerHTML = '<div class="bingo-sched-empty">Brak wydarzeń w harmonogramie. Dodaj wydarzenia w zakładce „Harmonogram", aby losować je na plansze.</div>';
+    } else {
+      schWrap.innerHTML = evs.map(ev => {
+        const on = !bingoScheduleExclude.includes(ev.id);
+        return `<div class="bingo-field-item bingo-field-dyn">
+          <label class="bingo-chk"><input type="checkbox" ${on ? 'checked' : ''} ${bingoUseSchedule ? '' : 'disabled'} onchange="toggleBingoScheduleEvent(${ev.id}, this.checked)"></label>
+          <span class="bingo-field-text bingo-field-static">Bądź obecny/a na: ${esc(ev.name.trim())}</span>
+        </div>`;
+      }).join('');
+    }
+    schWrap.style.opacity = bingoUseSchedule ? '1' : '.5';
+  }
+
+  // Liczniki
+  const cnt = document.getElementById('bingoFieldsCount');
+  if (cnt) cnt.textContent = `${bingoFields.filter(f => f.enabled).length} / ${bingoFields.length} aktywnych`;
+
+  // Sterowanie generatorem — odzwierciedl zapisany tryb środkowego pola
+  const ctrSel = document.getElementById('bingoCenter');
+  if (ctrSel) ctrSel.value = bingoCenterMode;
+
+  _renderBingoPoolInfo();
+  if (!_bingoPreviewPicks) _bingoPreviewPicks = _generateBingoBoard();
+  _renderBingoPreview();
+}
+
+function _renderBingoPoolInfo() {
+  const info = document.getElementById('bingoPoolInfo');
+  if (!info) return;
+  const n = _bingoPool().length;
+  if (n < 24) {
+    info.className = 'bingo-gen-hint bingo-hint-warn';
+    info.innerHTML = `&#9888;&#65039; Pula liczy <strong>${n}</strong> pól — do planszy potrzeba minimum <strong>24</strong>. Dodaj lub włącz więcej pól.`;
+  } else {
+    info.className = 'bingo-gen-hint';
+    info.innerHTML = `&#9989; Pula liczy <strong>${n}</strong> pól. Każda plansza to losowe 24 pola — układy się nie powtarzają.`;
+  }
+}
+
+function _renderBingoPreview() {
+  const box = document.getElementById('bingoPreview');
+  if (!box) return;
+  const picks = _bingoPreviewPicks || [];
+  if (picks.length < 24) {
+    box.innerHTML = '<div class="bingo-preview-empty">Za mało pól, aby ułożyć planszę (potrzeba min. 24).</div>';
+    return;
+  }
+  const center = _bingoCenterLabel();
+  let pi = 0;
+  const cells = [];
+  for (let i = 0; i < 25; i++) {
+    if (i === 12) {
+      cells.push(`<div class="bingo-cell bingo-cell-free"><span>${esc(center)}</span></div>`);
+    } else {
+      cells.push(`<div class="bingo-cell"><span>${esc(picks[pi++])}</span></div>`);
+    }
+  }
+  box.innerHTML = `<div class="bingo-grid">${cells.join('')}</div>`;
+}
+
+function refreshBingoPreview() {
+  if (_bingoPool().length < 24) { showToast('Za mało pól — dodaj więcej, aby wylosować planszę.'); return; }
+  _bingoPreviewPicks = _generateBingoBoard();
+  _renderBingoPreview();
+}
+
+// ── EDYCJA BAZY PÓL ──
+function addBingoField() {
+  const inp = document.getElementById('bingoNewField');
+  const txt = (inp?.value || '').trim();
+  if (!txt) { inp?.focus(); return; }
+  bingoFields.push({ id: nextBingoFieldId++, text: txt, enabled: true });
+  if (inp) inp.value = '';
+  saveState(); renderBingo();
+}
+function updateBingoField(id, val) {
+  const f = bingoFields.find(x => x.id === id);
+  if (!f) return;
+  f.text = val;
+  saveState(); _renderBingoPoolInfo();
+}
+function toggleBingoField(id, on) {
+  const f = bingoFields.find(x => x.id === id);
+  if (!f) return;
+  f.enabled = !!on;
+  saveState();
+  const cnt = document.getElementById('bingoFieldsCount');
+  if (cnt) cnt.textContent = `${bingoFields.filter(x => x.enabled).length} / ${bingoFields.length} aktywnych`;
+  _renderBingoPoolInfo();
+}
+function deleteBingoField(id) {
+  bingoFields = bingoFields.filter(x => x.id !== id);
+  saveState(); renderBingo();
+}
+function resetBingoFields() {
+  if (bingoFields.length && !confirm('Przywrócić domyślny zestaw pól bingo? Bieżąca lista zostanie zastąpiona.')) return;
+  bingoFields = DEFAULT_BINGO_FIELDS.map((t, i) => ({ id: i + 1, text: t, enabled: true }));
+  nextBingoFieldId = bingoFields.length + 1;
+  saveState(); renderBingo();
+}
+function toggleBingoSchedule(on) {
+  bingoUseSchedule = !!on;
+  saveState(); renderBingo();
+}
+function toggleBingoScheduleEvent(evId, on) {
+  if (on) bingoScheduleExclude = bingoScheduleExclude.filter(x => x !== evId);
+  else if (!bingoScheduleExclude.includes(evId)) bingoScheduleExclude.push(evId);
+  saveState(); _renderBingoPoolInfo();
+}
+function setBingoCenter(mode) {
+  bingoCenterMode = (mode === 'names') ? 'names' : 'gratis';
+  saveState(); _renderBingoPreview();
+}
+
+// ── WYDRUK PDF — wiele unikalnych plansz ──
+async function generateBingoPdf(sizeArg, countArg) {
+  if (!window.jspdf || !window.jspdf.jsPDF) { showToast('Biblioteka PDF nie została wczytana — sprawdź połączenie z internetem.'); return; }
+  const pool = _bingoPool();
+  if (pool.length < 24) { showToast('Za mało pól (potrzeba min. 24). Dodaj lub włącz więcej pól.'); return; }
+
+  const sizeRaw = (sizeArg || document.getElementById('bingoSize')?.value || 'a4').toLowerCase();
+  const size = ['a4', 'a5', 'a6'].includes(sizeRaw) ? sizeRaw : 'a4';
+  let count = parseInt(countArg != null ? countArg : (document.getElementById('bingoCount')?.value || '10'), 10);
+  if (!Number.isFinite(count) || count < 1) count = 1;
+  count = Math.min(100, count);
+
+  showToast(`Generuję ${count} ${count === 1 ? 'planszę' : 'plansze/plansz'}…`);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: size });
+  const plFont = await _ensurePdfFont(doc);
+  const tx = s => plFont ? String(s == null ? '' : s) : _plAscii(s);
+  const F  = (bold) => { if (plFont) doc.setFont('PL', bold ? 'bold' : 'normal'); else doc.setFont(bold ? 'times' : 'helvetica', bold ? 'bold' : 'normal'); };
+
+  const ctx = {
+    pw: doc.internal.pageSize.getWidth(),
+    ph: doc.internal.pageSize.getHeight(),
+    eventName: (appConfig && appConfig.eventName) || 'Nasze Wesele',
+    dateStr: _printDateStr(),
+    center: _bingoCenterLabel(),
+    tx, F, doc,
+  };
+  // Imiona Pary do podtytułu
+  const couple = (budgetData && budgetData.coupleNames) || [];
+  const real = v => { const s = (v || '').trim(); return (s && s !== 'Osoba 1' && s !== 'Osoba 2') ? s : ''; };
+  ctx.names = [real(couple[1]), real(couple[0])].filter(Boolean).join(' & ');
+
+  for (let i = 0; i < count; i++) {
+    if (i > 0) doc.addPage(size, 'portrait');
+    _drawBingoBoardPage(ctx, _generateBingoBoard());
+  }
+
+  doc.save(`slubne-bingo-${size}-${count}szt.pdf`);
+  showToast(plFont ? 'PDF gotowy ✓' : 'PDF gotowy ✓ (font PL niedostępny — wersja ASCII)');
+}
+
+// Rysuje pojedynczą planszę bingo na bieżącej stronie PDF.
+function _drawBingoBoardPage(ctx, picks) {
+  const { doc, pw, ph, tx, F } = ctx;
+  const cx = pw / 2;
+  const s  = pw / 210;             // skala względem A4
+  const margin = 12 * s;
+
+  // Tło + ozdobne ramki (spójne z pozostałymi materiałami do druku)
+  doc.setFillColor(247, 251, 255); doc.rect(0, 0, pw, ph, 'F');
+  doc.setDrawColor(26, 86, 219);  doc.setLineWidth(0.9 * s); doc.roundedRect(margin * 0.6, margin * 0.6, pw - margin * 1.2, ph - margin * 1.2, 5 * s, 5 * s, 'S');
+  doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.4 * s); doc.roundedRect(margin * 0.6 + 2 * s, margin * 0.6 + 2 * s, pw - margin * 1.2 - 4 * s, ph - margin * 1.2 - 4 * s, 4 * s, 4 * s, 'S');
+
+  // ── Nagłówek ──
+  let y = margin + 6 * s;
+  F(false); doc.setFontSize(11 * s); doc.setTextColor(120, 150, 200);
+  doc.text(tx('• zabawa dla gości •'), cx, y, { align: 'center' });
+  y += 11 * s;
+  F(true); doc.setFontSize(30 * s); doc.setTextColor(16, 40, 80);
+  doc.text(tx('Ślubne Bingo'), cx, y, { align: 'center' });
+  y += 8 * s;
+  if (ctx.eventName) {
+    F(false); doc.setFontSize(11 * s); doc.setTextColor(26, 86, 219);
+    doc.splitTextToSize(tx(ctx.eventName), pw - margin * 3).forEach(ln => { doc.text(ln, cx, y, { align: 'center' }); y += 5 * s; });
+  }
+  const sub = [ctx.names, ctx.dateStr].filter(Boolean).join('  •  ');
+  if (sub) { F(false); doc.setFontSize(9.5 * s); doc.setTextColor(110, 125, 155); doc.text(tx(sub), cx, y, { align: 'center' }); y += 5 * s; }
+
+  // ── Siatka 5×5 ──
+  const footH = 16 * s;                          // miejsce na stopkę
+  const gridTop = y + 3 * s;
+  const gridW = pw - margin * 2;
+  let cell = gridW / 5;
+  const maxGridH = ph - margin - footH - gridTop; // dostępna wysokość
+  if (cell * 5 > maxGridH) cell = maxGridH / 5;   // dopasuj, by zmieściło się w pionie
+  const gridSide = cell * 5;
+  const gx = (pw - gridSide) / 2;
+  const gy = gridTop;
+  const cellFont = Math.max(4, cell * 0.20 / 0.3528);  // pt; skala do rozmiaru pola
+  const pad = cell * 0.10;
+
+  let pi = 0;
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const x = gx + c * cell, yy = gy + r * cell;
+      const isCenter = (r === 2 && c === 2);
+      // Tło pola
+      if (isCenter) { doc.setFillColor(26, 86, 219); doc.rect(x, yy, cell, cell, 'F'); }
+      else { doc.setFillColor(255, 255, 255); doc.rect(x, yy, cell, cell, 'F'); }
+      // Obramowanie
+      doc.setDrawColor(150, 195, 245); doc.setLineWidth(0.3 * s); doc.rect(x, yy, cell, cell, 'S');
+      // Tekst
+      const text = isCenter ? ctx.center : (picks[pi++] || '');
+      F(isCenter); doc.setFontSize(isCenter ? cellFont * 1.15 : cellFont);
+      doc.setTextColor(isCenter ? 255 : 30, isCenter ? 255 : 50, isCenter ? 255 : 90);
+      const lines = doc.splitTextToSize(tx(text), cell - pad * 2);
+      const lh = doc.getFontSize() * 0.3528 * 1.15;   // wysokość wiersza w mm
+      let ty = yy + cell / 2 - (lines.length - 1) * lh / 2;
+      lines.forEach(ln => { doc.text(ln, x + cell / 2, ty, { align: 'center', baseline: 'middle' }); ty += lh; });
+    }
+  }
+
+  // ── Stopka — nagroda ──
+  const fy = gy + gridSide + footH * 0.55;
+  // ozdobna gwiazdka „Oscar"
+  _pdfStar(doc, cx - 38 * s, fy - 1.3 * s, 1.7 * s, [212, 175, 55]);
+  _pdfStar(doc, cx + 38 * s, fy - 1.3 * s, 1.7 * s, [212, 175, 55]);
+  F(true); doc.setFontSize(8.5 * s); doc.setTextColor(150, 110, 20);
+  doc.text(tx('Zwycięzca (kto pierwszy zaliczy całą planszę) zdobywa Oscara!'), cx, fy, { align: 'center', maxWidth: pw - margin * 2.6 });
+}
+
+// Rysuje wypełnioną 5-ramienną gwiazdę (wektorowo, niezależnie od glifów fontu).
+function _pdfStar(doc, cx, cy, r, rgb) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const ang = -Math.PI / 2 + i * Math.PI / 5;
+    const rad = (i % 2 === 0) ? r : r * 0.42;
+    pts.push([cx + Math.cos(ang) * rad, cy + Math.sin(ang) * rad]);
+  }
+  doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+  const lines = pts.slice(1).map((p, i) => [p[0] - pts[i][0], p[1] - pts[i][1]]);
+  doc.lines(lines, pts[0][0], pts[0][1], [1, 1], 'F', true);
+}
+
 function renderAccessList() {
   const cont = document.getElementById('accessList');
   if (!cont) return;
@@ -8509,6 +8887,21 @@ function applyTablesTab() {
   if (tab !== 'plan' && typeof closeAllDrawers === 'function') closeAllDrawers(); // schowaj wysuwane panele par/personelu
   if (tab === 'card')    renderGuestCard();
   if (tab === 'summary') renderGuestSummary();
+}
+
+// ── PLAN STOŁÓW: chowanie filtrów wyszukiwania / szczegółów gości ──
+// Po schowaniu lista gości jest węższa/zwięźlejsza, a plan stołów zyskuje więcej miejsca.
+function toggleGuestFilters() {
+  const panel = document.getElementById('panelGuests');
+  if (!panel) return;
+  const hidden = panel.classList.toggle('filters-hidden');
+  document.getElementById('togFilters')?.classList.toggle('active', !hidden);
+}
+function toggleGuestMeta() {
+  const panel = document.getElementById('panelGuests');
+  if (!panel) return;
+  const hidden = panel.classList.toggle('meta-hidden');
+  document.getElementById('togMeta')?.classList.toggle('active', !hidden);
 }
 
 // ── KARTOTEKA GOŚCI (rozszerzone informacje) ──
@@ -8886,6 +9279,7 @@ function _serializeState() {
     locationLinksSeeded,
     songs, nextSongId, checklist, nextChecklistId,
     planningSteps, nextPlanningStepId,
+    bingoFields, nextBingoFieldId, bingoUseSchedule, bingoScheduleExclude, bingoCenterMode,
   };
 }
 
@@ -9493,6 +9887,19 @@ function _applyEventState(s) {
     }
     planningSteps.forEach(st => { if (st.done === undefined) st.done = false; if (st.note === undefined) st.note = ''; });
     nextPlanningStepId = s.nextPlanningStepId || (planningSteps.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
+
+    // Ślubne Bingo — baza pól (z domyślnym zestawem przy pierwszym uruchomieniu)
+    if (Array.isArray(s.bingoFields)) {
+      bingoFields = s.bingoFields;
+    } else {
+      bingoFields = DEFAULT_BINGO_FIELDS.map((t, i) => ({ id: i + 1, text: t, enabled: true }));
+    }
+    bingoFields.forEach(f => { if (f.enabled === undefined) f.enabled = true; if (f.text === undefined) f.text = ''; });
+    nextBingoFieldId     = s.nextBingoFieldId || (bingoFields.reduce((m, x) => Math.max(m, (x.id || 0) + 1), 1));
+    bingoUseSchedule     = (s.bingoUseSchedule === undefined) ? true : !!s.bingoUseSchedule;
+    bingoScheduleExclude = Array.isArray(s.bingoScheduleExclude) ? s.bingoScheduleExclude : [];
+    bingoCenterMode      = (s.bingoCenterMode === 'names') ? 'names' : 'gratis';
+    _bingoPreviewPicks   = null;
     vendors.forEach(v => {
       if (v.customCategory === undefined) v.customCategory = '';
       if (v.mapUrl === undefined) v.mapUrl = '';

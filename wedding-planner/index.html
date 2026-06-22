@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20260622-navfix2">
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -93,14 +93,20 @@
   <button class="nav-hamburger" id="navHamburger" onclick="toggleMobileNav()" aria-label="Menu">&#9776;</button>
   <span class="nav-mob-title" id="navMobTitle">&#9834; Wesele</span>
 
-  <div class="nav-groups">
-    <div class="nav-group nav-group-solo">
-      <div class="nav-group-items">
-        <button class="nav-btn" id="navDashboard" onclick="switchView('dashboard')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Dashboard</span></button>
-        <button class="nav-btn" id="navAnalytics" onclick="switchView('analytics')"><span class="nav-ico">&#128202;</span><span class="nav-txt">Analityka</span></button>
-      </div>
+  <!-- Dashboard i Analityka — dwa solo przyciski obok siebie po lewej; grupy zakładek dalej -->
+  <div class="nav-group nav-group-solo nav-group-start">
+    <div class="nav-group-items">
+      <button class="nav-btn" id="navDashboard" onclick="switchView('dashboard')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Dashboard</span></button>
     </div>
+  </div>
 
+  <div class="nav-group nav-group-solo nav-group-start">
+    <div class="nav-group-items">
+      <button class="nav-btn" id="navAnalytics" onclick="switchView('analytics')"><span class="nav-ico">&#128202;</span><span class="nav-txt">Analityka</span></button>
+    </div>
+  </div>
+
+  <div class="nav-groups">
     <div class="nav-group">
       <button type="button" class="nav-group-label" onclick="toggleNavGroup(this)">Goście</button>
       <div class="nav-group-items">
@@ -121,11 +127,8 @@
       <div class="nav-group-items">
         <button class="nav-btn" id="navSchedule" onclick="switchView('schedule')"><span class="nav-ico">&#128197;</span><span class="nav-txt">Harmonogram</span></button>
         <button class="nav-btn" id="navTasks" onclick="switchView('tasks')"><span class="nav-ico">&#9989;</span><span class="nav-txt">Zadania</span></button>
-        <button class="nav-btn" id="navMusic" onclick="switchView('music')"><span class="nav-ico">&#127925;</span><span class="nav-txt">Muzyka</span></button>
         <button class="nav-btn" id="navVendors" onclick="switchView('vendors')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Dostawcy</span></button>
-        <button class="nav-btn" id="navGifts" onclick="switchView('gifts')"><span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span></button>
         <button class="nav-btn" id="navRsvp" onclick="switchView('rsvp')"><span class="nav-ico">&#128203;</span><span class="nav-txt">Potwierdzenia</span></button>
-        <button class="nav-btn" id="navGallery" onclick="switchView('gallery')"><span class="nav-ico">&#128247;</span><span class="nav-txt">Galeria &amp; QR</span></button>
       </div>
     </div>
 
@@ -134,6 +137,16 @@
       <div class="nav-group-items">
         <button class="nav-btn" id="navTransport" onclick="switchView('transport')"><span class="nav-ico">&#128663;</span><span class="nav-txt">Transport</span></button>
         <button class="nav-btn" id="navAccommodation" onclick="switchView('accommodation')"><span class="nav-ico">&#127968;</span><span class="nav-txt">Noclegi</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button type="button" class="nav-group-label" onclick="toggleNavGroup(this)">Impreza</button>
+      <div class="nav-group-items">
+        <button class="nav-btn" id="navBingo" onclick="switchView('bingo')"><span class="nav-ico">&#127920;</span><span class="nav-txt">Ślubne Bingo</span></button>
+        <button class="nav-btn" id="navGallery" onclick="switchView('gallery')"><span class="nav-ico">&#128247;</span><span class="nav-txt">Galeria &amp; QR</span></button>
+        <button class="nav-btn" id="navGifts" onclick="switchView('gifts')"><span class="nav-ico">&#127873;</span><span class="nav-txt">Prezenty</span></button>
+        <button class="nav-btn" id="navMusic" onclick="switchView('music')"><span class="nav-ico">&#127925;</span><span class="nav-txt">Muzyka</span></button>
       </div>
     </div>
   </div>
@@ -150,7 +163,6 @@
   </div>
   <div class="mob-drawer-body">
     <button class="mob-nav-btn" onclick="switchView('dashboard')">&#127968; Dashboard</button>
-    <button class="mob-nav-btn" onclick="switchView('analytics')">&#128202; Analityka</button>
     <div class="mob-nav-sep">Goście</div>
     <button class="mob-nav-btn" onclick="switchView('tables')">&#128101; Stoły i goście</button>
     <button class="mob-nav-btn" onclick="switchView('room')">&#127963; Plan sali</button>
@@ -159,14 +171,18 @@
     <div class="mob-nav-sep">Organizacja</div>
     <button class="mob-nav-btn" onclick="switchView('schedule')">&#128197; Harmonogram</button>
     <button class="mob-nav-btn" onclick="switchView('tasks')">&#9989; Zadania</button>
-    <button class="mob-nav-btn" onclick="switchView('music')">&#127925; Muzyka</button>
     <button class="mob-nav-btn" onclick="switchView('vendors')">&#128203; Dostawcy</button>
-    <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
     <button class="mob-nav-btn" onclick="switchView('rsvp')">&#128203; Potwierdzenia</button>
-    <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
     <div class="mob-nav-sep">Logistyka</div>
     <button class="mob-nav-btn" onclick="switchView('transport')">&#128663; Transport</button>
     <button class="mob-nav-btn" onclick="switchView('accommodation')">&#127968; Noclegi</button>
+    <div class="mob-nav-sep">Impreza</div>
+    <button class="mob-nav-btn" onclick="switchView('bingo')">&#127920; Ślubne Bingo</button>
+    <button class="mob-nav-btn" onclick="switchView('gallery')">&#128247; Galeria &amp; QR</button>
+    <button class="mob-nav-btn" onclick="switchView('gifts')">&#127873; Prezenty</button>
+    <button class="mob-nav-btn" onclick="switchView('music')">&#127925; Muzyka</button>
+    <div class="mob-nav-sep">Analiza</div>
+    <button class="mob-nav-btn" onclick="switchView('analytics')">&#128202; Analityka</button>
     <div class="mob-drawer-footer">
       <div id="mobNavUserPanel" style="display:none">
         <span id="mobNavUserName" class="mob-user-name"></span>
@@ -393,7 +409,11 @@
       <div class="panel-guests" id="panelGuests">
         <div class="panel-title">
           <span>&#128101;</span> Lista Gości
-          <button class="btn btn-primary btn-sm" onclick="openGuestForm()" style="margin-left:auto;font-size:0.8rem">+ Dodaj gościa</button>
+          <div class="gp-toggles" style="margin-left:auto">
+            <button class="gp-toggle active" id="togFilters" type="button" onclick="toggleGuestFilters()" title="Pokaż/ukryj filtry wyszukiwania" aria-label="Filtry wyszukiwania">&#128269;</button>
+            <button class="gp-toggle active" id="togMeta" type="button" onclick="toggleGuestMeta()" title="Pokaż/ukryj szczegóły gości" aria-label="Szczegóły gości">&#127991;</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openGuestForm()" style="font-size:0.8rem">+ Dodaj</button>
         </div>
         <div class="guest-filters">
           <div class="gf-row" id="gfRow1">
@@ -511,6 +531,7 @@
             <button class="gcv-btn active" id="gcvList" onclick="setGuestCardView('list')" title="Widok listy">&#9776; Lista</button>
             <button class="gcv-btn"        id="gcvCols" onclick="setGuestCardView('cols')" title="Widok kolumnowy (3 kolumny)">&#9638; Kolumny</button>
           </div>
+          <button class="btn btn-primary btn-sm" onclick="openGuestForm()" title="Dodaj nowego gościa">+ Dodaj gościa</button>
         </div>
         <div id="guestCardList" class="guest-card-list"></div>
       </div>
@@ -1085,6 +1106,76 @@
     </div>
   </div>
 
+  <!-- ══ ŚLUBNE BINGO VIEW ══ -->
+  <div id="viewBingo" class="view-panel" style="display:none">
+    <div class="section-container">
+      <div class="section-header">
+        <h2>&#127920; Ślubne Bingo</h2>
+        <p class="section-sub">Drukowane plansze 5×5 dla gości. Każda plansza ma losowy, niepowtarzalny układ pól — wygeneruj nawet kilkadziesiąt różnych naraz.</p>
+      </div>
+
+      <!-- GENERATOR / WYDRUK -->
+      <div class="bingo-gen-card">
+        <div class="bingo-gen-title">&#128424;&#65039; Generuj plansze do druku (PDF)</div>
+        <div class="bingo-gen-controls">
+          <label class="bingo-ctrl">Rozmiar
+            <select id="bingoSize">
+              <option value="a4">A4</option>
+              <option value="a5">A5</option>
+              <option value="a6">A6</option>
+            </select>
+          </label>
+          <label class="bingo-ctrl">Liczba plansz
+            <input id="bingoCount" type="number" min="1" max="100" value="10">
+          </label>
+          <label class="bingo-ctrl">Środkowe pole
+            <select id="bingoCenter" onchange="setBingoCenter(this.value)">
+              <option value="gratis">GRATIS</option>
+              <option value="names">Imiona Pary Młodej</option>
+            </select>
+          </label>
+          <button class="btn btn-primary" onclick="generateBingoPdf()">&#11015; Pobierz PDF</button>
+        </div>
+        <div class="bingo-gen-hint" id="bingoPoolInfo"></div>
+      </div>
+
+      <!-- PODGLĄD PLANSZY -->
+      <div class="bingo-preview-card">
+        <div class="bingo-preview-hdr">
+          <span class="bingo-preview-title">Podgląd planszy</span>
+          <button class="btn btn-sm" onclick="refreshBingoPreview()">&#127922; Wylosuj nowy układ</button>
+        </div>
+        <div id="bingoPreview" class="bingo-preview"></div>
+        <div class="bingo-preview-foot">&#127942; Zwycięzca (kto pierwszy zaliczy całą planszę) zdobywa Oscara!</div>
+      </div>
+
+      <!-- BAZA PÓL -->
+      <div class="bingo-fields-card">
+        <div class="bingo-fields-hdr">
+          <h3>&#128221; Baza pól bingo</h3>
+          <span class="bingo-fields-count" id="bingoFieldsCount"></span>
+        </div>
+        <p class="bingo-fields-desc">Zaznacz pola, które mają trafiać do losowania. Możesz je dowolnie dodawać, edytować i usuwać.</p>
+        <div class="bingo-add-row">
+          <input id="bingoNewField" type="text" placeholder="Nowe pole bingo, np. „Znajdź gościa w kapeluszu"…" onkeydown="if(event.key==='Enter'){event.preventDefault();addBingoField();}">
+          <button class="btn btn-primary btn-sm" onclick="addBingoField()">+ Dodaj pole</button>
+          <button class="btn btn-sm" onclick="resetBingoFields()" title="Przywróć domyślny zestaw">&#8634; Domyślne</button>
+        </div>
+        <div id="bingoFieldsList" class="bingo-fields-list"></div>
+
+        <!-- POLA DYNAMICZNE Z HARMONOGRAMU -->
+        <div class="bingo-sched-block">
+          <label class="bingo-sched-toggle">
+            <input type="checkbox" id="bingoUseSchedule" onchange="toggleBingoSchedule(this.checked)">
+            <span>&#128197; Dołącz pola generowane z harmonogramu</span>
+          </label>
+          <p class="bingo-fields-desc">Pola tworzone automatycznie na podstawie wydarzeń z zakładki „Harmonogram" (tylko widoczne dla gości).</p>
+          <div id="bingoSchedList" class="bingo-fields-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ ACCESS VIEW ══ -->
   <div id="viewAccess" class="view-panel" style="display:none">
     <div class="section-container">
@@ -1448,7 +1539,7 @@ Hej Sokoły</pre>
 
 </div><!-- /#appContent -->
 
-<script src="script.js"></script>
+<script src="script.js?v=20260622-nav"></script>
 
 </body>
 </html>

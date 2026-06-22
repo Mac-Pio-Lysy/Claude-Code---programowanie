@@ -34,7 +34,9 @@
   border-bottom: 1px solid var(--border);
   padding: 5px 16px;
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;   /* KLUCZOWE: wszystkie trzy elementy (Dashboard | grupy | Analityka)
+                                wyrównane DO GÓRY — Dashboard i Analityka leżą na poziomie
+                                pierwszego rzędu zakładek, a nie w pionowym środku dwóch rzędów */
   gap: 8px;
   flex-wrap: wrap;
   box-shadow: 0 3px 14px var(--shadow);
@@ -50,10 +52,14 @@
 }
 .nav-groups {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  align-content: flex-start;
+  justify-content: flex-start;   /* grupy naturalnie obok siebie, wyrównane do lewej, ciasno
+                                    upakowane — wolno im zawijać się do kolejnych rzędów */
   flex-wrap: wrap;
   flex: 1;
-  gap: 2px;
+  min-width: 0;        /* pozwala środkowi zawijać się wewnętrznie */
+  gap: 4px 4px;        /* ciasne, naturalne odstępy między grupami (separatory ⟂ dzielą wizualnie) */
 }
 .nav-group {
   display: flex;
@@ -62,6 +68,19 @@
   padding: 3px 12px;
   position: relative;
 }
+/* Dashboard (lewy górny róg) i Analityka (prawy górny róg) — bliźniacze, samodzielne
+   pozycje poza grupami. Układ: [Dashboard | .nav-groups (flex:1, min-width:0) | Analityka].
+   - .nav-groups wypełnia środek i zawija się WEWNĘTRZNIE → dosuwa Analitykę do prawej,
+     bez margin-left:auto (który kolidował z flex-grow i przenosił Analitykę niżej).
+   - align-self: flex-start przypina OBA przyciski do GÓRY paska — leżą dokładnie na tym
+     samym poziomie co pierwszy rząd zakładek, nawet gdy środek zawija się na kilka rzędów. */
+.main-nav > .nav-group-start,
+.main-nav > .nav-group-end {
+  align-self: flex-start;
+  flex-shrink: 0;       /* skrajne przyciski nigdy się nie kurczą — stały, identyczny rozmiar */
+}
+.nav-group-start::before,
+.nav-group-end::before { display: none !important; }
 /* Lekki separator między grupami */
 .nav-group + .nav-group::before {
   content: '';
@@ -1423,13 +1442,17 @@ body.mob-nav-open { overflow: hidden; }
 
   /* ── Nav: show hamburger, hide desktop items ── */
   .nav-hamburger  { display: flex; align-items: center; }
-  .nav-mob-title  { display: block; }
+  /* Tytuł mobilny ukryty — nazwa imprezy jest już w głównym nagłówku wyżej,
+     pasek hamburgera zostaje czysty (sama ikona ☰ po lewej) */
+  .nav-mob-title  { display: none; }
   .main-nav {
     padding: 4px 6px;
     flex-wrap: nowrap;
     overflow: hidden;
   }
   .main-nav > .nav-groups,
+  .main-nav > .nav-group-start,
+  .main-nav > .nav-group-end,
   .main-nav > .nav-user-panel { display: none !important; }
 
   /* ── Prawy górny róg: kompaktowo (avatar + trybik) ── */
@@ -2194,6 +2217,31 @@ header p {
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Przyciski chowania filtrów / szczegółów gości w panelu „Lista Gości" */
+.gp-toggles { display: inline-flex; gap: 5px; }
+.gp-toggle {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+  flex-shrink: 0;
+}
+.gp-toggle:hover { background: rgba(255,255,255,0.32); }
+.gp-toggle.active { background: #fff; color: var(--blue-dark); border-color: #fff; }
+.gp-toggle:not(.active) { opacity: 0.7; }
+
+/* Po schowaniu — plan stołów zyskuje więcej miejsca */
+.panel-guests.filters-hidden .guest-filters { display: none; }
+.panel-guests.meta-hidden .guest-meta { display: none; }
 
 /* ── WYSUWANE PANELE BOCZNE (Pary + Personel) ── */
 .panel-pairs {
@@ -6051,6 +6099,100 @@ body.room-fs-lock { overflow: hidden; }
 /* Małe przyciski „PDF do druku" w kartach QR */
 .btn-pdf { background: var(--blue-pale); border: 1.5px solid var(--blue-light); color: var(--blue-dark); font-weight: 700; }
 .btn-pdf:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ══════════════════════════════════════════════════════
+   ŚLUBNE BINGO — generator, podgląd i baza pól
+   ══════════════════════════════════════════════════════ */
+.bingo-gen-card,
+.bingo-preview-card,
+.bingo-fields-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--soft-shadow);
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.bingo-gen-title { font-weight: 800; color: var(--blue-dark); font-size: 1.05rem; margin-bottom: 14px; }
+.bingo-gen-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; }
+.bingo-ctrl { display: flex; flex-direction: column; gap: 5px; font-size: 0.72rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+.bingo-ctrl select,
+.bingo-ctrl input {
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px;
+  font-size: 0.9rem; font-family: inherit; background: var(--white); color: var(--text); outline: none; min-width: 150px;
+}
+.bingo-ctrl input { min-width: 110px; }
+.bingo-ctrl select:focus,
+.bingo-ctrl input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+.bingo-gen-hint { margin-top: 14px; font-size: 0.86rem; color: var(--text-light); background: var(--blue-pale); border-radius: 10px; padding: 10px 14px; }
+.bingo-gen-hint strong { color: var(--blue-dark); }
+.bingo-hint-warn { background: #fff4e5; color: #9a5b00; }
+.bingo-hint-warn strong { color: #b45309; }
+
+/* Podgląd planszy */
+.bingo-preview-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.bingo-preview-title { font-weight: 800; color: var(--blue-dark); font-size: 1.05rem; }
+.bingo-preview { display: flex; justify-content: center; }
+.bingo-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  width: 100%; max-width: 560px; aspect-ratio: 1 / 1;
+}
+.bingo-cell {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  background: var(--white); border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 4px; font-size: 0.62rem; line-height: 1.18; color: var(--text);
+  overflow: hidden; word-break: break-word; hyphens: auto;
+}
+.bingo-cell-free {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%);
+  color: #fff; font-weight: 800; font-size: 0.74rem; border-color: var(--blue);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.bingo-preview-empty { color: var(--text-light); padding: 30px; text-align: center; }
+.bingo-preview-foot { text-align: center; margin-top: 16px; font-weight: 700; color: var(--blue-dark); font-size: 0.92rem; }
+
+/* Baza pól */
+.bingo-fields-hdr { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.bingo-fields-hdr h3 { color: var(--blue-dark); font-size: 1.05rem; }
+.bingo-fields-count { font-size: 0.8rem; font-weight: 700; color: var(--text-light); background: var(--blue-pale); border-radius: 12px; padding: 3px 10px; }
+.bingo-fields-desc { font-size: 0.84rem; color: var(--text-light); margin: 6px 0 12px; }
+.bingo-add-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.bingo-add-row input {
+  flex: 1 1 260px; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 12px;
+  font-size: 0.9rem; font-family: inherit; background: var(--white); color: var(--text); outline: none;
+}
+.bingo-add-row input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+.bingo-fields-list { display: flex; flex-direction: column; gap: 7px; }
+.bingo-field-item {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 7px 10px;
+}
+.bingo-chk { display: flex; align-items: center; flex-shrink: 0; }
+.bingo-chk input { width: 18px; height: 18px; accent-color: var(--blue); cursor: pointer; }
+.bingo-field-text {
+  flex: 1 1 auto; border: 1.5px solid transparent; border-radius: 6px; padding: 6px 8px;
+  font-size: 0.9rem; font-family: inherit; background: transparent; color: var(--text); outline: none;
+}
+input.bingo-field-text:hover { background: var(--white); border-color: var(--border); }
+input.bingo-field-text:focus { background: var(--white); border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.08); }
+.bingo-field-static { padding: 6px 8px; color: var(--text-light); cursor: default; }
+.bingo-field-del {
+  flex-shrink: 0; background: transparent; border: none; cursor: pointer;
+  font-size: 1rem; opacity: 0.55; padding: 4px 6px; border-radius: 6px; transition: opacity 0.15s, background 0.15s;
+}
+.bingo-field-del:hover { opacity: 1; background: #fde8e8; }
+.bingo-field-dyn { background: var(--blue-pale); border-color: var(--blue-light); }
+.bingo-sched-block { margin-top: 22px; padding-top: 18px; border-top: 2px dashed var(--border); }
+.bingo-sched-toggle { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--blue-dark); cursor: pointer; font-size: 0.95rem; }
+.bingo-sched-toggle input { width: 18px; height: 18px; accent-color: var(--blue); cursor: pointer; }
+.bingo-sched-empty { font-size: 0.86rem; color: var(--text-light); padding: 10px 4px; }
+
+@media (max-width: 768px) {
+  .bingo-gen-controls { gap: 10px; }
+  .bingo-ctrl select, .bingo-ctrl input { min-width: 0; flex: 1; }
+  .bingo-cell { font-size: 0.5rem; }
+  .bingo-cell-free { font-size: 0.6rem; }
+}
 
 /* ══ PREZENTY — zakładki i podsekcje ══ */
 .gifts-tabbar { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 2px solid var(--border); margin-bottom: 4px; }
