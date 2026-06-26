@@ -65,7 +65,8 @@
       "Bash(git --no-pager diff --stat -- script.js index.html)",
       "Bash(rm -f _real.html _real_1600.png)",
       "Bash(which firebase *)",
-      "Bash(firebase --version)"
+      "Bash(firebase --version)",
+      "Bash(\"/c/Program Files/Google/Chrome/Application/chrome.exe\" --headless=new --disable-gpu --window-size=1920,240 --virtual-time-budget=1500 --dump-dom \"file:///D:/Claude%20Code%20-%20programowanie/wedding-planner/_real.html\")"
     ]
   }
 }
