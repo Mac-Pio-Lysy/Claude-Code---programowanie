@@ -7,11 +7,14 @@ import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
 import '../services/firestore_service.dart';
 import 'accommodation/accommodation_screen.dart';
+import 'bingo/bingo_screen.dart';
 import 'budget/budget_screen.dart';
 import 'dashboard_screen.dart';
+import 'gallery/gallery_screen.dart';
 import 'gifts/gifts_screen.dart';
 import 'guests/guests_screen.dart';
 import 'music/music_screen.dart';
+import 'rsvp/rsvp_screen.dart';
 import 'schedule/schedule_screen.dart';
 import 'section_placeholder_screen.dart';
 import 'tables/tables_screen.dart';
@@ -231,6 +234,12 @@ class _MainNavigationState extends State<MainNavigation> {
         return GiftsScreen(data: data, firestore: widget.firestore);
       case AppSection.music:
         return MusicScreen(data: data, firestore: widget.firestore);
+      case AppSection.gallery:
+        return GalleryScreen(data: data, firestore: widget.firestore);
+      case AppSection.bingo:
+        return BingoScreen(data: data, firestore: widget.firestore);
+      case AppSection.rsvp:
+        return RsvpScreen(data: data, firestore: widget.firestore);
       default:
         return SectionPlaceholderScreen(section: section);
     }
