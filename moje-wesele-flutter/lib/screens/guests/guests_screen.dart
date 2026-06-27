@@ -16,10 +16,14 @@ class GuestsScreen extends StatefulWidget {
     super.key,
     required this.data,
     required FirestoreService firestore,
+    this.embedded = false,
   }) : service = GuestService(firestore: firestore);
 
   final WeddingData? data;
   final GuestService service;
+
+  /// Gdy true, pomija własny nagłówek „Goście" (używane w zakładkach sekcji).
+  final bool embedded;
 
   @override
   State<GuestsScreen> createState() => _GuestsScreenState();
@@ -151,24 +155,26 @@ class _GuestsScreenState extends State<GuestsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Goście',
-            style: GoogleFonts.playfairDisplay(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppColors.text,
+          if (!widget.embedded) ...[
+            Text(
+              'Goście',
+              style: GoogleFonts.playfairDisplay(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            width: 44,
-            height: 3,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: const LinearGradient(colors: AppColors.dividerGradient),
+            const SizedBox(height: 4),
+            Container(
+              width: 44,
+              height: 3,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(2),
+                gradient: const LinearGradient(colors: AppColors.dividerGradient),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
+          ],
           Row(
             children: [
               Expanded(

@@ -44,6 +44,8 @@ dependencies:
   qr_flutter: ^4.1.0
   pdf: ^3.13.0
   printing: ^5.15.0
+  fl_chart: ^1.2.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

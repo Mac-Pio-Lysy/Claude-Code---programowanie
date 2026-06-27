@@ -122,6 +122,17 @@ class GuestService {
     await _firestore.mainDoc.set({'guests': guests}, SetOptions(merge: true));
   }
 
+  /// Szybka edycja pojedynczego pola gościa (Kartoteka: menuChoice,
+  /// preferences, allergies, cardNotes).
+  Future<void> setField(int id, String field, dynamic value) async {
+    final data = await _firestore.readData() ?? <String, dynamic>{};
+    final guests = _mapList(data['guests']);
+    final idx = guests.indexWhere((g) => _idOf(g) == id);
+    if (idx == -1) return;
+    guests[idx] = {...guests[idx], field: value};
+    await _firestore.mainDoc.set({'guests': guests}, SetOptions(merge: true));
+  }
+
   /// Usuwa gościa wraz z czyszczeniem powiązań (jak `removeGuest` w wersji web):
   /// zwalnia miejsce przy stole, rozłącza parę oraz usuwa odwołania w pojazdach,
   /// prezentach i potwierdzeniach RSVP.

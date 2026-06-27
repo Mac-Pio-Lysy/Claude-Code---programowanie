@@ -7,16 +7,17 @@ import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
 import '../services/firestore_service.dart';
 import 'accommodation/accommodation_screen.dart';
+import 'analytics/analytics_screen.dart';
 import 'bingo/bingo_screen.dart';
 import 'budget/budget_screen.dart';
 import 'dashboard_screen.dart';
 import 'gallery/gallery_screen.dart';
 import 'gifts/gifts_screen.dart';
-import 'guests/guests_screen.dart';
+import 'guests/guests_section_screen.dart';
 import 'music/music_screen.dart';
 import 'rsvp/rsvp_screen.dart';
 import 'schedule/schedule_screen.dart';
-import 'section_placeholder_screen.dart';
+import 'settings/settings_screen.dart';
 import 'tables/tables_screen.dart';
 import 'tasks/tasks_screen.dart';
 import 'transport/transport_screen.dart';
@@ -215,7 +216,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case AppSection.dashboard:
         return DashboardScreen(data: data, isLoading: loading);
       case AppSection.guests:
-        return GuestsScreen(data: data, firestore: widget.firestore);
+        return GuestsSectionScreen(data: data, firestore: widget.firestore);
       case AppSection.room:
         return TablesScreen(data: data, firestore: widget.firestore);
       case AppSection.budget:
@@ -240,8 +241,14 @@ class _MainNavigationState extends State<MainNavigation> {
         return BingoScreen(data: data, firestore: widget.firestore);
       case AppSection.rsvp:
         return RsvpScreen(data: data, firestore: widget.firestore);
-      default:
-        return SectionPlaceholderScreen(section: section);
+      case AppSection.analytics:
+        return AnalyticsScreen(data: data);
+      case AppSection.settings:
+        return SettingsScreen(
+          data: data,
+          firestore: widget.firestore,
+          onSignOut: widget.onSignOut,
+        );
     }
   }
 }
