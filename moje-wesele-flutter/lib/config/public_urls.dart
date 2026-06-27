@@ -6,7 +6,7 @@
 class PublicPages {
   PublicPages._();
 
-  static const String defaultBaseUrl = 'https://wedding-planner-27148.web.app';
+  static const String defaultBaseUrl = 'https://ceremonia-patrycji-i-piotra.pl';
 
   static String baseUrl(Map<String, dynamic>? raw) {
     final cfg = raw?['appConfig'];
@@ -20,6 +20,7 @@ class PublicPages {
   static String harmonogram(String base) => '$base/harmonogram.html';
   static String rsvp(String base) => '$base/rsvp.html';
   static String muzyka(String base) => '$base/muzyka.html';
+  static String bingo(String base) => '$base/bingo.html';
 
   /// Pary (etykieta, ścieżka) do wyświetlenia kodów QR.
   static List<(String, String)> all(String base) => [
@@ -27,5 +28,6 @@ class PublicPages {
         ('📅 Harmonogram', harmonogram(base)),
         ('✅ Potwierdzenia (RSVP)', rsvp(base)),
         ('🎵 Muzyka', muzyka(base)),
+        ('🎯 Ślubne Bingo', bingo(base)),
       ];
 }

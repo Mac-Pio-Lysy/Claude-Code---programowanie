@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../config/public_urls.dart';
 import '../../models/song.dart';
 import '../../models/wedding_data.dart';
 import '../../services/deezer_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/music_service.dart';
+import '../../widgets/public_link_card.dart';
 import '../budget/budget_fields.dart';
 import 'music_export.dart';
 
@@ -111,6 +113,16 @@ class _MusicScreenState extends State<MusicScreen> {
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
+              ),
+              IconButton(
+                tooltip: 'Kod QR dla gości',
+                onPressed: () {
+                  final base = PublicPages.baseUrl(widget.data?.raw);
+                  showPublicLinkDialog(
+                      context, '🎵 Muzyka — propozycje gości',
+                      PublicPages.muzyka(base));
+                },
+                icon: const Icon(Icons.qr_code_2, color: AppColors.accent),
               ),
               IconButton(
                 tooltip: 'Eksport',

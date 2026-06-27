@@ -42,8 +42,10 @@ class ScheduleEvent {
 
   SchedCategory get cat => SchedCategory.byName(category);
 
-  /// Minuty od północy — do sortowania osi czasu.
-  int get sortKey => hour * 60 + minute;
+  /// Minuty do sortowania osi czasu. Godziny po północy (0–5) traktujemy jako
+  /// „następnego dnia" (+24 h), aby zakończenie wesela (np. 01:00, 02:00) było
+  /// na końcu, a nie na początku — zgodnie z logiką wersji web (`hour < 6`).
+  int get sortKey => (hour < 6 ? hour + 24 : hour) * 60 + minute;
 
   String get timeLabel =>
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';

@@ -250,7 +250,7 @@ class _ForGuestsTab extends StatelessWidget {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       children: [
         _summaryCard([
           ('$count', 'Upominków'),

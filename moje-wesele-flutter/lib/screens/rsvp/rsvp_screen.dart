@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
@@ -10,6 +8,7 @@ import '../../models/rsvp_entry.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rsvp_service.dart';
+import '../../widgets/public_link_card.dart';
 
 /// Sekcja „Potwierdzenia" (panel RSVP organizatora).
 class RsvpScreen extends StatelessWidget {
@@ -31,12 +30,6 @@ class RsvpScreen extends StatelessWidget {
         for (final e in data?.raw['rsvpEntries'] ?? const [])
           if (e is Map) RsvpEntry(Map<String, dynamic>.from(e)),
       ];
-
-  void _toast(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(msg)));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +85,23 @@ class RsvpScreen extends StatelessWidget {
             children: [
               _summary(attending, notAtt, noReply),
               const SizedBox(height: 16),
+              if (entries.isEmpty)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFCD34D)),
+                  ),
+                  child: Text(
+                    'Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej '
+                    'sekcji) lub link do strony /rsvp, aby zbierać potwierdzenia. '
+                    'Możesz też ręcznie ustawić status każdego gościa poniżej.',
+                    style: GoogleFonts.inter(
+                        fontSize: 13, color: const Color(0xFF92400E)),
+                  ),
+                ),
               if (unmatched.isNotEmpty) ...[
                 Text('Nierozpoznane potwierdzenia (${unmatched.length})',
                     style: GoogleFonts.inter(
@@ -322,44 +332,9 @@ class RsvpScreen extends StatelessWidget {
   }
 
   Widget _qrCard(BuildContext context, String baseUrl) {
-    final url = PublicPages.rsvp(baseUrl);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2EAF7)),
-      ),
-      child: Column(
-        children: [
-          Text('Kod QR do strony potwierdzeń',
-              style: GoogleFonts.inter(
-                  fontSize: 14, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
-          QrImageView(
-            data: url,
-            size: 160,
-            eyeStyle: const QrEyeStyle(
-                eyeShape: QrEyeShape.square, color: Color(0xFF1040B0)),
-            dataModuleStyle: const QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: Color(0xFF1040B0)),
-          ),
-          const SizedBox(height: 10),
-          SelectableText(url,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                  fontSize: 11, color: AppColors.textLight)),
-          TextButton.icon(
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: url));
-              _toast(context, 'Skopiowano link');
-            },
-            icon: const Icon(Icons.copy, size: 16),
-            label: const Text('Kopiuj link'),
-          ),
-        ],
-      ),
+    return PublicLinkCard(
+      label: '✅ Strona potwierdzeń (RSVP)',
+      url: PublicPages.rsvp(baseUrl),
     );
   }
 

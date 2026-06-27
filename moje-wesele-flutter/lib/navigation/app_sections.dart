@@ -62,25 +62,6 @@ extension AppSectionMeta on AppSection {
       };
 }
 
-/// Sekcje główne na telefonie (dolny pasek): 4 + przycisk „Więcej".
-const List<AppSection> kPhonePrimary = [
-  AppSection.dashboard,
-  AppSection.guests,
-  AppSection.budget,
-  AppSection.room,
-];
-
-/// Sekcje główne na tablecie (boczny pasek): więcej pozycji + „Więcej".
-const List<AppSection> kTabletPrimary = [
-  AppSection.dashboard,
-  AppSection.guests,
-  AppSection.budget,
-  AppSection.room,
-  AppSection.schedule,
-  AppSection.tasks,
-  AppSection.vendors,
-];
-
-/// Sekcje pokazywane w arkuszu „Więcej" dla danej listy głównej.
-List<AppSection> moreSectionsFor(List<AppSection> primary) =>
-    AppSection.values.where((s) => !primary.contains(s)).toList();
+// Konfiguracja paska nawigacji (które 4 sekcje i kolejność) jest teraz
+// dynamiczna — patrz NavConfigService. Dashboard jest przypięty osobno
+// w lewym górnym rogu (AppBar).
