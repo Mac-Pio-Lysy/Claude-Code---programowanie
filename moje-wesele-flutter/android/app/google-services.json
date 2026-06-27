@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "719030954518-q2rjrnmnk9h1ad34jsav3glb5e5l74ar.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ceremonia.moje_wesele",
+            "certificate_hash": "f01687787efcd0583b51c2f62ccf713327cc4dd9"
+          }
+        },
+        {
           "client_id": "719030954518-02u0vbbfp1tee4cevpm87bg98nt42l7g.apps.googleusercontent.com",
           "client_type": 3
         }
