@@ -6,6 +6,7 @@ import '../../models/task.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/task_service.dart';
+import '../../widgets/filter_toggle_button.dart';
 import 'task_form_sheet.dart';
 
 /// Sekcja „Zadania" — tablica Kanban (Do zrobienia / W trakcie / Zrobione).
@@ -30,6 +31,7 @@ class _TasksScreenState extends State<TasksScreen> {
   String _statusFilter = 'all';
   String _linkFilter = 'all'; // all | budget | vendor | gift | none
   String _sort = 'none';
+  bool _filtersVisible = true;
 
   bool _matchesLink(Task t) {
     switch (_linkFilter) {
@@ -152,11 +154,22 @@ class _TasksScreenState extends State<TasksScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Zadania',
-                  style: GoogleFonts.playfairDisplay(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text)),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Zadania',
+                        style: GoogleFonts.playfairDisplay(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text)),
+                  ),
+                  FilterToggleButton(
+                    expanded: _filtersVisible,
+                    onTap: () =>
+                        setState(() => _filtersVisible = !_filtersVisible),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Text('$doneCount/${all.length} ukończonych ($pct%)',
                   style: GoogleFonts.inter(
@@ -172,8 +185,17 @@ class _TasksScreenState extends State<TasksScreen> {
                       const AlwaysStoppedAnimation(Color(0xFF10B981)),
                 ),
               ),
-              const SizedBox(height: 12),
-              _filters(),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.topCenter,
+                curve: Curves.easeInOut,
+                child: _filtersVisible
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _filters(),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
             ],
           ),
         ),

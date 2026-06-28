@@ -8,6 +8,7 @@ import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/vendor_service.dart';
 import '../../utils/format.dart';
+import '../../widgets/filter_toggle_button.dart';
 import '../budget/budget_fields.dart';
 import 'vendor_form_sheet.dart';
 
@@ -30,6 +31,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
   String _categoryFilter = 'all';
   String _statusFilter = 'all';
   String _sort = 'none'; // none | name | status
+  bool _filtersVisible = true;
 
   List<Vendor> get _vendors {
     final v = widget.data?.raw['vendors'];
@@ -134,11 +136,22 @@ class _VendorsScreenState extends State<VendorsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Dostawcy',
-                  style: GoogleFonts.playfairDisplay(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text)),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Dostawcy',
+                        style: GoogleFonts.playfairDisplay(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text)),
+                  ),
+                  FilterToggleButton(
+                    expanded: _filtersVisible,
+                    onTap: () =>
+                        setState(() => _filtersVisible = !_filtersVisible),
+                  ),
+                ],
+              ),
               const SizedBox(height: 4),
               Container(
                 width: 44,
@@ -149,8 +162,17 @@ class _VendorsScreenState extends State<VendorsScreen> {
                       const LinearGradient(colors: AppColors.dividerGradient),
                 ),
               ),
-              const SizedBox(height: 12),
-              _filtersBar(),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.topCenter,
+                curve: Curves.easeInOut,
+                child: _filtersVisible
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: _filtersBar(),
+                      )
+                    : const SizedBox(width: double.infinity),
+              ),
             ],
           ),
         ),

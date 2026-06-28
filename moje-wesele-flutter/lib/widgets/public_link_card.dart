@@ -14,11 +14,16 @@ class PublicLinkCard extends StatelessWidget {
     required this.label,
     required this.url,
     this.qrSize = 160,
+    this.onShare,
   });
 
   final String label;
   final String url;
   final double qrSize;
+
+  /// Gdy podane — pokazuje przycisk „Pobierz / udostępnij" (np. eksport QR
+  /// do PDF z możliwością zapisu, wydruku lub udostępnienia).
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -54,8 +59,8 @@ class PublicLinkCard extends StatelessWidget {
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight)),
           const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
             children: [
               TextButton.icon(
                 onPressed: () {
@@ -73,6 +78,12 @@ class PublicLinkCard extends StatelessWidget {
                 icon: const Icon(Icons.open_in_new, size: 16),
                 label: const Text('Otwórz'),
               ),
+              if (onShare != null)
+                TextButton.icon(
+                  onPressed: onShare,
+                  icon: const Icon(Icons.download, size: 16),
+                  label: const Text('Pobierz / udostępnij'),
+                ),
             ],
           ),
         ],

@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../config/public_urls.dart';
 import '../../models/guest.dart';
 import '../../models/rsvp_entry.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
+import '../../services/pdf_service.dart';
 import '../../services/rsvp_service.dart';
+import '../../widgets/public_link_card.dart';
 
 /// Sekcja „Wszystkie RSVP" (dostępna pod „Więcej") — pełna lista WSZYSTKICH
 /// wpisów potwierdzeń w jednym miejscu (z formularza i ręcznych), z nazwą
@@ -52,57 +55,150 @@ class RsvpAllScreen extends StatelessWidget {
     final notAtt = entries.where((e) => e.isNotAttending).length;
     final unmatched = entries.where((e) => e.isUnmatched).length;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final base = PublicPages.baseUrl(data?.raw);
+
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Wszystkie RSVP',
+                    style: GoogleFonts.playfairDisplay(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text)),
+                const SizedBox(height: 4),
+                Text(
+                  'Lista wszystkich odpowiedzi oraz kody QR i linki dla gości.',
+                  style: GoogleFonts.inter(
+                      fontSize: 13, color: AppColors.textLight),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: AppColors.accent,
+            unselectedLabelColor: AppColors.textLight,
+            indicatorColor: AppColors.accent,
+            dividerColor: const Color(0xFFE2EAF7),
+            labelStyle:
+                GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+            tabs: const [
+              Tab(text: 'Wpisy RSVP'),
+              Tab(text: 'Kody QR i linki'),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  children: [
+                    _summary(entries.length, attending, notAtt, unmatched),
+                    const SizedBox(height: 14),
+                    if (entries.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBEB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFCD34D)),
+                        ),
+                        child: Text(
+                          'Brak wpisów RSVP. Pojawią się tutaj, gdy goście '
+                          'wypełnią formularz /rsvp lub gdy ustawisz status '
+                          'ręcznie w sekcji „Potwierdzenia".',
+                          style: GoogleFonts.inter(
+                              fontSize: 13, color: const Color(0xFF92400E)),
+                        ),
+                      )
+                    else
+                      for (final e in entries)
+                        _entryCard(context, e, guestById),
+                  ],
+                ),
+                _qrCenterTab(context, base),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Zbiorcze centrum kodów QR i linków do wszystkich stron dla gości.
+  Widget _qrCenterTab(BuildContext context, String base) {
+    final links = <(String, String)>[
+      ('📋 Potwierdzenia (RSVP)', PublicPages.rsvp(base)),
+      ('📸 Galeria', PublicPages.galeria(base)),
+      ('📅 Harmonogram', PublicPages.harmonogram(base)),
+      ('🎵 Muzyka', PublicPages.muzyka(base)),
+      ('🎲 Ślubne Bingo', PublicPages.bingo(base)),
+    ];
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Column(
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFCFE0FB)),
+          ),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Wszystkie RSVP',
-                  style: GoogleFonts.playfairDisplay(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text)),
-              const SizedBox(height: 4),
-              Text(
-                'Pełna lista wszystkich odpowiedzi (z formularza i ręcznych).',
-                style:
-                    GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+              const Icon(Icons.qr_code_2, size: 18, color: AppColors.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Wszystkie kody QR i linki do stron dla gości w jednym '
+                  'miejscu. Każdy kod możesz skopiować, otworzyć albo pobrać/'
+                  'udostępnić (PDF do druku lub wysłania).',
+                  style: GoogleFonts.inter(
+                      fontSize: 13, height: 1.45, color: AppColors.text),
+                ),
               ),
             ],
           ),
         ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            children: [
-              _summary(entries.length, attending, notAtt, unmatched),
-              const SizedBox(height: 14),
-              if (entries.isEmpty)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFCD34D)),
-                  ),
-                  child: Text(
-                    'Brak wpisów RSVP. Pojawią się tutaj, gdy goście wypełnią '
-                    'formularz /rsvp lub gdy ustawisz status ręcznie '
-                    'w sekcji „Potwierdzenia".',
-                    style: GoogleFonts.inter(
-                        fontSize: 13, color: const Color(0xFF92400E)),
-                  ),
-                )
-              else
-                for (final e in entries) _entryCard(context, e, guestById),
-            ],
+        const SizedBox(height: 16),
+        for (final (label, url) in links) ...[
+          PublicLinkCard(
+            label: label,
+            url: url,
+            onShare: () => _shareQr(context, label, url),
           ),
-        ),
+          const SizedBox(height: 16),
+        ],
       ],
     );
+  }
+
+  Future<void> _shareQr(BuildContext context, String label, String url) async {
+    try {
+      // Usuwamy emoji z tytułu PDF, zachowujemy czytelny opis.
+      final title = label.replaceAll(RegExp(r'[^\p{L}\p{N}\s()&-]', unicode: true), '').trim();
+      final bytes = await PdfService.qrCode(
+        title: title.isEmpty ? 'Strona dla gości' : title,
+        url: url,
+      );
+      await PdfService.preview(bytes, 'qr.pdf');
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text('Błąd generowania QR: $e')));
+      }
+    }
   }
 
   Widget _summary(int total, int attending, int notAtt, int unmatched) {

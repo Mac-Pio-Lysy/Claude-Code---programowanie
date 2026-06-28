@@ -8,7 +8,7 @@ import '../../models/rsvp_entry.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rsvp_service.dart';
-import '../../widgets/public_link_card.dart';
+import '../../widgets/guest_page_tab.dart';
 
 /// Sekcja „Potwierdzenia" (panel RSVP organizatora).
 class RsvpScreen extends StatefulWidget {
@@ -76,7 +76,9 @@ class _RsvpScreenState extends State<RsvpScreen> {
     }).toList();
     final baseUrl = PublicPages.baseUrl(widget.data?.raw);
 
-    return Column(
+    return DefaultTabController(
+      length: 2,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -99,8 +101,23 @@ class _RsvpScreenState extends State<RsvpScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 4),
+        TabBar(
+          labelColor: AppColors.accent,
+          unselectedLabelColor: AppColors.textLight,
+          indicatorColor: AppColors.accent,
+          dividerColor: const Color(0xFFE2EAF7),
+          labelStyle:
+              GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+          tabs: const [
+            Tab(text: 'Lista'),
+            Tab(text: 'Kod QR potwierdzeń'),
+          ],
+        ),
         Expanded(
-          child: ListView(
+          child: TabBarView(
+            children: [
+              ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
             children: [
               _summary(attending, notAtt, noReply),
@@ -151,12 +168,21 @@ class _RsvpScreenState extends State<RsvpScreen> {
               else
                 for (final g in filteredGuests)
                   _guestRow(context, g, statusByGuest[g.id]),
-              const SizedBox(height: 16),
-              _qrCard(context, baseUrl),
+            ],
+          ),
+              GuestPageTab(
+                links: [
+                  ('📋 Potwierdzenia (RSVP)', PublicPages.rsvp(baseUrl)),
+                ],
+                intro:
+                    'Udostępnij gościom stronę potwierdzeń obecności (RSVP). '
+                    'Pokaż kod QR lub wyślij link.',
+              ),
             ],
           ),
         ),
       ],
+      ),
     );
   }
 
@@ -395,13 +421,6 @@ class _RsvpScreenState extends State<RsvpScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _qrCard(BuildContext context, String baseUrl) {
-    return PublicLinkCard(
-      label: '✅ Strona potwierdzeń (RSVP)',
-      url: PublicPages.rsvp(baseUrl),
     );
   }
 

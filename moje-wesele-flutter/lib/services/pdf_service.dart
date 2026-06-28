@@ -22,6 +22,22 @@ class PdfService {
 
   // ── GALERIA / QR ─────────────────────────────────────────────────────
 
+  /// Pojedyncza strona PDF z kodem QR do strony dla gości — do pobrania,
+  /// wydruku lub udostępnienia (przez okno [preview] → Printing).
+  static Future<Uint8List> qrCode({
+    required String title,
+    required String url,
+    String subtitle = 'Zeskanuj telefonem, aby otworzyć stronę dla gości.',
+    PdfPageFormat format = PdfPageFormat.a4,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    doc.addPage(pw.Page(
+      pageFormat: format,
+      build: (ctx) => _qrPage(title: title, subtitle: subtitle, url: url),
+    ));
+    return doc.save();
+  }
+
   static Future<Uint8List> gallery({
     required String galleryUrl,
     required PdfPageFormat format,
