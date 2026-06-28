@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_colors.dart';
@@ -13,6 +10,7 @@ import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/gallery_service.dart';
 import '../../services/pdf_service.dart';
+import '../../widgets/guest_page_tab.dart';
 
 /// Sekcja „Galeria & QR" (panel organizatora).
 class GalleryScreen extends StatefulWidget {
@@ -37,21 +35,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
   String _typeFilter = 'all'; // all | image | video
   String _sort = 'newest';
   String _pdfFormat = 'A4';
-  late final TextEditingController _baseUrlCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    final cfg = widget.data?.raw['appConfig'];
-    final u = (cfg is Map) ? cfg['publicBaseUrl'] as String? : null;
-    _baseUrlCtrl = TextEditingController(text: u ?? '');
-  }
-
-  @override
-  void dispose() {
-    _baseUrlCtrl.dispose();
-    super.dispose();
-  }
 
   List<ScheduleEvent> get _events {
     final list = [
@@ -79,49 +62,78 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) {
     final baseUrl = PublicPages.baseUrl(widget.data?.raw);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Text('Galeria & QR',
-              style: GoogleFonts.playfairDisplay(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text)),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            children: [
-              StreamBuilder<List<GalleryItem>>(
-                stream: widget.gallery.watch(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return _card('Galeria',
-                        Text('Błąd odczytu galerii: ${snapshot.error}',
-                            style: GoogleFonts.inter(
-                                fontSize: 12, color: const Color(0xFFC0392B))));
-                  }
-                  if (!snapshot.hasData) {
-                    return const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  return _galleryBlock(snapshot.data!);
-                },
-              ),
-              const SizedBox(height: 16),
-              _qrSection(baseUrl),
-              const SizedBox(height: 16),
-              _pdfSection(baseUrl),
-              const SizedBox(height: 16),
-              _baseUrlSection(),
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Text('Galeria & QR',
+                style: GoogleFonts.playfairDisplay(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text)),
+          ),
+          const SizedBox(height: 4),
+          TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: AppColors.accent,
+            unselectedLabelColor: AppColors.textLight,
+            indicatorColor: AppColors.accent,
+            dividerColor: const Color(0xFFE2EAF7),
+            labelStyle:
+                GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+            tabs: const [
+              Tab(text: 'Galeria'),
+              Tab(text: 'Strona dla gości'),
             ],
           ),
-        ),
-      ],
+          Expanded(
+            child: TabBarView(
+              children: [
+                ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  children: [
+                    StreamBuilder<List<GalleryItem>>(
+                      stream: widget.gallery.watch(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return _card('Galeria',
+                              Text('Błąd odczytu galerii: ${snapshot.error}',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: const Color(0xFFC0392B))));
+                        }
+                        if (!snapshot.hasData) {
+                          return const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return _galleryBlock(snapshot.data!);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _pdfSection(baseUrl),
+                  ],
+                ),
+                GuestPageTab(
+                  links: [
+                    ('📸 Galeria zdjęć i filmów', PublicPages.galeria(baseUrl)),
+                    ('🎵 Wybór muzyki', PublicPages.muzyka(baseUrl)),
+                  ],
+                  intro:
+                      'Strona dla gości: wspólna galeria zdjęć i filmów oraz '
+                      'możliwość zaproponowania muzyki. Pokaż kod QR lub wyślij '
+                      'link.',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -321,52 +333,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
     );
   }
 
-  Widget _qrSection(String baseUrl) {
-    return _card(
-      'Kody QR do stron publicznych',
-      Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        children: [
-          for (final (label, url) in PublicPages.all(baseUrl))
-            SizedBox(
-              width: 150,
-              child: Column(
-                children: [
-                  QrImageView(
-                    data: url,
-                    size: 120,
-                    eyeStyle: const QrEyeStyle(
-                        eyeShape: QrEyeShape.square, color: Color(0xFF1040B0)),
-                    dataModuleStyle: const QrDataModuleStyle(
-                        dataModuleShape: QrDataModuleShape.square,
-                        color: Color(0xFF1040B0)),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(label,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(
-                          fontSize: 11, fontWeight: FontWeight.w600)),
-                  TextButton(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: url));
-                      _toast('Skopiowano link');
-                    },
-                    style: TextButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                    child: const Text('Kopiuj link',
-                        style: TextStyle(fontSize: 11)),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _pdfSection(String baseUrl) {
     final format = pdfFormatFromLabel(_pdfFormat);
     return _card(
@@ -433,51 +399,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
         side: const BorderSide(color: AppColors.accent),
       ),
     );
-  }
-
-  Widget _baseUrlSection() {
-    return _card(
-      'Publiczny adres stron',
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Adres, na którym hostowane są publiczne strony gości (do kodów QR). '
-            'Domyślnie: ${PublicPages.defaultBaseUrl}',
-            style:
-                GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _baseUrlCtrl,
-                  keyboardType: TextInputType.url,
-                  decoration: _miniInputDec('https://…'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _saveBaseUrl,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Zapisz'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _saveBaseUrl() async {
-    await widget.firestore.mainDoc.set({
-      'appConfig': {'publicBaseUrl': _baseUrlCtrl.text.trim()},
-    }, SetOptions(merge: true));
-    _toast('Zapisano adres');
   }
 
   Future<void> _open(String url) async {
@@ -568,16 +489,4 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ),
       );
 
-  InputDecoration _miniInputDec(String hint) => InputDecoration(
-        hintText: hint,
-        isDense: true,
-        filled: true,
-        fillColor: const Color(0xFFF8FAFF),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFFDCE4F2)),
-        ),
-      );
 }

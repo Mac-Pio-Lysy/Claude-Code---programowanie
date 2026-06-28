@@ -7,6 +7,8 @@ import '../../app_colors.dart';
 import '../../models/gift.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
+import '../../onboarding/tour_tab_sync.dart';
 import '../../services/firestore_service.dart';
 import '../../services/gift_service.dart';
 import '../../utils/format.dart';
@@ -27,7 +29,9 @@ class GiftsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
-      child: Column(
+      child: TourTabSync(
+        section: AppSection.gifts,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -79,6 +83,7 @@ class GiftsScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Logowanie biometryczne (local_auth). -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <application
-        android:label="moje_wesele"
+        android:label="Moje Wesele - Panel Ślubny"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

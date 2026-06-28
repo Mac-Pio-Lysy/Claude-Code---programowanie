@@ -10,6 +10,7 @@ import '../../services/auth_service.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
+import 'security_settings_screen.dart';
 
 /// Sekcja „Ustawienia" — konfiguracja, dostęp, narzędzia programistyczne,
 /// status synchronizacji i wylogowanie.
@@ -19,11 +20,19 @@ class SettingsScreen extends StatefulWidget {
     required this.data,
     required this.firestore,
     required this.onSignOut,
+    required this.onStartTour,
+    required this.onOpenPlanning,
   }) : config = ConfigService(firestore: firestore);
 
   final WeddingData? data;
   final FirestoreService firestore;
   final VoidCallback onSignOut;
+
+  /// Uruchamia przewodnik (z ekranem wyboru tempa).
+  final VoidCallback onStartTour;
+
+  /// Otwiera listę „Od czego zacząć?".
+  final VoidCallback onOpenPlanning;
   final ConfigService config;
 
   @override
@@ -34,7 +43,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _backups = BackupService();
 
   late final TextEditingController _eventName;
-  late final TextEditingController _subtitle;
   late final TextEditingController _displayNames;
   late final TextEditingController _ceremony;
   late final TextEditingController _reception;
@@ -56,7 +64,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final couple = (bd['coupleNames'] is List) ? bd['coupleNames'] as List : const [];
 
     _eventName = TextEditingController(text: (cfg['eventName'] as String?) ?? '');
-    _subtitle = TextEditingController(text: (cfg['subtitle'] as String?) ?? '');
     _displayNames =
         TextEditingController(text: (cfg['displayNames'] as String?) ?? '');
     _ceremony =
@@ -82,7 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void dispose() {
     for (final c in [
-      _eventName, _subtitle, _displayNames, _ceremony, _reception,
+      _eventName, _displayNames, _ceremony, _reception,
       _person1, _person2, _menu, _expenseCats,
     ]) {
       c.dispose();
@@ -103,7 +110,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _saveConfig() async {
     await widget.config.saveConfig(AppConfigDraft(
       eventName: _eventName.text.trim(),
-      subtitle: _subtitle.text.trim(),
       displayNames: _displayNames.text.trim(),
       ceremonyPlace: _ceremony.text.trim(),
       receptionPlace: _reception.text.trim(),
@@ -135,6 +141,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             children: [
               _syncCard(),
+              const SizedBox(height: 12),
+              _helpCard(),
+              const SizedBox(height: 12),
+              _loginCard(),
               const SizedBox(height: 12),
               _configCard(),
               const SizedBox(height: 12),
@@ -179,15 +189,91 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _helpCard() {
+    return _card(
+      'Przewodnik i pomoc',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Wróć do interaktywnego przewodnika po aplikacji lub do listy '
+            'kroków organizacji wesela.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: widget.onStartTour,
+              icon: const Text('🧭', style: TextStyle(fontSize: 16)),
+              label: const Text('Uruchom przewodnik'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: widget.onOpenPlanning,
+              icon: const Text('📋', style: TextStyle(fontSize: 16)),
+              label: const Text('Od czego zacząć?'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _loginCard() {
+    return _card(
+      'Logowanie',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Biometria (odcisk palca), PIN lub wzór do odblokowywania '
+            'aplikacji przy kolejnych otwarciach.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (_) => const SecuritySettingsScreen()),
+              ),
+              icon: const Icon(Icons.fingerprint, size: 18),
+              label: const Text('Logowanie i zabezpieczenia'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _configCard() {
     return _card(
       'Konfiguracja',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _field('Nazwa imprezy', _eventName),
-          _field('Podtytuł', _subtitle),
-          _field('Imiona (wyświetlane)', _displayNames),
+          _field('Nazwa wydarzenia', _eventName),
+          _field('Osoby', _displayNames),
           Row(
             children: [
               Expanded(

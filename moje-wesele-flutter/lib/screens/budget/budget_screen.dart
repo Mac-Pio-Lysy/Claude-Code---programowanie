@@ -5,6 +5,8 @@ import '../../app_colors.dart';
 import '../../models/budget_summary.dart';
 import '../../models/wedding_data.dart';
 import '../../models/beverage.dart';
+import '../../navigation/app_sections.dart';
+import '../../onboarding/tour_tab_sync.dart';
 import '../../services/budget_service.dart';
 import '../../services/firestore_service.dart';
 import 'beverage_tab.dart';
@@ -42,7 +44,9 @@ class BudgetScreen extends StatelessWidget {
 
     return DefaultTabController(
       length: _tabs.length,
-      child: Column(
+      child: TourTabSync(
+        section: AppSection.budget,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -101,6 +105,7 @@ class BudgetScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

@@ -6,7 +6,6 @@ import 'firestore_service.dart';
 class AppConfigDraft {
   AppConfigDraft({
     required this.eventName,
-    required this.subtitle,
     required this.displayNames,
     required this.ceremonyPlace,
     required this.receptionPlace,
@@ -19,7 +18,6 @@ class AppConfigDraft {
   });
 
   final String eventName;
-  final String subtitle;
   final String displayNames;
   final String ceremonyPlace;
   final String receptionPlace;
@@ -44,8 +42,7 @@ class ConfigService {
     await _firestore.mainDoc.set({
       'appConfig': {
         'eventName':
-            d.eventName.isEmpty ? 'Impreza Weselna Piotra i Patrycji' : d.eventName,
-        'subtitle': d.subtitle.isEmpty ? 'Panel organizacji wesela' : d.subtitle,
+            d.eventName.isEmpty ? 'Ceremonia Weselna' : d.eventName,
         'displayNames':
             d.displayNames.isEmpty ? 'Patrycji i Piotra' : d.displayNames,
         'ceremonyPlace': d.ceremonyPlace,

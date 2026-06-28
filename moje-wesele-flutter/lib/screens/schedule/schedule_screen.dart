@@ -4,10 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
+import '../../onboarding/tour_tab_sync.dart';
 import '../../services/firestore_service.dart';
 import '../../services/schedule_service.dart';
 import '../../widgets/public_link_card.dart';
 import 'checklist_tab.dart';
+import 'guest_schedule_tab.dart';
 import 'timeline_tab.dart';
 
 /// Sekcja „Harmonogram" — oś czasu dnia ślubu + checklista.
@@ -24,8 +27,10 @@ class ScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
-      child: Column(
+      length: 3,
+      child: TourTabSync(
+        section: AppSection.schedule,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -68,6 +73,8 @@ class ScheduleScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             labelColor: AppColors.accent,
             unselectedLabelColor: AppColors.textLight,
             indicatorColor: AppColors.accent,
@@ -77,6 +84,7 @@ class ScheduleScreen extends StatelessWidget {
             tabs: const [
               Tab(text: 'Plan dnia'),
               Tab(text: 'Checklista'),
+              Tab(text: 'Dla gości'),
             ],
           ),
           Expanded(
@@ -84,10 +92,12 @@ class ScheduleScreen extends StatelessWidget {
               children: [
                 TimelineTab(data: data, service: service),
                 ChecklistTab(data: data, service: service),
+                GuestScheduleTab(data: data, service: service),
               ],
             ),
           ),
         ],
+        ),
       ),
     );
   }

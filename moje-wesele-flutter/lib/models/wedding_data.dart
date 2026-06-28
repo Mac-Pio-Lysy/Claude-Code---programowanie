@@ -12,6 +12,7 @@ class WeddingData {
     required this.vendors,
     required this.scheduleEvents,
     required this.eventName,
+    required this.displayNames,
     required this.weddingDate,
     required this.budgetTotal,
     required this.raw,
@@ -32,8 +33,11 @@ class WeddingData {
   /// Harmonogram dnia (klucz `scheduleEvents`).
   final List<dynamic> scheduleEvents;
 
-  /// Nazwa imprezy — UWAGA: zagnieżdżona w `appConfig.eventName`.
+  /// Nazwa wydarzenia — zagnieżdżona w `appConfig.eventName`.
   final String? eventName;
+
+  /// Osoby (wyświetlane pod nazwą) — `appConfig.displayNames`.
+  final String? displayNames;
 
   /// Data ślubu (z pola `weddingDate`, format "YYYY-MM-DD").
   final DateTime? weddingDate;
@@ -64,6 +68,8 @@ class WeddingData {
   factory WeddingData.fromMap(Map<String, dynamic> map) {
     final appConfig = map['appConfig'];
     final eventName = (appConfig is Map) ? appConfig['eventName'] as String? : null;
+    final displayNames =
+        (appConfig is Map) ? appConfig['displayNames'] as String? : null;
 
     final budgetData = map['budgetData'];
     final total = (budgetData is Map) ? budgetData['total'] : null;
@@ -75,6 +81,7 @@ class WeddingData {
       vendors: _asList(map['vendors']),
       scheduleEvents: _asList(map['scheduleEvents']),
       eventName: eventName,
+      displayNames: displayNames,
       weddingDate: _parseDate(map['weddingDate']),
       budgetTotal: total is num ? total : 0,
       raw: map,

@@ -4,8 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../app_colors.dart';
+import '../screens/lock/lock_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_navigation.dart';
+import '../services/app_lock_service.dart';
 import '../services/auth_service.dart';
 
 /// Bramka autoryzacji — decyduje, który ekran pokazać w zależności od
@@ -26,12 +28,24 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   final AuthService _authService = AuthService();
+  final AppLockService _lock = AppLockService();
   StreamSubscription<User?>? _sub;
 
   User? _user;
   bool _initializing = true;
   bool _signingIn = false;
   String? _error;
+
+  /// Czy włączona jest blokada aplikacji (biometria/PIN) na tym urządzeniu.
+  bool _lockEnabled = false;
+
+  /// Czy bieżąca sesja jest odblokowana. Reset przy każdym starcie aplikacji
+  /// (stan w pamięci) → przy kolejnym otwarciu znów wymagane odblokowanie.
+  bool _unlocked = false;
+
+  /// Ustawiane, gdy użytkownik świadomie loguje się przez Google — wtedy
+  /// pomijamy ekran blokady (tożsamość już potwierdzona).
+  bool _interactiveSignIn = false;
 
   @override
   void initState() {
@@ -51,6 +65,7 @@ class _AuthGateState extends State<AuthGate> {
       if (!mounted) return;
       setState(() {
         _user = null;
+        _unlocked = false;
         _initializing = false;
       });
       return;
@@ -70,10 +85,16 @@ class _AuthGateState extends State<AuthGate> {
       return;
     }
 
-    // Użytkownik dozwolony
+    // Użytkownik dozwolony — sprawdź blokadę aplikacji.
+    final lockEnabled = await _lock.isLockEnabled();
     if (!mounted) return;
     setState(() {
       _user = user;
+      _lockEnabled = lockEnabled;
+      // Logowanie interaktywne (Google) pomija ekran blokady; auto-login
+      // po starcie aplikacji wymaga odblokowania.
+      _unlocked = _interactiveSignIn || !lockEnabled;
+      _interactiveSignIn = false;
       _signingIn = false;
       _initializing = false;
       _error = null;
@@ -83,6 +104,7 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _handleSignIn() async {
     setState(() {
       _signingIn = true;
+      _interactiveSignIn = true;
       _error = null;
     });
     try {
@@ -92,12 +114,18 @@ class _AuthGateState extends State<AuthGate> {
       // Użytkownik sam zamknął okno logowania — bez komunikatu o błędzie.
       if (e.code == 'popup-closed-by-user' ||
           e.code == 'cancelled-popup-request') {
-        if (mounted) setState(() => _signingIn = false);
+        if (mounted) {
+          setState(() {
+            _signingIn = false;
+            _interactiveSignIn = false;
+          });
+        }
         return;
       }
       if (mounted) {
         setState(() {
           _signingIn = false;
+          _interactiveSignIn = false;
           _error = _errorMessage(e);
         });
       }
@@ -105,6 +133,7 @@ class _AuthGateState extends State<AuthGate> {
       if (mounted) {
         setState(() {
           _signingIn = false;
+          _interactiveSignIn = false;
           _error = 'Błąd logowania. Spróbuj ponownie.';
         });
       }
@@ -138,6 +167,16 @@ class _AuthGateState extends State<AuthGate> {
     }
     final user = _user;
     if (user != null) {
+      if (_lockEnabled && !_unlocked) {
+        return LockScreen(
+          displayName: user.displayName?.split(' ').first,
+          onUnlocked: () => setState(() => _unlocked = true),
+          // Po przekroczeniu limitu prób / „nie pamiętam" → ponowne logowanie
+          // Google. Czyścimy też zapamiętaną sesję Google, by można było
+          // wybrać konto.
+          onForceReauth: () => _authService.signOut(),
+        );
+      }
       return MainNavigation(
         user: user,
         onSignOut: () => _authService.signOut(),

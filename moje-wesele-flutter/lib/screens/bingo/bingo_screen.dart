@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../config/public_urls.dart';
 import '../../models/bingo.dart';
 import '../../models/schedule_event.dart';
 import '../../models/wedding_data.dart';
 import '../../services/bingo_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/pdf_service.dart';
+import '../../widgets/guest_page_tab.dart';
 import '../budget/budget_fields.dart';
 
 /// Sekcja „Ślubne Bingo" — baza pól, generator i wydruki PDF.
@@ -108,32 +110,61 @@ class _BingoScreenState extends State<BingoScreen> {
     final activeCount = fields.where((f) => f.enabled).length;
     final pool = BingoEngine.pool(widget.data);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Text('Ślubne Bingo',
-              style: GoogleFonts.playfairDisplay(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text)),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            children: [
-              _generatorCard(pool.length),
-              const SizedBox(height: 12),
-              if (_previewBoard != null) _previewCard(),
-              if (_previewBoard != null) const SizedBox(height: 12),
-              _settingsCard(),
-              const SizedBox(height: 12),
-              _fieldsCard(fields, activeCount),
+    final base = PublicPages.baseUrl(widget.data?.raw);
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Text('Ślubne Bingo',
+                style: GoogleFonts.playfairDisplay(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text)),
+          ),
+          const SizedBox(height: 4),
+          TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: AppColors.accent,
+            unselectedLabelColor: AppColors.textLight,
+            indicatorColor: AppColors.accent,
+            dividerColor: const Color(0xFFE2EAF7),
+            labelStyle:
+                GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+            tabs: const [
+              Tab(text: 'Organizacja'),
+              Tab(text: 'Strona dla gości'),
             ],
           ),
-        ),
-      ],
+          Expanded(
+            child: TabBarView(
+              children: [
+                ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  children: [
+                    _generatorCard(pool.length),
+                    const SizedBox(height: 12),
+                    if (_previewBoard != null) _previewCard(),
+                    if (_previewBoard != null) const SizedBox(height: 12),
+                    _settingsCard(),
+                    const SizedBox(height: 12),
+                    _fieldsCard(fields, activeCount),
+                  ],
+                ),
+                GuestPageTab(
+                  links: [('🎯 Ślubne Bingo', PublicPages.bingo(base))],
+                  intro:
+                      'Strona z interaktywnym bingo dla gości. Pokaż im kod QR '
+                      'lub wyślij link, aby grali na telefonach.',
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

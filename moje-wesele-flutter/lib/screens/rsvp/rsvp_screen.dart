@@ -11,7 +11,7 @@ import '../../services/rsvp_service.dart';
 import '../../widgets/public_link_card.dart';
 
 /// Sekcja „Potwierdzenia" (panel RSVP organizatora).
-class RsvpScreen extends StatelessWidget {
+class RsvpScreen extends StatefulWidget {
   RsvpScreen({
     super.key,
     required this.data,
@@ -21,13 +21,20 @@ class RsvpScreen extends StatelessWidget {
   final WeddingData? data;
   final RsvpService service;
 
+  @override
+  State<RsvpScreen> createState() => _RsvpScreenState();
+}
+
+class _RsvpScreenState extends State<RsvpScreen> {
+  String _filter = 'all'; // all | attending | not_attending | noreply
+
   List<Guest> get _guests => [
-        for (final e in data?.guests ?? const [])
+        for (final e in widget.data?.guests ?? const [])
           if (e is Map) Guest(Map<String, dynamic>.from(e)),
       ];
 
   List<RsvpEntry> get _entries => [
-        for (final e in data?.raw['rsvpEntries'] ?? const [])
+        for (final e in widget.data?.raw['rsvpEntries'] ?? const [])
           if (e is Map) RsvpEntry(Map<String, dynamic>.from(e)),
       ];
 
@@ -54,7 +61,20 @@ class RsvpScreen extends StatelessWidget {
 
     final listGuests =
         guests.where((g) => g.category != 'Państwo Młodzi').toList();
-    final baseUrl = PublicPages.baseUrl(data?.raw);
+    final filteredGuests = listGuests.where((g) {
+      final st = statusByGuest[g.id];
+      switch (_filter) {
+        case 'attending':
+          return st == 'attending';
+        case 'not_attending':
+          return st == 'not_attending';
+        case 'noreply':
+          return st == null;
+        default:
+          return true;
+      }
+    }).toList();
+    final baseUrl = PublicPages.baseUrl(widget.data?.raw);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,20 +133,67 @@ class RsvpScreen extends StatelessWidget {
                   _unmatchedRow(context, e, guests),
                 const SizedBox(height: 16),
               ],
-              Text('Goście',
+              Text('Goście (${filteredGuests.length})',
                   style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppColors.text)),
-              const SizedBox(height: 6),
-              for (final g in listGuests)
-                _guestRow(context, g, statusByGuest[g.id]),
+              const SizedBox(height: 8),
+              _filterChips(attending, notAtt, noReply),
+              const SizedBox(height: 10),
+              if (filteredGuests.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text('Brak gości w tej kategorii.',
+                      style: GoogleFonts.inter(
+                          fontSize: 13, color: AppColors.textLight)),
+                )
+              else
+                for (final g in filteredGuests)
+                  _guestRow(context, g, statusByGuest[g.id]),
               const SizedBox(height: 16),
               _qrCard(context, baseUrl),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _filterChips(int attending, int notAtt, int noReply) {
+    Widget chip(String label, String value) {
+      final selected = _filter == value;
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ChoiceChip(
+          label: Text(label),
+          selected: selected,
+          onSelected: (_) => setState(() => _filter = value),
+          showCheckmark: false,
+          labelStyle: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: selected ? Colors.white : AppColors.textLight,
+          ),
+          selectedColor: AppColors.accent,
+          backgroundColor: Colors.white,
+          side: BorderSide(
+              color: selected ? AppColors.accent : const Color(0xFFDCE4F2)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          chip('Wszyscy', 'all'),
+          chip('✓ Przyjdą ($attending)', 'attending'),
+          chip('✗ Nie przyjdą ($notAtt)', 'not_attending'),
+          chip('Brak odpowiedzi ($noReply)', 'noreply'),
+        ],
+      ),
     );
   }
 
@@ -232,14 +299,14 @@ class RsvpScreen extends StatelessWidget {
           Row(
             children: [
               _btn('Przyjdzie', const Color(0xFF059669),
-                  () => service.setGuestStatus(gid, 'attending')),
+                  () => widget.service.setGuestStatus(gid, 'attending')),
               const SizedBox(width: 6),
               _btn('Nie przyjdzie', const Color(0xFFC0392B),
-                  () => service.setGuestStatus(gid, 'not_attending')),
+                  () => widget.service.setGuestStatus(gid, 'not_attending')),
               const Spacer(),
               if (status != null)
                 TextButton(
-                  onPressed: () => service.clearGuestStatus(gid),
+                  onPressed: () => widget.service.clearGuestStatus(gid),
                   child: const Text('Wyczyść'),
                 ),
             ],
@@ -312,14 +379,14 @@ class RsvpScreen extends StatelessWidget {
                   ],
                   onChanged: (v) {
                     if (v != null && e.id != null) {
-                      service.assignEntry(e.id!, v);
+                      widget.service.assignEntry(e.id!, v);
                     }
                   },
                 ),
               ),
               IconButton(
                 onPressed: () {
-                  if (e.id != null) service.deleteEntry(e.id!);
+                  if (e.id != null) widget.service.deleteEntry(e.id!);
                 },
                 icon: const Icon(Icons.delete_outline, size: 18),
                 color: const Color(0xFFC0392B),
@@ -357,6 +424,6 @@ class RsvpScreen extends StatelessWidget {
         ],
       ),
     );
-    if (ok == true) await service.clearAll();
+    if (ok == true) await widget.service.clearAll();
   }
 }

@@ -33,6 +33,18 @@ class Guest {
   bool get needsAccommodation => raw['needsAccommodation'] == true;
   String get menuChoice => (raw['menuChoice'] as String?)?.trim() ?? '';
 
+  /// Dieta: 'standard' | 'vegetarian' | 'vegan' | 'glutenfree' | 'other'.
+  String get diet {
+    final v = (raw['diet'] as String?)?.trim();
+    return (v == null || v.isEmpty) ? 'standard' : v;
+  }
+
+  /// Własny opis diety, gdy `diet == 'other'`.
+  String get dietOther => (raw['dietOther'] as String?)?.trim() ?? '';
+
+  /// Alergie / nietolerancje (pole tekstowe).
+  String get allergies => (raw['allergies'] as String?)?.trim() ?? '';
+
   /// Identyfikator przypisanego stołu (null = nieprzypisany).
   int? get tableId => (raw['tableId'] as num?)?.toInt();
   bool get isAssigned => raw['tableId'] != null;
@@ -90,5 +102,15 @@ class GuestOptions {
         'witness_groom' => 'Świadek',
         'witness_bride' => 'Świadkowa',
         _ => 'Brak roli',
+      };
+
+  /// Etykieta diety (zgodna z `dietLabel` w zrodlo-web/script.js).
+  static String dietLabel(String diet, String dietOther) => switch (diet) {
+        'standard' => 'Standardowa',
+        'vegetarian' => 'Wegetariańska',
+        'vegan' => 'Wegańska',
+        'glutenfree' => 'Bezglutenowa',
+        'other' => dietOther.isNotEmpty ? dietOther : 'Inne',
+        _ => diet,
       };
 }

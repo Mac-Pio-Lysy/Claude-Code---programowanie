@@ -28,7 +28,23 @@ class _TasksScreenState extends State<TasksScreen> {
 
   String _person = 'all';
   String _statusFilter = 'all';
+  String _linkFilter = 'all'; // all | budget | vendor | gift | none
   String _sort = 'none';
+
+  bool _matchesLink(Task t) {
+    switch (_linkFilter) {
+      case 'budget':
+        return t.isBudgetLinked;
+      case 'vendor':
+        return t.vendorId != null;
+      case 'gift':
+        return t.giftId != null;
+      case 'none':
+        return !t.isBudgetLinked && t.vendorId == null && t.giftId == null;
+      default:
+        return true;
+    }
+  }
 
   List<Task> get _allTasks => [
         for (final e in widget.data?.tasks ?? const [])
@@ -97,6 +113,7 @@ class _TasksScreenState extends State<TasksScreen> {
   List<Task> _filteredSorted() {
     var list = _allTasks.where((t) {
       if (_person != 'all' && t.responsible != _person) return false;
+      if (!_matchesLink(t)) return false;
       return true;
     }).toList();
 
@@ -265,6 +282,19 @@ class _TasksScreenState extends State<TasksScreen> {
           for (final p in TaskPerson.all)
             _chip(p.label, _person == p.id,
                 () => setState(() => _person = p.id)),
+        ]),
+        const SizedBox(height: 8),
+        _chipRow([
+          _chip('Wszystkie powiązania', _linkFilter == 'all',
+              () => setState(() => _linkFilter = 'all')),
+          _chip('💰 Budżet', _linkFilter == 'budget',
+              () => setState(() => _linkFilter = 'budget')),
+          _chip('👨‍🍳 Dostawca', _linkFilter == 'vendor',
+              () => setState(() => _linkFilter = 'vendor')),
+          _chip('🎁 Prezent', _linkFilter == 'gift',
+              () => setState(() => _linkFilter = 'gift')),
+          _chip('Bez powiązania', _linkFilter == 'none',
+              () => setState(() => _linkFilter = 'none')),
         ]),
         const SizedBox(height: 8),
         _chipRow([

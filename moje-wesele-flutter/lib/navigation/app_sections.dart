@@ -18,6 +18,7 @@ enum AppSection {
   bingo,
   analytics,
   rsvp,
+  rsvpAll,
   settings,
 }
 
@@ -39,6 +40,7 @@ extension AppSectionMeta on AppSection {
         AppSection.bingo => 'Ślubne Bingo',
         AppSection.analytics => 'Analityka',
         AppSection.rsvp => 'Potwierdzenia',
+        AppSection.rsvpAll => 'Wszystkie RSVP',
         AppSection.settings => 'Ustawienia',
       };
 
@@ -58,6 +60,7 @@ extension AppSectionMeta on AppSection {
         AppSection.bingo => Icons.grid_on_outlined,
         AppSection.analytics => Icons.analytics_outlined,
         AppSection.rsvp => Icons.how_to_reg_outlined,
+        AppSection.rsvpAll => Icons.list_alt_outlined,
         AppSection.settings => Icons.settings_outlined,
       };
 }

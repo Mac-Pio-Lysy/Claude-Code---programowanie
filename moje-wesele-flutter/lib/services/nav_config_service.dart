@@ -34,6 +34,7 @@ class NavConfigService {
       if (match.isEmpty) continue;
       final s = match.first;
       if (s == AppSection.dashboard) continue; // pinned osobno
+      if (s == AppSection.settings) continue; // tylko przez menu logo
       if (!sections.contains(s)) sections.add(s);
     }
     if (sections.isEmpty) return List.of(defaultBar);

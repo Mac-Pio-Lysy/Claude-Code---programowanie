@@ -81,9 +81,14 @@ class GuestSummary {
     return '—';
   }
 
+  /// Typ diety (jeśli inny niż standardowa) + alergie/nietolerancje.
   static String dietAllergies(Guest g) {
-    final allergies = (g.raw['allergies'] as String?)?.trim() ?? '';
-    return allergies.isEmpty ? '—' : allergies;
+    final parts = <String>[];
+    if (g.diet != 'standard') {
+      parts.add(GuestOptions.dietLabel(g.diet, g.dietOther));
+    }
+    if (g.allergies.isNotEmpty) parts.add(g.allergies);
+    return parts.isEmpty ? '—' : parts.join(' · ');
   }
 }
 
@@ -92,6 +97,7 @@ class GuestSummaryStats {
   GuestSummaryStats({
     required this.menu,
     required this.noMenu,
+    required this.diet,
     required this.transOwn,
     required this.transOrg,
     required this.transNone,
@@ -105,6 +111,9 @@ class GuestSummaryStats {
 
   final Map<String, int> menu;
   final int noMenu;
+
+  /// Liczba gości wg typu diety (etykieta → liczba).
+  final Map<String, int> diet;
   final int transOwn;
   final int transOrg;
   final int transNone;
@@ -122,6 +131,7 @@ class GuestSummaryStats {
     List<dynamic> rsvpEntries,
   ) {
     final menu = <String, int>{};
+    final diet = <String, int>{};
     var noMenu = 0, transOwn = 0, transOrg = 0, transNone = 0;
     var accomNeeds = 0, accomAssigned = 0, att = 0, notAtt = 0, noRsvp = 0;
 
@@ -132,6 +142,9 @@ class GuestSummaryStats {
       } else {
         noMenu++;
       }
+
+      final dietLabel = GuestOptions.dietLabel(g.diet, g.dietOther);
+      diet[dietLabel] = (diet[dietLabel] ?? 0) + 1;
 
       final t = GuestSummary.transport(g, vehicles);
       if (t.$2) {
@@ -161,6 +174,7 @@ class GuestSummaryStats {
     return GuestSummaryStats(
       menu: menu,
       noMenu: noMenu,
+      diet: diet,
       transOwn: transOwn,
       transOrg: transOrg,
       transNone: transNone,

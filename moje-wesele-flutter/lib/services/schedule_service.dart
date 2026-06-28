@@ -87,6 +87,18 @@ class ScheduleService {
         .set({'scheduleEvents': list}, SetOptions(merge: true));
   }
 
+  /// Ustawia, czy wydarzenie jest widoczne dla gości na stronie /harmonogram
+  /// (przechowywane jako `private = !visibleToGuests`).
+  Future<void> setEventVisibility(int id, bool visibleToGuests) async {
+    final data = await _read();
+    final list = _mapList(data['scheduleEvents']);
+    final item = _find(list, id);
+    if (item == null) return;
+    item['private'] = !visibleToGuests;
+    await _firestore.mainDoc
+        .set({'scheduleEvents': list}, SetOptions(merge: true));
+  }
+
   // ── CHECKLISTA ───────────────────────────────────────────────────────
 
   Future<void> addChecklistItem(String category) async {

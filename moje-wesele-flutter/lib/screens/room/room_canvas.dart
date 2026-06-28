@@ -50,6 +50,12 @@ class _RoomCanvasState extends State<RoomCanvas> {
   final Map<int, Offset> _liveTable = {};
   final Map<int, Offset> _liveElement = {};
 
+  // Pozycja startowa bieżącego przeciągania. Musi być w polu stanu (nie w
+  // zmiennej lokalnej buildera) — inaczej setState podczas przeciągania
+  // przebudowuje GestureDetector i kasuje punkt startu, blokując ruch.
+  Offset? _tableDragStart;
+  Offset? _elementDragStart;
+
   double get _scale => widget.controller.value.getMaxScaleOnAxis();
 
   int? _idOf(Map<String, dynamic> m) => (m['id'] as num?)?.toInt();
@@ -139,7 +145,6 @@ class _RoomCanvasState extends State<RoomCanvas> {
     final (wrapW, wrapH) = widget.geo.tableWrap(t);
     final selected = widget.selectedTableId == id;
 
-    Offset? start;
     return Positioned(
       left: pos.dx,
       top: pos.dy,
@@ -150,9 +155,10 @@ class _RoomCanvasState extends State<RoomCanvas> {
           final highlight = candidate.isNotEmpty;
           return GestureDetector(
             onTap: () => widget.onTableTap(t),
-            onLongPressStart: (_) => start = _tablePos(t),
+            onLongPressStart: (_) => _tableDragStart = _tablePos(t),
             onLongPressMoveUpdate: (d) {
-              if (start != null) _onTableDrag(t, d.offsetFromOrigin, start!);
+              final start = _tableDragStart;
+              if (start != null) _onTableDrag(t, d.offsetFromOrigin, start);
             },
             onLongPressEnd: (_) {
               final id2 = _idOf(t);
@@ -160,7 +166,7 @@ class _RoomCanvasState extends State<RoomCanvas> {
                 final p = _liveTable.remove(id2)!;
                 widget.onTableMoved(id2, p.dx, p.dy);
               }
-              start = null;
+              _tableDragStart = null;
             },
             child: SizedBox(
               width: wrapW,
@@ -187,22 +193,22 @@ class _RoomCanvasState extends State<RoomCanvas> {
     final selected = widget.selectedElementId == id;
     final type = (e['type'] as String?) ?? RoomElementType.typeOf((e['name'] as String?) ?? '');
 
-    Offset? start;
     return Positioned(
       left: pos.dx,
       top: pos.dy,
       child: GestureDetector(
         onTap: () => widget.onElementTap(e),
-        onLongPressStart: (_) => start = _elementPos(e),
+        onLongPressStart: (_) => _elementDragStart = _elementPos(e),
         onLongPressMoveUpdate: (d) {
-          if (start != null) _onElementDrag(e, d.offsetFromOrigin, start!);
+          final start = _elementDragStart;
+          if (start != null) _onElementDrag(e, d.offsetFromOrigin, start);
         },
         onLongPressEnd: (_) {
           if (_liveElement.containsKey(id)) {
             final p = _liveElement.remove(id)!;
             widget.onElementMoved(id, p.dx, p.dy);
           }
-          start = null;
+          _elementDragStart = null;
         },
         child: Container(
           width: wrapW,

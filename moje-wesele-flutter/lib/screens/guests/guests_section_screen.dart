@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
+import '../../onboarding/tour_tab_sync.dart';
 import '../../services/firestore_service.dart';
 import '../../services/guest_service.dart';
 import 'guests_card_tab.dart';
@@ -25,7 +27,9 @@ class GuestsSectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 3,
-      child: Column(
+      child: TourTabSync(
+        section: AppSection.guests,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
@@ -78,6 +82,7 @@ class GuestsSectionScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

@@ -32,6 +32,7 @@ class GuestsScreen extends StatefulWidget {
 class _GuestsScreenState extends State<GuestsScreen> {
   _Quick _quick = _Quick.all;
   String? _category; // null = wszyscy
+  bool _filtersVisible = true;
 
   List<String> get _menuOptions {
     final cfg = widget.data?.raw['appConfig'];
@@ -188,6 +189,8 @@ class _GuestsScreenState extends State<GuestsScreen> {
                   ),
                 ),
               ),
+              _filtersToggle(),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: _addGuest,
                 icon: const Icon(Icons.add, size: 18),
@@ -209,9 +212,21 @@ class _GuestsScreenState extends State<GuestsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _filterRow1(),
-          const SizedBox(height: 8),
-          _filterRow2(),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            alignment: Alignment.topCenter,
+            curve: Curves.easeInOut,
+            child: _filtersVisible
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _filterRow1(),
+                      const SizedBox(height: 8),
+                      _filterRow2(),
+                    ],
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
           const SizedBox(height: 12),
           Expanded(
             child: filtered.isEmpty
@@ -234,6 +249,42 @@ class _GuestsScreenState extends State<GuestsScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Mała strzałka obok „Dodaj gościa" — chowa/pokazuje wiersze filtrów,
+  /// dając więcej miejsca na listę.
+  Widget _filtersToggle() {
+    return Tooltip(
+      message: _filtersVisible ? 'Ukryj filtry' : 'Pokaż filtry',
+      child: Material(
+        color: _filtersVisible ? const Color(0xFFEEF3FF) : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => setState(() => _filtersVisible = !_filtersVisible),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFDCE4F2)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.filter_list,
+                    size: 18, color: AppColors.accent),
+                AnimatedRotation(
+                  turns: _filtersVisible ? 0.5 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(Icons.expand_more,
+                      size: 18, color: AppColors.accent),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

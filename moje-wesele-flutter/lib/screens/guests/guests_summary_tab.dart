@@ -76,6 +76,8 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
   Widget _aggregates(GuestSummaryStats s) {
     final menuItems = s.menu.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
+    final dietItems = s.diet.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
     return Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -83,6 +85,9 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
         _aggCard('🍽 Menu (co je)', [
           for (final e in menuItems) (e.key, e.value),
           if (s.noMenu > 0) ('Bez wyboru menu', s.noMenu),
+        ]),
+        _aggCard('🥗 Diety', [
+          for (final e in dietItems) (e.key, e.value),
         ]),
         _aggCard('🚌 Transport', [
           ('Własny', s.transOwn),

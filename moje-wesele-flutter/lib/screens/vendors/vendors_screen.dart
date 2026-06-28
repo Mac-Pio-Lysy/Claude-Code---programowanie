@@ -28,6 +28,8 @@ class VendorsScreen extends StatefulWidget {
 
 class _VendorsScreenState extends State<VendorsScreen> {
   String _categoryFilter = 'all';
+  String _statusFilter = 'all';
+  String _sort = 'none'; // none | name | status
 
   List<Vendor> get _vendors {
     final v = widget.data?.raw['vendors'];
@@ -106,9 +108,23 @@ class _VendorsScreenState extends State<VendorsScreen> {
   @override
   Widget build(BuildContext context) {
     final vendors = _vendors;
-    final filtered = _categoryFilter == 'all'
-        ? vendors
-        : vendors.where((v) => v.category == _categoryFilter).toList();
+    final filtered = vendors.where((v) {
+      if (_categoryFilter != 'all' && v.category != _categoryFilter) {
+        return false;
+      }
+      if (_statusFilter != 'all' && v.paymentStatus != _statusFilter) {
+        return false;
+      }
+      return true;
+    }).toList();
+    if (_sort == 'name') {
+      filtered.sort(
+          (a, b) => a.label.toLowerCase().compareTo(b.label.toLowerCase()));
+    } else if (_sort == 'status') {
+      int rank(Vendor v) =>
+          VendorStatus.all.indexWhere((s) => s.value == v.paymentStatus);
+      filtered.sort((a, b) => rank(a).compareTo(rank(b)));
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,7 +150,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              _categoryFilters(),
+              _filtersBar(),
             ],
           ),
         ),
@@ -185,39 +201,66 @@ class _VendorsScreenState extends State<VendorsScreen> {
     );
   }
 
-  Widget _categoryFilters() {
-    Widget chip(String label, String value) {
-      final selected = _categoryFilter == value;
-      return Padding(
-        padding: const EdgeInsets.only(right: 8),
-        child: ChoiceChip(
-          label: Text(label),
-          selected: selected,
-          onSelected: (_) => setState(() => _categoryFilter = value),
-          showCheckmark: false,
-          labelStyle: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: selected ? Colors.white : AppColors.textLight,
-          ),
-          selectedColor: AppColors.accent,
-          backgroundColor: Colors.white,
-          side: BorderSide(
-              color: selected ? AppColors.accent : const Color(0xFFDCE4F2)),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)),
-        ),
-      );
-    }
+  Widget _filtersBar() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _chipRow([
+          _chip('Wszyscy', _categoryFilter == 'all',
+              () => setState(() => _categoryFilter = 'all')),
+          for (final c in kVendorCategories)
+            _chip(c, _categoryFilter == c,
+                () => setState(() => _categoryFilter = c)),
+        ]),
+        const SizedBox(height: 8),
+        _chipRow([
+          _chip('Każdy status', _statusFilter == 'all',
+              () => setState(() => _statusFilter = 'all')),
+          for (final s in VendorStatus.all)
+            _chip(s.label, _statusFilter == s.value,
+                () => setState(() => _statusFilter = s.value)),
+        ]),
+        const SizedBox(height: 8),
+        _chipRow([
+          _chip('Bez sortowania', _sort == 'none',
+              () => setState(() => _sort = 'none')),
+          _chip('Wg nazwy (A–Z)', _sort == 'name',
+              () => setState(() => _sort = 'name')),
+          _chip('Wg statusu', _sort == 'status',
+              () => setState(() => _sort = 'status')),
+        ]),
+      ],
+    );
+  }
 
+  Widget _chipRow(List<Widget> chips) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          chip('Wszyscy', 'all'),
-          for (final c in kVendorCategories) chip(c, c),
+          for (final c in chips)
+            Padding(padding: const EdgeInsets.only(right: 8), child: c),
         ],
       ),
+    );
+  }
+
+  Widget _chip(String label, bool selected, VoidCallback onTap) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+      showCheckmark: false,
+      labelStyle: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: selected ? Colors.white : AppColors.textLight,
+      ),
+      selectedColor: AppColors.accent,
+      backgroundColor: Colors.white,
+      side: BorderSide(
+          color: selected ? AppColors.accent : const Color(0xFFDCE4F2)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 }

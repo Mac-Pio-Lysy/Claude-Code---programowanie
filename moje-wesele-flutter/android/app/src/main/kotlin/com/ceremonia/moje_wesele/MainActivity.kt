@@ -1,5 +1,6 @@
 package com.ceremonia.moje_wesele
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// FlutterFragmentActivity jest wymagane przez plugin local_auth (BiometricPrompt).
+class MainActivity : FlutterFragmentActivity()

@@ -9,6 +9,7 @@ import '../../models/wedding_data.dart';
 import '../../services/deezer_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/music_service.dart';
+import '../../widgets/guest_page_tab.dart';
 import '../../widgets/public_link_card.dart';
 import '../budget/budget_fields.dart';
 import 'music_export.dart';
@@ -100,7 +101,9 @@ class _MusicScreenState extends State<MusicScreen> {
     final unmatched = filtered.where((s) => s.unmatched).toList();
     final matched = filtered.where((s) => !s.unmatched).toList();
 
-    return Column(
+    return DefaultTabController(
+      length: 2,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -138,8 +141,25 @@ class _MusicScreenState extends State<MusicScreen> {
             ],
           ),
         ),
+        const SizedBox(height: 4),
+        TabBar(
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          labelColor: AppColors.accent,
+          unselectedLabelColor: AppColors.textLight,
+          indicatorColor: AppColors.accent,
+          dividerColor: const Color(0xFFE2EAF7),
+          labelStyle:
+              GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
+          tabs: const [
+            Tab(text: 'Propozycje'),
+            Tab(text: 'Strona dla gości'),
+          ],
+        ),
         Expanded(
-          child: ListView(
+          child: TabBarView(
+            children: [
+              ListView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
             children: [
               _searchCard(),
@@ -170,8 +190,22 @@ class _MusicScreenState extends State<MusicScreen> {
                 for (final s in matched) _songCard(s),
             ],
           ),
+              GuestPageTab(
+                links: [
+                  (
+                    '🎵 Muzyka — propozycje gości',
+                    PublicPages.muzyka(PublicPages.baseUrl(widget.data?.raw)),
+                  ),
+                ],
+                intro:
+                    'Strona, na której goście proponują utwory do zagrania. '
+                    'Pokaż im kod QR lub wyślij link.',
+              ),
+            ],
+          ),
         ),
       ],
+      ),
     );
   }
 

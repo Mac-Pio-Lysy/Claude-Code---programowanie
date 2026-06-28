@@ -46,6 +46,11 @@ dependencies:
   printing: ^5.15.0
   fl_chart: ^1.2.0
   shared_preferences: ^2.5.5
+  # Logowanie biometryczne + bezpieczne przechowywanie zabezpieczeń (per urządzenie).
+  local_auth: ^2.3.0
+  local_auth_android: ^1.0.46
+  flutter_secure_storage: ^9.2.4
+  crypto: ^3.0.6
 
 dev_dependencies:
   flutter_test:
@@ -60,17 +65,17 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
 
 # ── Konfiguracja ikony aplikacji (flutter_launcher_icons) ──
-# Generuje ikony dla Androida (mipmap + adaptive) i web z assets/ikona.png.
+# Generuje ikony dla Androida (mipmap + adaptive) i web z assets/ikona_apki.png.
 flutter_launcher_icons:
-  image_path: "assets/ikona.png"
+  image_path: "assets/ikona_apki.png"
   android: true
   min_sdk_android: 24
-  # Adaptive icon (Android 8+): jasnoniebieskie tło + pierścionek jako foreground.
+  # Adaptive icon (Android 8+): jasnoniebieskie tło + ikona aplikacji jako foreground.
   adaptive_icon_background: "#E8F1FC"
-  adaptive_icon_foreground: "assets/ikona.png"
+  adaptive_icon_foreground: "assets/ikona_apki.png"
   web:
     generate: true
-    image_path: "assets/ikona.png"
+    image_path: "assets/ikona_apki.png"
     background_color: "#E8F1FC"
     theme_color: "#1A56DB"
 
@@ -86,7 +91,8 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/ikona.png
+    - assets/ikona_apki.png
+    - assets/ikona_dashBoard.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

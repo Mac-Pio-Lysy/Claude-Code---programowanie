@@ -21,13 +21,4 @@ class PublicPages {
   static String rsvp(String base) => '$base/rsvp.html';
   static String muzyka(String base) => '$base/muzyka.html';
   static String bingo(String base) => '$base/bingo.html';
-
-  /// Pary (etykieta, ścieżka) do wyświetlenia kodów QR.
-  static List<(String, String)> all(String base) => [
-        ('📸 Galeria', galeria(base)),
-        ('📅 Harmonogram', harmonogram(base)),
-        ('✅ Potwierdzenia (RSVP)', rsvp(base)),
-        ('🎵 Muzyka', muzyka(base)),
-        ('🎯 Ślubne Bingo', bingo(base)),
-      ];
 }
