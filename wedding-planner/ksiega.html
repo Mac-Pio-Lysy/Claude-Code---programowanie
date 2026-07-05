@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Księga Gości — Ceremonia Patrycji i Piotra</title>
+  <!-- Firebase SDK (Firestore + Auth — bez Storage) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- Cloudinary Upload Widget -->
+  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-mid: #2563eb; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #eef4ff; --text: #1a2744; --text-soft: #4a5d80;
+      --border: #c5d8f6; --shadow: rgba(26,86,219,0.14); --green: #16a34a; --red: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, #dbe7ff 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, #d6e4ff 0%, transparent 45%),
+        var(--bg);
+      min-height: 100vh; color: var(--text); padding-bottom: 60px;
+    }
+    header {
+      background: linear-gradient(150deg, var(--blue-dark) 0%, var(--blue) 55%, var(--blue-mid) 100%);
+      color: #fff; text-align: center; padding: 38px 20px 30px;
+      border-radius: 0 0 26px 26px; box-shadow: 0 8px 30px var(--shadow); position: relative; overflow: hidden;
+    }
+    header .h-icon { font-size: 2.6rem; }
+    header h1 { font-size: 1.6rem; font-weight: 700; margin-top: 6px; font-family: 'Georgia', serif; }
+    header p { opacity: 0.9; margin-top: 8px; font-size: 0.92rem; line-height: 1.5; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 22px 14px 0; }
+
+    /* ── Nawigacja gości ── */
+    .guest-nav {
+      max-width: 640px; margin: 20px auto 0; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap; padding: 0 14px;
+    }
+    .guest-nav.bottom { margin: 30px auto 10px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+
+    /* ── Karta wpisu ── */
+    .card {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 18px;
+      padding: 24px; box-shadow: 0 4px 20px var(--shadow); margin-bottom: 26px;
+    }
+    .card h2 { font-size: 1.12rem; color: var(--blue-dark); margin-bottom: 4px; font-family: 'Georgia', serif; }
+    .card .c-sub { font-size: 0.84rem; color: var(--text-soft); margin-bottom: 18px; line-height: 1.5; }
+
+    label.fld-label { display: block; font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text); margin-bottom: 6px; margin-top: 14px; }
+    label.fld-label:first-of-type { margin-top: 0; }
+    .fld {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px;
+      font-size: 0.98rem; font-family: inherit; color: var(--text); background: var(--white);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .fld:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+    .fld.field-error { border-color: var(--red); }
+    textarea.fld { min-height: 130px; resize: vertical; line-height: 1.55; }
+
+    .photo-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; }
+    .photo-btn {
+      display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+      background: var(--blue-pale); color: var(--blue-dark); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 11px 16px; font-size: 0.9rem; font-weight: 600; font-family: inherit;
+      transition: background 0.18s, transform 0.15s;
+    }
+    .photo-btn:hover { background: #dbe7ff; transform: translateY(-1px); }
+    .photo-thumb { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--border); }
+    .photo-remove { background: none; border: none; color: var(--red); font-size: 0.82rem; cursor: pointer; font-weight: 600; }
+
+    .submit-btn {
+      width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer; margin-top: 22px;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff;
+      font-size: 1.05rem; font-weight: 700; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(26,86,219,0.35); }
+    .submit-btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+
+    /* ── Podziękowanie ── */
+    .thanks { text-align: center; padding: 14px 6px; }
+    .thanks .t-icon { font-size: 3rem; }
+    .thanks h2 { font-size: 1.4rem; color: var(--blue-dark); margin-top: 8px; font-family: 'Georgia', serif; }
+    .thanks p { color: var(--text-soft); margin-top: 10px; font-size: 0.95rem; line-height: 1.6; }
+    .thanks .again-btn {
+      margin-top: 20px; background: var(--white); color: var(--blue-dark); border: 1.5px solid var(--blue);
+      border-radius: 24px; padding: 11px 22px; font-size: 0.92rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .thanks .again-btn:hover { background: var(--blue); color: #fff; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120%);
+      background: var(--text); color: #fff; padding: 12px 22px; border-radius: 30px;
+      font-size: 0.88rem; box-shadow: 0 6px 24px rgba(0,0,0,0.25); transition: transform 0.3s; z-index: 9999;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.ok { background: var(--green); }
+    .toast.err { background: var(--red); }
+
+    @media (max-width: 480px) {
+      .card { padding: 18px; }
+      header h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="h-icon">💝</div>
+    <h1>Księga Gości</h1>
+    <p id="bookIntro">Ceremonia Patrycji i Piotra • Zostaw życzenia i wiadomość dla Pary Młodej 💙</p>
+  </header>
+
+  <nav class="guest-nav">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="galeria.html">📸 Galeria</a>
+    <a href="muzyka.html">🎵 Zaproponuj piosenkę</a>
+  </nav>
+
+  <div class="container">
+    <!-- FORMULARZ -->
+    <div class="card" id="formCard">
+      <h2>✍️ Wpisz się do księgi</h2>
+      <p class="c-sub">Wasze słowa zostaną z Parą Młodą na zawsze. Napiszcie kilka zdań prosto z serca 💕</p>
+
+      <label class="fld-label" for="nameInput">Twoje imię</label>
+      <input type="text" id="nameInput" class="fld" placeholder="np. Anna i Marek" autocomplete="name" maxlength="60">
+
+      <label class="fld-label" for="msgInput">Życzenia / wiadomość</label>
+      <textarea id="msgInput" class="fld" placeholder="Drodzy Patrycjo i Piotrze…" maxlength="2000"></textarea>
+
+      <label class="fld-label">Zdjęcie (opcjonalnie)</label>
+      <div class="photo-row" id="photoRow">
+        <button class="photo-btn" id="photoBtn" type="button">
+          <span style="font-size:1.15rem">📷</span> Dołącz zdjęcie
+        </button>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" type="button">
+        <span style="font-size:1.2rem">💌</span> Wyślij życzenia
+      </button>
+    </div>
+
+    <!-- PODZIĘKOWANIE -->
+    <div class="card thanks" id="thanksCard" style="display:none">
+      <div class="t-icon">💝</div>
+      <h2>Dziękujemy z całego serca!</h2>
+      <p>Twoje życzenia zostały zapisane w naszej księdze gości. Para Młoda przeczyta każde słowo 💙</p>
+      <button class="again-btn" id="againBtn" type="button">Dodaj kolejne życzenia</button>
+    </div>
+  </div>
+
+  <nav class="guest-nav bottom">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="galeria.html">📸 Galeria</a>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Konfiguracja Cloudinary (wspólna z galerią) ──
+    const CLOUDINARY_CLOUD_NAME    = 'dybgmjmu3';
+    const CLOUDINARY_UPLOAD_PRESET = 'Ceremonia_Patrycji_i_Piotra';
+
+    const GUESTBOOK_COLLECTION = 'guestbook';
+    const NAME_LS_KEY = 'wedding-guestbook-name';
+
+    let db = null;
+    let _widget = null;
+    let _photo = null; // { url, publicId } gdy gość dołączył zdjęcie
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function showToast(msg, kind) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (kind ? ' ' + kind : '');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ── Init Firebase ──
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      db.collection(FS_COLLECTION).doc(FS_DOC_ID).get()
+        .then(doc => { if (doc.exists) applyPublicConfig(doc.data()); })
+        .catch(() => {});
+    } catch (e) {
+      console.error('Błąd inicjalizacji Firebase:', e);
+    }
+
+    function _activeEvent(data) {
+      if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+      return data || {};
+    }
+    function applyPublicConfig(rawData) {
+      const data = _activeEvent(rawData);
+      const cfg = (data && data.appConfig) || {};
+      const names = (cfg.displayNames || '').trim();
+      const label = cfg.eventName ? cfg.eventName : (names ? 'Ceremonia ' + names : '');
+      if (label) {
+        const p = document.getElementById('bookIntro');
+        if (p) p.textContent = label + ' • Zostaw życzenia i wiadomość dla Pary Młodej 💙';
+        document.title = 'Księga Gości — ' + (cfg.eventName || ('Ceremonia ' + names));
+      }
+    }
+
+    // ── Imię z pamięci ──
+    const nameInput = document.getElementById('nameInput');
+    try {
+      const saved = localStorage.getItem(NAME_LS_KEY);
+      if (saved) nameInput.value = saved;
+    } catch (_) {}
+    nameInput.addEventListener('input', () => {
+      nameInput.classList.remove('field-error');
+      try { localStorage.setItem(NAME_LS_KEY, nameInput.value.trim()); } catch (_) {}
+    });
+    document.getElementById('msgInput').addEventListener('input', (e) => {
+      e.target.classList.remove('field-error');
+    });
+
+    // ── Widget Cloudinary (zdjęcie opcjonalne) ──
+    function getWidget() {
+      if (_widget) return _widget;
+      if (typeof cloudinary === 'undefined') {
+        showToast('Trwa ładowanie modułu zdjęć… spróbuj za chwilę', 'err');
+        return null;
+      }
+      _widget = cloudinary.createUploadWidget({
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+        sources: ['local', 'camera'],
+        multiple: false,
+        resourceType: 'image',
+        maxFileSize: 20971520, // 20 MB
+        language: 'pl',
+        text: { pl: { or: 'lub', menu: { files: 'Moje pliki', camera: 'Aparat' },
+          local: { browse: 'Wybierz', dd_title_single: 'Przeciągnij i upuść zdjęcie tutaj',
+            drop_title_single: 'Upuść zdjęcie, aby wgrać' },
+          camera: { capture: 'Zrób zdjęcie', cancel: 'Anuluj', take_pic: 'Zrób zdjęcie i wgraj',
+            explanation: 'Zezwól na dostęp do aparatu, a następnie kliknij przycisk.' } } },
+        styles: { palette: {
+          window: '#FFFFFF', windowBorder: '#c5d8f6', tabIcon: '#1a56db',
+          menuIcons: '#1040b0', textDark: '#1a2744', textLight: '#FFFFFF',
+          link: '#1a56db', action: '#1a56db', inactiveTabIcon: '#7a93c0',
+          error: '#dc2626', inProgress: '#1a56db', complete: '#16a34a', sourceBg: '#eef4ff' } },
+      }, onWidgetResult);
+      return _widget;
+    }
+
+    function onWidgetResult(error, result) {
+      if (error) { console.error('Cloudinary:', error); return; }
+      if (!result) return;
+      if (result.event === 'success') {
+        _photo = { url: result.info.secure_url, publicId: result.info.public_id };
+        renderPhotoRow();
+        showToast('Zdjęcie dołączone 📷', 'ok');
+      }
+    }
+
+    function renderPhotoRow() {
+      const row = document.getElementById('photoRow');
+      if (_photo) {
+        row.innerHTML =
+          '<img class="photo-thumb" src="' + esc(_photo.url) + '" alt="Załączone zdjęcie">' +
+          '<button class="photo-remove" type="button" id="photoRemove">Usuń zdjęcie</button>';
+        document.getElementById('photoRemove').addEventListener('click', () => {
+          _photo = null; renderPhotoRow();
+        });
+      } else {
+        row.innerHTML =
+          '<button class="photo-btn" id="photoBtn" type="button"><span style="font-size:1.15rem">📷</span> Dołącz zdjęcie</button>';
+        document.getElementById('photoBtn').addEventListener('click', openWidget);
+      }
+    }
+
+    function openWidget() {
+      if (!db) { showToast('Brak połączenia z bazą danych', 'err'); return; }
+      const w = getWidget();
+      if (w) w.open();
+    }
+    document.getElementById('photoBtn').addEventListener('click', openWidget);
+
+    // ── Wysłanie wpisu ──
+    document.getElementById('submitBtn').addEventListener('click', submitEntry);
+
+    async function submitEntry() {
+      const name = (nameInput.value || '').trim();
+      const message = (document.getElementById('msgInput').value || '').trim();
+      if (!name) {
+        showToast('Najpierw wpisz swoje imię 🙂', 'err');
+        nameInput.classList.add('field-error'); nameInput.focus(); return;
+      }
+      if (!message) {
+        showToast('Napisz kilka słów dla Pary Młodej 💌', 'err');
+        const m = document.getElementById('msgInput'); m.classList.add('field-error'); m.focus(); return;
+      }
+      if (!db) { showToast('Brak połączenia z bazą danych', 'err'); return; }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      try {
+        await db.collection(GUESTBOOK_COLLECTION).add({
+          name: name,
+          message: message,
+          photoUrl: _photo ? _photo.url : '',
+          photoPublicId: _photo ? _photo.publicId : '',
+          timestamp: Date.now(),
+        });
+        document.getElementById('formCard').style.display = 'none';
+        document.getElementById('thanksCard').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        console.error('Zapis wpisu:', e);
+        showToast('Nie udało się wysłać. Spróbuj ponownie.', 'err');
+        btn.disabled = false;
+      }
+    }
+
+    // ── „Dodaj kolejne życzenia" ──
+    document.getElementById('againBtn').addEventListener('click', () => {
+      document.getElementById('msgInput').value = '';
+      _photo = null; renderPhotoRow();
+      document.getElementById('thanksCard').style.display = 'none';
+      document.getElementById('formCard').style.display = 'block';
+      document.getElementById('submitBtn').disabled = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>

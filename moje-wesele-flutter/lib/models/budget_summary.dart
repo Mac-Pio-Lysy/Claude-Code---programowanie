@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'sala_summary.dart';
 import 'wedding_data.dart';
 
 /// Podsumowanie budżetu — wierne odwzorowanie `renderBudgetOverview()`
@@ -83,55 +84,26 @@ class BudgetSummary {
     final raw = data.raw;
     final bd = _asMap(raw['budgetData']);
     final guests = data.guests;
-    final tables = data.tables;
 
-    final pricePerPerson = _d(bd['pricePerPerson']);
     final guestCount = guests.length;
-
-    // ── Catering / sala ──
-    final cateringBase = pricePerPerson * guestCount;
     final seated =
         guests.where((g) => g is Map && g['tableId'] != null).length;
     final venueMin = _d(bd['venueMinGuests']);
     final virtual = max(0.0, venueMin - seated);
-    final virtualCost = virtual * pricePerPerson;
 
-    final staffTables = raw['staffTables'];
-    final staffPersonCount = _sum(staffTables, (t) => _d(t['persons']));
-    final staffCostPersonCount = _sum(staffTables,
-        (t) => t['includeInCost'] == true ? _d(t['persons']) : 0.0);
-    final staffCost = staffCostPersonCount * pricePerPerson;
+    // ── Sala (catering) — liczone tym samym modelem co podzakładka „Sala"
+    // (goście przypisani/nieprzypisani + obsługa), bez duplikacji logiki. ──
+    final catering = SalaSummary.from(data).cateringTotal;
 
-    final includeVirtual = bd['includeVirtualInCalc'] == true;
-    final includeStaff = bd['includeStaffInCalc'] == true;
-    final effectiveGuestCount = seated +
-        (includeVirtual && virtual > 0 ? virtual : 0.0) +
-        (includeStaff ? staffPersonCount : 0.0);
-
-    final menuAddonsTotal =
-        _sum(bd['menuAddons'], (a) => _d(a['pricePerPerson'])) *
-            effectiveGuestCount;
-
-    final regularTableCount =
-        tables.where((t) => t is Map && t['isHonorTable'] != true).length;
-    final tableDeco = _asMap(bd['tableDeco']);
-    final honorDeco = _sum(tableDeco['honorAddons'], (a) => _d(a['price']));
-    final regularDeco =
-        _sum(tableDeco['regularAddons'], (a) => _d(a['pricePerTable'])) *
-            regularTableCount;
-    final tableDecoTotal = honorDeco + regularDeco;
-
-    final catering = cateringBase +
-        virtualCost +
-        staffCost +
-        menuAddonsTotal +
-        tableDecoTotal;
-
-    // ── Napoje ──
-    final alcoholTotal = _sum(bd['alcoholItems'],
-        (i) => _d(i['bottles']) * _d(i['pricePerBottle']));
-    final softTotal = _sum(
-        bd['softItems'], (i) => _d(i['bottles']) * _d(i['pricePerBottle']));
+    // ── Napoje (ukryte panele wykluczone z budżetu, dane zachowane) ──
+    final alcoholTotal = bd['alcoholPanelHidden'] == true
+        ? 0.0
+        : _sum(bd['alcoholItems'],
+            (i) => _d(i['bottles']) * _d(i['pricePerBottle']));
+    final softTotal = bd['softPanelHidden'] == true
+        ? 0.0
+        : _sum(bd['softItems'],
+            (i) => _d(i['bottles']) * _d(i['pricePerBottle']));
 
     // ── Wydatki ──
     final expenses = bd['expenses'];
@@ -154,6 +126,23 @@ class BudgetSummary {
     final honeymoonPaid = _sum(honeymoon['installments'],
         (i) => i['status'] == 'paid' ? _d(i['amount']) : 0.0);
 
+    // ── Upominki „Dla gości" (sekcja Prezenty) ──
+    // Liczone wg podstawy przeliczania: stała ilość (qty) albo na gości
+    // rzeczywistych / rzeczywistych+wirtualnych (jak w sekcji Prezenty).
+    final giftBasisRaw = raw['giftForGuestsBasis'];
+    final giftBasis = (giftBasisRaw == 'real' || giftBasisRaw == 'realvirtual')
+        ? giftBasisRaw as String
+        : '';
+    final giftPersonCount = giftBasis == 'real'
+        ? guestCount.toDouble()
+        : giftBasis == 'realvirtual'
+            ? guestCount + virtual
+            : 0.0;
+    final giftsForGuestsTotal = _sum(raw['giftsForGuests'], (g) {
+      final qty = giftBasis.isNotEmpty ? giftPersonCount : _d(g['qty']);
+      return qty * _d(g['cost']);
+    });
+
     // ── Koszty zewnętrzne (dostawcy niepowiązani + hotele + transport) ──
     final vendors = raw['vendors'];
     final vendorsExternalTotal = _sum(
@@ -172,8 +161,10 @@ class BudgetSummary {
         vendorsExternalTotal + hotelsTotal + transportTotal;
 
     // ── Agregacja końcowa ──
-    final totalConfirmed = catering + expPlanned + hmConfirmed + externalTotal;
-    final totalEffective = catering + expEffective + hmEffective + externalTotal;
+    final totalConfirmed =
+        catering + expPlanned + hmConfirmed + externalTotal + giftsForGuestsTotal;
+    final totalEffective =
+        catering + expEffective + hmEffective + externalTotal + giftsForGuestsTotal;
     final totalPaid = expPaid + honeymoonPaid + vendorsExternalPaid;
     final hasEstimates = totalEffective > totalConfirmed;
     final planForCalc = hasEstimates ? totalEffective : totalConfirmed;

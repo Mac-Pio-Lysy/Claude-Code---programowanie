@@ -154,7 +154,8 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                     key: _formKey,
                     child: ListView(
                       controller: scrollController,
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      padding: EdgeInsets.fromLTRB(
+                          20, 8, 20, 20 + MediaQuery.paddingOf(context).bottom),
                       children: [
                         _field(
                           'Kategoria',

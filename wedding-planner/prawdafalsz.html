@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prawda czy Fałsz — Ceremonia Patrycji i Piotra</title>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-mid: #2563eb; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #eef4ff; --text: #1a2744; --text-soft: #4a5d80;
+      --border: #c5d8f6; --shadow: rgba(26,86,219,0.14); --green: #16a34a; --red: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, #dbe7ff 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, #d6e4ff 0%, transparent 45%),
+        var(--bg);
+      min-height: 100vh; color: var(--text); padding-bottom: 60px;
+    }
+    header {
+      background: linear-gradient(150deg, var(--blue-dark) 0%, var(--blue) 55%, var(--blue-mid) 100%);
+      color: #fff; text-align: center; padding: 38px 20px 30px;
+      border-radius: 0 0 26px 26px; box-shadow: 0 8px 30px var(--shadow);
+    }
+    header .h-icon { font-size: 2.6rem; }
+    header h1 { font-size: 1.6rem; font-weight: 700; margin-top: 6px; font-family: 'Georgia', serif; }
+    header p { opacity: 0.9; margin-top: 8px; font-size: 0.92rem; line-height: 1.5; }
+
+    .container { max-width: 600px; margin: 0 auto; padding: 22px 14px 0; }
+
+    .guest-nav { max-width: 600px; margin: 20px auto 0; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap; padding: 0 14px; }
+    .guest-nav.bottom { margin: 30px auto 10px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+
+    .card {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 18px;
+      padding: 24px; box-shadow: 0 4px 20px var(--shadow); margin-bottom: 26px;
+    }
+    .card h2 { font-size: 1.15rem; color: var(--blue-dark); margin-bottom: 6px; font-family: 'Georgia', serif; }
+    .card .c-sub { font-size: 0.86rem; color: var(--text-soft); margin-bottom: 18px; line-height: 1.5; }
+
+    label.fld-label { display: block; font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text); margin-bottom: 6px; }
+    .fld {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px;
+      font-size: 0.98rem; font-family: inherit; color: var(--text); background: var(--white); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .fld:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+    .fld.field-error { border-color: var(--red); }
+
+    .btn-primary {
+      width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer; margin-top: 20px;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff;
+      font-size: 1.05rem; font-weight: 700; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(26,86,219,0.35); }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+
+    .progress-wrap { margin-bottom: 16px; }
+    .progress-label { font-size: 0.8rem; color: var(--text-soft); margin-bottom: 6px; font-weight: 600; }
+    .progress-bar { height: 8px; background: var(--blue-pale); border-radius: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue-dark), var(--blue)); transition: width 0.3s; }
+
+    .s-text { font-size: 1.25rem; font-weight: 700; color: var(--text); margin: 10px 0 20px; line-height: 1.4; font-family: 'Georgia', serif; }
+
+    .tf-row { display: flex; gap: 12px; }
+    .tf-btn {
+      flex: 1; padding: 18px 10px; border: 2px solid var(--border); border-radius: 16px;
+      background: var(--white); font-size: 1.1rem; font-weight: 800; font-family: inherit; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tf-btn.t { color: var(--green); }
+    .tf-btn.f { color: var(--red); }
+    .tf-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+    .tf-btn:disabled { cursor: default; opacity: 0.55; transform: none; box-shadow: none; }
+    .tf-btn.picked-correct { background: #eafaf1; border-color: var(--green); opacity: 1; }
+    .tf-btn.picked-wrong { background: #fdecec; border-color: var(--red); opacity: 1; }
+    .tf-btn.reveal-correct { border-color: var(--green); background: #eafaf1; opacity: 1; }
+
+    .feedback { margin-top: 16px; padding: 14px; border-radius: 14px; font-size: 0.95rem; line-height: 1.5; }
+    .feedback.ok { background: #eafaf1; color: #0f7a43; }
+    .feedback.no { background: #fdecec; color: #b42318; }
+    .feedback .fb-expl { margin-top: 6px; font-size: 0.88rem; opacity: 0.92; }
+
+    .result-icon { font-size: 3.2rem; text-align: center; }
+    .result-score { font-size: 2.4rem; font-weight: 800; color: var(--blue-dark); text-align: center; margin-top: 6px; font-family: 'Georgia', serif; }
+    .result-sub { text-align: center; color: var(--text-soft); margin-top: 6px; font-size: 0.95rem; }
+    .result-rank { margin: 18px auto 0; max-width: 280px; text-align: center; background: var(--blue-pale);
+      border-radius: 14px; padding: 14px; color: var(--blue-dark); font-weight: 700; font-size: 1.05rem; }
+
+    .state-msg { text-align: center; color: var(--text-soft); padding: 30px 10px; font-size: 0.95rem; line-height: 1.6; }
+    .state-msg .sm-icon { font-size: 2.6rem; display: block; margin-bottom: 10px; }
+
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120%);
+      background: var(--text); color: #fff; padding: 12px 22px; border-radius: 30px;
+      font-size: 0.88rem; box-shadow: 0 6px 24px rgba(0,0,0,0.25); transition: transform 0.3s; z-index: 9999; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.err { background: var(--red); }
+
+    @media (max-width: 480px) { .card { padding: 18px; } header h1 { font-size: 1.4rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="h-icon">🤔</div>
+    <h1>Prawda czy Fałsz</h1>
+    <p id="tfIntro">Ceremonia Patrycji i Piotra • Zgadnij, co o Parze Młodej jest prawdą! 💙</p>
+  </header>
+
+  <nav class="guest-nav">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="ksiega.html">💝 Księga gości</a>
+  </nav>
+
+  <div class="container">
+    <div id="app">
+      <div class="card"><div class="state-msg"><span class="sm-icon">⏳</span>Ładowanie gry…</div></div>
+    </div>
+  </div>
+
+  <nav class="guest-nav bottom">
+    <a href="galeria.html">📸 Galeria</a>
+    <a href="muzyka.html">🎵 Zaproponuj piosenkę</a>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const TF_RESULTS_COLLECTION = 'trueFalseResults';
+    const NAME_LS_KEY = 'wedding-tf-name';
+
+    let db = null;
+    let statements = [];
+    let active = false;
+    let guestName = '';
+    let current = 0;
+    let answers = {};   // { statementId: boolPick }
+    let score = 0;
+    let answered = false; // czy bieżące stwierdzenie już ocenione
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'toast show err';
+      clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    const app = () => document.getElementById('app');
+
+    // ── Init ──
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      db.collection(FS_COLLECTION).doc(FS_DOC_ID).get().then(doc => {
+        const data = doc.exists ? (doc.data() || {}) : {};
+        const cfg = (data.appConfig) || {};
+        const names = (cfg.displayNames || '').trim();
+        if (names) {
+          document.getElementById('tfIntro').textContent =
+            (cfg.eventName || ('Ceremonia ' + names)) + ' • Zgadnij, co o Parze Młodej jest prawdą! 💙';
+          document.title = 'Prawda czy Fałsz — ' + (cfg.eventName || names);
+        }
+        statements = Array.isArray(data.tfStatements) ? data.tfStatements : [];
+        active = data.tfActive === true;
+        renderIntro();
+      }).catch(err => {
+        console.error(err);
+        app().innerHTML = '<div class="card"><div class="state-msg"><span class="sm-icon">😢</span>Nie udało się wczytać gry. Odśwież stronę.</div></div>';
+      });
+    } catch (e) { console.error('Firebase init:', e); }
+
+    function plural(n, one, few, many) {
+      if (n === 1) return one;
+      const m10 = n % 10, m100 = n % 100;
+      if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+      return many;
+    }
+
+    // ── Ekran startowy ──
+    function renderIntro() {
+      if (!active || !statements.length) {
+        app().innerHTML = '<div class="card"><div class="state-msg"><span class="sm-icon">🔒</span>' +
+          'Gra nie jest jeszcze dostępna. Zajrzyj tu trochę później!</div></div>';
+        return;
+      }
+      let saved = '';
+      try { saved = localStorage.getItem(NAME_LS_KEY) || ''; } catch (_) {}
+      app().innerHTML =
+        '<div class="card">' +
+          '<h2>🤔 Prawda czy Fałsz?</h2>' +
+          '<p class="c-sub">' + statements.length + ' ' +
+          plural(statements.length, 'stwierdzenie', 'stwierdzenia', 'stwierdzeń') +
+          ' o Parze Młodej. Zgadnij, które są prawdziwe — na końcu poznasz wynik i miejsce w rankingu.</p>' +
+          '<label class="fld-label" for="nameInput">Twoje imię</label>' +
+          '<input type="text" id="nameInput" class="fld" placeholder="np. Anna" maxlength="60" value="' + esc(saved) + '">' +
+          '<button class="btn-primary" id="startBtn"><span style="font-size:1.2rem">▶️</span> Zaczynamy</button>' +
+        '</div>';
+      const nameInput = document.getElementById('nameInput');
+      nameInput.addEventListener('input', () => nameInput.classList.remove('field-error'));
+      document.getElementById('startBtn').addEventListener('click', () => {
+        const n = (nameInput.value || '').trim();
+        if (!n) { toast('Najpierw wpisz swoje imię 🙂'); nameInput.classList.add('field-error'); nameInput.focus(); return; }
+        guestName = n;
+        try { localStorage.setItem(NAME_LS_KEY, n); } catch (_) {}
+        current = 0; answers = {}; score = 0;
+        renderStatement();
+      });
+    }
+
+    // ── Stwierdzenie ──
+    function renderStatement() {
+      answered = false;
+      const s = statements[current];
+      const pct = Math.round((current / statements.length) * 100);
+      app().innerHTML =
+        '<div class="card">' +
+          '<div class="progress-wrap">' +
+            '<div class="progress-label">Stwierdzenie ' + (current + 1) + ' z ' + statements.length + '</div>' +
+            '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div>' +
+          '</div>' +
+          '<div class="s-text">' + esc(s.text || '') + '</div>' +
+          '<div class="tf-row">' +
+            '<button class="tf-btn t" data-v="true">✓ Prawda</button>' +
+            '<button class="tf-btn f" data-v="false">✗ Fałsz</button>' +
+          '</div>' +
+          '<div id="fb"></div>' +
+          '<div id="nextWrap"></div>' +
+        '</div>';
+      app().querySelectorAll('.tf-btn').forEach(btn => {
+        btn.addEventListener('click', () => answer(btn.dataset.v === 'true'));
+      });
+    }
+
+    function answer(pick) {
+      if (answered) return;
+      answered = true;
+      const s = statements[current];
+      const correct = s.isTrue === true;
+      answers['' + s.id] = pick;
+      const isOk = pick === correct;
+      if (isOk) score++;
+
+      const btns = app().querySelectorAll('.tf-btn');
+      btns.forEach(b => {
+        b.disabled = true;
+        const bv = b.dataset.v === 'true';
+        if (bv === pick) b.classList.add(isOk ? 'picked-correct' : 'picked-wrong');
+        if (bv === correct) b.classList.add('reveal-correct');
+      });
+
+      const fb = document.getElementById('fb');
+      fb.className = 'feedback ' + (isOk ? 'ok' : 'no');
+      fb.innerHTML = (isOk ? '✅ Dobrze!' : '❌ Niestety, to ' + (correct ? 'prawda' : 'fałsz') + '.') +
+        (s.explanation ? '<div class="fb-expl">💡 ' + esc(s.explanation) + '</div>' : '');
+
+      const last = current === statements.length - 1;
+      document.getElementById('nextWrap').innerHTML =
+        '<button class="btn-primary" id="nextBtn">' + (last ? '🏁 Zobacz wynik' : 'Następne →') + '</button>';
+      document.getElementById('nextBtn').addEventListener('click', next);
+    }
+
+    function next() {
+      current++;
+      if (current < statements.length) {
+        renderStatement();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        submitResult();
+      }
+    }
+
+    // ── Zapis + wynik ──
+    async function submitResult() {
+      app().innerHTML = '<div class="card"><div class="state-msg"><span class="sm-icon">⏳</span>Zapisujemy Twój wynik…</div></div>';
+      const total = statements.length;
+      let rank = null, participants = null;
+      try {
+        await db.collection(TF_RESULTS_COLLECTION).add({
+          name: guestName, score: score, total: total, answers: answers, timestamp: Date.now(),
+        });
+        const snap = await db.collection(TF_RESULTS_COLLECTION).get();
+        const scores = snap.docs.map(d => (d.data().score || 0));
+        participants = scores.length;
+        rank = scores.filter(x => x > score).length + 1;
+      } catch (e) {
+        console.error('Zapis wyniku:', e);
+        toast('Nie udało się zapisać wyniku, ale oto Twój rezultat.');
+      }
+      renderResult(total, rank, participants);
+    }
+
+    function renderResult(total, rank, participants) {
+      const pct = total ? Math.round((score / total) * 100) : 0;
+      let icon = '🎉', msg = 'Brawo!';
+      if (pct === 100) { icon = '🏆'; msg = 'Komplet! Znacie Parę Młodą perfekcyjnie!'; }
+      else if (pct >= 70) { icon = '🎉'; msg = 'Świetny wynik!'; }
+      else if (pct >= 40) { icon = '🙂'; msg = 'Nieźle!'; }
+      else { icon = '💙'; msg = 'Dzięki za grę!'; }
+      let rankHtml = '';
+      if (rank && participants) rankHtml = '<div class="result-rank">🏆 Miejsce ' + rank + ' z ' + participants + '</div>';
+      app().innerHTML =
+        '<div class="card">' +
+          '<div class="result-icon">' + icon + '</div>' +
+          '<div class="result-score">' + score + ' / ' + total + '</div>' +
+          '<div class="result-sub">' + esc(msg) + ' (' + pct + '% trafień)</div>' +
+          rankHtml +
+          '<button class="btn-primary" id="againBtn"><span style="font-size:1.1rem">🔄</span> Zagraj ponownie</button>' +
+        '</div>';
+      document.getElementById('againBtn').addEventListener('click', () => {
+        current = 0; answers = {}; score = 0; renderIntro();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
+  </script>
+</body>
+</html>

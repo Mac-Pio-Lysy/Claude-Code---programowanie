@@ -21,4 +21,12 @@ class PublicPages {
   static String rsvp(String base) => '$base/rsvp.html';
   static String muzyka(String base) => '$base/muzyka.html';
   static String bingo(String base) => '$base/bingo.html';
+  static String ksiega(String base) => '$base/ksiega.html';
+  static String quiz(String base) => '$base/quiz.html';
+  static String rady(String base) => '$base/rady.html';
+  static String prawdaFalsz(String base) => '$base/prawdafalsz.html';
+  static String zgadnijZdjecie(String base) => '$base/zgadnijzdjecie.html';
+  static String kapsula(String base) => '$base/kapsula.html';
+  static String mapa(String base) => '$base/mapa.html';
+  static String fotoWyzwania(String base) => '$base/fotowyzwania.html';
 }

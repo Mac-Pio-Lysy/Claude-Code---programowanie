@@ -3,9 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/task.dart';
+import '../../models/vendor.dart' show kVendorBudgetCategories;
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/task_service.dart';
+import '../../utils/format.dart';
 import '../../widgets/filter_toggle_button.dart';
 import 'task_form_sheet.dart';
 
@@ -110,6 +112,109 @@ class _TasksScreenState extends State<TasksScreen> {
 
   void _move(Task task, String status) {
     if (task.id != null) widget.service.updateStatus(task.id!, status);
+  }
+
+  /// Przełącza „cel osiągnięty" bezpośrednio z widoku zadań. Przy zaznaczeniu
+  /// (i braku istniejącego powiązania budżetowego) pyta, czy utworzyć wpis
+  /// w budżecie — jeśli tak, tworzy referencję (bez duplikatów, SSOT).
+  Future<void> _toggleGoalAchieved(Task task) async {
+    if (task.id == null) return;
+    final next = !task.goalAchieved;
+    await widget.service.setGoalAchieved(task.id!, next);
+
+    if (!next || task.isBudgetLinked) return;
+    if (!mounted) return;
+
+    final createBudget = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Text('🎯 Cel osiągnięty'),
+        content: Text(
+            '„${task.goal}" zostało oznaczone jako zrealizowane.\n\n'
+            'Czy utworzyć z tego pozycję w budżecie?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Nie teraz'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            child: const Text('Tak, utwórz'),
+          ),
+        ],
+      ),
+    );
+    if (createBudget != true || !mounted) return;
+
+    final details = await _askBudgetDetails(task);
+    if (details == null || task.id == null) return;
+    await widget.service.linkToBudget(task.id!,
+        estimatedCost: details.cost, budgetCategory: details.category);
+    _toast('Utworzono pozycję w budżecie');
+  }
+
+  /// Mały dialog z kosztem i kategorią dla nowej pozycji budżetowej.
+  Future<({num cost, String category})?> _askBudgetDetails(Task task) {
+    final costController = TextEditingController();
+    var category = 'Sala';
+    return showDialog<({num cost, String category})>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Text('💰 Nowa pozycja w budżecie'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Szacowany koszt (zł)',
+                  style: GoogleFonts.inter(
+                      fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: costController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                    isDense: true, hintText: '0', suffixText: 'zł'),
+              ),
+              const SizedBox(height: 14),
+              Text('Kategoria budżetowa',
+                  style: GoogleFonts.inter(
+                      fontSize: 13, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<String>(
+                initialValue: category,
+                isExpanded: true,
+                decoration: const InputDecoration(isDense: true),
+                items: [
+                  for (final c in kVendorBudgetCategories)
+                    DropdownMenuItem(value: c, child: Text(c)),
+                ],
+                onChanged: (v) => setState(() => category = v ?? 'Sala'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Anuluj'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop((
+                cost: parsePln(costController.text) ?? 0,
+                category: category,
+              )),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+              child: const Text('Utwórz'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   List<Task> _filteredSorted() {
@@ -243,6 +348,7 @@ class _TasksScreenState extends State<TasksScreen> {
           onEdit: _edit,
           onDelete: _delete,
           onMove: _move,
+          onToggleGoal: _toggleGoalAchieved,
         );
 
     // Pojedyncza kolumna (filtr statusu) — pełna szerokość.
@@ -373,6 +479,7 @@ class _TaskColumn extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onMove,
+    required this.onToggleGoal,
   });
 
   final TaskStatus status;
@@ -381,6 +488,7 @@ class _TaskColumn extends StatelessWidget {
   final ValueChanged<Task> onEdit;
   final ValueChanged<Task> onDelete;
   final void Function(Task, String) onMove;
+  final ValueChanged<Task> onToggleGoal;
 
   @override
   Widget build(BuildContext context) {
@@ -443,6 +551,7 @@ class _TaskColumn extends StatelessWidget {
                           onEdit: () => onEdit(tasks[i]),
                           onDelete: () => onDelete(tasks[i]),
                           onMove: (s) => onMove(tasks[i], s),
+                          onToggleGoal: () => onToggleGoal(tasks[i]),
                         ),
                       ),
               ),
@@ -460,12 +569,14 @@ class _TaskCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onMove,
+    required this.onToggleGoal,
   });
 
   final Task task;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final ValueChanged<String> onMove;
+  final VoidCallback onToggleGoal;
 
   @override
   Widget build(BuildContext context) {
@@ -533,6 +644,7 @@ class _TaskCard extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _personBadge(t),
+              if (t.goal.isNotEmpty) _goalBadge(t),
               if (t.dueDate.isNotEmpty)
                 _badge(
                   '${t.isOverdue ? '⚠ ' : '📅 '}${t.dueDate}',
@@ -580,6 +692,43 @@ class _TaskCard extends StatelessWidget {
             PopupMenuItem(value: 'move:${s.id}', child: Text('→ ${s.label}')),
         const PopupMenuItem(value: 'delete', child: Text('🗑 Usuń')),
       ],
+    );
+  }
+
+  /// Odznaka celu/zdarzenia — tappable, przełącza „cel osiągnięty" i (przy
+  /// pierwszym zaznaczeniu) pyta o utworzenie powiązanej pozycji budżetowej.
+  Widget _goalBadge(Task t) {
+    final achieved = t.goalAchieved;
+    return GestureDetector(
+      onTap: onToggleGoal,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: achieved ? const Color(0xFFECFDF5) : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              achieved ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 13,
+              color:
+                  achieved ? const Color(0xFF059669) : AppColors.textLight,
+            ),
+            const SizedBox(width: 4),
+            Text('🎯 ${t.goal}',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: achieved
+                      ? const Color(0xFF059669)
+                      : AppColors.textLight,
+                  decoration: achieved ? TextDecoration.lineThrough : null,
+                )),
+          ],
+        ),
+      ),
     );
   }
 

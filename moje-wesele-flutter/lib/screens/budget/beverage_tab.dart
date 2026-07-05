@@ -32,6 +32,7 @@ class BeverageTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = BeverageSummary.from(data, kind);
+    if (s.panelHidden) return _hiddenView();
     final items = _items;
 
     return ListView(
@@ -42,6 +43,57 @@ class BeverageTab extends StatelessWidget {
         _summaryCard(s),
         const SizedBox(height: 16),
         _splitCard(s),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => service.setBeveragePanelHidden(kind, true),
+            icon: const Icon(Icons.delete_outline, size: 18),
+            label: Text('Usuń panel: ${kind.title}'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFC0392B),
+              side: const BorderSide(color: Color(0xFFE9A8A8)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Widok po usunięciu panelu — pozycje zachowane, panel niewliczany.
+  Widget _hiddenView() {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      children: [
+        _card(
+          title: 'Panel usunięty',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Panel „${kind.title}" jest usunięty i NIE jest wliczany do '
+                'budżetu. Pozycje pozostają zapisane — możesz przywrócić panel.',
+                style:
+                    GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => service.setBeveragePanelHidden(kind, false),
+                  icon: const Icon(Icons.restore),
+                  label: const Text('Przywróć panel'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

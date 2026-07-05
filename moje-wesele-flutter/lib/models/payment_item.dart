@@ -1,21 +1,24 @@
 import 'dart:math';
 
+import 'sala_summary.dart';
 import 'wedding_data.dart';
 
 /// Źródło płatności w zbiorczym widoku „Płatności".
-enum PaymentSource { sala, expenses, honeymoon }
+enum PaymentSource { sala, expenses, honeymoon, vendor }
 
 extension PaymentSourceX on PaymentSource {
   String get label => switch (this) {
         PaymentSource.sala => 'Sala',
         PaymentSource.expenses => 'Wydatki',
         PaymentSource.honeymoon => 'Podróż poślubna',
+        PaymentSource.vendor => 'Dostawca',
       };
 
   String get icon => switch (this) {
         PaymentSource.sala => '🏠',
         PaymentSource.expenses => '📋',
         PaymentSource.honeymoon => '✈️',
+        PaymentSource.vendor => '🏢',
       };
 }
 
@@ -92,13 +95,35 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
     }
   }
 
+  // KOSZT SALI — obliczony na podstawie gości/obsługi (SalaSummary.cateringTotal,
+  // ten sam model co podzakładka „Sala" i karta „w tym sala" w Podsumowaniu).
+  // To osobny mechanizm od ręcznie wpisywanych rat w `payments[]` powyżej —
+  // dodajemy go, żeby filtr „Sala" pokazywał rzeczywisty koszt sali, nawet
+  // gdy nikt nie założył ręcznego harmonogramu rat.
+  final salaCost = SalaSummary.from(data).cateringTotal;
+  if (salaCost > 0) {
+    items.add(PaymentItem(
+      source: PaymentSource.sala,
+      name: 'Koszt sali (obliczony)',
+      effective: salaCost,
+      paid: 0,
+      remaining: salaCost,
+      isPredicted: true,
+      overdue: false,
+      soon: false,
+      dueDate: '',
+    ));
+  }
+
   final bd = raw['budgetData'];
   final budget = bd is Map ? bd : const {};
 
-  // WYDATKI — expenses[]
+  // WYDATKI — expenses[] (pomijamy wydatki pochodzące z Dostawców — ich raty
+  // pokazujemy w wierszu dostawcy, by uniknąć podwójnego liczenia).
   final expenses = budget['expenses'];
   if (expenses is List) {
     for (final e in expenses.whereType<Map>()) {
+      if (_expenseOrigin(e) == 'vendors') continue;
       final confirmed = _d(e['planned']);
       final estimated = _d(e['estimatedAmount']);
       final effective = confirmed > 0 ? confirmed : estimated;
@@ -145,7 +170,67 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
     }
   }
 
+  // DOSTAWCY — raty/płatności do konkretnego dostawcy.
+  // Pomijamy dostawców będących tylko „widokiem" wydatku (pochodzenie
+  // 'expenses') — ich płatność reprezentuje wpis w Wydatkach.
+  final vendors = raw['vendors'];
+  final expList = expenses is List ? expenses : const [];
+  if (vendors is List) {
+    for (final v in vendors.whereType<Map>()) {
+      final linked = v['isBudgetLinked'] == true;
+      if (linked) {
+        final expId = (v['budgetExpenseId'] as num?)?.toInt();
+        Map? exp;
+        for (final e in expList.whereType<Map>()) {
+          if ((e['id'] as num?)?.toInt() == expId) {
+            exp = e;
+            break;
+          }
+        }
+        if (exp != null && _expenseOrigin(exp) == 'expenses') continue;
+      }
+      final insts = _instList(v['installments']);
+      final effective = linked ? _d(v['contractAmount']) : _d(v['price']);
+      if (effective <= 0 && insts.isEmpty) continue;
+      final paid = _paidSum(insts);
+      items.add(PaymentItem(
+        source: PaymentSource.vendor,
+        name: 'Rata do dostawcy: ${_vendorLabel(v)}',
+        effective: effective,
+        paid: paid,
+        remaining: max(0.0, effective - paid),
+        isPredicted: false,
+        overdue: insts.any((i) => isOverdue(i.$2, i.$3)),
+        soon: insts.any((i) => i.$3 != 'paid' && isDueSoon(i.$2)),
+        dueDate: _nearestDue(insts),
+      ));
+    }
+  }
+
   return items;
+}
+
+/// Sekcja źródłowa wydatku ('expenses' | 'vendors').
+String _expenseOrigin(Map e) {
+  final o = (e['origin'] as String?)?.trim();
+  if (o != null && o.isNotEmpty) return o;
+  return e['vendorId'] != null ? 'vendors' : 'expenses';
+}
+
+/// Etykieta dostawcy (firma / kontakt / kategoria).
+String _vendorLabel(Map v) {
+  final company = (v['companyName'] as String?)?.trim() ?? '';
+  if (company.isNotEmpty) return company;
+  final contact = (v['contactName'] as String?)?.trim() ?? '';
+  if (contact.isNotEmpty) return contact;
+  final cat = (v['category'] as String?) ?? '';
+  if (cat == 'Inne') {
+    final custom = (v['customCategory'] as String?)?.trim() ?? '';
+    if (custom.isNotEmpty) return custom;
+  } else if (cat.isNotEmpty) {
+    return cat;
+  }
+  return 'Dostawca';
 }
 
 // Rata reprezentowana jako (amount, dueDate, status).

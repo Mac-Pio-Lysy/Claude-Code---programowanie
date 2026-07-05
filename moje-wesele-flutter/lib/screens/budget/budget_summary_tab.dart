@@ -3,19 +3,24 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/budget_summary.dart';
+import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
+import 'payments_tab.dart';
 
-/// Podzakładka „Podsumowanie" budżetu.
+/// Podzakładka „Podsumowanie" budżetu (z wbudowanym widokiem wszystkich
+/// płatności — dawniej osobna zakładka „Płatności").
 class BudgetSummaryTab extends StatefulWidget {
   const BudgetSummaryTab({
     super.key,
     required this.summary,
     required this.service,
+    required this.data,
   });
 
   final BudgetSummary summary;
   final BudgetService service;
+  final WeddingData? data;
 
   @override
   State<BudgetSummaryTab> createState() => _BudgetSummaryTabState();
@@ -85,6 +90,8 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           _progressCard(s),
           const SizedBox(height: 16),
           _valuesCard(s),
+          const SizedBox(height: 24),
+          PaymentsSection(data: widget.data),
         ],
       ),
     );
@@ -207,18 +214,19 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           ),
           const SizedBox(height: 12),
           _ProgressBar(
-            confirmedFraction: s.confirmedFraction,
-            effectiveFraction: s.effectiveFraction,
+            confirmedFraction: s.planFraction,
+            effectiveFraction: s.planFraction,
             paidFraction: s.paidFraction,
             planFraction: s.planFraction,
-            hasEstimates: s.hasEstimates,
+            hasEstimates: false,
           ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 16,
             runSpacing: 6,
             children: [
-              _legend(const Color(0xFF93C5FD), 'Plan: ${formatPlnZl(s.planForCalc)}'),
+              _legend(const Color(0xFF93C5FD),
+                  'Orientacyjnie: ${formatPlnZl(s.planForCalc)}'),
               _legend(const Color(0xFF059669), 'Opłacono: ${formatPlnZl(s.totalPaid)}'),
               _legend(const Color(0xFFCBD5E1), 'Budżet: ${formatPlnZl(s.budget)}'),
             ],
@@ -253,20 +261,11 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
     return _card(
       child: Column(
         children: [
-          _valueRow('Potwierdzone', formatPlnZl(s.totalConfirmed),
+          _valueRow('Orientacyjnie', formatPlnZl(s.planForCalc),
               const Color(0xFF1D4ED8)),
           if (s.catering > 0)
-            _valueRow('w tym sala / catering', formatPlnZl(s.catering),
+            _valueRow('w tym sala', formatPlnZl(s.catering),
                 AppColors.textLight,
-                small: true),
-          if (s.hasEstimates) ...[
-            const Divider(height: 18),
-            _valueRow('Przewidywane', '~ ${formatPlnZl(s.totalEffective)}',
-                const Color(0xFFB45309)),
-          ],
-          if (s.expensesEstimated > 0)
-            _valueRow('w tym szacunki wydatków',
-                formatPlnZl(s.expensesEstimated), AppColors.textLight,
                 small: true),
           const Divider(height: 18),
           _valueRow('Opłacono', formatPlnZl(s.totalPaid),
@@ -276,7 +275,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
               const Color(0xFFEA580C)),
           const Divider(height: 18),
           _valueRow(
-            'Budżet − plan',
+            'Budżet − orientacyjnie',
             '${s.diff >= 0 ? '+' : ''}${formatPlnZl(s.diff)}',
             s.diff >= 0 ? const Color(0xFF059669) : const Color(0xFFC0392B),
             bold: true,

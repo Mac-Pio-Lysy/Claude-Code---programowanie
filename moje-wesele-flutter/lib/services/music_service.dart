@@ -23,6 +23,7 @@ class MusicService {
     bool fromGuest = false,
     String guestName = '',
     bool unmatched = false,
+    String specialMoment = '',
   }) async {
     final data = await _read();
     final list = _mapList(data['songs']);
@@ -39,6 +40,7 @@ class MusicService {
       'fromGuest': fromGuest,
       'guestName': guestName,
       'unmatched': unmatched,
+      'specialMoment': specialMoment,
     });
     await _firestore.mainDoc
         .set({'songs': list, 'nextSongId': nextId + 1}, SetOptions(merge: true));
@@ -49,7 +51,8 @@ class MusicService {
       String? artist,
       String? moment,
       String? genre,
-      String? status}) async {
+      String? status,
+      String? specialMoment}) async {
     final data = await _read();
     final list = _mapList(data['songs']);
     final item = _find(list, id);
@@ -59,8 +62,14 @@ class MusicService {
     if (moment != null) item['moment'] = moment;
     if (genre != null) item['genre'] = genre;
     if (status != null) item['status'] = status;
+    // Pusty string czyści przypisanie do kluczowego momentu.
+    if (specialMoment != null) item['specialMoment'] = specialMoment;
     await _firestore.mainDoc.set({'songs': list}, SetOptions(merge: true));
   }
+
+  /// Zapisuje listę (i kolejność) kluczowych momentów dla utworów specjalnych.
+  Future<void> setSpecialMoments(List<String> moments) => _firestore.mainDoc
+      .set({'specialMoments': moments}, SetOptions(merge: true));
 
   Future<void> deleteSong(int id) async {
     final data = await _read();

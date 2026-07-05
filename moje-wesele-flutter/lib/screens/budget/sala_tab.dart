@@ -8,8 +8,9 @@ import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import 'budget_fields.dart';
 
-/// Podzakładka „Sala" — catering: cena/os., goście wirtualni, dodatki menu,
-/// dekoracje stołów oraz podsumowanie kosztów.
+/// Podzakładka „Sala" — koszt sali/cateringu: cena za osobę, goście przypisani/
+/// nieprzypisani, obsługa (osobna pula i stawka), goście wirtualni, dodatki do
+/// menu, dekoracje stołów oraz podsumowanie z rozbiciem na grupy.
 class SalaTab extends StatelessWidget {
   const SalaTab({super.key, required this.data, required this.service});
 
@@ -44,7 +45,9 @@ class SalaTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        _cateringCard(s),
+        _salaCard(s),
+        const SizedBox(height: 16),
+        _staffCard(s),
         const SizedBox(height: 16),
         _menuAddonsCard(s),
         const SizedBox(height: 16),
@@ -55,9 +58,10 @@ class SalaTab extends StatelessWidget {
     );
   }
 
-  Widget _cateringCard(SalaSummary s) {
+  // ── Karta „Sala" (cena/os., goście, wirtualni) ──
+  Widget _salaCard(SalaSummary s) {
     return _card(
-      title: 'Catering',
+      title: 'Sala',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -86,14 +90,44 @@ class SalaTab extends StatelessWidget {
             ),
             child: Column(
               children: [
-                _infoRow('Goście przy stołach', '${s.seated}'),
-                _infoRow('Goście wirtualni (do progu)',
+                _infoRow('Goście przypisani do stołów', '${s.assignedCount}'),
+                _infoRow('Goście nieprzypisani', '${s.unassignedCount}'),
+                const Divider(height: 14),
+                _infoRow('Razem gości liczonych',
+                    '${s.guestBilledCount.round()}'),
+                _infoRow('Koszt gości', formatPlnZl(s.guestCost)),
+              ],
+            ),
+          ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Licz gości nieprzypisanych do stołów',
+                style: GoogleFonts.inter(fontSize: 13)),
+            subtitle: Text(
+              s.includeUnassigned
+                  ? 'Nieprzypisani (${s.unassignedCount}) są wliczani do kosztu.'
+                  : 'Nieprzypisani (${s.unassignedCount}) NIE są wliczani.',
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: s.includeUnassigned,
+            onChanged: service.setIncludeUnassigned,
+          ),
+          const Divider(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _infoRow('Goście wirtualni (do progu sali)',
                     '${s.virtualGuests.round()}'),
                 _infoRow('Koszt gości wirtualnych', formatPlnZl(s.virtualCost)),
               ],
             ),
           ),
-          const SizedBox(height: 4),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
@@ -102,6 +136,67 @@ class SalaTab extends StatelessWidget {
             value: s.includeVirtual,
             onChanged: service.setIncludeVirtual,
           ),
+        ],
+      ),
+    );
+  }
+
+  // ── Karta „Obsługa" (osobna pula, własna stawka) ──
+  Widget _staffCard(SalaSummary s) {
+    return _card(
+      title: 'Obsługa',
+      trailing: _addButton(() => service.addStaffTable('Obsługa', 1)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Kelnerzy, fotograf, DJ, kamerzysta — osoby, które jedzą, ale nie '
+            'są gośćmi. Liczone osobno.',
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          if (s.staff.isEmpty)
+            _emptyHint('Brak obsługi. Dodaj przyciskiem +.')
+          else
+            for (final t in s.staff)
+              _StaffRow(
+                key: ValueKey('staff-${t.id}'),
+                name: t.name,
+                persons: t.persons,
+                includeInCost: t.includeInCost,
+                onNameSaved: (v) => service.updateStaffTable(t.id, name: v),
+                onPersonsSaved: (v) =>
+                    service.updateStaffTable(t.id, persons: v),
+                onIncludeChanged: (v) =>
+                    service.updateStaffTable(t.id, includeInCost: v),
+                onDelete: () => service.deleteStaffTable(t.id),
+              ),
+          const SizedBox(height: 12),
+          BudgetNumberField(
+            key: const ValueKey('staffPricePerPerson'),
+            label: 'Stawka obsługi za osobę (puste = jak goście)',
+            suffix: 'zł',
+            initial: s.staffPricePerPerson,
+            onSaved: service.setStaffPricePerPerson,
+          ),
+          const SizedBox(height: 4),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Doliczaj obsługę do kosztu sali',
+                style: GoogleFonts.inter(fontSize: 13)),
+            subtitle: Text(
+              'Liczona jest obsługa oznaczona „w kosztach".',
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: s.includeStaff,
+            onChanged: service.setIncludeStaff,
+          ),
+          const Divider(height: 16),
+          _infoRow('Osób obsługi łącznie', '${s.staffPersonCount.round()}'),
+          _infoRow('W kosztach', '${s.staffCostPersonCount.round()}'),
+          _infoRow('Stawka obsługi / os.', formatPlnZl(s.staffRate)),
+          _infoRow('Koszt obsługi', formatPlnZl(s.staffCost), bold: true),
         ],
       ),
     );
@@ -199,17 +294,31 @@ class SalaTab extends StatelessWidget {
   }
 
   Widget _summaryCard(SalaSummary s) {
+    final assignedCost = s.assignedCount * s.pricePerPerson;
+    final unassignedCost = s.unassignedCount * s.pricePerPerson;
     return _card(
       title: 'Podsumowanie kosztów sali',
       child: Column(
         children: [
-          _infoRow('Catering bazowy (${s.guestCount} os.)',
-              formatPlnZl(s.cateringBase)),
-          _infoRow('Goście wirtualni', formatPlnZl(s.virtualCost)),
+          _infoRow('Goście przypisani (${s.assignedCount} os.)',
+              formatPlnZl(assignedCost)),
+          _infoRow(
+              s.includeUnassigned
+                  ? 'Goście nieprzypisani (${s.unassignedCount} os.)'
+                  : 'Goście nieprzypisani (${s.unassignedCount} os., nieliczeni)',
+              formatPlnZl(s.includeUnassigned ? unassignedCost : 0)),
+          if (s.includeVirtual && s.virtualGuests > 0)
+            _infoRow('Goście wirtualni (${s.virtualGuests.round()} os.)',
+                formatPlnZl(s.virtualCost)),
+          _infoRow(
+              s.includeStaff
+                  ? 'Obsługa (${s.staffCostPersonCount.round()} os.)'
+                  : 'Obsługa (${s.staffCostPersonCount.round()} os., nieliczona)',
+              formatPlnZl(s.staffCost)),
           _infoRow('Dodatki do menu', formatPlnZl(s.menuAddonsTotal)),
           _infoRow('Dekoracje stołów', formatPlnZl(s.tableDecoTotal)),
           const Divider(height: 20),
-          _infoRow('Razem sala / catering', formatPlnZl(s.cateringTotal),
+          _infoRow('Razem sala', formatPlnZl(s.cateringTotal),
               bold: true, big: true),
         ],
       ),
@@ -326,6 +435,83 @@ class SalaTab extends StatelessWidget {
 
   static double _d(dynamic v) => v is num ? v.toDouble() : 0.0;
   static int _id(Map<String, dynamic> m) => (m['id'] as num?)?.toInt() ?? 0;
+}
+
+/// Wiersz obsługi: nazwa + liczba osób + „w kosztach" + usuń.
+class _StaffRow extends StatelessWidget {
+  const _StaffRow({
+    super.key,
+    required this.name,
+    required this.persons,
+    required this.includeInCost,
+    required this.onNameSaved,
+    required this.onPersonsSaved,
+    required this.onIncludeChanged,
+    required this.onDelete,
+  });
+
+  final String name;
+  final int persons;
+  final bool includeInCost;
+  final ValueChanged<String> onNameSaved;
+  final ValueChanged<num> onPersonsSaved;
+  final ValueChanged<bool> onIncludeChanged;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: BudgetTextField(
+                  hint: 'Nazwa (np. Kelnerzy)',
+                  initial: name,
+                  onSaved: onNameSaved,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: BudgetNumberField(
+                  suffix: 'os.',
+                  integer: true,
+                  initial: persons.toDouble(),
+                  compact: true,
+                  onSaved: onPersonsSaved,
+                ),
+              ),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.close, size: 18),
+                color: const Color(0xFFC0392B),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Checkbox(
+                value: includeInCost,
+                activeColor: AppColors.accent,
+                onChanged: (v) => onIncludeChanged(v ?? false),
+              ),
+              Expanded(
+                child: Text('Wliczaj w koszt sali',
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: AppColors.text)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Wiersz dodatku: nazwa + kwota + (opcjonalny) wynik linii + usuń.

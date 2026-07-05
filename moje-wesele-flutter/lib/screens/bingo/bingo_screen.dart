@@ -20,10 +20,15 @@ class BingoScreen extends StatefulWidget {
     super.key,
     required this.data,
     required FirestoreService firestore,
+    this.showHeader = true,
   }) : service = BingoService(firestore: firestore);
 
   final WeddingData? data;
   final BingoService service;
+
+  /// Czy pokazać własny nagłówek „Ślubne Bingo". Wyłączane, gdy ekran jest
+  /// osadzony jako podzakładka w „Ślubne gry" (nagłówek daje sekcja nadrzędna).
+  final bool showHeader;
 
   @override
   State<BingoScreen> createState() => _BingoScreenState();
@@ -116,15 +121,17 @@ class _BingoScreenState extends State<BingoScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Text('Ślubne Bingo',
-                style: GoogleFonts.playfairDisplay(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.text)),
-          ),
-          const SizedBox(height: 4),
+          if (widget.showHeader) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Text('Ślubne Bingo',
+                  style: GoogleFonts.playfairDisplay(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text)),
+            ),
+            const SizedBox(height: 4),
+          ],
           TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,

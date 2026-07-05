@@ -5,9 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/expense.dart';
+import '../../models/gift.dart';
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
+import '../../widgets/added_in_chip.dart';
+import '../../widgets/filter_toggle_button.dart';
 import 'expense_form_sheet.dart';
 
 enum _Status { all, paid, partial, unpaid }
@@ -17,10 +21,22 @@ enum _Person { all, p1, p2, both }
 /// Podzakładka „Wydatki" (Moje wydatki) — podsumowanie, filtry, sortowanie,
 /// lista wydatków z dodawaniem/edycją/usuwaniem.
 class ExpensesTab extends StatefulWidget {
-  const ExpensesTab({super.key, required this.data, required this.service});
+  const ExpensesTab({
+    super.key,
+    required this.data,
+    required this.service,
+    this.onOpenSection,
+    this.honeymoonTabIndex = 5,
+  });
 
   final WeddingData? data;
   final BudgetService service;
+
+  /// Przejście do innej sekcji aplikacji (np. Dostawcy) — dla linków „Dodano w".
+  final void Function(AppSection section)? onOpenSection;
+
+  /// Indeks podzakładki „Podróż poślubna" w budżecie (dla wiersza referencyjnego).
+  final int honeymoonTabIndex;
 
   @override
   State<ExpensesTab> createState() => _ExpensesTabState();
@@ -32,6 +48,8 @@ class _ExpensesTabState extends State<ExpensesTab> {
   String _categoryFilter = 'all';
   String? _sortField; // null = ręcznie (kolejność expenseOrder)
   bool _sortAsc = true;
+  bool _quickVisible = true;
+  bool _filtersVisible = true;
 
   Map<String, dynamic> get _bd {
     final v = widget.data?.raw['budgetData'];
@@ -90,6 +108,18 @@ class _ExpensesTabState extends State<ExpensesTab> {
     }
   }
 
+  Map<String, dynamic>? _vendorById(int? id) {
+    if (id == null) return null;
+    final v = widget.data?.raw['vendors'];
+    if (v is! List) return null;
+    for (final e in v.whereType<Map>()) {
+      if ((e['id'] as num?)?.toInt() == id) {
+        return Map<String, dynamic>.from(e);
+      }
+    }
+    return null;
+  }
+
   Future<void> _editExpense(Expense expense) async {
     final draft = await showModalBottomSheet<ExpenseDraft>(
       context: context,
@@ -99,6 +129,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
         existing: expense,
         categories: _categories,
         coupleNames: _coupleNames,
+        linkedVendor: _vendorById(expense.vendorId),
       ),
     );
     if (draft == null || expense.id == null) return;
@@ -220,8 +251,12 @@ class _ExpensesTabState extends State<ExpensesTab> {
             children: [
               _summaryCard(),
               const SizedBox(height: 14),
-              _filters(names),
+              _quickAddSection(),
+              const SizedBox(height: 14),
+              _filtersBar(names),
               const SizedBox(height: 12),
+              _honeymoonRow(),
+              ..._giftRows(),
               if (all.isEmpty)
                 _empty('Brak wydatków. Dodaj pierwszy przyciskiem poniżej.')
               else if (filtered.isEmpty)
@@ -236,6 +271,16 @@ class _ExpensesTabState extends State<ExpensesTab> {
                       coupleNames: names,
                       onEdit: () => _editExpense(e),
                       onDelete: () => _deleteExpense(e),
+                      onOpenSource: e.fromVendors
+                          ? () => widget.onOpenSection?.call(AppSection.vendors)
+                          : e.fromTasks
+                              ? () => widget.onOpenSection?.call(AppSection.tasks)
+                              : null,
+                      sourceLabel: e.fromVendors
+                          ? 'Dostawcy'
+                          : e.fromTasks
+                              ? 'Zadania'
+                              : null,
                     ),
                   ),
             ],
@@ -269,16 +314,210 @@ class _ExpensesTabState extends State<ExpensesTab> {
     );
   }
 
+  Future<void> _addQuick(String name) async {
+    try {
+      await widget.service.addExpenseForCategory(name);
+      _toast('Dodano pozycję: $name');
+    } catch (e) {
+      _toast('Błąd zapisu: $e');
+    }
+  }
+
+  /// Sekcja „⚡ Szybkie pozycje" — gotowe wydatki z konfigurowalnych kategorii
+  /// (spójne z listą kategorii). Chowana przyciskiem.
+  Widget _quickAddSection() {
+    final cats = _categories.where((c) => c != 'Inne').toList();
+    final counts = <String, int>{};
+    for (final e in _allExpenses) {
+      counts[e.category] = (counts[e.category] ?? 0) + 1;
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => setState(() => _quickVisible = !_quickVisible),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text('⚡ Szybkie pozycje',
+                        style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text)),
+                  ),
+                  Text(_quickVisible ? 'zwiń' : 'rozwiń',
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: AppColors.textLight)),
+                  AnimatedRotation(
+                    turns: _quickVisible ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child:
+                        const Icon(Icons.expand_more, color: AppColors.accent),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            alignment: Alignment.topCenter,
+            curve: Curves.easeInOut,
+            child: _quickVisible
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Kliknij, aby dodać gotowy wydatek — listę zmienisz '
+                          'w Konfiguracji.',
+                          style: GoogleFonts.inter(
+                              fontSize: 11, color: AppColors.textLight),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final c in cats) _quickChip(c, counts[c] ?? 0),
+                            _quickCustomChip(),
+                          ],
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickChip(String name, int count) {
+    final added = count > 0;
+    return InkWell(
+      onTap: () => _addQuick(name),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: added ? const Color(0xFFEFF6FF) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: added ? AppColors.accent : const Color(0xFFDCE4F2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(ExpenseCategories.iconFor(name),
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 6),
+            Text(name,
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text)),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: added ? AppColors.accent : const Color(0xFFEEF3FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(added ? '$count' : '+',
+                  style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: added ? Colors.white : AppColors.accent)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _quickCustomChip() {
+    return InkWell(
+      onTap: _addExpense,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFF),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFDCE4F2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.add, size: 16, color: AppColors.accent),
+            const SizedBox(width: 6),
+            Text('Własna pozycja',
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.accent)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Pasek filtrów z przyciskiem chowania (filtry + sortowanie).
+  Widget _filtersBar(List<String> names) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text('Filtry i sortowanie',
+                  style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textLight)),
+            ),
+            FilterToggleButton(
+              expanded: _filtersVisible,
+              onTap: () => setState(() => _filtersVisible = !_filtersVisible),
+            ),
+          ],
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          curve: Curves.easeInOut,
+          child: _filtersVisible
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _filters(names))
+              : const SizedBox(width: double.infinity),
+        ),
+      ],
+    );
+  }
+
   Widget _summaryCard() {
     final expenses = _allExpenses;
+    // Kwota orientacyjna = ostateczna lub (gdy brak) orientacyjna z danych.
     double sum(double Function(Expense) f) =>
         expenses.fold(0.0, (s, e) => s + f(e));
-    final alcohol = _bevTotal('alcoholItems');
-    final soft = _bevTotal('softItems');
-    final planned = sum((e) => e.planned) + alcohol + soft;
-    final estimated = sum((e) => e.estimatedAmount);
+    // Ukryte panele napojów nie wchodzą do sumy (dane zachowane).
+    final alcohol =
+        _bd['alcoholPanelHidden'] == true ? 0.0 : _bevTotal('alcoholItems');
+    final soft = _bd['softPanelHidden'] == true ? 0.0 : _bevTotal('softItems');
+    final orientacyjnie = sum((e) => e.effective) + alcohol + soft;
     final paid = sum((e) => e.paid);
-    final remaining = max(0.0, planned - paid);
+    final remaining = max(0.0, orientacyjnie - paid);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -298,8 +537,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
         spacing: 12,
         runSpacing: 12,
         children: [
-          _summaryItem('Zaplanowano', planned, const Color(0xFF1D4ED8)),
-          _summaryItem('Przewidywane', estimated, const Color(0xFFB45309)),
+          _summaryItem('Orientacyjnie', orientacyjnie, const Color(0xFF1D4ED8)),
           _summaryItem('Opłacono', paid, const Color(0xFF059669)),
           _summaryItem('Pozostało', remaining, const Color(0xFFEA580C)),
         ],
@@ -383,7 +621,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
         _filterLabel('Sortuj'),
         _chipRow([
           _sortChip('Ręcznie', null),
-          _sortChip('Planowane', 'planned'),
+          _sortChip('Orientacyjnie', 'planned'),
           _sortChip('Opłacone', 'paid'),
           _sortChip('Pozostało', 'remaining'),
           _sortChip('Data', 'paymentDate'),
@@ -463,6 +701,178 @@ class _ExpensesTabState extends State<ExpensesTab> {
                   GoogleFonts.inter(fontSize: 14, color: AppColors.textLight)),
         ),
       );
+
+  // ── Upominki dla gości (referencje z sekcji „Prezenty") ──────────────
+  // Pokazane jako wiersze WIRTUALNE (czytane z `giftsForGuests`), nie kopie —
+  // edycja przez przejście do sekcji „Prezenty". Kwota się nie dubluje.
+
+  List<GiftForGuest> get _giftsForGuests => [
+        for (final e in widget.data?.raw['giftsForGuests'] ?? const [])
+          if (e is Map) GiftForGuest(Map<String, dynamic>.from(e)),
+      ];
+
+  String get _giftBasis {
+    final b = widget.data?.raw['giftForGuestsBasis'];
+    return (b == 'real' || b == 'realvirtual') ? b as String : '';
+  }
+
+  /// Liczba osób użyta do przeliczenia, gdy włączona podstawa „na gości".
+  int get _giftPersonCount {
+    final guests = widget.data?.guests ?? const [];
+    final basis = _giftBasis;
+    if (basis == 'real') return guests.length;
+    if (basis == 'realvirtual') {
+      final venueMin = (_bd['venueMinGuests'] as num?)?.toInt() ?? 0;
+      final seated =
+          guests.where((g) => g is Map && g['tableId'] != null).length;
+      return guests.length + max(0, venueMin - seated);
+    }
+    return 0;
+  }
+
+  /// Wiersze referencyjne upominków „Dla gości" z kosztem > 0 (z podziałem na
+  /// odbiorców). Edycja w sekcji „Prezenty" — ten sam rekord, bez duplikacji.
+  List<Widget> _giftRows() {
+    final items = _giftsForGuests;
+    if (items.isEmpty) return const [];
+    final basis = _giftBasis;
+    final personCount = _giftPersonCount;
+    final rows = <Widget>[];
+    for (final cat in GiftGuestCat.all) {
+      for (final it in items.where((i) => i.category == cat.key)) {
+        final qty = basis.isNotEmpty ? personCount.toDouble() : it.qty;
+        final total = qty * it.cost;
+        if (total <= 0) continue;
+        final name = it.name.trim();
+        final title = name.isNotEmpty
+            ? 'Upominek: ${cat.label} · $name'
+            : 'Upominek: ${cat.label}';
+        rows.add(Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: _ReferenceCard(
+            icon: cat.icon,
+            title: title,
+            effective: total,
+            paid: 0,
+            isPredicted: false,
+            sectionLabel: 'Prezenty',
+            onOpenSource: () => widget.onOpenSection?.call(AppSection.gifts),
+          ),
+        ));
+      }
+    }
+    return rows;
+  }
+
+  /// Wiersz referencyjny podróży poślubnej (ten sam rekord co w zakładce
+  /// „Podróż poślubna" — pokazany tu, edytowany tam). NIE jest osobnym
+  /// wydatkiem, więc kwota nie dubluje się w podsumowaniu.
+  Widget _honeymoonRow() {
+    final hm = _bd['honeymoon'];
+    if (hm is! Map) return const SizedBox.shrink();
+    final confirmed = (hm['totalAmount'] as num?)?.toDouble() ?? 0;
+    final estimated = (hm['estimatedAmount'] as num?)?.toDouble() ?? 0;
+    final insts = hm['installments'];
+    final hasInst = insts is List && insts.isNotEmpty;
+    if (confirmed <= 0 && estimated <= 0 && !hasInst) {
+      return const SizedBox.shrink();
+    }
+    final effective = confirmed > 0 ? confirmed : estimated;
+    var paid = 0.0;
+    if (insts is List) {
+      for (final i in insts.whereType<Map>()) {
+        if (i['status'] == 'paid') {
+          paid += (i['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+    }
+    final name = ((hm['name'] as String?)?.trim().isNotEmpty ?? false)
+        ? (hm['name'] as String).trim()
+        : 'Podróż poślubna';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: _ReferenceCard(
+        icon: '✈️',
+        title: name,
+        effective: effective,
+        paid: paid,
+        isPredicted: confirmed == 0 && estimated > 0,
+        sectionLabel: 'Podróż poślubna',
+        onOpenSource: () => DefaultTabController.maybeOf(context)
+            ?.animateTo(widget.honeymoonTabIndex),
+      ),
+    );
+  }
+}
+
+/// Karta rekordu pokazanego z innej sekcji (referencja, nie kopia).
+class _ReferenceCard extends StatelessWidget {
+  const _ReferenceCard({
+    required this.icon,
+    required this.title,
+    required this.effective,
+    required this.paid,
+    required this.isPredicted,
+    required this.sectionLabel,
+    required this.onOpenSource,
+  });
+
+  final String icon;
+  final String title;
+  final double effective;
+  final double paid;
+  final bool isPredicted;
+  final String sectionLabel;
+  final VoidCallback onOpenSource;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onOpenSource,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFCFE0FB)),
+        ),
+        child: Row(
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 22)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text)),
+                  const SizedBox(height: 6),
+                  AddedInChip(section: sectionLabel, onTap: onOpenSource),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('${formatPlnZl(effective)}${isPredicted ? ' ~' : ''}',
+                    style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.text)),
+                Text('opł. ${formatPlnZl(paid)}',
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Rozwijana karta wydatku.
@@ -473,12 +883,20 @@ class _ExpenseCard extends StatefulWidget {
     required this.coupleNames,
     required this.onEdit,
     required this.onDelete,
+    this.onOpenSource,
+    this.sourceLabel,
   });
 
   final Expense expense;
   final List<String> coupleNames;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+
+  /// Gdy rekord pochodzi z innej sekcji (np. Dostawcy/Zadania) — przejście do źródła.
+  final VoidCallback? onOpenSource;
+
+  /// Etykieta sekcji źródłowej (np. „Dostawcy", „Zadania") dla [AddedInChip].
+  final String? sourceLabel;
 
   @override
   State<_ExpenseCard> createState() => _ExpenseCardState();
@@ -555,23 +973,15 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                                 ),
                               ),
                             ),
-                            if (e.isPredicted) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text('~ przewidywany',
-                                    style: GoogleFonts.inter(
-                                        fontSize: 10,
-                                        color: AppColors.textLight)),
-                              ),
-                            ],
                           ],
                         ),
+                        if (widget.onOpenSource != null) ...[
+                          const SizedBox(height: 6),
+                          AddedInChip(
+                            section: widget.sourceLabel ?? 'Dostawcy',
+                            onTap: widget.onOpenSource!,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -618,9 +1028,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 16),
-          _row('Kwota ostateczna', formatPlnZl(e.planned)),
-          if (e.estimatedAmount > 0)
-            _row('Kwota przewidywana', formatPlnZl(e.estimatedAmount)),
+          _row('Orientacyjnie', formatPlnZl(e.effective)),
           _row('Opłacono', formatPlnZl(e.paid)),
           _row('Pozostało', formatPlnZl(e.remaining)),
           if (e.paymentDate.isNotEmpty) _row('Data płatności', e.paymentDate),

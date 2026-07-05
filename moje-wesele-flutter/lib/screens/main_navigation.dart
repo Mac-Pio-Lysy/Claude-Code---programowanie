@@ -11,13 +11,15 @@ import '../services/app_lock_service.dart';
 import '../services/firestore_service.dart';
 import '../services/nav_config_service.dart';
 import '../services/onboarding_service.dart';
+import '../widgets/floating_bottom_nav.dart';
 import 'accommodation/accommodation_screen.dart';
 import 'analytics/analytics_screen.dart';
-import 'bingo/bingo_screen.dart';
 import 'budget/budget_screen.dart';
 import 'dashboard_screen.dart';
 import 'gallery/gallery_screen.dart';
+import 'games/games_screen.dart';
 import 'gifts/gifts_screen.dart';
+import 'keepsakes/keepsakes_screen.dart';
 import 'guests/guests_section_screen.dart';
 import 'lock/security_setup.dart';
 import 'music/music_screen.dart';
@@ -34,7 +36,8 @@ import 'vendors/vendors_screen.dart';
 /// Główny ekran aplikacji po zalogowaniu.
 ///
 /// • Dashboard jest przypięty na stałe w lewym górnym rogu (AppBar).
-/// • Telefon: konfigurowalny [BottomNavigationBar] (4 sloty + „Więcej").
+/// • Telefon: konfigurowalny [FloatingBottomNav] (4 sloty + „Więcej") z
+///   pływającym przyciskiem Dashboard na środku.
 /// • Tablet (≥ 720 px): [NavigationRail] (Dashboard + konfigurowalne sekcje).
 class MainNavigation extends StatefulWidget {
   MainNavigation({
@@ -70,6 +73,10 @@ class _MainNavigationState extends State<MainNavigation> {
   final _logoKey = GlobalKey();
   final _barKey = GlobalKey();
   final _railKey = GlobalKey();
+  final _dashFabKey = GlobalKey();
+  final _moreNavKey = GlobalKey();
+  final List<GlobalKey> _navItemKeys =
+      List.generate(NavConfigService.slots, (_) => GlobalKey());
 
   /// Strumień danych tworzony RAZ — nie w `build`, by zmiana orientacji /
   /// przebudowa nie powodowała ponownej subskrypcji i migotania „ładowanie".
@@ -167,22 +174,25 @@ class _MainNavigationState extends State<MainNavigation> {
     if (!step.nav) return null;
     final s = step.section;
     if (s == AppSection.settings) return _rectOfKey(_logoKey);
-    // Dashboard jest pierwszą pozycją paska/szyny; pozostałe sekcje po nim.
-    final items = [AppSection.dashboard, ..._bar];
-    final total = items.length + 1; // + „Więcej"
-    var idx = items.indexOf(s);
-    if (idx < 0) idx = total - 1;
     final isTablet = MediaQuery.sizeOf(context).width >= _tabletBreakpoint;
     if (isTablet) {
+      // Dashboard jest pierwszą pozycją szyny; pozostałe sekcje po nim.
+      final items = [AppSection.dashboard, ..._bar];
+      final total = items.length + 1; // + „Więcej"
+      var idx = items.indexOf(s);
+      if (idx < 0) idx = total - 1;
       final r = _rectOfKey(_railKey);
       if (r == null) return null;
       final slot = r.height / total;
       return Rect.fromLTWH(r.left, r.top + slot * idx, r.width, slot);
     }
-    final r = _rectOfKey(_barKey);
-    if (r == null) return null;
-    final slot = r.width / total;
-    return Rect.fromLTWH(r.left + slot * idx, r.top, slot, r.height);
+    // Telefon: Dashboard pływa na środku, pozostałe sekcje mają własne klucze.
+    if (s == AppSection.dashboard) return _rectOfKey(_dashFabKey);
+    final barIdx = _bar.indexOf(s);
+    if (barIdx >= 0 && barIdx < _navItemKeys.length) {
+      return _rectOfKey(_navItemKeys[barIdx]);
+    }
+    return _rectOfKey(_moreNavKey);
   }
 
   Rect? _rectOfKey(GlobalKey key) {
@@ -564,51 +574,18 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   Widget _buildBottomBar() {
-    // Dashboard zawsze pierwszy z lewej; potem konfigurowalne sloty i „Więcej".
-    final int selectedIndex;
-    if (_current == AppSection.dashboard) {
-      selectedIndex = 0;
-    } else if (_bar.contains(_current)) {
-      selectedIndex = 1 + _bar.indexOf(_current);
-    } else {
-      selectedIndex = _bar.length + 1;
-    }
-
-    return GestureDetector(
-      key: _barKey,
+    return FloatingBottomNav(
+      barKey: _barKey,
+      dashboardKey: _dashFabKey,
+      moreKey: _moreNavKey,
+      itemKeys: _navItemKeys.take(_bar.length).toList(),
+      bar: _bar,
+      current: _current,
+      dashboardIcon: _dashIcon(
+          selected: _current == AppSection.dashboard, size: 30),
+      onSelect: _select,
+      onMore: _openMore,
       onLongPress: _editBar,
-      child: BottomNavigationBar(
-        currentIndex: selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: AppColors.accent,
-        unselectedItemColor: AppColors.textLight,
-        selectedLabelStyle:
-            GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: GoogleFonts.inter(fontSize: 11),
-        onTap: (index) {
-          if (index == 0) {
-            _select(AppSection.dashboard);
-          } else if (index <= _bar.length) {
-            _select(_bar[index - 1]);
-          } else {
-            _openMore();
-          }
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: _dashIcon(
-                selected: _current == AppSection.dashboard, size: 24),
-            label: AppSection.dashboard.label,
-          ),
-          for (final s in _bar)
-            BottomNavigationBarItem(icon: Icon(s.icon), label: s.label),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.more_horiz),
-            label: 'Więcej',
-          ),
-        ],
-      ),
     );
   }
 
@@ -626,13 +603,15 @@ class _MainNavigationState extends State<MainNavigation> {
       case AppSection.room:
         return RoomPlanScreen(data: data, firestore: widget.firestore);
       case AppSection.budget:
-        return BudgetScreen(data: data, firestore: widget.firestore);
+        return BudgetScreen(
+            data: data, firestore: widget.firestore, onOpenSection: _select);
       case AppSection.schedule:
         return ScheduleScreen(data: data, firestore: widget.firestore);
       case AppSection.tasks:
         return TasksScreen(data: data, firestore: widget.firestore);
       case AppSection.vendors:
-        return VendorsScreen(data: data, firestore: widget.firestore);
+        return VendorsScreen(
+            data: data, firestore: widget.firestore, onOpenSection: _select);
       case AppSection.transport:
         return TransportScreen(data: data, firestore: widget.firestore);
       case AppSection.accommodation:
@@ -643,8 +622,10 @@ class _MainNavigationState extends State<MainNavigation> {
         return MusicScreen(data: data, firestore: widget.firestore);
       case AppSection.gallery:
         return GalleryScreen(data: data, firestore: widget.firestore);
-      case AppSection.bingo:
-        return BingoScreen(data: data, firestore: widget.firestore);
+      case AppSection.games:
+        return GamesScreen(data: data, firestore: widget.firestore);
+      case AppSection.keepsakes:
+        return KeepsakesScreen(data: data, firestore: widget.firestore);
       case AppSection.rsvp:
         return RsvpScreen(data: data, firestore: widget.firestore);
       case AppSection.rsvpAll:

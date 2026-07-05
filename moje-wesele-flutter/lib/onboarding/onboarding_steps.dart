@@ -74,8 +74,12 @@ const Map<AppSection, String> _sectionDesc = {
           'w podzakładkach.',
   AppSection.gallery:
       'Wspólna galeria zdjęć z wesela oraz kody QR do udostępniania gościom.',
-  AppSection.bingo:
-      'Ślubne Bingo — zabawa dla gości generowana z wydarzeń harmonogramu.',
+  AppSection.games:
+      'Ślubne gry — zabawy dla gości, m.in. Ślubne Bingo generowane '
+          'z wydarzeń harmonogramu. Wkrótce kolejne gry.',
+  AppSection.keepsakes:
+      'Ślubne pamiątki — księga gości, rady dla Pary Młodej, kapsuła czasu '
+          'i mapa gości. W przygotowaniu.',
   AppSection.analytics:
       'Wykresy i statystyki organizacji — postępy, koszty i frekwencja.',
   AppSection.rsvp:
@@ -100,15 +104,15 @@ const Map<AppSection, List<(String, String)>> _subTabs = {
     ('Podsumowanie',
         'Budżet całkowity kontra wydatki — ile już rozdysponowano.'),
     ('Sala',
-        'Koszt sali i cateringu — stawka za osobę przelicza się z liczbą gości.'),
+        'Koszt sali — stawka za osobę przelicza się z liczbą gości '
+        '(przypisanych, nieprzypisanych i obsługi).'),
     ('Wydatki', 'Dodawaj pozostałe wydatki i grupuj je w kategorie.'),
     ('Alkohol', 'Planuj rodzaje, ilości i koszty alkoholu.'),
     ('Napoje bezalkoholowe',
         'Woda, soki, napoje gazowane — ilości i koszty.'),
     ('Podróż poślubna',
-        'Budżet miesiąca miodowego osobno od kosztów wesela.'),
-    ('Płatności',
-        'Harmonogram wpłat i zaliczek — terminy i to, co już zapłacone.'),
+        'Budżet miesiąca miodowego osobno od kosztów wesela. W „Podsumowaniu" '
+        'znajdziesz też wszystkie płatności i terminy.'),
   ],
   AppSection.schedule: [
     ('Plan dnia',

@@ -129,6 +129,16 @@ class VendorService {
       final order = _intList(data['expenseOrder'])..removeWhere((e) => e == expId);
       payload['budgetData'] = {'expenses': expenses};
       payload['expenseOrder'] = order;
+    } else if (expId != null) {
+      // Zachowujemy wpis w budżecie, ale czyścimy zwisającą referencję do
+      // usuwanego dostawcy (zostaje czysty, samodzielny wydatek).
+      final expenses = _mapList(_budget(data)['expenses']);
+      final exp = _find(expenses, expId);
+      if (exp != null) {
+        exp['vendorId'] = null;
+        exp['origin'] = 'expenses';
+        payload['budgetData'] = {'expenses': expenses};
+      }
     }
 
     vendors.removeWhere((v) => _idOf(v) == id);
@@ -222,6 +232,7 @@ class VendorService {
       existing['customName'] = label;
       existing['estimatedAmount'] = draft.contractAmount;
       existing['vendorId'] = vendor['id'];
+      existing['origin'] = 'vendors';
     } else {
       final newId = _nextId(data['nextExpenseId'], expenses);
       expenses.add({
@@ -237,6 +248,7 @@ class VendorService {
         'splitP2': 0,
         'sidePanel': false,
         'vendorId': vendor['id'],
+        'origin': 'vendors',
       });
       order.add(newId);
       vendor['budgetExpenseId'] = newId;

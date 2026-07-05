@@ -6,25 +6,26 @@ import '../../models/payment_item.dart';
 import '../../models/wedding_data.dart';
 import '../../utils/format.dart';
 
-/// Podzakładka „Płatności" — zbiorczy widok płatności ze wszystkich źródeł
-/// (Sala, Wydatki, Podróż poślubna) z przypomnieniami o terminach w 7 dni.
-class PaymentsTab extends StatefulWidget {
-  const PaymentsTab({super.key, required this.data});
+/// Terminy płatności (Sala, Wydatki, Podróż poślubna, raty dostawców) —
+/// przypomnienia o zbliżających się/zaległych terminach oraz filtrowana lista
+/// pozycji. Osadzany w podzakładce „Podsumowanie". Zbiorcze sumy (Opłacono/
+/// Pozostało) są już pokazane wyżej w karcie wartości Podsumowania — nie
+/// duplikujemy ich tutaj.
+class PaymentsSection extends StatefulWidget {
+  const PaymentsSection({super.key, required this.data});
 
   final WeddingData? data;
 
   @override
-  State<PaymentsTab> createState() => _PaymentsTabState();
+  State<PaymentsSection> createState() => _PaymentsSectionState();
 }
 
-class _PaymentsTabState extends State<PaymentsTab> {
+class _PaymentsSectionState extends State<PaymentsSection> {
   PaymentSource? _filter; // null = wszystkie
 
   @override
   Widget build(BuildContext context) {
     final all = buildPaymentItems(widget.data);
-    final totalPaid = all.fold<double>(0, (s, i) => s + i.paid);
-    final totalRemaining = all.fold<double>(0, (s, i) => s + i.remaining);
 
     final upcoming = all.where((i) => i.soon || i.overdue).toList()
       ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
@@ -32,17 +33,13 @@ class _PaymentsTabState extends State<PaymentsTab> {
     final filtered =
         _filter == null ? all : all.where((i) => i.source == _filter).toList();
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _summaryCard(totalPaid, totalRemaining, upcoming.length),
         if (upcoming.isNotEmpty) ...[
-          const SizedBox(height: 16),
           _remindersCard(upcoming),
+          const SizedBox(height: 16),
         ],
-        const SizedBox(height: 16),
-        _filters(),
-        const SizedBox(height: 12),
         if (filtered.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 30),
@@ -60,42 +57,9 @@ class _PaymentsTabState extends State<PaymentsTab> {
               padding: const EdgeInsets.only(bottom: 10),
               child: _PaymentCard(item: item),
             ),
+        const SizedBox(height: 12),
+        _filters(),
       ],
-    );
-  }
-
-  Widget _summaryCard(double paid, double remaining, int upcoming) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: _cardDecoration(),
-      child: Wrap(
-        spacing: 16,
-        runSpacing: 12,
-        children: [
-          _summaryItem('Zapłacono', formatPlnZl(paid), const Color(0xFF059669)),
-          _summaryItem(
-              'Pozostało', formatPlnZl(remaining), const Color(0xFFEA580C)),
-          _summaryItem('Najbliższe (7 dni)', '$upcoming',
-              const Color(0xFF1D4ED8)),
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryItem(String label, String value, Color color) {
-    return SizedBox(
-      width: 150,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(value,
-              style: GoogleFonts.inter(
-                  fontSize: 16, fontWeight: FontWeight.w800, color: color)),
-          Text(label,
-              style:
-                  GoogleFonts.inter(fontSize: 11, color: AppColors.textLight)),
-        ],
-      ),
     );
   }
 
@@ -201,24 +165,12 @@ class _PaymentsTabState extends State<PaymentsTab> {
           chip('Wszystkie', null),
           chip('🏠 Sala', PaymentSource.sala),
           chip('📋 Wydatki', PaymentSource.expenses),
+          chip('🏢 Dostawcy', PaymentSource.vendor),
           chip('✈️ Podróż', PaymentSource.honeymoon),
         ],
       ),
     );
   }
-
-  BoxDecoration _cardDecoration() => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2EAF7)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.07),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      );
 }
 
 class _PaymentCard extends StatelessWidget {

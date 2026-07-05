@@ -17,6 +17,13 @@ class ExpenseDraft {
     required this.note,
     required this.splitP1,
     required this.splitP2,
+    this.origin = 'expenses',
+    this.isVendor = false,
+    this.vendorCompany = '',
+    this.vendorContact = '',
+    this.vendorPhone = '',
+    this.vendorEmail = '',
+    this.vendorCategory = 'Inne',
   });
 
   final String category;
@@ -28,6 +35,18 @@ class ExpenseDraft {
   final String note;
   final num splitP1;
   final num splitP2;
+
+  /// Sekcja źródłowa rekordu ('expenses' | 'vendors'). Zachowywana przy edycji.
+  final String origin;
+
+  /// Czy wydatek jest też dostawcą/usługą (pokazuje się w sekcji Dostawcy
+  /// jako TEN SAM rekord — przez referencję, nie kopię).
+  final bool isVendor;
+  final String vendorCompany;
+  final String vendorContact;
+  final String vendorPhone;
+  final String vendorEmail;
+  final String vendorCategory;
 }
 
 /// Operacje na budżecie (`budgetData`) w `weddingPlanner/main`.
@@ -54,6 +73,59 @@ class BudgetService {
 
   Future<void> setIncludeVirtual(bool value) =>
       _mergeBudget({'includeVirtualInCalc': value});
+
+  /// Czy liczyć gości NIEprzypisanych do stołów w koszcie sali (domyślnie tak).
+  Future<void> setIncludeUnassigned(bool value) =>
+      _mergeBudget({'includeUnassignedInCalc': value});
+
+  /// Czy doliczać obsługę (`staffTables` z „w kosztach") do kosztu sali.
+  Future<void> setIncludeStaff(bool value) =>
+      _mergeBudget({'includeStaffInCalc': value});
+
+  /// Stawka za osobę dla obsługi (0 = używana jest cena ogólna za osobę).
+  Future<void> setStaffPricePerPerson(num value) =>
+      _mergeBudget({'staffPricePerPerson': value});
+
+  // ── OBSŁUGA (kelnerzy, fotograf, DJ…) — `staffTables` (top-level) ─────
+  // Współdzielone z planem sali; pozycja nadawana automatycznie (jak w web).
+
+  Future<void> addStaffTable(String name, num persons) async {
+    final data = await _read();
+    final list = _mapList(data['staffTables']);
+    final nextId = _nextId(data['nextStaffTableId'], list);
+    final idx = list.length;
+    list.add({
+      'id': nextId,
+      'name': name.trim().isEmpty ? 'Obsługa' : name.trim(),
+      'persons': persons,
+      'includeInCost': false,
+      'posX': 50 + (idx % 6) * 150,
+      'posY': 600 + (idx ~/ 6) * 110,
+    });
+    await _firestore.mainDoc.set(
+      {'staffTables': list, 'nextStaffTableId': nextId + 1},
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<void> updateStaffTable(int id,
+      {String? name, num? persons, bool? includeInCost}) async {
+    final data = await _read();
+    final list = _mapList(data['staffTables']);
+    final item = _find(list, id);
+    if (item == null) return;
+    if (name != null) item['name'] = name;
+    if (persons != null) item['persons'] = persons;
+    if (includeInCost != null) item['includeInCost'] = includeInCost;
+    await _firestore.mainDoc.set({'staffTables': list}, SetOptions(merge: true));
+  }
+
+  Future<void> deleteStaffTable(int id) async {
+    final data = await _read();
+    final list = _mapList(data['staffTables'])
+      ..removeWhere((m) => _idOf(m) == id);
+    await _firestore.mainDoc.set({'staffTables': list}, SetOptions(merge: true));
+  }
 
   // ── DODATKI DO MENU (per osoba) ──────────────────────────────────────
 
@@ -140,7 +212,7 @@ class BudgetService {
     final list = _mapList(_budget(data)['expenses']);
     final order = _intList(data['expenseOrder']);
     final nextId = _nextId(data['nextExpenseId'], list);
-    list.add({
+    final item = <String, dynamic>{
       'id': nextId,
       'category': draft.category,
       'customName': draft.customName,
@@ -152,13 +224,21 @@ class BudgetService {
       'splitP1': draft.splitP1,
       'splitP2': draft.splitP2,
       'sidePanel': false,
-    });
+      'origin': draft.origin.isEmpty ? 'expenses' : draft.origin,
+      'vendorId': null,
+    };
+    list.add(item);
     order.add(nextId);
-    await _firestore.mainDoc.set({
-      'budgetData': {'expenses': list},
+
+    final payload = <String, dynamic>{
       'nextExpenseId': nextId + 1,
       'expenseOrder': order,
-    }, SetOptions(merge: true));
+    };
+    // Powiązanie z dostawcą (jeśli „To jest dostawca/usługa") — referencja.
+    _syncExpenseVendor(data, item, draft, payload);
+    payload['budgetData'] = {'expenses': list};
+
+    await _firestore.mainDoc.set(payload, SetOptions(merge: true));
   }
 
   Future<void> updateExpense(int id, ExpenseDraft draft) async {
@@ -175,8 +255,108 @@ class BudgetService {
     item['note'] = draft.note;
     item['splitP1'] = draft.splitP1;
     item['splitP2'] = draft.splitP2;
-    await _mergeBudget({'expenses': list});
+    // Zachowaj/ustaw źródło rekordu (nie nadpisuj pochodzenia z Dostawców).
+    item['origin'] = draft.origin.isEmpty ? (item['origin'] ?? 'expenses') : draft.origin;
+
+    final payload = <String, dynamic>{};
+    _syncExpenseVendor(data, item, draft, payload);
+    payload['budgetData'] = {'expenses': list};
+
+    await _firestore.mainDoc.set(payload, SetOptions(merge: true));
   }
+
+  /// Synchronizuje powiązanego dostawcę z wydatkiem (referencja, nie kopia).
+  /// Mutuje [expense] (ustawia `vendorId`) i dopisuje `vendors`/`nextVendorId`
+  /// do [payload]. Kwota pozostaje w wydatku — dostawca jest tylko „widokiem"
+  /// z danymi kontaktowymi (`isBudgetLinked=true`, `price=0`), więc kwota się
+  /// NIE dubluje (dostawcy powiązani są wykluczani z sum „zewnętrznych").
+  void _syncExpenseVendor(Map<String, dynamic> data, Map<String, dynamic> expense,
+      ExpenseDraft draft, Map<String, dynamic> payload) {
+    final vendors = _mapList(data['vendors']);
+    final expId = _idOf(expense);
+    Map<String, dynamic>? vendor;
+    final vid = (expense['vendorId'] as num?)?.toInt();
+    if (vid != null) vendor = _find(vendors, vid);
+    vendor ??= () {
+      for (final v in vendors) {
+        if ((v['budgetExpenseId'] as num?)?.toInt() == expId) return v;
+      }
+      return null;
+    }();
+
+    if (!draft.isVendor) {
+      // Odłączenie — NIE kasujemy dostawcy (zachowujemy kontakt/raty), tylko
+      // czyścimy powiązanie i zerujemy cenę, by uniknąć podwójnego liczenia.
+      if (vendor != null) {
+        vendor['isBudgetLinked'] = false;
+        vendor['budgetExpenseId'] = null;
+        vendor['contractAmount'] = 0;
+        vendor['price'] = 0;
+      }
+      expense['vendorId'] = null;
+      payload['vendors'] = vendors;
+      return;
+    }
+
+    final amount = _effectiveOf(expense);
+    if (vendor != null) {
+      vendor['companyName'] = draft.vendorCompany;
+      vendor['contactName'] = draft.vendorContact;
+      vendor['phone'] = draft.vendorPhone;
+      vendor['email'] = draft.vendorEmail;
+      vendor['category'] =
+          draft.vendorCategory.isEmpty ? 'Inne' : draft.vendorCategory;
+      vendor['isBudgetLinked'] = true;
+      vendor['budgetExpenseId'] = expId;
+      vendor['contractAmount'] = amount;
+      vendor['price'] = 0;
+      expense['vendorId'] = vendor['id'];
+    } else {
+      final nextVendorId = _nextId(data['nextVendorId'], vendors);
+      vendors.add({
+        'id': nextVendorId,
+        'category': draft.vendorCategory.isEmpty ? 'Inne' : draft.vendorCategory,
+        'customCategory': '',
+        'companyName': draft.vendorCompany,
+        'contactName': draft.vendorContact,
+        'phone': draft.vendorPhone,
+        'email': draft.vendorEmail,
+        'price': 0,
+        'paymentStatus': 'contacted',
+        'notes': '',
+        'mapUrl': '',
+        'isBudgetLinked': true,
+        'contractAmount': amount,
+        'budgetCategory': (expense['category'] as String?) ?? '',
+        'budgetExpenseId': expId,
+        'installments': <dynamic>[],
+      });
+      expense['vendorId'] = nextVendorId;
+      payload['nextVendorId'] = nextVendorId + 1;
+    }
+    payload['vendors'] = vendors;
+  }
+
+  double _effectiveOf(Map<String, dynamic> e) {
+    final planned = (e['planned'] as num?)?.toDouble() ?? 0;
+    final est = (e['estimatedAmount'] as num?)?.toDouble() ?? 0;
+    return planned > 0 ? planned : est;
+  }
+
+  /// Szybka pozycja — dodaje gotowy wydatek dla danej kategorii (kwota do
+  /// uzupełnienia). [known] = czy nazwa jest jedną ze skonfigurowanych kategorii.
+  Future<void> addExpenseForCategory(String name, {bool known = true}) =>
+      addExpense(ExpenseDraft(
+        category: known ? name : 'Inne',
+        customName: known ? '' : name,
+        planned: 0,
+        estimatedAmount: 0,
+        paid: 0,
+        paymentDate: '',
+        note: '',
+        splitP1: 0,
+        splitP2: 0,
+      ));
 
   Future<void> deleteExpense(int id) async {
     final data = await _read();
@@ -264,6 +444,11 @@ class BudgetService {
   Future<void> setBeveragePerPersonVirtual(BeverageKind kind, bool value) =>
       _mergeBudget({kind.perVirtualKey: value});
 
+  /// Ukrywa/przywraca boczny panel napojów. Ukryty panel NIE jest liczony
+  /// w budżecie, ale pozycje pozostają zapisane (nie kasujemy danych).
+  Future<void> setBeveragePanelHidden(BeverageKind kind, bool hidden) =>
+      _mergeBudget({kind.panelHiddenKey: hidden});
+
   // ── PODRÓŻ POŚLUBNA ──────────────────────────────────────────────────
 
   Future<void> updateHoneymoon({
@@ -323,6 +508,99 @@ class BudgetService {
     await _mergeBudget({
       'honeymoon': {'installments': list},
     });
+  }
+
+  // ── PODRÓŻ POŚLUBNA — warianty/propozycje ────────────────────────────
+  // Do budżetu wchodzi tylko wybrany wariant (lub najdroższy, gdy włączone
+  // „wlicz droższą wersję"). Wybór zapisujemy też do `totalAmount`/`name`/
+  // `link`, by reszta aplikacji (podsumowanie, płatności) działała bez zmian.
+
+  Future<void> addHoneymoonOption() async {
+    final data = await _read();
+    final hm = _honeymoon(data);
+    final list = _mapList(hm['options']);
+    final nextId = _nextId(data['nextHoneymoonOptId'], list);
+    // Pierwszy wariant dziedziczy dotychczasową kwotę/nazwę/link (bez utraty).
+    final seedFirst = list.isEmpty;
+    list.add({
+      'id': nextId,
+      'name': seedFirst ? (hm['name'] ?? '') : '',
+      'link': seedFirst ? (hm['link'] ?? '') : '',
+      'amount': seedFirst ? (hm['totalAmount'] ?? 0) : 0,
+    });
+    hm['options'] = list;
+    hm['selectedOptionId'] ??= nextId;
+    _applyHoneymoonSelection(hm);
+    await _firestore.mainDoc.set({
+      'budgetData': {'honeymoon': hm},
+      'nextHoneymoonOptId': nextId + 1,
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateHoneymoonOption(int id,
+      {String? name, String? link, num? amount}) async {
+    final data = await _read();
+    final hm = _honeymoon(data);
+    final list = _mapList(hm['options']);
+    final item = _find(list, id);
+    if (item == null) return;
+    if (name != null) item['name'] = name;
+    if (link != null) item['link'] = link;
+    if (amount != null) item['amount'] = amount;
+    hm['options'] = list;
+    _applyHoneymoonSelection(hm);
+    await _mergeBudget({'honeymoon': hm});
+  }
+
+  Future<void> deleteHoneymoonOption(int id) async {
+    final data = await _read();
+    final hm = _honeymoon(data);
+    final list = _mapList(hm['options'])..removeWhere((m) => _idOf(m) == id);
+    hm['options'] = list;
+    if ((hm['selectedOptionId'] as num?)?.toInt() == id) {
+      hm['selectedOptionId'] = list.isNotEmpty ? _idOf(list.first) : null;
+    }
+    _applyHoneymoonSelection(hm);
+    await _mergeBudget({'honeymoon': hm});
+  }
+
+  Future<void> selectHoneymoonOption(int id) async {
+    final data = await _read();
+    final hm = _honeymoon(data);
+    hm['selectedOptionId'] = id;
+    _applyHoneymoonSelection(hm);
+    await _mergeBudget({'honeymoon': hm});
+  }
+
+  Future<void> setHoneymoonUseHigher(bool value) async {
+    final data = await _read();
+    final hm = _honeymoon(data);
+    hm['useHigher'] = value;
+    _applyHoneymoonSelection(hm);
+    await _mergeBudget({'honeymoon': hm});
+  }
+
+  /// Ustawia `totalAmount`/`name`/`link` na podstawie wybranego wariantu
+  /// (lub najdroższego, gdy `useHigher`). Bez wariantów nie zmienia nic.
+  void _applyHoneymoonSelection(Map<String, dynamic> hm) {
+    final opts = _mapList(hm['options']);
+    if (opts.isEmpty) return;
+    Map<String, dynamic>? chosen;
+    if (hm['useHigher'] == true) {
+      for (final o in opts) {
+        final a = (o['amount'] as num?)?.toDouble() ?? 0;
+        final best = (chosen?['amount'] as num?)?.toDouble() ?? -1;
+        if (chosen == null || a > best) chosen = o;
+      }
+    } else {
+      final sel = (hm['selectedOptionId'] as num?)?.toInt();
+      chosen = (sel != null ? _find(opts, sel) : null) ?? opts.first;
+    }
+    if (chosen != null) {
+      hm['totalAmount'] = chosen['amount'] ?? 0;
+      hm['name'] = chosen['name'] ?? '';
+      hm['link'] = chosen['link'] ?? '';
+    }
   }
 
   // ── Pomocnicze ──────────────────────────────────────────────────────

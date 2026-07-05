@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Momenty imprezy (MUSIC_MOMENTS w zrodlo-web/script.js).
+/// Momenty imprezy (MUSIC_MOMENTS w zrodlo-web/script.js) — luźna kategoria
+/// utworu (do filtrów). NIE mylić z „utworami specjalnymi" (kluczowe momenty).
 const List<String> kMusicMoments = [
   'Pierwszy taniec',
   'Wejście',
@@ -9,6 +10,54 @@ const List<String> kMusicMoments = [
   'Imprezowe',
   'Inne',
 ];
+
+/// Domyślne „kluczowe momenty" wesela dla utworów specjalnych (kolejność =
+/// chronologia). Konfigurowalne: zapisane w top-level `specialMoments`.
+const List<String> kDefaultSpecialMoments = [
+  'Pierwszy taniec',
+  'Pierwszy utwór',
+  'Wejście Pary Młodej',
+  'Tort',
+  'Oczepiny',
+  'Ostatni taniec',
+  'Toast',
+];
+
+/// Ikona kluczowego momentu (fallback ⭐ dla własnych etykiet).
+String specialMomentIcon(String label) {
+  switch (label) {
+    case 'Pierwszy taniec':
+      return '💃';
+    case 'Pierwszy utwór':
+      return '🎵';
+    case 'Wejście Pary Młodej':
+      return '👰';
+    case 'Tort':
+      return '🎂';
+    case 'Oczepiny':
+      return '🎉';
+    case 'Ostatni taniec':
+      return '🌙';
+    case 'Toast':
+      return '🥂';
+    default:
+      return '⭐';
+  }
+}
+
+/// Lista kluczowych momentów z konfiguracji (`specialMoments`) lub domyślna.
+List<String> resolveSpecialMoments(Map<String, dynamic> raw) {
+  final v = raw['specialMoments'];
+  if (v is List) {
+    final list = v
+        .map((e) => e?.toString() ?? '')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (list.isNotEmpty) return list;
+  }
+  return kDefaultSpecialMoments;
+}
 
 /// Status utworu (MUSIC_STATUSES).
 class MusicStatus {
@@ -50,6 +99,10 @@ class Song {
   bool get fromGuest => raw['fromGuest'] == true;
   String get guestName => (raw['guestName'] as String?) ?? '';
   bool get unmatched => raw['unmatched'] == true;
+
+  /// Kluczowy moment wesela (etykieta) — '' gdy utwór nie jest specjalny.
+  String get specialMoment => (raw['specialMoment'] as String?)?.trim() ?? '';
+  bool get isSpecial => specialMoment.isNotEmpty;
 
   MusicStatus get status => MusicStatus.byId(statusId);
 }

@@ -25,6 +25,58 @@ service cloud.firestore {
       allow read, create: if true;
     }
 
+    // Księga gości (ksiega.html, bez logowania): publiczny odczyt i dodawanie wpisów.
+    // Usuwanie objęte regułą ogólną powyżej — tylko zalogowani organizatorzy.
+    match /guestbook/{id} {
+      allow read, create: if true;
+    }
+
+    // Wyniki quizu o Parze Młodej (quiz.html, bez logowania): publiczny odczyt
+    // (ranking) i dodawanie wyniku. Pytania czytane z weddingPlanner/main
+    // (reguła powyżej). Usuwanie — tylko zalogowani organizatorzy.
+    match /quizResults/{id} {
+      allow read, create: if true;
+    }
+
+    // Rady dla Pary Młodej (rady.html, bez logowania): publiczny odczyt i
+    // dodawanie. Usuwanie — tylko zalogowani organizatorzy (reguła ogólna).
+    match /advices/{id} {
+      allow read, create: if true;
+    }
+
+    // Wyniki gry „Prawda czy Fałsz" (prawdafalsz.html, bez logowania): publiczny
+    // odczyt (ranking) i dodawanie wyniku. Stwierdzenia czytane z
+    // weddingPlanner/main. Usuwanie — tylko zalogowani organizatorzy.
+    match /trueFalseResults/{id} {
+      allow read, create: if true;
+    }
+
+    // Wyniki gry „Zgadnij zdjęcie" (zgadnijzdjecie.html, bez logowania):
+    // publiczny odczyt (ranking) i dodawanie wyniku. Pytania/zdjęcia czytane
+    // z weddingPlanner/main. Usuwanie — tylko zalogowani organizatorzy.
+    match /photoGuessResults/{id} {
+      allow read, create: if true;
+    }
+
+    // Kapsuła czasu (kapsula.html, bez logowania): publiczny odczyt i dodawanie
+    // wiadomości. Usuwanie — tylko zalogowani organizatorzy (reguła ogólna).
+    match /timeCapsule/{id} {
+      allow read, create: if true;
+    }
+
+    // Mapa gości (mapa.html, bez logowania): publiczny odczyt i dodawanie
+    // wpisów (miejscowość + współrzędne). Edycja/usuwanie — tylko zalogowani.
+    match /guestMap/{id} {
+      allow read, create: if true;
+    }
+
+    // Foto-wyzwania (fotowyzwania.html, bez logowania): publiczny odczyt i
+    // dodawanie zdjęć (wykonane wyzwania). Lista wyzwań w weddingPlanner/main.
+    // Usuwanie — tylko zalogowani organizatorzy (reguła ogólna).
+    match /photoChallenges/{id} {
+      allow read, create: if true;
+    }
+
     // Galeria zdjęć gości: publiczny odczyt i dodawanie; usuwanie tylko organizatorzy.
     match /gallery/{photoId} {
       allow read, create: if true;

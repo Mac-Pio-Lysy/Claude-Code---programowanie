@@ -4,7 +4,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../models/advice.dart';
+import '../models/guestbook_entry.dart';
 import '../models/schedule_event.dart';
+import '../models/time_capsule_message.dart';
 
 /// Generowanie wydruków PDF (galeria/QR, harmonogram, połączony, bingo).
 /// Używa czcionki Roboto (Google Fonts) obsługującej polskie znaki.
@@ -166,6 +169,253 @@ class PdfService {
         ),
       if (events.isEmpty) pw.Text('Brak wydarzeń w harmonogramie.'),
     ];
+  }
+
+  // ── KSIĘGA GOŚCI ─────────────────────────────────────────────────────
+
+  /// Pamiątkowy PDF z wpisami z księgi gości (do wydruku).
+  static Future<Uint8List> guestbook({
+    required List<GuestbookEntry> entries,
+    String title = 'Księga Gości',
+    PdfPageFormat format = PdfPageFormat.a4,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    doc.addPage(pw.MultiPage(
+      pageFormat: format,
+      build: (ctx) => _guestbookContent(entries, title),
+    ));
+    return doc.save();
+  }
+
+  static List<pw.Widget> _guestbookContent(
+      List<GuestbookEntry> entries, String title) {
+    return [
+      pw.Center(
+        child: pw.Column(children: [
+          pw.Text('💝', style: const pw.TextStyle(fontSize: 30)),
+          pw.SizedBox(height: 6),
+          pw.Text(title,
+              style: pw.TextStyle(
+                  fontSize: 26,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColor.fromInt(0xFF1040B0))),
+          pw.SizedBox(height: 4),
+          pw.Text('Życzenia i wiadomości od gości',
+              style: const pw.TextStyle(fontSize: 12)),
+        ]),
+      ),
+      pw.SizedBox(height: 18),
+      if (entries.isEmpty)
+        pw.Text('Brak wpisów w księdze gości.')
+      else
+        for (final e in entries)
+          pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 12),
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFFF5F8FF),
+              border: pw.Border.all(color: PdfColor.fromInt(0xFFC5D8F6)),
+              borderRadius: pw.BorderRadius.circular(10),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Expanded(
+                      child: pw.Text(e.name.isEmpty ? 'Gość' : e.name,
+                          style: pw.TextStyle(
+                              fontSize: 13,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColor.fromInt(0xFF1A2744))),
+                    ),
+                    if (_dateLabel(e.dateTime).isNotEmpty)
+                      pw.Text(_dateLabel(e.dateTime),
+                          style: const pw.TextStyle(
+                              fontSize: 9, color: PdfColors.grey700)),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Text(e.message, style: const pw.TextStyle(fontSize: 11)),
+                if (e.hasPhoto)
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 5),
+                    child: pw.Text('📷 (zdjęcie dostępne online)',
+                        style: const pw.TextStyle(
+                            fontSize: 8, color: PdfColors.grey600)),
+                  ),
+              ],
+            ),
+          ),
+    ];
+  }
+
+  static String _dateLabel(DateTime? d) {
+    if (d == null) return '';
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(d.day)}.${two(d.month)}.${d.year} ${two(d.hour)}:${two(d.minute)}';
+  }
+
+  // ── RADY DLA PARY MŁODEJ ─────────────────────────────────────────────
+
+  /// Pamiątkowy PDF z radami dla Pary Młodej (do wydruku / oprawienia).
+  static Future<Uint8List> advices({
+    required List<Advice> advices,
+    String title = 'Rady dla Pary Młodej',
+    PdfPageFormat format = PdfPageFormat.a4,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    doc.addPage(pw.MultiPage(
+      pageFormat: format,
+      build: (ctx) => _advicesContent(advices, title),
+    ));
+    return doc.save();
+  }
+
+  static List<pw.Widget> _advicesContent(List<Advice> advices, String title) {
+    return [
+      pw.Center(
+        child: pw.Column(children: [
+          pw.Text('💌', style: const pw.TextStyle(fontSize: 30)),
+          pw.SizedBox(height: 6),
+          pw.Text(title,
+              style: pw.TextStyle(
+                  fontSize: 26,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColor.fromInt(0xFF1040B0))),
+          pw.SizedBox(height: 4),
+          pw.Text('Złote myśli o małżeństwie od gości',
+              style: const pw.TextStyle(fontSize: 12)),
+        ]),
+      ),
+      pw.SizedBox(height: 18),
+      if (advices.isEmpty)
+        pw.Text('Brak rad.')
+      else
+        for (final a in advices)
+          pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 12),
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFFF5F8FF),
+              border: pw.Border.all(color: PdfColor.fromInt(0xFFC5D8F6)),
+              borderRadius: pw.BorderRadius.circular(10),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('„${a.message}"',
+                    style: pw.TextStyle(
+                        fontSize: 13, fontStyle: pw.FontStyle.italic)),
+                pw.SizedBox(height: 6),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                        '— ${a.name.isEmpty ? 'Gość' : a.name} · ${a.category.label}',
+                        style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            color: PdfColor.fromInt(0xFF1A2744))),
+                    if (_dateLabel(a.dateTime).isNotEmpty)
+                      pw.Text(_dateLabel(a.dateTime),
+                          style: const pw.TextStyle(
+                              fontSize: 9, color: PdfColors.grey700)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+    ];
+  }
+
+  // ── KAPSUŁA CZASU ────────────────────────────────────────────────────
+
+  /// Pamiątkowy PDF z otwartymi wiadomościami z kapsuły czasu.
+  static Future<Uint8List> timeCapsule({
+    required List<TimeCapsuleMessage> messages,
+    String title = 'Kapsuła czasu',
+    PdfPageFormat format = PdfPageFormat.a4,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    doc.addPage(pw.MultiPage(
+      pageFormat: format,
+      build: (ctx) => _timeCapsuleContent(messages, title),
+    ));
+    return doc.save();
+  }
+
+  static List<pw.Widget> _timeCapsuleContent(
+      List<TimeCapsuleMessage> messages, String title) {
+    return [
+      pw.Center(
+        child: pw.Column(children: [
+          pw.Text('⏳', style: const pw.TextStyle(fontSize: 30)),
+          pw.SizedBox(height: 6),
+          pw.Text(title,
+              style: pw.TextStyle(
+                  fontSize: 26,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColor.fromInt(0xFF1040B0))),
+          pw.SizedBox(height: 4),
+          pw.Text('Otwarte wiadomości od gości',
+              style: const pw.TextStyle(fontSize: 12)),
+        ]),
+      ),
+      pw.SizedBox(height: 18),
+      if (messages.isEmpty)
+        pw.Text('Brak otwartych wiadomości.')
+      else
+        for (final m in messages)
+          pw.Container(
+            margin: const pw.EdgeInsets.only(bottom: 12),
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColor.fromInt(0xFFF5F8FF),
+              border: pw.Border.all(color: PdfColor.fromInt(0xFFC5D8F6)),
+              borderRadius: pw.BorderRadius.circular(10),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Expanded(
+                      child: pw.Text(m.name.isEmpty ? 'Gość' : m.name,
+                          style: pw.TextStyle(
+                              fontSize: 13,
+                              fontWeight: pw.FontWeight.bold,
+                              color: PdfColor.fromInt(0xFF1A2744))),
+                    ),
+                    if (_dateLabel(m.openDateTime).isNotEmpty)
+                      pw.Text('otwarta ${_dateOnly(m.openDateTime)}',
+                          style: const pw.TextStyle(
+                              fontSize: 9, color: PdfColors.grey700)),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Text(m.message, style: const pw.TextStyle(fontSize: 11)),
+                if (m.hasPhoto)
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(top: 5),
+                    child: pw.Text('📷 (zdjęcie dostępne online)',
+                        style: const pw.TextStyle(
+                            fontSize: 8, color: PdfColors.grey600)),
+                  ),
+              ],
+            ),
+          ),
+    ];
+  }
+
+  static String _dateOnly(DateTime? d) {
+    if (d == null) return '';
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(d.day)}.${two(d.month)}.${d.year}';
   }
 
   // ── BINGO ────────────────────────────────────────────────────────────

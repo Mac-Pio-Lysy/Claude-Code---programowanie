@@ -18,6 +18,10 @@ extension BeverageKindX on BeverageKind {
       ? 'alcoholPerPersonVirtual'
       : 'softPerPersonVirtual';
 
+  /// Flaga ukrycia bocznego panelu (ukryty = niewliczany do budżetu).
+  String get panelHiddenKey =>
+      this == BeverageKind.alcohol ? 'alcoholPanelHidden' : 'softPanelHidden';
+
   String get title =>
       this == BeverageKind.alcohol ? 'Alkohol' : 'Napoje bezalkoholowe';
 
@@ -56,6 +60,7 @@ class BeverageSummary {
     required this.splitP1,
     required this.splitP2,
     required this.coupleNames,
+    required this.panelHidden,
   });
 
   final double totalBottles;
@@ -67,6 +72,9 @@ class BeverageSummary {
   final double splitP1;
   final double splitP2;
   final List<String> coupleNames;
+
+  /// Czy panel jest ukryty (wykluczony z budżetu, dane zachowane).
+  final bool panelHidden;
 
   factory BeverageSummary.from(WeddingData? data, BeverageKind kind) {
     final raw = data?.raw ?? const {};
@@ -107,6 +115,7 @@ class BeverageSummary {
       splitP1: _d(budget[kind.splitP1Key]),
       splitP2: _d(budget[kind.splitP2Key]),
       coupleNames: coupleNames,
+      panelHidden: budget[kind.panelHiddenKey] == true,
     );
   }
 

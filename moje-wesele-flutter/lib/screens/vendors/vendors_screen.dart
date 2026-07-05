@@ -5,9 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app_colors.dart';
 import '../../models/vendor.dart';
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
 import '../../services/firestore_service.dart';
 import '../../services/vendor_service.dart';
 import '../../utils/format.dart';
+import '../../widgets/added_in_chip.dart';
 import '../../widgets/filter_toggle_button.dart';
 import '../budget/budget_fields.dart';
 import 'vendor_form_sheet.dart';
@@ -18,10 +20,14 @@ class VendorsScreen extends StatefulWidget {
     super.key,
     required this.data,
     required FirestoreService firestore,
+    this.onOpenSection,
   }) : service = VendorService(firestore: firestore);
 
   final WeddingData? data;
   final VendorService service;
+
+  /// Przejście do innej sekcji (np. Budżet) — dla linków „Dodano w".
+  final void Function(AppSection section)? onOpenSection;
 
   @override
   State<VendorsScreen> createState() => _VendorsScreenState();
@@ -47,6 +53,26 @@ class _VendorsScreenState extends State<VendorsScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  /// Czy dostawca jest tylko „widokiem" rekordu dodanego w Wydatkach
+  /// (powiązany wydatek ma pochodzenie 'expenses'). Wtedy pokazujemy
+  /// „Dodano w: Wydatki" z linkiem do budżetu.
+  bool _isFromExpenses(Vendor v) {
+    if (!v.isBudgetLinked || v.budgetExpenseId == null) return false;
+    final bd = widget.data?.raw['budgetData'];
+    final expenses = (bd is Map) ? bd['expenses'] : null;
+    if (expenses is! List) return false;
+    for (final e in expenses.whereType<Map>()) {
+      if ((e['id'] as num?)?.toInt() == v.budgetExpenseId) {
+        final o = (e['origin'] as String?)?.trim();
+        final origin = (o != null && o.isNotEmpty)
+            ? o
+            : (e['vendorId'] != null ? 'vendors' : 'expenses');
+        return origin == 'expenses';
+      }
+    }
+    return false;
   }
 
   Future<void> _add() async {
@@ -193,6 +219,9 @@ class _VendorsScreenState extends State<VendorsScreen> {
                     service: widget.service,
                     onEdit: () => _edit(filtered[i]),
                     onDelete: () => _delete(filtered[i]),
+                    onOpenSource: _isFromExpenses(filtered[i])
+                        ? () => widget.onOpenSection?.call(AppSection.budget)
+                        : null,
                   ),
                 ),
         ),
@@ -294,12 +323,16 @@ class _VendorCard extends StatefulWidget {
     required this.service,
     required this.onEdit,
     required this.onDelete,
+    this.onOpenSource,
   });
 
   final Vendor vendor;
   final VendorService service;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+
+  /// Gdy dostawca pochodzi z Wydatków — przejście do sekcji źródłowej.
+  final VoidCallback? onOpenSource;
 
   @override
   State<_VendorCard> createState() => _VendorCardState();
@@ -362,6 +395,11 @@ class _VendorCardState extends State<_VendorCard> {
                             const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
                     ],
                   ),
+                  if (widget.onOpenSource != null) ...[
+                    const SizedBox(height: 8),
+                    AddedInChip(
+                        section: 'Wydatki', onTap: widget.onOpenSource!),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [

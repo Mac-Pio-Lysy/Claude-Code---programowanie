@@ -19,4 +19,10 @@ class AppColors {
     Color(0xFF1A56DB),
     Color(0xFF60A5FA),
   ];
+
+  /// Gradient dolnego paska nawigacji (jasnoniebieski → indygo).
+  static const List<Color> navBarGradient = [
+    Color(0xFF3B76E8),
+    Color(0xFF15328C),
+  ];
 }

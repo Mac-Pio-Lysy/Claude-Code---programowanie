@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/expense.dart';
+import '../../models/vendor.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 
@@ -13,11 +14,16 @@ class ExpenseFormSheet extends StatefulWidget {
     this.existing,
     required this.categories,
     required this.coupleNames,
+    this.linkedVendor,
   });
 
   final Expense? existing;
   final List<String> categories;
   final List<String> coupleNames;
+
+  /// Dane powiązanego dostawcy (do podpowiedzi pól, gdy wydatek jest już
+  /// dostawcą). To ten sam rekord — edycja stąd nie tworzy duplikatu.
+  final Map<String, dynamic>? linkedVendor;
 
   @override
   State<ExpenseFormSheet> createState() => _ExpenseFormSheetState();
@@ -31,6 +37,14 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
   late final TextEditingController _splitP1;
   late final TextEditingController _splitP2;
   late final TextEditingController _note;
+
+  // Pola dostawcy (gdy „To jest dostawca/usługa").
+  late final TextEditingController _vCompany;
+  late final TextEditingController _vContact;
+  late final TextEditingController _vPhone;
+  late final TextEditingController _vEmail;
+  late String _vCategory;
+  bool _isVendor = false;
 
   late String _category;
   String _paymentDate = '';
@@ -55,6 +69,15 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     _splitP2 = TextEditingController(text: _amt(e?.splitP2));
     _note = TextEditingController(text: e?.note ?? '');
     _paymentDate = e?.paymentDate ?? '';
+
+    final v = widget.linkedVendor;
+    _isVendor = (e?.hasVendor ?? false) || v != null;
+    _vCompany = TextEditingController(text: (v?['companyName'] as String?) ?? '');
+    _vContact = TextEditingController(text: (v?['contactName'] as String?) ?? '');
+    _vPhone = TextEditingController(text: (v?['phone'] as String?) ?? '');
+    _vEmail = TextEditingController(text: (v?['email'] as String?) ?? '');
+    final vc = (v?['category'] as String?) ?? 'Inne';
+    _vCategory = kVendorCategories.contains(vc) ? vc : 'Inne';
   }
 
   @override
@@ -66,6 +89,10 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
     _splitP1.dispose();
     _splitP2.dispose();
     _note.dispose();
+    _vCompany.dispose();
+    _vContact.dispose();
+    _vPhone.dispose();
+    _vEmail.dispose();
     super.dispose();
   }
 
@@ -110,6 +137,13 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
         note: _note.text.trim(),
         splitP1: _parse(_splitP1),
         splitP2: _parse(_splitP2),
+        origin: widget.existing?.origin ?? 'expenses',
+        isVendor: _isVendor,
+        vendorCompany: _vCompany.text.trim(),
+        vendorContact: _vContact.text.trim(),
+        vendorPhone: _vPhone.text.trim(),
+        vendorEmail: _vEmail.text.trim(),
+        vendorCategory: _vCategory,
       ),
     );
   }
@@ -161,7 +195,8 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                 Expanded(
                   child: ListView(
                     controller: scrollController,
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                    padding: EdgeInsets.fromLTRB(
+                        20, 8, 20, 20 + MediaQuery.paddingOf(context).bottom),
                     children: [
                       _field(
                         'Kategoria',
@@ -188,19 +223,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                             decoration: _dec(hint: 'np. Atrakcje dla dzieci'),
                           ),
                         ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _field('Kwota ostateczna',
-                                _numField(_planned, 'zł')),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _field('Kwota przewidywana',
-                                _numField(_estimated, 'zł')),
-                          ),
-                        ],
-                      ),
+                      _field('Kwota orientacyjna', _numField(_planned, 'zł')),
                       _field('Opłacono', _numField(_paid, 'zł')),
                       _field(
                         'Data płatności',
@@ -263,6 +286,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                           decoration: _dec(hint: 'Opcjonalnie…'),
                         ),
                       ),
+                      _vendorSection(),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -308,6 +332,82 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
           );
         },
       ),
+    );
+  }
+
+  Widget _vendorSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFF),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFDCE4F2)),
+          ),
+          child: CheckboxListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: AppColors.accent,
+            dense: true,
+            value: _isVendor,
+            onChanged: (v) => setState(() => _isVendor = v ?? false),
+            title: Text('🏢 To jest dostawca/usługa',
+                style: GoogleFonts.inter(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+            subtitle: Text(
+              'Pokaże się też w sekcji Dostawcy jako TEN SAM rekord (kwota się nie dubluje).',
+              style:
+                  GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+          ),
+        ),
+        if (_isVendor) ...[
+          _field('Nazwa firmy',
+              TextField(controller: _vCompany, decoration: _dec(hint: 'np. Studio Foto'))),
+          _field('Osoba kontaktowa',
+              TextField(controller: _vContact, decoration: _dec(hint: 'Imię i nazwisko'))),
+          Row(
+            children: [
+              Expanded(
+                child: _field(
+                  'Telefon',
+                  TextField(
+                    controller: _vPhone,
+                    keyboardType: TextInputType.phone,
+                    decoration: _dec(hint: '+48…'),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _field(
+                  'Kategoria dostawcy',
+                  DropdownButtonFormField<String>(
+                    initialValue: _vCategory,
+                    isExpanded: true,
+                    decoration: _dec(),
+                    items: [
+                      for (final c in kVendorCategories)
+                        DropdownMenuItem(value: c, child: Text(c)),
+                    ],
+                    onChanged: (v) => setState(() => _vCategory = v ?? 'Inne'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          _field(
+            'E-mail',
+            TextField(
+              controller: _vEmail,
+              keyboardType: TextInputType.emailAddress,
+              decoration: _dec(hint: 'kontakt@…'),
+            ),
+          ),
+        ],
+      ],
     );
   }
 

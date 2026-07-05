@@ -142,6 +142,14 @@ class RsvpAllScreen extends StatelessWidget {
       ('📅 Harmonogram', PublicPages.harmonogram(base)),
       ('🎵 Muzyka', PublicPages.muzyka(base)),
       ('🎲 Ślubne Bingo', PublicPages.bingo(base)),
+      ('💝 Księga gości', PublicPages.ksiega(base)),
+      ('🧠 Quiz o Parze Młodej', PublicPages.quiz(base)),
+      ('💌 Rady dla Pary Młodej', PublicPages.rady(base)),
+      ('🤔 Prawda czy Fałsz', PublicPages.prawdaFalsz(base)),
+      ('📸 Zgadnij zdjęcie', PublicPages.zgadnijZdjecie(base)),
+      ('⏳ Kapsuła czasu', PublicPages.kapsula(base)),
+      ('🗺️ Mapa gości', PublicPages.mapa(base)),
+      ('📷 Foto-wyzwania', PublicPages.fotoWyzwania(base)),
     ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),

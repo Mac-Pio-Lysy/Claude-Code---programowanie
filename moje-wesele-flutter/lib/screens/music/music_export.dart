@@ -20,11 +20,20 @@ class MusicExport {
       return needsQuote ? '"$escaped"' : escaped;
     }
 
-    final head = ['Tytuł', 'Wykonawca', 'Moment imprezy', 'Status', 'Gatunek', 'Od gościa'];
+    final head = [
+      'Tytuł',
+      'Wykonawca',
+      'Moment imprezy',
+      'Utwór specjalny',
+      'Status',
+      'Gatunek',
+      'Od gościa'
+    ];
     final rows = songs.map((s) => [
           s.title,
           s.artist,
           s.moment,
+          s.specialMoment,
           s.status.label,
           s.genre,
           s.fromGuest ? (s.guestName.isEmpty ? 'tak' : s.guestName) : '',
@@ -32,15 +41,43 @@ class MusicExport {
     return [head, ...rows].map((r) => r.map(cell).join(';')).join('\r\n');
   }
 
-  /// Eksport tekstowy pogrupowany po momentach imprezy.
-  static String toTxt(List<Song> songs) {
+  /// Eksport tekstowy: najpierw kluczowe momenty (utwory specjalne) w kolejności
+  /// [specialMoments], potem reszta pogrupowana po momentach imprezy.
+  static String toTxt(List<Song> songs, {List<String> specialMoments = const []}) {
+    final buf = StringBuffer()
+      ..writeln('LISTA PIOSENEK NA WESELE')
+      ..writeln('========================')
+      ..writeln();
+
+    // ── Utwory specjalne (kluczowe momenty) ──
+    final special = <String, List<Song>>{};
+    for (final s in songs) {
+      if (s.isSpecial) special.putIfAbsent(s.specialMoment, () => []).add(s);
+    }
+    if (special.isNotEmpty) {
+      buf
+        ..writeln('### ⭐ UTWORY SPECJALNE — KLUCZOWE MOMENTY')
+        ..writeln();
+      final ordered = <String>[
+        ...specialMoments.where(special.containsKey),
+        ...special.keys.where((k) => !specialMoments.contains(k)),
+      ];
+      for (final m in ordered) {
+        for (final s in special[m]!) {
+          final artist = s.artist.isNotEmpty ? ' — ${s.artist}' : '';
+          buf.writeln(
+              '${specialMomentIcon(m)} $m: ${s.title}$artist [${s.status.label}]');
+        }
+      }
+      buf.writeln();
+    }
+
     final byMoment = <String, List<Song>>{};
     for (final s in songs) {
       byMoment.putIfAbsent(s.moment.isEmpty ? 'Inne' : s.moment, () => []).add(s);
     }
-    final buf = StringBuffer()
-      ..writeln('LISTA PIOSENEK NA WESELE')
-      ..writeln('========================')
+    buf
+      ..writeln('### WSZYSTKIE UTWORY (wg momentu imprezy)')
       ..writeln();
     for (final m in kMusicMoments) {
       final list = byMoment[m];

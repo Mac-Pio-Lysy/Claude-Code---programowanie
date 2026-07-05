@@ -13,20 +13,23 @@ import 'beverage_tab.dart';
 import 'budget_summary_tab.dart';
 import 'expenses_tab.dart';
 import 'honeymoon_tab.dart';
-import 'payments_tab.dart';
 import 'sala_tab.dart';
 
-/// Sekcja „Budżet" z podzakładkami. Na razie pełna jest „Podsumowanie",
-/// reszta to placeholdery (kolejne podzakładki w następnych częściach).
+/// Sekcja „Budżet" z podzakładkami. „Podsumowanie" zawiera też zbiorczy widok
+/// wszystkich płatności (dawna osobna zakładka „Płatności").
 class BudgetScreen extends StatelessWidget {
   BudgetScreen({
     super.key,
     required this.data,
     required FirestoreService firestore,
+    this.onOpenSection,
   }) : service = BudgetService(firestore: firestore);
 
   final WeddingData? data;
   final BudgetService service;
+
+  /// Przejście do innej sekcji (np. Dostawcy) — dla linków „Dodano w".
+  final void Function(AppSection section)? onOpenSection;
 
   static const _tabs = [
     'Podsumowanie',
@@ -35,8 +38,10 @@ class BudgetScreen extends StatelessWidget {
     'Alkohol',
     'Napoje bezalkoholowe',
     'Podróż poślubna',
-    'Płatności',
   ];
+
+  /// Indeks podzakładki „Podróż poślubna" (dla wiersza referencyjnego w Wydatkach).
+  static const int _honeymoonTabIndex = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -92,15 +97,20 @@ class BudgetScreen extends StatelessWidget {
           Expanded(
             child: TabBarView(
               children: [
-                BudgetSummaryTab(summary: summary, service: service),
+                BudgetSummaryTab(
+                    summary: summary, service: service, data: data),
                 SalaTab(data: data, service: service),
-                ExpensesTab(data: data, service: service),
+                ExpensesTab(
+                  data: data,
+                  service: service,
+                  onOpenSection: onOpenSection,
+                  honeymoonTabIndex: _honeymoonTabIndex,
+                ),
                 BeverageTab(
                     kind: BeverageKind.alcohol, data: data, service: service),
                 BeverageTab(
                     kind: BeverageKind.soft, data: data, service: service),
                 HoneymoonTab(data: data, service: service),
-                PaymentsTab(data: data),
               ],
             ),
           ),

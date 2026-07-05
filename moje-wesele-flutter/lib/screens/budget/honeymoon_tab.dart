@@ -23,14 +23,20 @@ class HoneymoonTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        _detailsCard(context, h),
+        if (h.hasOptions)
+          _variantsCard(context, h)
+        else
+          _classicCard(context, h),
+        const SizedBox(height: 16),
+        _paidCard(h),
         const SizedBox(height: 16),
         _installmentsCard(context, h),
       ],
     );
   }
 
-  Widget _detailsCard(BuildContext context, HoneymoonSummary h) {
+  /// Klasyczny tryb (bez wariantów) — pojedyncza kwota orientacyjna.
+  Widget _classicCard(BuildContext context, HoneymoonSummary h) {
     return _card(
       title: '✈ Podróż poślubna',
       child: Column(
@@ -64,45 +70,125 @@ class HoneymoonTab extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: BudgetNumberField(
-                  key: const ValueKey('hm-total'),
-                  label: 'Kwota ostateczna',
-                  suffix: 'zł',
-                  initial: h.totalAmount,
-                  onSaved: (v) => service.updateHoneymoon(totalAmount: v),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: BudgetNumberField(
-                  key: const ValueKey('hm-est'),
-                  label: '~ Przewidywana',
-                  suffix: 'zł',
-                  initial: h.estimatedAmount,
-                  onSaved: (v) => service.updateHoneymoon(estimatedAmount: v),
-                ),
-              ),
-            ],
+          BudgetNumberField(
+            key: const ValueKey('hm-total'),
+            label: 'Kwota orientacyjna',
+            suffix: 'zł',
+            initial: h.totalAmount,
+            onSaved: (v) => service.updateHoneymoon(totalAmount: v),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => service.addHoneymoonOption(),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Dodaj wariant podróży'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.accent,
+              side: const BorderSide(color: AppColors.accent),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              'Dodaj kilka propozycji i zaznacz, która wchodzi do budżetu.',
+              style:
+                  GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tryb wariantów — kilka propozycji, do budżetu wchodzi wybrana (lub
+  /// najdroższa, gdy „wlicz droższą wersję").
+  Widget _variantsCard(BuildContext context, HoneymoonSummary h) {
+    final budgeted = h.budgetedOption;
+    return _card(
+      title: '✈ Warianty podróży poślubnej',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            value: h.useHigher,
+            onChanged: (v) => service.setHoneymoonUseHigher(v),
+            title: Text('Wlicz droższą wersję do budżetu',
+                style: GoogleFonts.inter(
+                    fontSize: 13, fontWeight: FontWeight.w600)),
+            subtitle: Text('Bezpieczne planowanie — liczy najdroższy wariant.',
+                style:
+                    GoogleFonts.inter(fontSize: 11, color: AppColors.textLight)),
+          ),
+          const Divider(height: 16),
+          for (final o in h.options)
+            _OptionRow(
+              key: ValueKey('hm-opt-${o.id}'),
+              option: o,
+              selected: budgeted?.id == o.id,
+              selectable: !h.useHigher,
+              service: service,
+              onOpen: () => _openLink(context, o.link),
+            ),
+          const SizedBox(height: 4),
+          OutlinedButton.icon(
+            onPressed: () => service.addHoneymoonOption(),
+            icon: const Icon(Icons.add, size: 18),
+            label: const Text('Dodaj wariant'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.accent,
+              side: const BorderSide(color: AppColors.accent),
+            ),
+          ),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFF),
+              color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFCFE0FB)),
             ),
             child: Row(
               children: [
-                _sum('Zapłacono', formatPlnZl(h.paid), const Color(0xFF059669)),
-                _sum('Pozostało', '${formatPlnZl(h.remaining)}${h.isPredicted ? ' ~' : ''}',
-                    const Color(0xFFEA580C)),
+                const Icon(Icons.check_circle_outline,
+                    size: 18, color: AppColors.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Do budżetu: ${budgeted != null && budgeted.name.isNotEmpty ? budgeted.name : 'wybrany wariant'} · ${formatPlnZl(budgeted?.amount ?? 0)}',
+                    style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text),
+                  ),
+                ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _paidCard(HoneymoonSummary h) {
+    return _card(
+      title: 'Płatności',
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFF),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            _sum('Do budżetu', formatPlnZl(h.effective),
+                const Color(0xFF1D4ED8)),
+            _sum('Zapłacono', formatPlnZl(h.paid), const Color(0xFF059669)),
+            _sum('Pozostało', formatPlnZl(h.remaining),
+                const Color(0xFFEA580C)),
+          ],
+        ),
       ),
     );
   }
@@ -197,6 +283,103 @@ class HoneymoonTab extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           child,
+        ],
+      ),
+    );
+  }
+}
+
+/// Wiersz wariantu podróży poślubnej (nazwa, kwota, link, wybór do budżetu).
+class _OptionRow extends StatelessWidget {
+  const _OptionRow({
+    super.key,
+    required this.option,
+    required this.selected,
+    required this.selectable,
+    required this.service,
+    required this.onOpen,
+  });
+
+  final HoneymoonOption option;
+  final bool selected;
+  final bool selectable;
+  final BudgetService service;
+  final VoidCallback onOpen;
+
+  int get _id => option.id ?? 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: selected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: selected ? AppColors.accent : const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              InkWell(
+                onTap:
+                    selectable ? () => service.selectHoneymoonOption(_id) : null,
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    selected
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: selected ? AppColors.accent : AppColors.textLight,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: BudgetTextField(
+                  initial: option.name,
+                  hint: 'Nazwa wariantu',
+                  onSaved: (v) => service.updateHoneymoonOption(_id, name: v),
+                ),
+              ),
+              IconButton(
+                onPressed: () => service.deleteHoneymoonOption(_id),
+                icon: const Icon(Icons.close, size: 18),
+                color: const Color(0xFFC0392B),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: BudgetNumberField(
+                  suffix: 'zł',
+                  compact: true,
+                  initial: option.amount,
+                  onSaved: (v) =>
+                      service.updateHoneymoonOption(_id, amount: v),
+                ),
+              ),
+              if (option.link.isNotEmpty)
+                IconButton(
+                  onPressed: onOpen,
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  color: AppColors.accent,
+                  tooltip: 'Otwórz ofertę',
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          BudgetTextField(
+            initial: option.link,
+            hint: 'Link do oferty (https://…)',
+            onSaved: (v) => service.updateHoneymoonOption(_id, link: v),
+          ),
         ],
       ),
     );

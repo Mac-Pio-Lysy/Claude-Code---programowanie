@@ -11,6 +11,30 @@ class Expense {
   int? get id => (raw['id'] as num?)?.toInt();
   String get category => (raw['category'] as String?) ?? 'Inne';
   String get customName => (raw['customName'] as String?) ?? '';
+
+  /// Identyfikator powiązanego dostawcy (jeśli wydatek pokazuje się też
+  /// w sekcji Dostawcy jako TEN SAM rekord).
+  int? get vendorId => (raw['vendorId'] as num?)?.toInt();
+  bool get hasVendor => vendorId != null;
+
+  /// Sekcja, w której rekord został utworzony (źródło dla etykiety
+  /// „Dodano w:"). 'expenses' | 'vendors' | 'tasks' | 'honeymoon'. Dla
+  /// starszych wpisów bez pola: obecność `vendorId` oznacza pochodzenie
+  /// z sekcji Dostawcy.
+  String get origin {
+    final o = (raw['origin'] as String?)?.trim();
+    if (o != null && o.isNotEmpty) return o;
+    return vendorId != null ? 'vendors' : 'expenses';
+  }
+
+  /// Czy rekord „mieszka" w Wydatkach (źródłem jest ta sekcja).
+  bool get fromExpenses => origin == 'expenses';
+
+  /// Czy rekord został dodany w Dostawcach i tu tylko się pokazuje.
+  bool get fromVendors => origin == 'vendors';
+
+  /// Czy rekord został utworzony z Zadania (osiągnięty cel) i tu tylko się pokazuje.
+  bool get fromTasks => origin == 'tasks';
   double get planned => _d(raw['planned']);
   double get estimatedAmount => _d(raw['estimatedAmount']);
   double get paid => _d(raw['paid']);

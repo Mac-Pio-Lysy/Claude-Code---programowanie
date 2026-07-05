@@ -58,7 +58,9 @@ class AnalyticsScreen extends StatelessWidget {
             children: [
               _forecastCard(summary, costPerGuest),
               const SizedBox(height: 12),
-              _chartCard(context, 'Budżet: plan vs przewidywany vs opłacono',
+              _perGuestCard(summary, guestCount),
+              const SizedBox(height: 12),
+              _chartCard(context, 'Budżet: planowany / orientacyjny / opłacony',
                   _budgetBars(summary)),
               const SizedBox(height: 12),
               _chartCard(context, 'Rozkład wydatków (kategorie)',
@@ -69,7 +71,9 @@ class AnalyticsScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _chartCard(context, 'Potwierdzenia gości', _rsvpPie(guests)),
               const SizedBox(height: 12),
-              _chartCard(context, 'Rozkład menu / diet', _menuBars(guests)),
+              _chartCard(context, 'Rozkład menu', _menuBars(guests)),
+              const SizedBox(height: 12),
+              _chartCard(context, 'Rozkład diet', _dietPie(guests)),
             ],
           ),
         ),
@@ -132,12 +136,69 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
+  // ── Koszt per gość ──
+  Widget _perGuestCard(BudgetSummary s, int guestCount) {
+    final perPlan = guestCount > 0 ? s.planForCalc / guestCount : 0.0;
+    final perBudget = guestCount > 0 ? s.budget / guestCount : 0.0;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Koszt per gość',
+              style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _perGuestStat(
+                  'Wg orientacyjnego', formatPlnZl(perPlan), AppColors.accent),
+              _perGuestStat(
+                  'Wg budżetu', formatPlnZl(perBudget), const Color(0xFF7C3AED)),
+              _perGuestStat('Gości', '$guestCount', const Color(0xFF059669)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _perGuestStat(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value,
+              style: GoogleFonts.inter(
+                  fontSize: 16, fontWeight: FontWeight.w800, color: color)),
+          Text(label,
+              style:
+                  GoogleFonts.inter(fontSize: 10, color: AppColors.textLight)),
+        ],
+      ),
+    );
+  }
+
   // ── Wykresy ──
   Widget _budgetBars(BudgetSummary s) {
     final values = [
-      ('Potwierdz.', s.totalConfirmed, const Color(0xFF1D4ED8)),
-      ('Przewidyw.', s.totalEffective, const Color(0xFFB45309)),
-      ('Opłacono', s.totalPaid, const Color(0xFF059669)),
+      ('Planowany', s.totalConfirmed, const Color(0xFF1D4ED8)),
+      ('Orientac.', s.planForCalc, const Color(0xFFB45309)),
+      ('Opłacony', s.totalPaid, const Color(0xFF059669)),
       ('Budżet', s.budget, const Color(0xFF7C3AED)),
     ];
     final maxY = values.map((v) => v.$2).fold<double>(1, (m, v) => v > m ? v : m);
@@ -424,6 +485,55 @@ class AnalyticsScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _dietPie(List<Guest> guests) {
+    final map = <String, int>{};
+    for (final g in guests) {
+      if (g.category == 'Państwo Młodzi') continue;
+      final label = GuestOptions.dietLabel(g.diet, g.dietOther);
+      map[label] = (map[label] ?? 0) + 1;
+    }
+    if (map.isEmpty) return _empty('Brak danych o dietach.');
+    final entries = map.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final total = entries.fold<int>(0, (s, e) => s + e.value);
+    return Column(
+      children: [
+        SizedBox(
+          height: 160,
+          child: PieChart(
+            PieChartData(
+              centerSpaceRadius: 36,
+              sectionsSpace: 2,
+              sections: [
+                for (var i = 0; i < entries.length; i++)
+                  PieChartSectionData(
+                    value: entries[i].value.toDouble(),
+                    color: _palette[i % _palette.length],
+                    title: '${(entries[i].value / total * 100).round()}%',
+                    radius: 50,
+                    titleStyle: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 4,
+          children: [
+            for (var i = 0; i < entries.length; i++)
+              _legend(_palette[i % _palette.length],
+                  '${entries[i].key} (${entries[i].value})'),
+          ],
+        ),
+      ],
     );
   }
 

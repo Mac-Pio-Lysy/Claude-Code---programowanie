@@ -12,9 +12,11 @@ class TaskStatus {
   static const inProgress =
       TaskStatus('inprogress', 'W trakcie', Color(0xFFF59E0B), '⏳');
   static const done = TaskStatus('done', 'Zrobione', Color(0xFF10B981), '✅');
+  static const cancelled =
+      TaskStatus('cancelled', 'Anulowane', Color(0xFF94A3B8), '🚫');
 
   /// Kolumny tablicy Kanban (KANBAN_COLS w wersji web).
-  static const List<TaskStatus> columns = [todo, inProgress, done];
+  static const List<TaskStatus> columns = [todo, inProgress, done, cancelled];
 
   static TaskStatus byId(String? id) =>
       columns.firstWhere((s) => s.id == id, orElse: () => todo);
@@ -55,6 +57,28 @@ class TaskPriority {
       all.firstWhere((p) => p.id == id, orElse: () => med);
 }
 
+/// Prekonfigurowane cele/zdarzenia do szybkiego powiązania z zadaniem
+/// (np. „Znalezienie DJa" → po zaznaczeniu jako osiągnięty można od razu
+/// utworzyć powiązaną pozycję budżetową).
+class TaskGoalPreset {
+  TaskGoalPreset._();
+
+  static const List<String> all = [
+    'Znalezienie DJa',
+    'Znalezienie orkiestry/zespołu',
+    'Rezerwacja sali',
+    'Znalezienie fotografa',
+    'Znalezienie kamerzysty',
+    'Wybór sukni ślubnej',
+    'Wybór garnituru',
+    'Zamówienie tortu',
+    'Zamówienie kwiatów/dekoracji',
+    'Rezerwacja hotelu dla gości',
+    'Wybór obrączek',
+    'Zaproszenia ślubne',
+  ];
+}
+
 /// Zadanie — nakładka na surową mapę (zachowuje wszystkie pola z wersji web).
 class Task {
   Task(this.raw);
@@ -75,6 +99,13 @@ class Task {
   bool get isBudgetLinked => raw['isBudgetLinked'] == true;
   double get estimatedCost => (raw['estimatedCost'] as num?)?.toDouble() ?? 0;
   String get budgetCategory => (raw['budgetCategory'] as String?) ?? '';
+  int? get budgetExpenseId => (raw['budgetExpenseId'] as num?)?.toInt();
+
+  /// Cel/zdarzenie powiązane z zadaniem (np. „Znalezienie DJa"), opcjonalne.
+  String get goal => (raw['goal'] as String?) ?? '';
+
+  /// Czy cel został osiągnięty/zrealizowany (np. „DJ znaleziony").
+  bool get goalAchieved => raw['goalAchieved'] == true;
 
   TaskStatus get status => TaskStatus.byId(statusId);
   TaskPerson get person => TaskPerson.byId(responsible);

@@ -22,6 +22,46 @@
         "destination": "/galeria.html"
       },
       {
+        "source": "/rsvp",
+        "destination": "/rsvp.html"
+      },
+      {
+        "source": "/muzyka",
+        "destination": "/muzyka.html"
+      },
+      {
+        "source": "/ksiega",
+        "destination": "/ksiega.html"
+      },
+      {
+        "source": "/rady",
+        "destination": "/rady.html"
+      },
+      {
+        "source": "/quiz",
+        "destination": "/quiz.html"
+      },
+      {
+        "source": "/prawdafalsz",
+        "destination": "/prawdafalsz.html"
+      },
+      {
+        "source": "/kapsula",
+        "destination": "/kapsula.html"
+      },
+      {
+        "source": "/mapa",
+        "destination": "/mapa.html"
+      },
+      {
+        "source": "/zgadnijzdjecie",
+        "destination": "/zgadnijzdjecie.html"
+      },
+      {
+        "source": "/fotowyzwania",
+        "destination": "/fotowyzwania.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

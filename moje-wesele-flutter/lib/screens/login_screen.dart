@@ -1,10 +1,13 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 
-/// Ekran logowania — wygląd odwzorowany z aplikacji webowej:
-/// wyśrodkowana biała karta na jasnoniebieskim gradiencie.
+/// Ekran powitalny przed zalogowaniem — jasnoniebieski gradient, pierścionek
+/// w zdobionej odznace, nazwa aplikacji fontem Playfair Display i subtelne
+/// ornamenty w tle.
 ///
 /// To czysty widget prezentacyjny — logikę logowania dostarcza rodzic
 /// ([AuthGate]) przez [onGoogleSignIn], [isLoading] i [errorMessage].
@@ -25,6 +28,7 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -33,16 +37,21 @@ class LoginScreen extends StatelessWidget {
             colors: AppColors.bgGradient,
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: _buildCard(),
+        child: Stack(
+          children: [
+            const Positioned.fill(child: _BackgroundOrnaments()),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: _buildCard(),
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -50,60 +59,51 @@ class LoginScreen extends StatelessWidget {
 
   Widget _buildCard() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(40, 48, 40, 40),
+      padding: const EdgeInsets.fromLTRB(40, 44, 40, 40),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         border: Border.all(color: const Color(0xFFE2EAF7)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.accent.withValues(alpha: 0.12),
-            blurRadius: 40,
-            offset: const Offset(0, 18),
+            color: AppColors.accent.withValues(alpha: 0.14),
+            blurRadius: 44,
+            offset: const Offset(0, 20),
           ),
         ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Ikona pierścionka
-          const Text('💍', style: TextStyle(fontSize: 45)),
-          const SizedBox(height: 18),
+          // Odznaka z ikoną pierścionka
+          const _RingBadge(),
+          const SizedBox(height: 22),
 
-          // Tytuł — Playfair Display
+          // Nazwa aplikacji — Playfair Display
           Text(
-            'Ceremonia\nPatrycji i Piotra',
+            'Moje Wesele',
             textAlign: TextAlign.center,
             style: GoogleFonts.playfairDisplay(
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-              height: 1.22,
+              fontSize: 34,
+              fontWeight: FontWeight.w700,
+              height: 1.1,
               color: const Color(0xFF0F1F4A),
             ),
           ),
-          const SizedBox(height: 10),
-
-          // Podtytuł
+          const SizedBox(height: 6),
           Text(
-            'Panel organizacji wesela',
+            'PANEL ŚLUBNY',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              fontSize: 14,
-              color: const Color(0xFF6B7A99),
-              letterSpacing: 0.2,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 3.2,
+              color: AppColors.accent,
             ),
           ),
 
-          // Dekoracyjna kreska
-          Container(
-            width: 40,
-            height: 3,
-            margin: const EdgeInsets.fromLTRB(0, 22, 0, 28),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2),
-              gradient: const LinearGradient(colors: AppColors.dividerGradient),
-            ),
-          ),
+          // Ornament — mała ozdobna linia z rombem
+          const _FlourishDivider(),
 
           // Przycisk Google
           _GoogleSignInButton(
@@ -131,6 +131,137 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Okrągła odznaka z ikoną pierścionka, otoczona delikatną poświatą.
+class _RingBadge extends StatelessWidget {
+  const _RingBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Poświata w tle
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.accent2.withValues(alpha: 0.22),
+                  AppColors.accent2.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+          // Właściwa odznaka
+          Container(
+            width: 76,
+            height: 76,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFEAF1FF), Color(0xFFD6E4FB)],
+              ),
+              border: Border.all(color: const Color(0xFFC7D8F7), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accent.withValues(alpha: 0.18),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: const Text('💍', style: TextStyle(fontSize: 34)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Ozdobny separator: cienka linia — romb — cienka linia.
+class _FlourishDivider extends StatelessWidget {
+  const _FlourishDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    Widget line() => Container(
+          width: 30,
+          height: 1.4,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.accent.withValues(alpha: 0.05),
+                AppColors.accent.withValues(alpha: 0.55),
+              ],
+            ),
+          ),
+        );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 22, 0, 28),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          line(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Transform.rotate(
+              angle: math.pi / 4,
+              child: Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(1.5),
+                ),
+              ),
+            ),
+          ),
+          Transform.flip(flipX: true, child: line()),
+        ],
+      ),
+    );
+  }
+}
+
+/// Subtelne, rozmyte kręgi ozdobne w rogach ekranu logowania.
+class _BackgroundOrnaments extends StatelessWidget {
+  const _BackgroundOrnaments();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned(
+            top: -70,
+            left: -60,
+            child: _blob(220, AppColors.accent2.withValues(alpha: 0.14)),
+          ),
+          Positioned(
+            bottom: -90,
+            right: -70,
+            child: _blob(260, AppColors.accent.withValues(alpha: 0.10)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blob(double size, Color color) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+      );
 }
 
 class _GoogleSignInButton extends StatelessWidget {
