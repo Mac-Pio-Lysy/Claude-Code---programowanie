@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galeria Gości — Ceremonia Patrycji i Piotra</title>
+  <!-- Firebase SDK (Firestore + Auth — bez Storage) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- Cloudinary Upload Widget -->
+  <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-mid: #2563eb; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #eef4ff; --text: #1a2744; --text-soft: #4a5d80;
+      --border: #c5d8f6; --shadow: rgba(26,86,219,0.14); --green: #16a34a; --red: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background:
+        radial-gradient(circle at 15% 0%, #dbe7ff 0%, transparent 45%),
+        radial-gradient(circle at 85% 100%, #d6e4ff 0%, transparent 45%),
+        var(--bg);
+      min-height: 100vh; color: var(--text); padding-bottom: 60px;
+    }
+    header {
+      background: linear-gradient(150deg, var(--blue-dark) 0%, var(--blue) 55%, var(--blue-mid) 100%);
+      color: #fff; text-align: center; padding: 34px 20px 28px;
+      border-radius: 0 0 26px 26px; box-shadow: 0 8px 30px var(--shadow);
+    }
+    header .h-icon { font-size: 2.4rem; }
+    header h1 { font-size: 1.55rem; font-weight: 700; margin-top: 6px; font-family: 'Georgia', serif; }
+    header p { opacity: 0.88; margin-top: 8px; font-size: 0.9rem; }
+
+    .container { max-width: 880px; margin: 0 auto; padding: 22px 14px 0; }
+
+    /* ── Nawigacja gości ── */
+    .guest-nav {
+      max-width: 880px; margin: 20px auto 0; display: flex; gap: 10px;
+      justify-content: center; flex-wrap: wrap; padding: 0 14px;
+    }
+    .guest-nav.bottom { margin: 30px auto 10px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+
+    /* ── Karta wgrywania ── */
+    .upload-card {
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 18px;
+      padding: 22px; box-shadow: 0 4px 20px var(--shadow); margin-bottom: 26px;
+    }
+    .upload-card h2 { font-size: 1.05rem; color: var(--blue-dark); margin-bottom: 4px; }
+    .upload-card .uc-sub { font-size: 0.82rem; color: var(--text-soft); margin-bottom: 16px; }
+
+    label.fld-label { display: block; font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text); margin-bottom: 6px; }
+    .name-input {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px;
+      font-size: 0.95rem; font-family: inherit; color: var(--text); background: var(--white);
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s; margin-bottom: 16px;
+    }
+    .name-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+    .name-input.field-error { border-color: var(--red); }
+
+    .upload-btn {
+      width: 100%; padding: 16px; border: none; border-radius: 12px; cursor: pointer;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff;
+      font-size: 1.02rem; font-weight: 700; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .upload-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(26,86,219,0.35); }
+    .upload-btn .ub-icon { font-size: 1.3rem; }
+    .upload-hint { font-size: 0.78rem; color: var(--text-soft); text-align: center; margin-top: 12px; line-height: 1.5; }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120%);
+      background: var(--text); color: #fff; padding: 12px 22px; border-radius: 30px;
+      font-size: 0.88rem; box-shadow: 0 6px 24px rgba(0,0,0,0.25); transition: transform 0.3s; z-index: 9999;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.ok { background: var(--green); }
+    .toast.err { background: var(--red); }
+
+    /* ── Galeria ── */
+    .gallery-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 4px; }
+    .gallery-head h2 { font-size: 1.15rem; color: var(--blue-dark); }
+    .gallery-count { font-size: 0.82rem; color: var(--text-soft); }
+    .gallery-stats {
+      display: inline-flex; align-items: center; gap: 8px; margin: 0 4px 16px;
+      font-size: 0.8rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--blue-pale); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+    }
+    .gallery-stats:empty { display: none; }
+
+    /* ── Filtry i sortowanie ── */
+    .gallery-filters {
+      display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: flex-end;
+      background: var(--white); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 14px 16px; margin-bottom: 18px; box-shadow: 0 3px 12px rgba(26,86,219,0.07);
+    }
+    .gf-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .gf-lbl {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+      color: var(--text-soft);
+    }
+    .gf-select {
+      border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 12px;
+      font-size: 0.88rem; font-family: inherit; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); outline: none; cursor: pointer; min-width: 170px;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .gf-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+    .gf-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .gf-pill {
+      border: 1.5px solid var(--blue); background: var(--white); color: var(--blue-dark);
+      border-radius: 20px; padding: 8px 14px; font-size: 0.84rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; white-space: nowrap;
+      transition: background 0.18s, color 0.18s;
+    }
+    .gf-pill:hover { background: var(--blue-pale); }
+    .gf-pill.gf-on { background: var(--blue); color: #fff; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .tile {
+      position: relative; background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden; box-shadow: 0 3px 12px rgba(26,86,219,0.08); aspect-ratio: 1; cursor: pointer;
+    }
+    .tile img, .tile video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .tile .vid-badge {
+      position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff;
+      border-radius: 20px; padding: 3px 9px; font-size: 0.72rem; font-weight: 600;
+    }
+    .tile-name {
+      position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 10px 8px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.72)); color: #fff;
+      font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    /* Przycisk usuwania — widoczny tylko dla zalogowanych organizatorów */
+    .tile-del {
+      position: absolute; top: 8px; left: 8px; z-index: 2;
+      width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+      background: rgba(220,38,38,0.92); color: #fff; font-size: 0.95rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform 0.15s, background 0.15s;
+    }
+    .tile-del:hover { background: var(--red); transform: scale(1.08); }
+    /* Plakietka trybu organizatora */
+    .org-badge {
+      display: none; align-items: center; gap: 6px; margin-top: 8px;
+      background: var(--blue-pale); border: 1px solid var(--border); color: var(--blue-dark);
+      font-size: 0.78rem; font-weight: 600; padding: 5px 12px; border-radius: 20px;
+    }
+    body.is-organizer .org-badge { display: inline-flex; }
+    .empty-gallery { text-align: center; padding: 50px 20px; color: var(--text-soft); }
+    .empty-gallery .eg-icon { font-size: 2.6rem; }
+    .empty-gallery p { margin-top: 10px; font-size: 0.92rem; }
+
+    .gal-spinner {
+      width: 38px; height: 38px; border: 3px solid var(--blue-pale); border-top-color: var(--blue);
+      border-radius: 50%; margin: 40px auto; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      position: fixed; inset: 0; background: rgba(8,16,38,0.92); z-index: 9998;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .lightbox.show { display: flex; }
+    .lb-content { max-width: 94vw; max-height: 86vh; border-radius: 12px; box-shadow: 0 10px 50px rgba(0,0,0,0.5); }
+    .lb-caption { position: absolute; bottom: 22px; left: 0; right: 0; text-align: center; color: #fff; font-size: 0.9rem; }
+    .lb-close {
+      position: absolute; top: 16px; right: 20px; background: rgba(255,255,255,0.15); color: #fff;
+      border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.4rem; cursor: pointer;
+    }
+    .lb-close:hover { background: rgba(255,255,255,0.3); }
+
+    @media (max-width: 520px) {
+      header h1 { font-size: 1.3rem; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 9px; }
+      .upload-card { padding: 16px; }
+      .gallery-filters { gap: 12px 14px; padding: 12px; }
+      .gf-group { flex: 1 1 100%; }
+      .gf-select { width: 100%; min-width: 0; }
+      .gf-pills { width: 100%; }
+      .gf-pill { flex: 1; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="h-icon">📸</div>
+    <h1>Galeria Gości</h1>
+    <p id="galleryIntro">Ceremonia Patrycji i Piotra • Podzielcie się swoimi zdjęciami i filmami! 💙</p>
+  </header>
+
+  <nav class="guest-nav">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="muzyka.html">🎵 Zaproponuj piosenkę</a>
+  </nav>
+
+  <div class="container">
+    <!-- WGRYWANIE -->
+    <div class="upload-card">
+      <h2>➕ Dodaj swoje wspomnienia</h2>
+      <p class="uc-sub">Zdjęcia są automatycznie optymalizowane. Filmy do 100 MB.</p>
+
+      <label class="fld-label" for="nameInput">Twoje imię (pojawi się przy zdjęciach)</label>
+      <input type="text" id="nameInput" class="name-input" placeholder="np. Anna" autocomplete="name" maxlength="40">
+
+      <button class="upload-btn" id="uploadBtn" type="button">
+        <span class="ub-icon">📷</span> Wybierz zdjęcia lub filmy
+      </button>
+      <p class="upload-hint">Możesz wybrać kilka plików naraz lub zrobić zdjęcie aparatem 📱</p>
+    </div>
+
+    <!-- GALERIA -->
+    <div class="gallery-head">
+      <div>
+        <h2>🖼️ Wspólna galeria</h2>
+        <span class="org-badge">🔑 Tryb organizatora — możesz usuwać zdjęcia</span>
+      </div>
+      <span class="gallery-count" id="galleryCount"></span>
+    </div>
+    <div class="gallery-stats" id="galleryStats"></div>
+    <div class="gallery-filters" id="galleryFilters" style="display:none"></div>
+    <div id="galleryArea">
+      <div class="gal-spinner"></div>
+    </div>
+  </div>
+
+  <nav class="guest-nav bottom">
+    <a href="harmonogram.html">📅 Harmonogram</a>
+    <a href="rsvp.html">✅ Potwierdź obecność</a>
+    <a href="muzyka.html">🎵 Zaproponuj piosenkę</a>
+  </nav>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lb-close" onclick="closeLightbox(event, true)">✕</button>
+    <div id="lbInner"></div>
+    <div class="lb-caption" id="lbCaption"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Konfiguracja Cloudinary ──
+    const CLOUDINARY_CLOUD_NAME    = 'dybgmjmu3';
+    const CLOUDINARY_UPLOAD_PRESET = 'Ceremonia_Patrycji_i_Piotra';
+
+    const GALLERY_COLLECTION = 'gallery';
+    const NAME_LS_KEY = 'wedding-gallery-name';
+
+    // Organizatorzy — tylko te konta Google mogą usuwać zdjęcia
+    const ALLOWED_EMAILS = [
+      'macholak.piotr@gmail.com',
+      'ceremonia.panstwa.macholak@gmail.com',
+      'patrycja.staniow@gmail.com',
+    ];
+
+    let db = null;
+    let galleryItems = [];
+    let _widget = null;
+    let isOrganizer = false; // true = zalogowany organizator (widać przyciski usuwania)
+
+    // Stan filtrów i sortowania
+    let filterPerson = '';      // '' = wszyscy, inaczej imię osoby
+    let filterType   = 'all';   // 'all' | 'image' | 'video'
+    let sortOrder    = 'newest';// 'newest' | 'oldest'
+    let _displayed   = [];      // aktualnie wyświetlane (po filtrach) — używane przez lightbox
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+
+    function showToast(msg, kind) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (kind ? ' ' + kind : '');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // Wstawia transformację do URL-a Cloudinary (np. f_auto,q_auto)
+    function cldTransform(url, t) {
+      if (!url || url.indexOf('/upload/') === -1) return url;
+      return url.replace('/upload/', '/upload/' + t + '/');
+    }
+
+    // ── Init Firebase (Firestore + Auth) ──
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      // Konfigurowalne napisy (wspólne, z Firestore)
+      db.collection(FS_COLLECTION).doc(FS_DOC_ID).get()
+        .then(doc => { if (doc.exists) applyPublicConfig(doc.data()); })
+        .catch(() => {});
+    } catch (e) {
+      console.error('Błąd inicjalizacji Firebase:', e);
+    }
+
+    // Rozpakuj aktywny event z kontenera wielu eventów (obsługuje też stary, płaski zapis)
+    function _activeEvent(data) {
+      if (data && data.events && data.activeEventId) return data.events[data.activeEventId] || {};
+      return data || {};
+    }
+    // Zastosuj nazwę imprezy / imiona w nagłówku galerii
+    function applyPublicConfig(rawData) {
+      const data = _activeEvent(rawData);
+      const cfg = (data && data.appConfig) || {};
+      const names = (cfg.displayNames || '').trim();
+      const label = cfg.eventName ? cfg.eventName : (names ? 'Ceremonia ' + names : '');
+      if (label) {
+        const p = document.getElementById('galleryIntro');
+        if (p) p.textContent = label + ' • Podzielcie się swoimi zdjęciami i filmami! 💙';
+        document.title = 'Galeria Gości — ' + (cfg.eventName || ('Ceremonia ' + names));
+      }
+    }
+
+    // ── Sprawdzenie stanu logowania (Firebase Auth) ──
+    // Sesja organizatora jest współdzielona z panelem aplikacji (ta sama domena).
+    try {
+      firebase.auth().onAuthStateChanged(user => {
+        isOrganizer = !!(user && ALLOWED_EMAILS.includes((user.email || '').toLowerCase()));
+        document.body.classList.toggle('is-organizer', isOrganizer);
+        renderGallery(); // przerysuj, by pokazać/ukryć przyciski usuwania
+      });
+    } catch (e) {
+      console.error('Błąd inicjalizacji Auth:', e);
+    }
+
+    // ── Imię z pamięci ──
+    const nameInput = document.getElementById('nameInput');
+    try {
+      const saved = localStorage.getItem(NAME_LS_KEY);
+      if (saved) nameInput.value = saved;
+    } catch (_) {}
+    nameInput.addEventListener('input', () => {
+      nameInput.classList.remove('field-error');
+      try { localStorage.setItem(NAME_LS_KEY, nameInput.value.trim()); } catch (_) {}
+    });
+
+    // ── Widget Cloudinary ──
+    function getWidget() {
+      if (_widget) return _widget;
+      if (typeof cloudinary === 'undefined') {
+        showToast('Trwa ładowanie modułu wgrywania… spróbuj za chwilę', 'err');
+        return null;
+      }
+      _widget = cloudinary.createUploadWidget({
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
+        sources: ['local', 'camera'],
+        multiple: true,
+        resourceType: 'auto',
+        // Brak transformacji rozdzielczości/jakości — pliki w oryginale.
+        // (Bez maxImageWidth/maxImageHeight, bez kompresji po stronie widgetu.)
+        maxFileSize: 104857600,            // 100 MB (limit dla filmów)
+        language: 'pl',
+        text: {
+          pl: {
+            or: 'lub',
+            menu: { files: 'Moje pliki', camera: 'Aparat' },
+            local: {
+              browse: 'Wybierz',
+              dd_title_single: 'Przeciągnij i upuść plik tutaj',
+              dd_title_multi: 'Przeciągnij i upuść pliki tutaj',
+              drop_title_single: 'Upuść plik, aby wgrać',
+              drop_title_multiple: 'Upuść pliki, aby wgrać',
+            },
+            camera: {
+              capture: 'Zrób zdjęcie',
+              cancel: 'Anuluj',
+              take_pic: 'Zrób zdjęcie i wgraj',
+              explanation: 'Upewnij się, że aparat ma dostęp do tej strony, a następnie kliknij przycisk.',
+            },
+          },
+        },
+        styles: {
+          palette: {
+            window: '#FFFFFF', windowBorder: '#c5d8f6', tabIcon: '#1a56db',
+            menuIcons: '#1040b0', textDark: '#1a2744', textLight: '#FFFFFF',
+            link: '#1a56db', action: '#1a56db', inactiveTabIcon: '#7a93c0',
+            error: '#dc2626', inProgress: '#1a56db', complete: '#16a34a', sourceBg: '#eef4ff',
+          },
+        },
+      }, onWidgetResult);
+      return _widget;
+    }
+
+    function onWidgetResult(error, result) {
+      if (error) { console.error('Cloudinary:', error); return; }
+      if (!result) return;
+      if (result.event === 'success') {
+        const info = result.info;
+        saveUpload(info);
+      }
+      if (result.event === 'queues-end') {
+        showToast('Dziękujemy! Twoje pliki zostały dodane 💙', 'ok');
+      }
+    }
+
+    // ── Zapis URL-a do Firestore ──
+    async function saveUpload(info) {
+      if (!db) { showToast('Brak połączenia z bazą danych', 'err'); return; }
+      const name = (nameInput.value || '').trim() || 'Gość';
+      try {
+        await db.collection(GALLERY_COLLECTION).add({
+          url: info.secure_url,
+          publicId: info.public_id,
+          uploadedBy: name,
+          type: info.resource_type === 'video' ? 'video' : 'image',
+          fileSize: info.bytes || 0,   // rozmiar pliku w bajtach (do licznika miejsca)
+          timestamp: Date.now(),
+        });
+      } catch (e) {
+        console.error('Zapis do Firestore:', e);
+        showToast('Nie udało się zapisać zdjęcia 😢', 'err');
+      }
+    }
+
+    // ── Klik „Wybierz" ──
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        showToast('Najpierw wpisz swoje imię 🙂', 'err');
+        nameInput.classList.add('field-error');
+        nameInput.focus();
+        return;
+      }
+      if (!db) { showToast('Brak połączenia z bazą danych', 'err'); return; }
+      const w = getWidget();
+      if (w) w.open();
+    });
+
+    // Suma rozmiarów wszystkich plików (w bajtach)
+    function totalBytes() {
+      return galleryItems.reduce((sum, it) => sum + (it.fileSize || 0), 0);
+    }
+    function fmtMB(bytes) {
+      return (bytes / (1024 * 1024)).toFixed(1);
+    }
+
+    // Lista unikalnych imion osób, które dodały pliki (alfabetycznie)
+    function personsList() {
+      const set = new Map();
+      galleryItems.forEach(it => {
+        const name = (it.uploadedBy || 'Gość').trim() || 'Gość';
+        set.set(name.toLowerCase(), name);
+      });
+      return [...set.values()].sort((a, b) => a.localeCompare(b, 'pl'));
+    }
+
+    // Zastosuj filtry i sortowanie do listy plików
+    function applyFiltersSort(items) {
+      let out = items.slice();
+      if (filterPerson) {
+        const fp = filterPerson.toLowerCase();
+        out = out.filter(it => ((it.uploadedBy || 'Gość').trim().toLowerCase()) === fp);
+      }
+      if (filterType !== 'all') {
+        out = out.filter(it => (it.type === 'video' ? 'video' : 'image') === filterType);
+      }
+      out.sort((a, b) => sortOrder === 'newest'
+        ? (b.timestamp || 0) - (a.timestamp || 0)
+        : (a.timestamp || 0) - (b.timestamp || 0));
+      return out;
+    }
+
+    // Funkcje wywoływane z UI filtrów
+    function setFilterPerson(v) { filterPerson = v; renderGallery(); }
+    function setFilterType(v)   { filterType = v;   renderGallery(); }
+    function setSortOrder(v)    { sortOrder = v;    renderGallery(); }
+
+    // Pasek filtrów i sortowania
+    function renderFilters() {
+      const bar = document.getElementById('galleryFilters');
+      if (!bar) return;
+      if (!galleryItems.length) { bar.style.display = 'none'; return; }
+      bar.style.display = 'flex';
+
+      const persons = personsList();
+      const personOpts = ['<option value="">👥 Wszyscy</option>']
+        .concat(persons.map(n => `<option value="${esc(n)}" ${filterPerson.toLowerCase() === n.toLowerCase() ? 'selected' : ''}>${esc(n)}</option>`))
+        .join('');
+
+      const typePill = (val, label) =>
+        `<button class="gf-pill ${filterType === val ? 'gf-on' : ''}" onclick="setFilterType('${val}')">${label}</button>`;
+      const sortPill = (val, label) =>
+        `<button class="gf-pill ${sortOrder === val ? 'gf-on' : ''}" onclick="setSortOrder('${val}')">${label}</button>`;
+
+      bar.innerHTML = `
+        <div class="gf-group">
+          <span class="gf-lbl">Osoba</span>
+          <select class="gf-select" onchange="setFilterPerson(this.value)">${personOpts}</select>
+        </div>
+        <div class="gf-group">
+          <span class="gf-lbl">Typ</span>
+          <div class="gf-pills">
+            ${typePill('all', 'Wszystkie')}
+            ${typePill('image', '📷 Zdjęcia')}
+            ${typePill('video', '🎥 Filmy')}
+          </div>
+        </div>
+        <div class="gf-group">
+          <span class="gf-lbl">Sortuj</span>
+          <div class="gf-pills">
+            ${sortPill('newest', '⬇ Najnowsze')}
+            ${sortPill('oldest', '⬆ Najstarsze')}
+          </div>
+        </div>`;
+    }
+
+    // ── Render galerii ──
+    function renderGallery() {
+      const area = document.getElementById('galleryArea');
+      const countEl = document.getElementById('galleryCount');
+      const statsEl = document.getElementById('galleryStats');
+
+      if (!galleryItems.length) {
+        countEl.textContent = '';
+        if (statsEl) statsEl.textContent = '';
+        renderFilters();
+        area.innerHTML = `<div class="empty-gallery">
+          <div class="eg-icon">🖼️</div>
+          <p>Nie ma jeszcze żadnych zdjęć.<br>Bądź pierwszy/a i dodaj wspomnienie! 💙</p>
+        </div>`;
+        return;
+      }
+
+      countEl.textContent = galleryItems.length + (galleryItems.length === 1 ? ' plik' : ' plików');
+      if (statsEl) {
+        statsEl.textContent = `📊 Łącznie zdjęć: ${galleryItems.length} | Rozmiar: ${fmtMB(totalBytes())} MB`;
+      }
+
+      renderFilters();
+
+      _displayed = applyFiltersSort(galleryItems);
+
+      if (!_displayed.length) {
+        area.innerHTML = `<div class="empty-gallery">
+          <div class="eg-icon">🔍</div>
+          <p>Brak plików dla wybranych filtrów.</p>
+        </div>`;
+        return;
+      }
+
+      const tiles = _displayed.map((it, i) => {
+        let media;
+        if (it.type === 'video') {
+          media = `<video src="${esc(it.url)}" muted playsinline preload="metadata"></video>
+                   <span class="vid-badge">▶ film</span>`;
+        } else {
+          const thumb = cldTransform(it.url, 'c_fill,g_auto,w_400,h_400,f_auto,q_auto');
+          media = `<img src="${esc(thumb)}" alt="" loading="lazy">`;
+        }
+        const delBtn = isOrganizer
+          ? `<button class="tile-del" title="Usuń zdjęcie"
+                     onclick="event.stopPropagation(); deleteGalleryPhoto('${esc(it.id)}')">&#128465;</button>`
+          : '';
+        return `<div class="tile" onclick="openLightbox(${i})">
+          ${delBtn}
+          ${media}
+          <div class="tile-name">📷 ${esc(it.uploadedBy || 'Gość')}</div>
+        </div>`;
+      }).join('');
+
+      area.innerHTML = `<div class="grid">${tiles}</div>`;
+    }
+
+    // ── Usuwanie zdjęcia (tylko organizator) ──
+    async function deleteGalleryPhoto(id) {
+      if (!isOrganizer) return; // zabezpieczenie — goście nie mogą usuwać
+      if (!db || !id) return;
+      if (!confirm('Usunąć to zdjęcie z galerii? Tej operacji nie można cofnąć.')) return;
+      try {
+        await db.collection(GALLERY_COLLECTION).doc(id).delete();
+        // Lista odświeży się automatycznie przez nasłuch onSnapshot
+        showToast('Zdjęcie zostało usunięte ✓', 'ok');
+      } catch (e) {
+        console.error('Usuwanie zdjęcia:', e);
+        showToast('Nie udało się usunąć zdjęcia 😢', 'err');
+      }
+    }
+
+    // ── Lightbox ──
+    function openLightbox(i) {
+      const it = _displayed[i];
+      if (!it) return;
+      const inner = document.getElementById('lbInner');
+      if (it.type === 'video') {
+        inner.innerHTML = `<video class="lb-content" src="${esc(it.url)}" controls autoplay playsinline></video>`;
+      } else {
+        const full = cldTransform(it.url, 'c_limit,w_1600,h_1600,f_auto,q_auto');
+        inner.innerHTML = `<img class="lb-content" src="${esc(full)}" alt="">`;
+      }
+      document.getElementById('lbCaption').textContent = '📷 ' + (it.uploadedBy || 'Gość');
+      document.getElementById('lightbox').classList.add('show');
+    }
+    function closeLightbox(e, force) {
+      if (!force && e && e.target.id !== 'lightbox') return;
+      document.getElementById('lightbox').classList.remove('show');
+      document.getElementById('lbInner').innerHTML = '';
+    }
+
+    // ── Nasłuch zmian w czasie rzeczywistym ──
+    if (db) {
+      db.collection(GALLERY_COLLECTION).orderBy('timestamp', 'desc')
+        .onSnapshot(
+          snap => {
+            galleryItems = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+            renderGallery();
+          },
+          err => {
+            console.error('Nasłuch galerii:', err);
+            document.getElementById('galleryArea').innerHTML =
+              '<div class="empty-gallery"><p>Nie udało się wczytać galerii. Odśwież stronę.</p></div>';
+          }
+        );
+    } else {
+      document.getElementById('galleryArea').innerHTML =
+        '<div class="empty-gallery"><p>Brak połączenia z serwerem.</p></div>';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zaproponuj piosenkę — Wesele</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    :root {
+      --blue: #1a56db; --blue-dark: #1040b0; --blue-pale: #e8f1fd;
+      --white: #ffffff; --bg: #f0f5ff; --text: #1a2744; --text-light: #5a6a8a;
+      --border: #c5d8f6; --green: #16a34a; --red: #dc2626; --shadow: rgba(26,86,219,0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+    header { background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff; text-align: center; padding: 28px 20px; }
+    header h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; }
+    header p { opacity: 0.85; margin-top: 6px; font-size: 0.9rem; }
+    .container { max-width: 600px; margin: 26px auto; padding: 0 16px 40px; }
+
+    .guest-nav { max-width: 600px; margin: 22px auto 0; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 0 16px; }
+    .guest-nav.bottom { margin: 4px auto 36px; }
+    .guest-nav a {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 0.88rem; font-weight: 600; color: var(--blue-dark);
+      background: var(--white); border: 1.5px solid var(--blue); border-radius: 24px;
+      padding: 10px 18px; box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+      transition: background 0.18s, color 0.18s, transform 0.15s;
+    }
+    .guest-nav a:hover { background: var(--blue); color: #fff; transform: translateY(-1px); }
+
+    .card { background: var(--white); border: 1.5px solid var(--border); border-radius: 16px; padding: 22px; box-shadow: 0 4px 20px var(--shadow); margin-bottom: 18px; }
+    .card h2 { font-size: 1.05rem; color: var(--blue-dark); margin-bottom: 14px; }
+    label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input[type="text"] { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; font-size: 0.95rem; font-family: inherit; color: var(--text); background: var(--white); outline: none; }
+    input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    .field { margin-bottom: 14px; }
+    .search-row { display: flex; gap: 8px; }
+    .search-row input { flex: 1; }
+    .btn { border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit; padding: 11px 18px; }
+    .btn-primary { background: linear-gradient(135deg, var(--blue-dark), var(--blue)); color: #fff; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn-sm { padding: 8px 12px; font-size: 0.85rem; }
+    .btn-add { background: var(--blue); color: #fff; }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+
+    .results { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+    .result {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 9px 12px;
+    }
+    .cover { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+    .cover-ph { display: flex; align-items: center; justify-content: center; background: var(--blue-pale); font-size: 1.4rem; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-title { font-weight: 700; font-size: 0.92rem; }
+    .result-artist { color: var(--text-light); font-size: 0.82rem; }
+    .preview { height: 30px; margin-top: 6px; max-width: 100%; }
+    .state-msg { color: var(--text-light); padding: 14px; text-align: center; }
+    .toast {
+      position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+      background: var(--blue-dark); color: #fff; padding: 12px 22px; border-radius: 30px;
+      font-size: 0.9rem; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .note { font-size: 0.82rem; color: var(--text-light); margin-top: 8px; }
+    .fmt-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+    .fmt-title { font-weight: 700; color: var(--blue-dark); font-size: 0.85rem; margin-bottom: 4px; }
+    .fmt-box p { font-size: 0.8rem; color: var(--text-light); margin: 3px 0; }
+    .fmt-box code { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 0.8rem; color: var(--blue-dark); }
+    .fmt-pre { background: #fff; border: 1px solid var(--border); border-radius: 7px; padding: 9px 11px; font-size: 0.78rem; overflow-x: auto; white-space: pre; font-family: 'Consolas','Courier New',monospace; margin: 5px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎵 Zaproponuj piosenkę</h1>
+  <p id="subTitle">Pomóż nam stworzyć playlistę na wesele!</p>
+</header>
+
+<nav class="guest-nav">
+  <a href="harmonogram.html">📅 Harmonogram</a>
+  <a href="galeria.html">📸 Galeria zdjęć</a>
+  <a href="rsvp.html">✅ Potwierdź obecność</a>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <h2>Jak masz na imię?</h2>
+    <div class="field">
+      <label for="guestName">Twoje imię</label>
+      <input type="text" id="guestName" placeholder="np. Anna" maxlength="40">
+      <div class="note">Dzięki temu Para Młoda będzie wiedziała, kto zaproponował utwór. 💙</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Wyszukaj utwór</h2>
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="🔍 Tytuł lub wykonawca…" onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="btn btn-primary" onclick="doSearch()">Szukaj</button>
+    </div>
+    <div class="results" id="results"></div>
+    <div class="note">Wyszukiwarka korzysta z bazy Deezer. Nie znalazłeś utworu? Napisz go ręcznie poniżej.</div>
+  </div>
+
+  <div class="card">
+    <h2>Albo dopisz ręcznie</h2>
+    <div class="field"><label for="manualTitle">Tytuł</label><input type="text" id="manualTitle" placeholder="Tytuł utworu"></div>
+    <div class="field"><label for="manualArtist">Wykonawca</label><input type="text" id="manualArtist" placeholder="Wykonawca"></div>
+    <button class="btn btn-add btn-sm" onclick="proposeManual()">➕ Zaproponuj ten utwór</button>
+  </div>
+
+  <div class="card">
+    <h2>Masz gotową listę? Wgraj plik</h2>
+    <p class="note" style="margin-top:0">Możesz zaproponować wiele utworów naraz z pliku <b>.csv</b> lub <b>.txt</b>. Wszystkie trafią jako Twoje propozycje.</p>
+    <button class="btn btn-sm" onclick="toggleImportHelp()" style="background:var(--blue-pale);color:var(--blue-dark)">❔ Jak ma wyglądać plik?</button>
+    <div id="importHelp" style="display:none;margin-top:12px">
+      <div class="fmt-box">
+        <div class="fmt-title">📋 Format CSV (kolumny)</div>
+        <p>Pierwszy wiersz to nagłówek, kolumny rozdzielone przecinkiem lub średnikiem:</p>
+        <pre class="fmt-pre">Tytuł,Wykonawca,Moment imprezy,Status
+Sweet Caroline,Neil Diamond,Imprezowe,Propozycja
+Hej Sokoły,Ludowa,Oczepiny,Propozycja</pre>
+      </div>
+      <div class="fmt-box">
+        <div class="fmt-title">📝 Format tekstowy (prosty)</div>
+        <p>Jedna linia = jeden utwór: <code>Tytuł - Wykonawca</code></p>
+        <pre class="fmt-pre">Sweet Caroline - Neil Diamond
+Hej Sokoły</pre>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn btn-add btn-sm" onclick="document.getElementById('guestImportFile').click()">📁 Wybierz plik (.csv / .txt)</button>
+      <input type="file" id="guestImportFile" accept=".csv,.txt" style="display:none" onchange="importGuestFile(event)">
+    </div>
+  </div>
+</div>
+
+<nav class="guest-nav bottom">
+  <a href="harmonogram.html">📅 Harmonogram</a>
+  <a href="galeria.html">📸 Galeria zdjęć</a>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Inicjalizacja Firebase ──
+  try { if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); } catch (e) { console.error('Firebase init:', e); }
+  const db = firebase.firestore();
+
+  // Ustaw napis podtytułu z konfiguracji (jeśli dostępna)
+  db.collection(FS_COLLECTION).doc(FS_DOC_ID).get().then(doc => {
+    if (!doc.exists) return;
+    const data = doc.data() || {};
+    const cfg = data.appConfig || {};
+    const names = (cfg.displayNames || '').trim();
+    if (names) { document.getElementById('subTitle').textContent = `Pomóż stworzyć playlistę na wesele ${names}!`; document.title = 'Zaproponuj piosenkę — ' + names; }
+  }).catch(() => {});
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  // ── Wyszukiwanie Deezer (JSONP — bez klucza API) ──
+  let _results = [];
+  function deezerSearch(query, cb) {
+    const cbName = '_dz_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    let done = false;
+    const cleanup = () => { try { delete window[cbName]; } catch (_) { window[cbName] = undefined; } if (s.parentNode) s.parentNode.removeChild(s); };
+    window[cbName] = (data) => { if (done) return; done = true; cleanup(); cb(data && data.data ? data.data : []); };
+    s.onerror = () => { if (done) return; done = true; cleanup(); cb(null); };
+    s.src = `https://api.deezer.com/search?q=${encodeURIComponent(query)}&limit=15&output=jsonp&callback=${cbName}`;
+    document.body.appendChild(s);
+    setTimeout(() => { if (!done) { done = true; cleanup(); cb(null); } }, 8000);
+  }
+
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    const box = document.getElementById('results');
+    if (!q) { box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="state-msg">Szukam…</div>';
+    deezerSearch(q, (results) => {
+      const proposeTyped = `<div class="state-msg">Nie znaleziono w bazie.<br><button class="btn btn-add btn-sm" style="margin-top:8px" onclick="proposeTypedQuery()">➕ Zaproponuj „${esc(q)}" mimo to</button></div>`;
+      if (results === null) { box.innerHTML = '<div class="state-msg">Nie udało się połączyć z wyszukiwarką. Dopisz utwór ręcznie poniżej.</div>'; return; }
+      _results = results;
+      if (!results.length) { box.innerHTML = proposeTyped; return; }
+      box.innerHTML = results.map((t, i) => {
+        const cover = (t.album && t.album.cover_small) || '';
+        const prev = t.preview ? `<audio class="preview" controls preload="none" src="${esc(t.preview)}"></audio>` : '';
+        return `<div class="result">
+          ${cover ? `<img class="cover" src="${esc(cover)}" alt="">` : '<div class="cover cover-ph">🎵</div>'}
+          <div class="result-info">
+            <div class="result-title">${esc(t.title || '')}</div>
+            <div class="result-artist">${esc((t.artist && t.artist.name) || '')}</div>
+            ${prev}
+          </div>
+          <button class="btn btn-add btn-sm" onclick="proposeFromSearch(${i}, this)">➕ Zaproponuj</button>
+        </div>`;
+      }).join('');
+    });
+  }
+
+  function _guestName() { return (document.getElementById('guestName').value || '').trim(); }
+
+  function _saveProposal(song, btn) {
+    const name = _guestName();
+    if (!name) { toast('Najpierw wpisz swoje imię ☝️'); document.getElementById('guestName').focus(); return; }
+    if (btn) btn.disabled = true;
+    db.collection('musicProposals').add({
+      title: song.title || '',
+      artist: song.artist || '',
+      cover: song.cover || '',
+      preview: song.preview || '',
+      genre: '',
+      guestName: name,
+      status: 'proposal',
+      fromGuest: true,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    }).then(() => {
+      toast('Dziękujemy! Twoja propozycja została wysłana 🎉');
+      if (btn) btn.textContent = '✅ Wysłano';
+    }).catch(err => {
+      console.error('Zapis propozycji:', err);
+      toast('Nie udało się wysłać. Spróbuj ponownie.');
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  function proposeFromSearch(idx, btn) {
+    const t = _results[idx]; if (!t) return;
+    _saveProposal({
+      title: t.title || '',
+      artist: (t.artist && t.artist.name) || '',
+      cover: (t.album && (t.album.cover_medium || t.album.cover_small)) || '',
+      preview: t.preview || '',
+    }, btn);
+  }
+
+  function proposeTypedQuery() {
+    const q = (document.getElementById('searchInput').value || '').trim();
+    if (!q) return;
+    const m = q.split(/\s+[—–-]\s+/);
+    _saveProposal({ title: (m[0] || q).trim(), artist: (m[1] || '').trim(), cover: '', preview: '' });
+    document.getElementById('results').innerHTML = '';
+  }
+
+  function proposeManual() {
+    const title = (document.getElementById('manualTitle').value || '').trim();
+    const artist = (document.getElementById('manualArtist').value || '').trim();
+    if (!title) { toast('Podaj tytuł utworu'); return; }
+    _saveProposal({ title, artist, cover: '', preview: '' });
+    document.getElementById('manualTitle').value = '';
+    document.getElementById('manualArtist').value = '';
+  }
+
+  // ── Import listy z pliku (CSV lub tekst) — ten sam format co u organizatora ──
+  function toggleImportHelp() {
+    const el = document.getElementById('importHelp');
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function parseSongFile(text) {
+    const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!lines.length) return [];
+    const delim = lines.some(l => l.includes(';')) ? ';' : (lines.some(l => l.includes(',')) ? ',' : null);
+    const headerIsCsv = !!delim && /tytu/i.test(lines[0]) && lines[0].includes(delim);
+    const treatCsv = !!delim && (headerIsCsv || lines.filter(l => l.includes(delim)).length > lines.length / 2);
+    const out = [];
+    lines.forEach((line, i) => {
+      if (/^#{1,3}\s/.test(line) || /^=+$/.test(line) || /^LISTA PIOSENEK/i.test(line)) return;
+      let title = '', artist = '';
+      if (treatCsv && line.includes(delim)) {
+        if (i === 0 && /tytu/i.test(line)) return;
+        const cells = line.split(delim).map(c => c.replace(/^"|"$/g, '').trim());
+        title = cells[0] || ''; artist = cells[1] || '';
+      } else {
+        let l = line.replace(/^[-•*]\s*/, '').replace(/\s*\[[^\]]*\]/g, '').replace(/\s*\([^)]*\)\s*$/, '');
+        const m = l.split(/\s+[—–-]\s+/);
+        title = (m[0] || '').trim(); artist = (m[1] || '').trim();
+      }
+      if (title) out.push({ title, artist });
+    });
+    return out;
+  }
+
+  function importGuestFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const name = _guestName();
+    if (!name) { toast('Najpierw wpisz swoje imię ☝️'); document.getElementById('guestName').focus(); event.target.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      event.target.value = '';
+      let parsed = [];
+      try { parsed = parseSongFile(String(e.target.result || '')); }
+      catch (err) { console.error('parse:', err); }
+      if (!parsed.length) { toast('Nie znaleziono utworów w pliku.'); return; }
+      const batch = db.batch();
+      const col = db.collection('musicProposals');
+      parsed.forEach(p => {
+        const ref = col.doc();
+        batch.set(ref, {
+          title: p.title, artist: p.artist || '', cover: '', preview: '', genre: '',
+          guestName: name, status: 'proposal', fromGuest: true,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      batch.commit()
+        .then(() => toast(`Dziękujemy! Wysłano ${parsed.length} propozycji 🎉`))
+        .catch(err => { console.error('import gościa:', err); toast('Nie udało się wysłać. Spróbuj ponownie.'); });
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+</script>
+</body>
+</html>

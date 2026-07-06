@@ -1,0 +1,590 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../app_colors.dart';
+import '../../models/sala_summary.dart';
+import '../../models/wedding_data.dart';
+import '../../services/budget_service.dart';
+import '../../utils/format.dart';
+import 'budget_fields.dart';
+
+/// Podzakładka „Sala" — koszt sali/cateringu: cena za osobę, goście przypisani/
+/// nieprzypisani, obsługa (osobna pula i stawka), goście wirtualni, dodatki do
+/// menu, dekoracje stołów oraz podsumowanie z rozbiciem na grupy.
+class SalaTab extends StatelessWidget {
+  const SalaTab({super.key, required this.data, required this.service});
+
+  final WeddingData? data;
+  final BudgetService service;
+
+  List<Map<String, dynamic>> get _menuAddons => _list('menuAddons');
+  List<Map<String, dynamic>> get _honorAddons => _decoList('honorAddons');
+  List<Map<String, dynamic>> get _regularAddons => _decoList('regularAddons');
+
+  List<Map<String, dynamic>> _list(String key) {
+    final bd = data?.raw['budgetData'];
+    final v = (bd is Map) ? bd[key] : null;
+    return v is List
+        ? v.map((e) => Map<String, dynamic>.from(e as Map)).toList()
+        : <Map<String, dynamic>>[];
+  }
+
+  List<Map<String, dynamic>> _decoList(String key) {
+    final bd = data?.raw['budgetData'];
+    final deco = (bd is Map) ? bd['tableDeco'] : null;
+    final v = (deco is Map) ? deco[key] : null;
+    return v is List
+        ? v.map((e) => Map<String, dynamic>.from(e as Map)).toList()
+        : <Map<String, dynamic>>[];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = SalaSummary.from(data);
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      children: [
+        _salaCard(s),
+        const SizedBox(height: 16),
+        _staffCard(s),
+        const SizedBox(height: 16),
+        _menuAddonsCard(s),
+        const SizedBox(height: 16),
+        _tableDecoCard(s),
+        const SizedBox(height: 16),
+        _summaryCard(s),
+      ],
+    );
+  }
+
+  // ── Karta „Sala" (cena/os., goście, wirtualni) ──
+  Widget _salaCard(SalaSummary s) {
+    return _card(
+      title: 'Sala',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          BudgetNumberField(
+            key: const ValueKey('pricePerPerson'),
+            label: 'Cena za osobę',
+            suffix: 'zł',
+            initial: s.pricePerPerson,
+            onSaved: service.setPricePerPerson,
+          ),
+          const SizedBox(height: 12),
+          BudgetNumberField(
+            key: const ValueKey('venueMinGuests'),
+            label: 'Minimalna liczba osób (próg sali)',
+            suffix: 'os.',
+            integer: true,
+            initial: s.venueMinGuests,
+            onSaved: service.setVenueMinGuests,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _infoRow('Goście przypisani do stołów', '${s.assignedCount}'),
+                _infoRow('Goście nieprzypisani', '${s.unassignedCount}'),
+                const Divider(height: 14),
+                _infoRow('Razem gości liczonych',
+                    '${s.guestBilledCount.round()}'),
+                _infoRow('Koszt gości', formatPlnZl(s.guestCost)),
+              ],
+            ),
+          ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Licz gości nieprzypisanych do stołów',
+                style: GoogleFonts.inter(fontSize: 13)),
+            subtitle: Text(
+              s.includeUnassigned
+                  ? 'Nieprzypisani (${s.unassignedCount}) są wliczani do kosztu.'
+                  : 'Nieprzypisani (${s.unassignedCount}) NIE są wliczani.',
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: s.includeUnassigned,
+            onChanged: service.setIncludeUnassigned,
+          ),
+          const Divider(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _infoRow('Goście wirtualni (do progu sali)',
+                    '${s.virtualGuests.round()}'),
+                _infoRow('Koszt gości wirtualnych', formatPlnZl(s.virtualCost)),
+              ],
+            ),
+          ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Uwzględnij gości wirtualnych w obliczeniach',
+                style: GoogleFonts.inter(fontSize: 13)),
+            value: s.includeVirtual,
+            onChanged: service.setIncludeVirtual,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Karta „Obsługa" (osobna pula, własna stawka) ──
+  Widget _staffCard(SalaSummary s) {
+    return _card(
+      title: 'Obsługa',
+      trailing: _addButton(() => service.addStaffTable('Obsługa', 1)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Kelnerzy, fotograf, DJ, kamerzysta — osoby, które jedzą, ale nie '
+            'są gośćmi. Liczone osobno.',
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          if (s.staff.isEmpty)
+            _emptyHint('Brak obsługi. Dodaj przyciskiem +.')
+          else
+            for (final t in s.staff)
+              _StaffRow(
+                key: ValueKey('staff-${t.id}'),
+                name: t.name,
+                persons: t.persons,
+                includeInCost: t.includeInCost,
+                onNameSaved: (v) => service.updateStaffTable(t.id, name: v),
+                onPersonsSaved: (v) =>
+                    service.updateStaffTable(t.id, persons: v),
+                onIncludeChanged: (v) =>
+                    service.updateStaffTable(t.id, includeInCost: v),
+                onDelete: () => service.deleteStaffTable(t.id),
+              ),
+          const SizedBox(height: 12),
+          BudgetNumberField(
+            key: const ValueKey('staffPricePerPerson'),
+            label: 'Stawka obsługi za osobę (puste = jak goście)',
+            suffix: 'zł',
+            initial: s.staffPricePerPerson,
+            onSaved: service.setStaffPricePerPerson,
+          ),
+          const SizedBox(height: 4),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Doliczaj obsługę do kosztu sali',
+                style: GoogleFonts.inter(fontSize: 13)),
+            subtitle: Text(
+              'Liczona jest obsługa oznaczona „w kosztach".',
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: s.includeStaff,
+            onChanged: service.setIncludeStaff,
+          ),
+          const Divider(height: 16),
+          _infoRow('Osób obsługi łącznie', '${s.staffPersonCount.round()}'),
+          _infoRow('W kosztach', '${s.staffCostPersonCount.round()}'),
+          _infoRow('Stawka obsługi / os.', formatPlnZl(s.staffRate)),
+          _infoRow('Koszt obsługi', formatPlnZl(s.staffCost), bold: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuAddonsCard(SalaSummary s) {
+    final addons = _menuAddons;
+    return _card(
+      title: 'Dodatki do menu (per osoba)',
+      trailing: _addButton(() => service.addMenuAddon()),
+      child: Column(
+        children: [
+          if (addons.isEmpty)
+            _emptyHint('Brak dodatków. Dodaj przyciskiem +.')
+          else
+            for (final a in addons)
+              _AddonRow(
+                key: ValueKey('menu-${a['id']}'),
+                name: (a['name'] as String?) ?? '',
+                amount: _d(a['pricePerPerson']),
+                amountSuffix: 'zł/os.',
+                lineTotal: _d(a['pricePerPerson']) * s.effectiveGuestCount,
+                onNameSaved: (v) =>
+                    service.updateMenuAddon(_id(a), name: v),
+                onAmountSaved: (v) =>
+                    service.updateMenuAddon(_id(a), pricePerPerson: v),
+                onDelete: () => service.deleteMenuAddon(_id(a)),
+              ),
+          if (addons.isNotEmpty) ...[
+            const Divider(height: 20),
+            _infoRow('Liczba osób do przeliczeń',
+                '${s.effectiveGuestCount.round()}'),
+            _infoRow('Łącznie dodatki do menu',
+                formatPlnZl(s.menuAddonsTotal),
+                bold: true),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _tableDecoCard(SalaSummary s) {
+    final honor = _honorAddons;
+    final regular = _regularAddons;
+    return _card(
+      title: 'Dekoracje stołów (per stolik)',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _subHeader('⭐ Stół Pary Młodej', () => service.addTableDeco('honor')),
+          if (honor.isEmpty)
+            _emptyHint('Brak dekoracji stołu Pary Młodej.')
+          else
+            for (final a in honor)
+              _AddonRow(
+                key: ValueKey('honor-${a['id']}'),
+                name: (a['name'] as String?) ?? '',
+                amount: _d(a['price']),
+                amountSuffix: 'zł',
+                onNameSaved: (v) =>
+                    service.updateTableDeco('honor', _id(a), name: v),
+                onAmountSaved: (v) =>
+                    service.updateTableDeco('honor', _id(a), value: v),
+                onDelete: () => service.deleteTableDeco('honor', _id(a)),
+              ),
+          const SizedBox(height: 12),
+          _subHeader('Pozostałe stoły (×${s.regularTableCount})',
+              () => service.addTableDeco('regular')),
+          if (regular.isEmpty)
+            _emptyHint('Brak dekoracji pozostałych stołów.')
+          else
+            for (final a in regular)
+              _AddonRow(
+                key: ValueKey('regular-${a['id']}'),
+                name: (a['name'] as String?) ?? '',
+                amount: _d(a['pricePerTable']),
+                amountSuffix: 'zł/stół',
+                lineTotal: _d(a['pricePerTable']) * s.regularTableCount,
+                onNameSaved: (v) =>
+                    service.updateTableDeco('regular', _id(a), name: v),
+                onAmountSaved: (v) =>
+                    service.updateTableDeco('regular', _id(a), value: v),
+                onDelete: () => service.deleteTableDeco('regular', _id(a)),
+              ),
+          const Divider(height: 20),
+          _infoRow('Dekoracje stołu Pary Młodej',
+              formatPlnZl(s.honorDecoTotal)),
+          _infoRow('Dekoracje pozostałych stołów',
+              formatPlnZl(s.regularDecoTotal)),
+          _infoRow('Łącznie dekoracje', formatPlnZl(s.tableDecoTotal),
+              bold: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryCard(SalaSummary s) {
+    final assignedCost = s.assignedCount * s.pricePerPerson;
+    final unassignedCost = s.unassignedCount * s.pricePerPerson;
+    return _card(
+      title: 'Podsumowanie kosztów sali',
+      child: Column(
+        children: [
+          _infoRow('Goście przypisani (${s.assignedCount} os.)',
+              formatPlnZl(assignedCost)),
+          _infoRow(
+              s.includeUnassigned
+                  ? 'Goście nieprzypisani (${s.unassignedCount} os.)'
+                  : 'Goście nieprzypisani (${s.unassignedCount} os., nieliczeni)',
+              formatPlnZl(s.includeUnassigned ? unassignedCost : 0)),
+          if (s.includeVirtual && s.virtualGuests > 0)
+            _infoRow('Goście wirtualni (${s.virtualGuests.round()} os.)',
+                formatPlnZl(s.virtualCost)),
+          _infoRow(
+              s.includeStaff
+                  ? 'Obsługa (${s.staffCostPersonCount.round()} os.)'
+                  : 'Obsługa (${s.staffCostPersonCount.round()} os., nieliczona)',
+              formatPlnZl(s.staffCost)),
+          _infoRow('Dodatki do menu', formatPlnZl(s.menuAddonsTotal)),
+          _infoRow('Dekoracje stołów', formatPlnZl(s.tableDecoTotal)),
+          const Divider(height: 20),
+          _infoRow('Razem sala', formatPlnZl(s.cateringTotal),
+              bold: true, big: true),
+        ],
+      ),
+    );
+  }
+
+  // ── Pomocnicze widgety ──
+
+  Widget _card({required String title, Widget? trailing, required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withValues(alpha: 0.07),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+              ),
+              ?trailing,
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _addButton(VoidCallback onTap) {
+    return IconButton(
+      onPressed: onTap,
+      icon: const Icon(Icons.add_circle_outline),
+      color: AppColors.accent,
+      tooltip: 'Dodaj',
+    );
+  }
+
+  Widget _subHeader(String text, VoidCallback onAdd) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text,
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: onAdd,
+            borderRadius: BorderRadius.circular(8),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.add, size: 20, color: AppColors.accent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emptyHint(String text) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Text(text,
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight)),
+      );
+
+  Widget _infoRow(String label, String value,
+      {bool bold = false, bool big = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(label,
+                style: GoogleFonts.inter(
+                    fontSize: big ? 14 : 13,
+                    color: bold ? AppColors.text : AppColors.textLight,
+                    fontWeight: bold ? FontWeight.w700 : FontWeight.w500)),
+          ),
+          Text(value,
+              style: GoogleFonts.inter(
+                  fontSize: big ? 17 : 14,
+                  fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+                  color: bold ? AppColors.accent : AppColors.text)),
+        ],
+      ),
+    );
+  }
+
+  static double _d(dynamic v) => v is num ? v.toDouble() : 0.0;
+  static int _id(Map<String, dynamic> m) => (m['id'] as num?)?.toInt() ?? 0;
+}
+
+/// Wiersz obsługi: nazwa + liczba osób + „w kosztach" + usuń.
+class _StaffRow extends StatelessWidget {
+  const _StaffRow({
+    super.key,
+    required this.name,
+    required this.persons,
+    required this.includeInCost,
+    required this.onNameSaved,
+    required this.onPersonsSaved,
+    required this.onIncludeChanged,
+    required this.onDelete,
+  });
+
+  final String name;
+  final int persons;
+  final bool includeInCost;
+  final ValueChanged<String> onNameSaved;
+  final ValueChanged<num> onPersonsSaved;
+  final ValueChanged<bool> onIncludeChanged;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: BudgetTextField(
+                  hint: 'Nazwa (np. Kelnerzy)',
+                  initial: name,
+                  onSaved: onNameSaved,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: BudgetNumberField(
+                  suffix: 'os.',
+                  integer: true,
+                  initial: persons.toDouble(),
+                  compact: true,
+                  onSaved: onPersonsSaved,
+                ),
+              ),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.close, size: 18),
+                color: const Color(0xFFC0392B),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Checkbox(
+                value: includeInCost,
+                activeColor: AppColors.accent,
+                onChanged: (v) => onIncludeChanged(v ?? false),
+              ),
+              Expanded(
+                child: Text('Wliczaj w koszt sali',
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: AppColors.text)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Wiersz dodatku: nazwa + kwota + (opcjonalny) wynik linii + usuń.
+class _AddonRow extends StatelessWidget {
+  const _AddonRow({
+    super.key,
+    required this.name,
+    required this.amount,
+    required this.amountSuffix,
+    required this.onNameSaved,
+    required this.onAmountSaved,
+    required this.onDelete,
+    this.lineTotal,
+  });
+
+  final String name;
+  final double amount;
+  final String amountSuffix;
+  final double? lineTotal;
+  final ValueChanged<String> onNameSaved;
+  final ValueChanged<num> onAmountSaved;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                flex: 3,
+                child: BudgetTextField(
+                  hint: 'Nazwa',
+                  initial: name,
+                  onSaved: onNameSaved,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 2,
+                child: BudgetNumberField(
+                  suffix: amountSuffix,
+                  initial: amount,
+                  compact: true,
+                  onSaved: onAmountSaved,
+                ),
+              ),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.close, size: 18),
+                color: const Color(0xFFC0392B),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          if (lineTotal != null && lineTotal! > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 40, top: 2),
+              child: Text(
+                '= ${formatPlnZl(lineTotal!)}',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.accent,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

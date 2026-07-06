@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../app_colors.dart';
+import '../../models/budget_summary.dart';
+import '../../models/wedding_data.dart';
+import '../../models/beverage.dart';
+import '../../navigation/app_sections.dart';
+import '../../onboarding/tour_tab_sync.dart';
+import '../../services/budget_service.dart';
+import '../../services/firestore_service.dart';
+import 'beverage_tab.dart';
+import 'budget_summary_tab.dart';
+import 'expenses_tab.dart';
+import 'honeymoon_tab.dart';
+import 'sala_tab.dart';
+
+/// Sekcja „Budżet" z podzakładkami. „Podsumowanie" zawiera też zbiorczy widok
+/// wszystkich płatności (dawna osobna zakładka „Płatności").
+class BudgetScreen extends StatelessWidget {
+  BudgetScreen({
+    super.key,
+    required this.data,
+    required FirestoreService firestore,
+    this.onOpenSection,
+  }) : service = BudgetService(firestore: firestore);
+
+  final WeddingData? data;
+  final BudgetService service;
+
+  /// Przejście do innej sekcji (np. Dostawcy) — dla linków „Dodano w".
+  final void Function(AppSection section)? onOpenSection;
+
+  static const _tabs = [
+    'Podsumowanie',
+    'Sala',
+    'Wydatki',
+    'Alkohol',
+    'Napoje bezalkoholowe',
+    'Podróż poślubna',
+  ];
+
+  /// Indeks podzakładki „Podróż poślubna" (dla wiersza referencyjnego w Wydatkach).
+  static const int _honeymoonTabIndex = 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final summary = BudgetSummary.from(data);
+
+    return DefaultTabController(
+      length: _tabs.length,
+      child: TourTabSync(
+        section: AppSection.budget,
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Budżet',
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  width: 44,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    gradient:
+                        const LinearGradient(colors: AppColors.dividerGradient),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: AppColors.accent,
+            unselectedLabelColor: AppColors.textLight,
+            indicatorColor: AppColors.accent,
+            dividerColor: const Color(0xFFE2EAF7),
+            labelStyle:
+                GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+            unselectedLabelStyle:
+                GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+            tabs: [for (final t in _tabs) Tab(text: t)],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                BudgetSummaryTab(
+                    summary: summary, service: service, data: data),
+                SalaTab(data: data, service: service),
+                ExpensesTab(
+                  data: data,
+                  service: service,
+                  onOpenSection: onOpenSection,
+                  honeymoonTabIndex: _honeymoonTabIndex,
+                ),
+                BeverageTab(
+                    kind: BeverageKind.alcohol, data: data, service: service),
+                BeverageTab(
+                    kind: BeverageKind.soft, data: data, service: service),
+                HoneymoonTab(data: data, service: service),
+              ],
+            ),
+          ),
+        ],
+        ),
+      ),
+    );
+  }
+}
