@@ -1,42 +1,41 @@
 {
   "project_info": {
-    "project_number": "719030954518",
-    "project_id": "wedding-planner-27148",
-    "storage_bucket": "wedding-planner-27148.firebasestorage.app"
+    "project_number": "221816723659",
+    "project_id": "wedding-planner-pub",
+    "storage_bucket": "wedding-planner-pub.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:719030954518:android:e7803a4ca74e3065c8a337",
+        "mobilesdk_app_id": "1:221816723659:android:2a536586604e43758de34e",
         "android_client_info": {
           "package_name": "com.ceremonia.moje_wesele"
         }
       },
       "oauth_client": [
         {
-          "client_id": "719030954518-q2rjrnmnk9h1ad34jsav3glb5e5l74ar.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.ceremonia.moje_wesele",
-            "certificate_hash": "f01687787efcd0583b51c2f62ccf713327cc4dd9"
-          }
-        },
-        {
-          "client_id": "719030954518-02u0vbbfp1tee4cevpm87bg98nt42l7g.apps.googleusercontent.com",
+          "client_id": "221816723659-n11bpn1iurom23mmt8eukl4dlbl0b4u2.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAaXhQ4oaI6149YJPtcvDseOTH5dG-T9Q8"
+          "current_key": "AIzaSyA0kfE7gcFs-9JxRcmhmLZVD-fv8GHLp7s"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "719030954518-02u0vbbfp1tee4cevpm87bg98nt42l7g.apps.googleusercontent.com",
+              "client_id": "221816723659-n11bpn1iurom23mmt8eukl4dlbl0b4u2.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "221816723659-a7l89j7clgr2df7b8810adv75a7atrdo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ceremonia.mojeWesele"
+              }
             }
           ]
         }

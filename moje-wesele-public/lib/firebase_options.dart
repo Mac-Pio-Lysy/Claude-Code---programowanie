@@ -50,20 +50,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyACTtQi2sl5e3mWvfpTGujWYU65z_rHhuc',
-    appId: '1:719030954518:web:1e79e71d56cf86dfc8a337',
-    messagingSenderId: '719030954518',
-    projectId: 'wedding-planner-27148',
-    authDomain: 'wedding-planner-27148.firebaseapp.com',
-    storageBucket: 'wedding-planner-27148.firebasestorage.app',
-    measurementId: 'G-9S0904QJG5',
+    apiKey: 'AIzaSyAdV_WKKXo82Wedxq_DLu8lKve3JGSRJ8I',
+    appId: '1:221816723659:web:c76a1fc3860367538de34e',
+    messagingSenderId: '221816723659',
+    projectId: 'wedding-planner-pub',
+    authDomain: 'wedding-planner-pub.firebaseapp.com',
+    storageBucket: 'wedding-planner-pub.firebasestorage.app',
+    measurementId: 'G-0N8C119LVN',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAaXhQ4oaI6149YJPtcvDseOTH5dG-T9Q8',
-    appId: '1:719030954518:android:e7803a4ca74e3065c8a337',
-    messagingSenderId: '719030954518',
-    projectId: 'wedding-planner-27148',
-    storageBucket: 'wedding-planner-27148.firebasestorage.app',
+    apiKey: 'AIzaSyA0kfE7gcFs-9JxRcmhmLZVD-fv8GHLp7s',
+    appId: '1:221816723659:android:2a536586604e43758de34e',
+    messagingSenderId: '221816723659',
+    projectId: 'wedding-planner-pub',
+    storageBucket: 'wedding-planner-pub.firebasestorage.app',
   );
 }
