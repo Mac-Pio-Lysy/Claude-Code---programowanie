@@ -35,9 +35,12 @@ import 'vendors/vendors_screen.dart';
 
 /// Główny ekran aplikacji po zalogowaniu.
 ///
-/// • Dashboard jest przypięty na stałe w lewym górnym rogu (AppBar).
-/// • Telefon: konfigurowalny [FloatingBottomNav] (4 sloty + „Więcej") z
-///   pływającym przyciskiem Dashboard na środku.
+/// • Telefon: [FloatingBottomNav] — 7 stałych pozycji: 3 konfigurowalne
+///   skróty z lewej, pływający Dashboard na środku, 2 konfigurowalne skróty
+///   + stałe „Więcej" z prawej (przy prawej krawędzi ekranu). Konfigurowalne
+///   jest tylko tych 5 skrótów ([_bar]) — Dashboard i „Więcej" są zawsze na
+///   swoich miejscach, a środek pod Dashboardem jest zarezerwowany wyłącznie
+///   dla niego.
 /// • Tablet (≥ 720 px): [NavigationRail] (Dashboard + konfigurowalne sekcje).
 class MainNavigation extends StatefulWidget {
   MainNavigation({
@@ -320,9 +323,11 @@ class _MainNavigationState extends State<MainNavigation> {
             Image.asset('assets/ikona_dashBoard.png', width: size, height: size),
       );
 
-  /// Sekcje „Więcej": wszystko poza Dashboardem, sekcjami z paska oraz
-  /// Ustawieniami (te są dostępne wyłącznie przez menu logo). Analityka jest
-  /// zawsze ostatnią pozycją na liście.
+  /// Sekcje „Więcej": wszystko poza Dashboardem, sekcjami z paska ([_bar] —
+  /// zawsze dokładnie 5: 3 z lewej + 2 z prawej Dashboardu) oraz Ustawieniami
+  /// (dostępne wyłącznie przez menu logo). „Więcej" samo jest STAŁYM,
+  /// skrajnie prawym slotem paska — analityka jest zawsze ostatnią pozycją
+  /// na liście.
   List<AppSection> get _moreSections {
     final list = AppSection.values
         .where((s) =>
@@ -734,7 +739,25 @@ class _BarEditSheet extends StatefulWidget {
 }
 
 class _BarEditSheetState extends State<_BarEditSheet> {
-  late final List<AppSection> _items = List.of(widget.initial);
+  late List<AppSection> _items;
+
+  /// Docelowa (jedyna dozwolona) długość paska — [NavConfigService.compactSlots]
+  /// (4 ikony razem z „Więcej", układ 2+2) albo [NavConfigService.slots]
+  /// (6 ikon razem z „Więcej", układ 3+3). Wymuszenie tylko tych dwóch
+  /// długości gwarantuje, że pasek zawsze wyjdzie symetrycznie — bez tego
+  /// przy nieparzystej/asymetrycznej liczbie skrótów pływający Dashboard
+  /// „wjeżdżał" na inne ikony.
+  late int _target;
+
+  @override
+  void initState() {
+    super.initState();
+    _items = List.of(widget.initial);
+    _target = _items.length > NavConfigService.compactSlots
+        ? NavConfigService.slots
+        : NavConfigService.compactSlots;
+    _fitToTarget();
+  }
 
   List<AppSection> get _available => AppSection.values
       .where((s) =>
@@ -743,7 +766,28 @@ class _BarEditSheetState extends State<_BarEditSheet> {
           !_items.contains(s))
       .toList();
 
-  Future<void> _add() async {
+  /// Dopełnia/przycina `_items` do dokładnie `_target` pozycji.
+  void _fitToTarget() {
+    while (_items.length < _target && _available.isNotEmpty) {
+      _items.add(_available.first);
+    }
+    if (_items.length > _target) {
+      _items = _items.sublist(0, _target);
+    }
+  }
+
+  void _setTarget(int target) {
+    if (_target == target) return;
+    setState(() {
+      _target = target;
+      _fitToTarget();
+    });
+  }
+
+  /// Podmienia sekcję na konkretnej pozycji (liczba slotów pozostaje stała).
+  Future<void> _replace(int index) async {
+    final current = _items[index];
+    final options = [current, ..._available];
     final picked = await showModalBottomSheet<AppSection>(
       context: context,
       backgroundColor: Colors.white,
@@ -754,17 +798,22 @@ class _BarEditSheetState extends State<_BarEditSheet> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            for (final s in _available)
+            for (final s in options)
               ListTile(
-                leading: Icon(s.icon, color: AppColors.textLight),
+                leading: Icon(s.icon,
+                    color: s == current ? AppColors.accent : AppColors.textLight),
                 title: Text(s.label),
+                trailing:
+                    s == current ? const Icon(Icons.check, color: AppColors.accent) : null,
                 onTap: () => Navigator.of(context).pop(s),
               ),
           ],
         ),
       ),
     );
-    if (picked != null) setState(() => _items.add(picked));
+    if (picked != null && picked != current) {
+      setState(() => _items[index] = picked);
+    }
   }
 
   @override
@@ -783,9 +832,23 @@ class _BarEditSheetState extends State<_BarEditSheet> {
                     color: AppColors.text)),
             const SizedBox(height: 4),
             Text(
-              'Wybierz do ${NavConfigService.slots} sekcji i ustaw kolejność '
-              '(przeciągnij za uchwyt). Dashboard zawsze jest w lewym górnym rogu.',
+              'Dashboard (środek) i „Więcej" (skrajnie prawy) są zawsze na '
+              'stałych miejscach. Wybierz liczbę pozostałych ikon, dotknij '
+              'ikonę zamiany (⇄), by wybrać inną sekcję, i przeciągnij za '
+              'uchwyt, by zmienić kolejność — pierwsza połowa trafi na lewo '
+              'od Dashboardu, reszta na prawo.',
               style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                    child: _countChip(
+                        '4 ikony', NavConfigService.compactSlots)),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: _countChip('6 ikon', NavConfigService.slots)),
+              ],
             ),
             const SizedBox(height: 12),
             ReorderableListView(
@@ -826,26 +889,16 @@ class _BarEditSheetState extends State<_BarEditSheet> {
                                   fontSize: 14, fontWeight: FontWeight.w600)),
                         ),
                         IconButton(
-                          onPressed: _items.length > 1
-                              ? () => setState(() => _items.removeAt(i))
-                              : null,
-                          icon: const Icon(Icons.close, size: 18),
-                          color: const Color(0xFFC0392B),
+                          onPressed: () => _replace(i),
+                          icon: const Icon(Icons.swap_horiz, size: 20),
+                          color: AppColors.accent,
+                          tooltip: 'Zmień sekcję',
                         ),
                       ],
                     ),
                   ),
               ],
             ),
-            if (_items.length < NavConfigService.slots && _available.isNotEmpty)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: _add,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj sekcję'),
-                ),
-              ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -877,6 +930,26 @@ class _BarEditSheetState extends State<_BarEditSheet> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _countChip(String label, int target) {
+    final selected = _target == target;
+    return ChoiceChip(
+      label: Center(child: Text(label)),
+      selected: selected,
+      onSelected: (_) => _setTarget(target),
+      showCheckmark: false,
+      labelStyle: GoogleFonts.inter(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: selected ? Colors.white : AppColors.textLight,
+      ),
+      selectedColor: AppColors.accent,
+      backgroundColor: Colors.white,
+      side: BorderSide(
+          color: selected ? AppColors.accent : const Color(0xFFDCE4F2)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 }
