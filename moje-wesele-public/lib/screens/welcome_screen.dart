@@ -7,10 +7,11 @@ import '../app_colors.dart';
 
 /// Ekran tytułowy / powitalny — pierwszy ekran aplikacji.
 ///
-/// Elegancki, jasnoniebieski gradient ze subtelnymi ZŁOTYMI akcentami
-/// (spójnymi z paskiem nawigacji): pierścionek w okręgu ze złotą obwódką,
-/// nazwa „Moje Wesele – Wedding Planner" fontem Playfair Display i ozdobny
-/// złoty separator.
+/// Kolorystyka spójna z logo (`assets/ikona.png`): głęboki, królewski
+/// granat/indygo jak tło pierścionka, jasnoniebieskie (szafirowe) refleksy
+/// oraz subtelne złote akcenty. Logo wtapia się w tło, tworząc jedną,
+/// elegancką kompozycję. Nazwa „Moje Wesele" fontem Playfair Display,
+/// „Wedding Planner" w złocie, ozdobny złoty separator.
 ///
 /// Docelowo miejsce logowania/rejestracji. Na razie [onEnter] przechodzi do
 /// aplikacji (zgodnie z trybem testowym `bypassLogin`).
@@ -18,6 +19,25 @@ class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key, required this.onEnter});
 
   final VoidCallback onEnter;
+
+  // Paleta wyprowadzona bezpośrednio z logo (ikona.png).
+  /// Królewski granat — górna część tła pierścionka na logo.
+  static const Color _royalTop = Color(0xFF274B82);
+
+  /// Granat środkowy — otoczenie logo (płynne wtopienie).
+  static const Color _royalMid = Color(0xFF1E3A6B);
+
+  /// Głębokie indygo/granat — dół ekranu.
+  static const Color _indigoDeep = Color(0xFF13284C);
+
+  /// Jasnoniebieski (szafirowy) refleks z kamienia.
+  static const Color _sapphire = Color(0xFFBFE0F5);
+
+  /// Miękki, przygaszony błękit — teksty pomocnicze.
+  static const Color _sapphireSoft = Color(0xFF9DBFDE);
+
+  /// Marmurowa biel — tytuł.
+  static const Color _marble = Color(0xFFF3F2EC);
 
   @override
   Widget build(BuildContext context) {
@@ -29,8 +49,8 @@ class WelcomeScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            stops: [0.0, 0.45, 1.0],
-            colors: AppColors.bgGradient,
+            stops: [0.0, 0.42, 1.0],
+            colors: [_royalTop, _royalMid, _indigoDeep],
           ),
         ),
         child: Stack(
@@ -41,35 +61,27 @@ class WelcomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 28),
                 child: Column(
                   children: [
-                    const SizedBox(height: 8),
-                    // Logo aplikacji — wyśrodkowane na górze ekranu powitalnego.
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: Image.asset(
-                        'assets/ikona.png',
-                        width: 88,
-                        height: 88,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
                     const Spacer(flex: 3),
-                    const _RingBadge(),
-                    const SizedBox(height: 28),
+                    // Logo aplikacji — jedyne logo ekranu (assets/ikona.png).
+                    // Delikatna złota obwódka i szafirowa poświata sprawiają,
+                    // że logo wtapia się w granatowe tło jak część kompozycji.
+                    const _Logo(),
+                    const SizedBox(height: 34),
                     Text(
                       'Moje Wesele',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.playfairDisplay(
-                        fontSize: 42,
+                        fontSize: 44,
                         height: 1.05,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF0F1F4A),
+                        color: _marble,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     // „Wedding Planner" — Playfair Display, złoty akcent.
                     ShaderMask(
                       shaderCallback: (r) => const LinearGradient(
-                        colors: [Color(0xFFB8860B), Color(0xFFE6C878)],
+                        colors: [Color(0xFFE6C878), Color(0xFFCBA24B)],
                       ).createShader(r),
                       child: Text(
                         'Wedding Planner',
@@ -90,7 +102,7 @@ class WelcomeScreen extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 3,
-                        color: AppColors.accent,
+                        color: _sapphire,
                       ),
                     ),
                     const Spacer(flex: 4),
@@ -101,7 +113,7 @@ class WelcomeScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 11,
-                        color: const Color(0xFFA0AEC0),
+                        color: _sapphireSoft.withValues(alpha: 0.75),
                       ),
                     ),
                     const Spacer(flex: 1),
@@ -116,64 +128,58 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-/// Okrągła odznaka z pierścionkiem, otoczona ZŁOTĄ obwódką i delikatną poświatą.
-class _RingBadge extends StatelessWidget {
-  const _RingBadge();
+/// Logo aplikacji (assets/ikona.png) w subtelnej złotej ramce z szafirową
+/// poświatą — jedyne logo ekranu powitalnego.
+class _Logo extends StatelessWidget {
+  const _Logo();
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 128,
-      height: 128,
+      width: 184,
+      height: 184,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Miękka poświata
+          // Miękka szafirowa poświata za logo.
           Container(
-            width: 128,
-            height: 128,
-            decoration: BoxDecoration(
+            width: 184,
+            height: 184,
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  AppColors.accent2.withValues(alpha: 0.22),
-                  AppColors.accent2.withValues(alpha: 0.0),
+                  Color(0x3FBFE0F5),
+                  Color(0x00BFE0F5),
                 ],
               ),
             ),
           ),
-          // Cienki złoty pierścień na zewnątrz
+          // Samo logo w zaokrąglonej, cienkiej złotej ramce.
           Container(
-            width: 104,
-            height: 104,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(30),
               border: Border.all(
-                  color: AppColors.goldLight.withValues(alpha: 0.9), width: 1.4),
-            ),
-          ),
-          // Właściwa odznaka ze złotą obwódką
-          Container(
-            width: 92,
-            height: 92,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFEAF1FF), Color(0xFFD6E4FB)],
+                color: AppColors.goldLight.withValues(alpha: 0.55),
+                width: 1.4,
               ),
-              border: Border.all(color: AppColors.goldLight, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.accent.withValues(alpha: 0.20),
-                  blurRadius: 22,
-                  offset: const Offset(0, 10),
+                  color: const Color(0xFF0B1A38).withValues(alpha: 0.55),
+                  blurRadius: 30,
+                  offset: const Offset(0, 14),
                 ),
               ],
             ),
-            child: const Text('💍', style: TextStyle(fontSize: 42)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Image.asset(
+                'assets/ikona.png',
+                width: 132,
+                height: 132,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
         ],
       ),
@@ -223,7 +229,8 @@ class _GoldFlourish extends StatelessWidget {
   }
 }
 
-/// Przycisk wejścia do aplikacji — gradient indygo ze złotą obwódką.
+/// Przycisk wejścia do aplikacji — szafirowo-indygowy gradient
+/// (jak kamień i tło logo) ze złotą obwódką i błękitną poświatą.
 class _EnterButton extends StatelessWidget {
   const _EnterButton({required this.onTap});
 
@@ -245,14 +252,14 @@ class _EnterButton extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.accent, Color(0xFF4F46E5)],
+              colors: [Color(0xFF3C6BB8), Color(0xFF4F46E5)],
             ),
             border: Border.all(
                 color: AppColors.goldLight.withValues(alpha: 0.85), width: 1.4),
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.30),
-                blurRadius: 20,
+                color: const Color(0xFF7FB4E8).withValues(alpha: 0.30),
+                blurRadius: 22,
                 offset: const Offset(0, 10),
               ),
             ],
@@ -279,7 +286,8 @@ class _EnterButton extends StatelessWidget {
   }
 }
 
-/// Subtelne, rozmyte kręgi ozdobne — jeden z lekkim złotym akcentem.
+/// Subtelne, rozmyte kręgi i błyski ozdobne — szafirowa poświata i złoty
+/// akcent, wraz z drobnymi iskrami jak na logo.
 class _BackgroundOrnaments extends StatelessWidget {
   const _BackgroundOrnaments();
 
@@ -289,14 +297,30 @@ class _BackgroundOrnaments extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            top: -80,
-            left: -60,
-            child: _blob(230, AppColors.accent2.withValues(alpha: 0.14)),
+            top: -90,
+            left: -70,
+            child: _blob(250, const Color(0xFFBFE0F5).withValues(alpha: 0.12)),
           ),
           Positioned(
-            bottom: -100,
-            right: -70,
-            child: _blob(280, AppColors.gold.withValues(alpha: 0.08)),
+            bottom: -110,
+            right: -80,
+            child: _blob(300, AppColors.gold.withValues(alpha: 0.10)),
+          ),
+          // Drobne iskry (jak szafirowy błysk w rogu logo).
+          Positioned(
+            top: 96,
+            right: 44,
+            child: _sparkle(16, const Color(0xFFBFE0F5).withValues(alpha: 0.75)),
+          ),
+          Positioned(
+            bottom: 150,
+            left: 40,
+            child: _sparkle(12, AppColors.goldLight.withValues(alpha: 0.6)),
+          ),
+          Positioned(
+            top: 210,
+            left: 54,
+            child: _sparkle(9, const Color(0xFFBFE0F5).withValues(alpha: 0.5)),
           ),
         ],
       ),
@@ -308,4 +332,7 @@ class _BackgroundOrnaments extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       );
+
+  Widget _sparkle(double size, Color color) =>
+      Icon(Icons.auto_awesome, size: size, color: color);
 }
