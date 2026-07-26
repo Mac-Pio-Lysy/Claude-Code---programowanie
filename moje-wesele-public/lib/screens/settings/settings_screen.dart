@@ -11,6 +11,7 @@ import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/format.dart';
+import 'guest_visibility_screen.dart';
 import 'security_settings_screen.dart';
 
 /// Sekcja „Ustawienia" — konfiguracja, dostęp, narzędzia programistyczne,
@@ -161,6 +162,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               _helpCard(),
               const SizedBox(height: 12),
+              _guestVisibilityCard(),
+              const SizedBox(height: 12),
               _loginCard(),
               const SizedBox(height: 12),
               _configCard(),
@@ -240,6 +243,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: widget.onOpenPlanning,
               icon: const Text('📋', style: TextStyle(fontSize: 16)),
               label: const Text('Od czego zacząć?'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _guestVisibilityCard() {
+    return _card(
+      'Widoczność dla gości',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ustal, które sekcje i w jakim czasie widzą goście na stronach '
+            'publicznych (np. RSVP do tygodnia przed, galeria od dnia wesela).',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => GuestVisibilityScreen(
+                    firestore: widget.firestore,
+                    raw: widget.data?.raw ?? const {},
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.visibility_outlined, size: 18),
+              label: const Text('Ustaw widoczność sekcji'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
