@@ -47,15 +47,26 @@ class MainNavigation extends StatefulWidget {
   MainNavigation({
     super.key,
     required this.user,
+    required this.weddingId,
     required this.onSignOut,
+    this.onSwitchWedding,
     FirestoreService? firestoreService,
-  }) : firestore = firestoreService ?? FirestoreService();
+  }) : firestore = firestoreService ?? FirestoreService(weddingId: weddingId);
 
   // TRYB TESTOWY - przywrócić logowanie przed wydaniem
   // `user` może być null, gdy działamy z pominięciem logowania (bypassLogin).
   // Docelowo (po przywróceniu logowania) tu zawsze będzie prawdziwy User.
   final User? user;
+
+  /// ID aktywnego wesela (multi-wedding) — wyznacza dokument `weddings/{id}`.
+  final String weddingId;
+
   final VoidCallback onSignOut;
+
+  /// Powrót do listy „Twoje wesela" (zmiana aktywnego wesela). Gdy `null`,
+  /// pozycja „Zmień wesele" nie jest pokazywana.
+  final VoidCallback? onSwitchWedding;
+
   final FirestoreService firestore;
 
   @override
@@ -509,6 +520,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   child: _UserMenu(
                     user: widget.user,
                     onSettings: () => _select(AppSection.settings),
+                    onSwitchWedding: widget.onSwitchWedding,
                     onSignOut: _handleSignOut,
                   ),
                 ),
@@ -1099,6 +1111,7 @@ class _UserMenu extends StatelessWidget {
     required this.user,
     required this.onSettings,
     required this.onSignOut,
+    this.onSwitchWedding,
   });
 
   // TRYB TESTOWY - przywrócić logowanie przed wydaniem
@@ -1107,6 +1120,9 @@ class _UserMenu extends StatelessWidget {
   final User? user;
   final VoidCallback onSettings;
   final VoidCallback onSignOut;
+
+  /// Powrót do listy wesel (opcjonalny — może być null).
+  final VoidCallback? onSwitchWedding;
 
   @override
   Widget build(BuildContext context) {
@@ -1117,6 +1133,7 @@ class _UserMenu extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
         if (value == 'settings') onSettings();
+        if (value == 'switch') onSwitchWedding?.call();
         if (value == 'logout') onSignOut();
       },
       itemBuilder: (context) => [
@@ -1129,6 +1146,17 @@ class _UserMenu extends StatelessWidget {
           ),
         ),
         const PopupMenuDivider(),
+        if (onSwitchWedding != null)
+          PopupMenuItem(
+            value: 'switch',
+            child: Row(
+              children: [
+                const Icon(Icons.swap_horiz, size: 20),
+                const SizedBox(width: 10),
+                Text('Zmień wesele', style: GoogleFonts.inter(fontSize: 14)),
+              ],
+            ),
+          ),
         PopupMenuItem(
           value: 'settings',
           child: Row(

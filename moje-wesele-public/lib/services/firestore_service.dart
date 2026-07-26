@@ -1,28 +1,45 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/wedding_data.dart';
+import 'active_wedding.dart';
 
-/// Dostęp do współdzielonych danych wesela w Firestore.
+/// Dostęp do danych KONKRETNEGO wesela w Firestore (model wielu wesel).
 ///
-/// WAŻNE: aplikacja Flutter korzysta z DOKŁADNIE tej samej lokalizacji co
-/// aplikacja webowa (zrodlo-web/firebase-config.js):
-///   kolekcja `weddingPlanner`, dokument `main`.
-/// Dzięki temu obie aplikacje czytają i zapisują te same dane.
+/// Dane każdego wesela żyją w osobnym dokumencie:
+///   kolekcja `weddings`, dokument `{weddingId}`.
+///
+/// Wcześniej istniał jeden, stały dokument `weddingPlanner/main`. Teraz ścieżkę
+/// wyznacza aktywne wesele: albo jawnie podane w konstruktorze ([weddingId]),
+/// albo z globalnego [ActiveWedding.id] (ustawianego przy wyborze wesela).
+/// Dzięki temu wszystkie serwisy sekcji (goście, budżet, plan sali…), które
+/// korzystają z tego serwisu, automatycznie operują na aktywnym weselu.
 class FirestoreService {
-  FirestoreService({FirebaseFirestore? firestore})
-      : _db = firestore ?? FirebaseFirestore.instance;
+  FirestoreService({FirebaseFirestore? firestore, String? weddingId})
+      : _db = firestore ?? FirebaseFirestore.instance,
+        _explicitWeddingId = weddingId;
 
   final FirebaseFirestore _db;
 
-  /// Nazwa kolekcji — zgodna z `FS_COLLECTION` w aplikacji webowej.
-  static const String collectionName = 'weddingPlanner';
+  /// ID wesela podane jawnie w konstruktorze (ma pierwszeństwo przed globalnym).
+  final String? _explicitWeddingId;
 
-  /// Identyfikator dokumentu — zgodny z `FS_DOC_ID` w aplikacji webowej.
-  static const String docId = 'main';
+  /// Nazwa kolekcji wesel.
+  static const String collectionName = 'weddings';
 
-  /// Referencja do współdzielonego dokumentu z danymi wesela.
+  /// Aktywne ID wesela — jawne z konstruktora lub z [ActiveWedding.id].
+  String get weddingId {
+    final id = _explicitWeddingId ?? ActiveWedding.id;
+    assert(
+      id != null && id.isNotEmpty,
+      'Brak aktywnego weddingId — wybierz wesele (ActiveWedding.id) '
+      'lub przekaż weddingId do FirestoreService.',
+    );
+    return (id != null && id.isNotEmpty) ? id : '__none__';
+  }
+
+  /// Referencja do dokumentu z danymi AKTYWNEGO wesela.
   DocumentReference<Map<String, dynamic>> get mainDoc =>
-      _db.collection(collectionName).doc(docId);
+      _db.collection(collectionName).doc(weddingId);
 
   /// Strumień zmian dokumentu — odpowiednik `onSnapshot` w aplikacji webowej.
   Stream<Map<String, dynamic>?> watchData() =>

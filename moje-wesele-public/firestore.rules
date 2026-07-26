@@ -1,43 +1,33 @@
 rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REGUŁY TESTOWE - CAŁKOWICIE OTWARTE - zastąpić bezpiecznymi przed wydaniem
+//
+// Na czas budowy architektury WIELU wesel: pełny odczyt i zapis dla WSZYSTKICH.
+// Powód: w trybie `bypassLogin` aplikacja może działać BEZ zalogowania
+// (logowanie anonimowe bywa wyłączone w projekcie), więc `request.auth` jest
+// null i reguły oparte na uwierzytelnieniu blokowałyby zapis do nowych
+// kolekcji (weddings, memberships, users).
+//
+// PRAWDZIWA IZOLACJA (do zrobienia w OSOBNYM kroku):
+//   • users/{uid}          — tylko właściciel dokumentu,
+//   • weddings/{id}        — tylko użytkownicy z powiazaniem do tego wesela,
+//   • memberships/{id}     — tylko właściciel powiązania / owner wesela,
+//   • gallery/guestbook/musicProposals — publiczny odczyt + dodawanie (goście),
+//     usuwanie tylko organizatorzy.
+//
+// NIE WYDAWAĆ Z TYMI REGUŁAMI. Zastąpić bezpiecznymi regułami przed premierą.
+// ═══════════════════════════════════════════════════════════════════════════
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Zalogowani/testowi użytkownicy: pełny dostęp do WSZYSTKICH kolekcji ──
-    // Naprawia „Missing or insufficient permissions" przy odczycie/zapisie
-    // (m.in. budżet w weddingPlanner/main). Reguły w Firestore sumują się (OR) —
-    // wyjątki publiczne poniżej tylko ROZSZERZAJĄ dostęp.
+    // REGUŁY TESTOWE - CAŁKOWICIE OTWARTE - zastąpić bezpiecznymi przed wydaniem
+    // Pełny dostęp do wszystkich kolekcji (weddings, memberships, users,
+    // gallery, guestbook, musicProposals, weddingPlanner, …) — bez wyjątków,
+    // BEZ wymogu logowania (działa z bypassLogin, gdy request.auth == null).
     match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // ── Wyjątki PUBLICZNE (goście bez logowania) — spójne z wersją web ──
-
-    // Dane planera: odczyt przed zalogowaniem oraz zapis (np. RSVP gości).
-    // `read` obejmuje get i list. UWAGA: na czas testów jest to zapis publiczny,
-    // dzięki czemu budżet zapisuje się nawet bez włączonego logowania anonimowego.
-    match /weddingPlanner/{doc} {
       allow read, write: if true;
-    }
-
-    // Propozycje piosenek od gości: publiczny odczyt i dodawanie.
-    match /musicProposals/{id} {
-      allow read, create: if true;
-    }
-
-    // Księga gości: publiczny odczyt i dodawanie wpisów.
-    match /guestbook/{id} {
-      allow read, create: if true;
-    }
-
-    // Galeria zdjęć gości: publiczny odczyt i dodawanie; usuwanie tylko organizatorzy.
-    match /gallery/{photoId} {
-      allow read, create: if true;
-      allow delete: if request.auth != null
-        && request.auth.token.email in [
-          'macholak.piotr@gmail.com',
-          'ceremonia.panstwa.macholak@gmail.com',
-          'patrycja.staniow@gmail.com'
-        ];
     }
   }
 }

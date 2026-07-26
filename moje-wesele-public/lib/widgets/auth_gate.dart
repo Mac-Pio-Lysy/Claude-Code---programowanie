@@ -7,7 +7,9 @@ import '../app_colors.dart';
 import '../screens/lock/lock_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_navigation.dart';
+import '../screens/weddings/weddings_list_screen.dart';
 import '../screens/welcome_screen.dart';
+import '../services/active_wedding.dart';
 import '../services/app_lock_service.dart';
 import '../services/auth_service.dart';
 
@@ -67,6 +69,26 @@ class _AuthGateState extends State<AuthGate> {
   /// TRYB TESTOWY: czy użytkownik przeszedł ekran tytułowy do aplikacji.
   bool _entered = false;
 
+  /// Aktywne wesele (multi-wedding). `null` → pokazujemy ekran „Twoje wesela".
+  /// Ustawiane po wyborze wesela z listy, czyszczone przy „Zmień wesele".
+  String? _activeWeddingId;
+
+  /// Identyfikator używany do danych — uid zalogowanego użytkownika lub
+  /// zastępczy w trybie bez logowania (bypassLogin).
+  String get _dataUid => _user?.uid ?? 'tryb-testowy';
+
+  /// Ustawia aktywne wesele (globalnie i w stanie) — wybór z listy.
+  void _openWedding(String weddingId) {
+    ActiveWedding.id = weddingId;
+    setState(() => _activeWeddingId = weddingId);
+  }
+
+  /// Powrót do listy wesel („Zmień wesele").
+  void _switchWedding() {
+    ActiveWedding.clear();
+    setState(() => _activeWeddingId = null);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -106,11 +128,13 @@ class _AuthGateState extends State<AuthGate> {
 
     // Brak zalogowanego użytkownika
     if (user == null) {
+      ActiveWedding.clear();
       if (!mounted) return;
       setState(() {
         _user = null;
         _unlocked = false;
         _initializing = false;
+        _activeWeddingId = null;
       });
       return;
     }
@@ -207,6 +231,26 @@ class _AuthGateState extends State<AuthGate> {
     }
   }
 
+  /// Wybór między ekranem „Twoje wesela" a panelem głównym aktywnego wesela.
+  /// Wspólne dla trybu testowego (bypassLogin) i normalnego logowania.
+  Widget _weddingsOrApp(User? user) {
+    if (_activeWeddingId == null) {
+      return WeddingsListScreen(
+        userId: _dataUid,
+        displayName: user?.displayName,
+        email: user?.email,
+        onOpen: _openWedding,
+        onSignOut: () => _authService.signOut(),
+      );
+    }
+    return MainNavigation(
+      user: user,
+      weddingId: _activeWeddingId!,
+      onSwitchWedding: _switchWedding,
+      onSignOut: () => _authService.signOut(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // ───────────────────────────────────────────────────────────────────────
@@ -216,14 +260,11 @@ class _AuthGateState extends State<AuthGate> {
     // (dopóki ewentualne logowanie anonimowe w tle nie ustawi realnej sesji).
     if (bypassLogin) {
       // Najpierw elegancki ekran tytułowy (docelowo logowanie/rejestracja),
-      // potem — po „Wejdź" — panel główny.
+      // potem — po „Wejdź" — ekran „Twoje wesela", a po wyborze — panel główny.
       if (!_entered) {
         return WelcomeScreen(onEnter: () => setState(() => _entered = true));
       }
-      return MainNavigation(
-        user: _user,
-        onSignOut: () => _authService.signOut(),
-      );
+      return _weddingsOrApp(_user);
     }
     // ───────────────────────────────────────────────────────────────────────
 
@@ -242,10 +283,7 @@ class _AuthGateState extends State<AuthGate> {
           onForceReauth: () => _authService.signOut(),
         );
       }
-      return MainNavigation(
-        user: user,
-        onSignOut: () => _authService.signOut(),
-      );
+      return _weddingsOrApp(user);
     }
     return LoginScreen(
       onGoogleSignIn: _handleSignIn,
