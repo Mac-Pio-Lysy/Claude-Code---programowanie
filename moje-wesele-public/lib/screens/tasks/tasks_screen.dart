@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/task.dart';
 import '../../models/vendor.dart' show kVendorBudgetCategories;
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
 import '../../services/firestore_service.dart';
 import '../../services/task_service.dart';
 import '../../utils/format.dart';
@@ -17,10 +18,14 @@ class TasksScreen extends StatefulWidget {
     super.key,
     required this.data,
     required FirestoreService firestore,
+    this.onOpenSection,
   }) : service = TaskService(firestore: firestore);
 
   final WeddingData? data;
   final TaskService service;
+
+  /// Nawigacja do powiązanej sekcji (z karty zadania).
+  final void Function(AppSection)? onOpenSection;
 
   @override
   State<TasksScreen> createState() => _TasksScreenState();
@@ -33,7 +38,7 @@ class _TasksScreenState extends State<TasksScreen> {
   String _statusFilter = 'all';
   String _linkFilter = 'all'; // all | budget | vendor | gift | none
   String _sort = 'none';
-  bool _filtersVisible = true;
+  bool _filtersVisible = false;
 
   bool _matchesLink(Task t) {
     switch (_linkFilter) {
@@ -41,10 +46,16 @@ class _TasksScreenState extends State<TasksScreen> {
         return t.isBudgetLinked;
       case 'vendor':
         return t.vendorId != null;
+      case 'transport':
+        return t.transportId != null;
+      case 'accommodation':
+        return t.accommodationId != null;
+      case 'music':
+        return t.musicId != null;
       case 'gift':
         return t.giftId != null;
       case 'none':
-        return !t.isBudgetLinked && t.vendorId == null && t.giftId == null;
+        return !t.hasAnyLink;
       default:
         return true;
     }
@@ -67,7 +78,7 @@ class _TasksScreenState extends State<TasksScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const TaskFormSheet(),
+      builder: (_) => TaskFormSheet(data: widget.data),
     );
     if (draft == null) return;
     await widget.service.addTask(draft);
@@ -79,7 +90,7 @@ class _TasksScreenState extends State<TasksScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => TaskFormSheet(existing: task),
+      builder: (_) => TaskFormSheet(existing: task, data: widget.data),
     );
     if (draft == null || task.id == null) return;
     await widget.service.updateTask(task.id!, draft);
@@ -349,6 +360,8 @@ class _TasksScreenState extends State<TasksScreen> {
           onDelete: _delete,
           onMove: _move,
           onToggleGoal: _toggleGoalAchieved,
+          data: widget.data,
+          onOpenSection: widget.onOpenSection,
         );
 
     // Pojedyncza kolumna (filtr statusu) — pełna szerokość.
@@ -419,6 +432,12 @@ class _TasksScreenState extends State<TasksScreen> {
               () => setState(() => _linkFilter = 'budget')),
           _chip('👨‍🍳 Dostawca', _linkFilter == 'vendor',
               () => setState(() => _linkFilter = 'vendor')),
+          _chip('🚗 Transport', _linkFilter == 'transport',
+              () => setState(() => _linkFilter = 'transport')),
+          _chip('🏨 Nocleg', _linkFilter == 'accommodation',
+              () => setState(() => _linkFilter = 'accommodation')),
+          _chip('🎵 Muzyka', _linkFilter == 'music',
+              () => setState(() => _linkFilter = 'music')),
           _chip('🎁 Prezent', _linkFilter == 'gift',
               () => setState(() => _linkFilter = 'gift')),
           _chip('Bez powiązania', _linkFilter == 'none',
@@ -480,6 +499,8 @@ class _TaskColumn extends StatelessWidget {
     required this.onDelete,
     required this.onMove,
     required this.onToggleGoal,
+    required this.data,
+    required this.onOpenSection,
   });
 
   final TaskStatus status;
@@ -489,6 +510,8 @@ class _TaskColumn extends StatelessWidget {
   final ValueChanged<Task> onDelete;
   final void Function(Task, String) onMove;
   final ValueChanged<Task> onToggleGoal;
+  final WeddingData? data;
+  final void Function(AppSection)? onOpenSection;
 
   @override
   Widget build(BuildContext context) {
@@ -552,6 +575,8 @@ class _TaskColumn extends StatelessWidget {
                           onDelete: () => onDelete(tasks[i]),
                           onMove: (s) => onMove(tasks[i], s),
                           onToggleGoal: () => onToggleGoal(tasks[i]),
+                          data: data,
+                          onOpenSection: onOpenSection,
                         ),
                       ),
               ),
@@ -570,6 +595,8 @@ class _TaskCard extends StatelessWidget {
     required this.onDelete,
     required this.onMove,
     required this.onToggleGoal,
+    required this.data,
+    required this.onOpenSection,
   });
 
   final Task task;
@@ -577,6 +604,23 @@ class _TaskCard extends StatelessWidget {
   final VoidCallback onDelete;
   final ValueChanged<String> onMove;
   final VoidCallback onToggleGoal;
+  final WeddingData? data;
+  final void Function(AppSection)? onOpenSection;
+
+  /// Nazwa powiązanego elementu (po ID) z danej kolekcji — dla etykiety
+  /// „Powiązane z: [nazwa]". Zwraca null, gdy element nie istnieje.
+  String? _linkName(String key, int? id, String Function(Map) nameOf) {
+    if (id == null) return null;
+    final list = data?.raw[key];
+    if (list is! List) return null;
+    for (final e in list) {
+      if (e is Map && (e['id'] as num?)?.toInt() == id) {
+        final n = nameOf(e).trim();
+        return n.isEmpty ? null : n;
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -656,14 +700,56 @@ class _TaskCard extends StatelessWidget {
                       : AppColors.textLight,
                 ),
               if (t.isBudgetLinked)
-                _badge('💰 ${t.estimatedCost.toStringAsFixed(0)} zł',
-                    const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
+                _linkBadge('💰 ${t.estimatedCost.toStringAsFixed(0)} zł',
+                    const Color(0xFFF5F3FF), const Color(0xFF7C3AED),
+                    AppSection.budget),
               if (t.vendorId != null)
-                _badge('👨‍🍳 Dostawca', const Color(0xFFECFDF5),
-                    const Color(0xFF059669)),
+                _linkBadge(
+                    _withName(
+                        '👨‍🍳 Dostawca',
+                        _linkName('vendors', t.vendorId, (m) {
+                          final c = (m['companyName'] as String?)?.trim();
+                          return (c == null || c.isEmpty)
+                              ? ((m['category'] as String?) ?? '')
+                              : c;
+                        })),
+                    const Color(0xFFECFDF5),
+                    const Color(0xFF059669),
+                    AppSection.vendors),
+              if (t.transportId != null)
+                _linkBadge(
+                    _withName(
+                        '🚗 Transport',
+                        _linkName('vehicles', t.transportId, (m) {
+                          final d = (m['description'] as String?)?.trim();
+                          return (d == null || d.isEmpty)
+                              ? ((m['type'] as String?) ?? '')
+                              : d;
+                        })),
+                    const Color(0xFFEFF6FF),
+                    const Color(0xFF1D4ED8),
+                    AppSection.transport),
+              if (t.accommodationId != null)
+                _linkBadge(
+                    _withName(
+                        '🏨 Nocleg',
+                        _linkName('hotels', t.accommodationId,
+                            (m) => (m['name'] as String?) ?? '')),
+                    const Color(0xFFF0FDFA),
+                    const Color(0xFF0D9488),
+                    AppSection.accommodation),
+              if (t.musicId != null)
+                _linkBadge(
+                    _withName(
+                        '🎵 Muzyka',
+                        _linkName('songs', t.musicId,
+                            (m) => (m['title'] as String?) ?? '')),
+                    const Color(0xFFFFF7ED),
+                    const Color(0xFFB45309),
+                    AppSection.music),
               if (t.giftId != null)
-                _badge('🎁 Prezent', const Color(0xFFFDF2F8),
-                    const Color(0xFFDB2777)),
+                _linkBadge('🎁 Prezent', const Color(0xFFFDF2F8),
+                    const Color(0xFFDB2777), AppSection.gifts),
             ],
           ),
         ],
@@ -744,6 +830,20 @@ class _TaskCard extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: t.person.color)),
+    );
+  }
+
+  /// „Powiązane z: [nazwa]" — dokleja nazwę elementu do etykiety, jeśli znana.
+  String _withName(String base, String? name) =>
+      (name == null || name.isEmpty) ? base : '$base: $name';
+
+  /// Odznaka powiązania — klikalna (nawigacja do sekcji), gdy dostępne.
+  Widget _linkBadge(String text, Color bg, Color fg, AppSection? section) {
+    final badge = _badge(text, bg, fg);
+    if (section == null || onOpenSection == null) return badge;
+    return GestureDetector(
+      onTap: () => onOpenSection!(section),
+      child: badge,
     );
   }
 

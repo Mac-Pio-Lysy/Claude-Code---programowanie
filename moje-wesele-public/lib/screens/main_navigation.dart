@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../app_flags.dart';
 import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
 import '../onboarding/onboarding_overlay.dart';
@@ -50,7 +51,10 @@ class MainNavigation extends StatefulWidget {
     FirestoreService? firestoreService,
   }) : firestore = firestoreService ?? FirestoreService();
 
-  final User user;
+  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+  // `user` może być null, gdy działamy z pominięciem logowania (bypassLogin).
+  // Docelowo (po przywróceniu logowania) tu zawsze będzie prawdziwy User.
+  final User? user;
   final VoidCallback onSignOut;
   final FirestoreService firestore;
 
@@ -60,6 +64,12 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   static const double _tabletBreakpoint = 720;
+
+  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+  // Identyfikator używany do per-użytkownikowej konfiguracji (pasek nawigacji,
+  // onboarding). Gdy brak zalogowanego użytkownika (bypassLogin), używamy
+  // zastępczego uid, żeby aplikacja działała bez FirebaseAuth.
+  String get _uid => widget.user?.uid ?? 'tryb-testowy';
 
   late final NavConfigService _navConfig;
   late final OnboardingService _onboarding;
@@ -77,6 +87,7 @@ class _MainNavigationState extends State<MainNavigation> {
   final _barKey = GlobalKey();
   final _railKey = GlobalKey();
   final _dashFabKey = GlobalKey();
+  final _dashRailKey = GlobalKey();
   final _moreNavKey = GlobalKey();
   final List<GlobalKey> _navItemKeys =
       List.generate(NavConfigService.slots, (_) => GlobalKey());
@@ -93,8 +104,8 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   void initState() {
     super.initState();
-    _navConfig = NavConfigService(uid: widget.user.uid);
-    _onboarding = OnboardingService(uid: widget.user.uid);
+    _navConfig = NavConfigService(uid: _uid);
+    _onboarding = OnboardingService(uid: _uid);
     _dataStream = widget.firestore.watchWeddingData();
     _navConfig.load().then((bar) {
       if (mounted) setState(() => _bar = bar);
@@ -179,11 +190,14 @@ class _MainNavigationState extends State<MainNavigation> {
     if (s == AppSection.settings) return _rectOfKey(_logoKey);
     final isTablet = MediaQuery.sizeOf(context).width >= _tabletBreakpoint;
     if (isTablet) {
-      // Dashboard jest pierwszą pozycją szyny; pozostałe sekcje po nim.
-      final items = [AppSection.dashboard, ..._bar];
-      final total = items.length + 1; // + „Więcej"
+      // Dashboard jest przypięty osobno na górze szyny.
+      if (s == AppSection.dashboard) return _rectOfKey(_dashRailKey);
+      // Pozostałe sekcje — przewijana część szyny (bez Dashboardu).
+      final items =
+          _railSections.where((x) => x != AppSection.dashboard).toList();
+      final total = items.length;
       var idx = items.indexOf(s);
-      if (idx < 0) idx = total - 1;
+      if (idx < 0) idx = 0;
       final r = _rectOfKey(_railKey);
       if (r == null) return null;
       final slot = r.height / total;
@@ -315,12 +329,41 @@ class _MainNavigationState extends State<MainNavigation> {
     widget.onSignOut();
   }
 
-  /// Ikona zakładki Dashboard (assets/ikona_dashBoard.png).
+  /// Ścieżka ikony Dashboard — premium (`ikona_premium.png`) lub standardowa
+  /// (`ikona.png`). Sterowane flagą [isPremium] (docelowo modułem płatności).
+  static String get _dashAsset =>
+      isPremium ? 'assets/ikona_premium.png' : 'assets/ikona.png';
+
+  /// Ikona zakładki Dashboard — ZAWSZE przycięta do okręgu (ClipOval).
+  /// Używana wewnątrz pływającego, okrągłego przycisku na telefonie.
   /// Wyszarzona, gdy sekcja nie jest aktywna.
   Widget _dashIcon({required bool selected, double size = 28}) => Opacity(
         opacity: selected ? 1 : 0.5,
-        child:
-            Image.asset('assets/ikona_dashBoard.png', width: size, height: size),
+        child: ClipOval(
+          child: Image.asset(_dashAsset,
+              width: size, height: size, fit: BoxFit.cover),
+        ),
+      );
+
+  /// Okrągła ikona Dashboard dla bocznej szyny tabletu — ikona w białym
+  /// okręgu ze złotą/indygo obwódką (zaznaczenie).
+  Widget _dashRailIcon({required bool selected, double size = 34}) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.white, Color(0xFFEAF1FF)],
+          ),
+          // Zawsze subtelna złota obwódka wokół okręgu Dashboard.
+          border: Border.all(color: AppColors.goldLight, width: 2),
+        ),
+        padding: const EdgeInsets.all(3),
+        child: ClipOval(
+          child: Image.asset(_dashAsset, fit: BoxFit.cover),
+        ),
       );
 
   /// Sekcje „Więcej": wszystko poza Dashboardem, sekcjami z paska ([_bar] —
@@ -524,50 +567,31 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 
-  Widget _buildTabletLayout(WeddingData? data, bool loading) {
-    // Rail: Dashboard (przypięty) + sekcje z paska + „Więcej".
-    final rail = [AppSection.dashboard, ..._bar];
-    final selectedIndex =
-        rail.contains(_current) ? rail.indexOf(_current) : rail.length;
+  /// Wszystkie sekcje pokazywane w bocznej szynie tabletu — Dashboard
+  /// (przypięty na górze) + wszystkie pozostałe sekcje. BEZ „Więcej":
+  /// na tablecie jest miejsce, by pokazać wszystko naraz. Ustawienia zostają
+  /// wyłącznie w menu logo (jak na telefonie).
+  List<AppSection> get _railSections => [
+        AppSection.dashboard,
+        ...AppSection.values.where((s) =>
+            s != AppSection.dashboard && s != AppSection.settings),
+      ];
 
+  Widget _buildTabletLayout(WeddingData? data, bool loading) {
     return Row(
       children: [
-        NavigationRail(
-          key: _railKey,
-          backgroundColor: Colors.white.withValues(alpha: 0.6),
-          selectedIndex: selectedIndex,
-          labelType: NavigationRailLabelType.all,
-          indicatorColor: AppColors.accent.withValues(alpha: 0.14),
-          selectedIconTheme: const IconThemeData(color: AppColors.accent),
-          selectedLabelTextStyle: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.accent,
-          ),
-          unselectedLabelTextStyle:
-              GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
-          onDestinationSelected: (index) {
-            if (index < rail.length) {
-              _select(rail[index]);
-            } else {
-              _openMore();
-            }
-          },
-          destinations: [
-            for (final s in rail)
-              NavigationRailDestination(
-                icon: s == AppSection.dashboard
-                    ? _dashIcon(selected: _current == s)
-                    : Icon(s.icon),
-                label: Text(s.label),
-              ),
-            const NavigationRailDestination(
-              icon: Icon(Icons.more_horiz),
-              label: Text('Więcej'),
+        _buildTabletRail(),
+        // Złota linia oddzielająca szynę od treści.
+        Container(
+          width: 1.4,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: AppColors.goldGradient,
             ),
-          ],
+          ),
         ),
-        const VerticalDivider(width: 1),
         Expanded(
           child: KeyedSubtree(
             key: _bodyKey,
@@ -575,6 +599,118 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Boczna szyna nawigacji tabletu — ten sam styl co dolny pasek telefonu:
+  /// gradient biały→indygo ze złotymi akcentami. Dashboard jest PRZYPIĘTY na
+  /// górze (stałe miejsce, niekonfigurowalny, nieprzesuwalny, zawsze widoczny),
+  /// a pozostałe sekcje są przewijane poniżej.
+  Widget _buildTabletRail() {
+    // Sekcje przewijane — wszystkie poza Dashboardem (i Ustawieniami).
+    final other =
+        _railSections.where((s) => s != AppSection.dashboard).toList();
+    final idx = other.indexOf(_current);
+    final unselected = Colors.white.withValues(alpha: 0.66);
+
+    return Container(
+      // Stała szerokość szyny — pozwala przypiąć Dashboard nad przewijaną
+      // listą bez konfliktów układu (IntrinsicWidth nie współpracuje z
+      // LayoutBuilderem użytym do przewijania).
+      width: 88,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          // Jasno-niebieski (góra) → indygo (dół). Jasny akcent tylko wąskim
+          // pasem u góry, reszta indygo — białe etykiety pozostają czytelne.
+          colors: AppColors.navBarGradient,
+          stops: [0.0, 0.12, 1.0],
+        ),
+      ),
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Dashboard — PRZYPIĘTY, zawsze na górze, wyróżniony ──
+            KeyedSubtree(key: _dashRailKey, child: _tabletDashboardButton()),
+            Container(
+              height: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              color: AppColors.goldLight.withValues(alpha: 0.45),
+            ),
+            // ── Pozostałe sekcje — przewijane ──
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
+                      child: NavigationRail(
+                        key: _railKey,
+                        backgroundColor: Colors.transparent,
+                        selectedIndex: idx >= 0 ? idx : null,
+                        labelType: NavigationRailLabelType.all,
+                        indicatorColor: AppColors.gold.withValues(alpha: 0.26),
+                        selectedIconTheme:
+                            const IconThemeData(color: AppColors.goldLight),
+                        unselectedIconTheme: IconThemeData(color: unselected),
+                        selectedLabelTextStyle: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.goldLight,
+                        ),
+                        unselectedLabelTextStyle:
+                            GoogleFonts.inter(fontSize: 12, color: unselected),
+                        onDestinationSelected: (index) => _select(other[index]),
+                        destinations: [
+                          for (final s in other)
+                            NavigationRailDestination(
+                              icon: Icon(s.icon),
+                              label: Text(s.label),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+
+  /// Przypięty przycisk Dashboard na górze szyny tabletu — stałe miejsce,
+  /// niekonfigurowalny; wyróżniony okrągłą, złotą obwódką i podświetleniem.
+  Widget _tabletDashboardButton() {
+    final selected = _current == AppSection.dashboard;
+    return Material(
+      color: selected ? Colors.white.withValues(alpha: 0.14) : Colors.transparent,
+      child: InkWell(
+        onTap: () => _select(AppSection.dashboard),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(6, 16, 6, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _dashRailIcon(selected: selected),
+              const SizedBox(height: 6),
+              Text(
+                'Dashboard',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: selected
+                      ? AppColors.goldLight
+                      : Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -600,7 +736,7 @@ class _MainNavigationState extends State<MainNavigation> {
         return DashboardScreen(
           data: data,
           isLoading: loading,
-          uid: widget.user.uid,
+          uid: _uid,
           onOpenSection: _select,
         );
       case AppSection.guests:
@@ -613,7 +749,10 @@ class _MainNavigationState extends State<MainNavigation> {
       case AppSection.schedule:
         return ScheduleScreen(data: data, firestore: widget.firestore);
       case AppSection.tasks:
-        return TasksScreen(data: data, firestore: widget.firestore);
+        return TasksScreen(
+            data: data,
+            firestore: widget.firestore,
+            onOpenSection: _select);
       case AppSection.vendors:
         return VendorsScreen(
             data: data, firestore: widget.firestore, onOpenSection: _select);
@@ -962,13 +1101,16 @@ class _UserMenu extends StatelessWidget {
     required this.onSignOut,
   });
 
-  final User user;
+  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+  // `user` bywa null w trybie bez logowania — menu pokazuje wtedy etykietę
+  // zastępczą, ale nadal działa (Ustawienia, „Wyloguj").
+  final User? user;
   final VoidCallback onSettings;
   final VoidCallback onSignOut;
 
   @override
   Widget build(BuildContext context) {
-    final photoUrl = user.photoURL;
+    final photoUrl = user?.photoURL;
     return PopupMenuButton<String>(
       tooltip: 'Konto',
       offset: const Offset(0, 48),
@@ -981,7 +1123,8 @@ class _UserMenu extends StatelessWidget {
         PopupMenuItem(
           enabled: false,
           child: Text(
-            user.email ?? user.displayName ?? 'Konto',
+            // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+            user?.email ?? user?.displayName ?? 'Tryb testowy',
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
         ),
@@ -1029,10 +1172,11 @@ class _UserMenu extends StatelessWidget {
     );
   }
 
-  static String _initials(User user) {
-    final source = (user.displayName?.trim().isNotEmpty ?? false)
-        ? user.displayName!.trim()
-        : (user.email ?? '?');
+  static String _initials(User? user) {
+    // TRYB TESTOWY - przywrócić logowanie przed wydaniem: obsługa braku usera.
+    final source = (user?.displayName?.trim().isNotEmpty ?? false)
+        ? user!.displayName!.trim()
+        : (user?.email ?? '?');
     final parts =
         source.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     if (parts.length >= 2) {

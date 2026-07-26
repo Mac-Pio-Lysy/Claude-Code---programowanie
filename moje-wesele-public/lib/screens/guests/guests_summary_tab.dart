@@ -78,10 +78,20 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
       ..sort((a, b) => a.key.compareTo(b.key));
     final dietItems = s.diet.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
+    final witnessGroom =
+        _guests.where((g) => g.witness == 'witness_groom').length;
+    final witnessBride =
+        _guests.where((g) => g.witness == 'witness_bride').length;
+    final witnessTarget = widget.data?.witnessCount ?? 2;
     return Wrap(
       spacing: 12,
       runSpacing: 12,
       children: [
+        _aggCard('🤝 Świadkowie (cel: $witnessTarget)', [
+          ('Świadek', witnessGroom),
+          ('Świadkowa', witnessBride),
+          ('Wyznaczeni łącznie', witnessGroom + witnessBride),
+        ]),
         _aggCard('🍽 Menu (co je)', [
           for (final e in menuItems) (e.key, e.value),
           if (s.noMenu > 0) ('Bez wyboru menu', s.noMenu),

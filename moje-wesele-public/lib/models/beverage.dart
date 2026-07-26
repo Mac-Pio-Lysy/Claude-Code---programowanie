@@ -98,7 +98,16 @@ class BeverageSummary {
     final venueMin = _d(budget['venueMinGuests']);
     final virtual = max(0.0, venueMin - seated);
     final perVirtual = budget[kind.perVirtualKey] == true;
-    final personCount = guests.length + (perVirtual ? virtual : 0.0);
+
+    // Wesele z dziećmi: dzieci są WYŁĄCZONE z przeliczeń alkoholu
+    // (alkohol nie dla dzieci). Napojów bezalkoholowych to nie dotyczy.
+    final withChildren = budget['withChildren'] == true;
+    final childrenCount =
+        withChildren ? max(0, _d(budget['childrenCount']).round()) : 0;
+    final baseGuests = kind == BeverageKind.alcohol
+        ? max(0, guests.length - childrenCount)
+        : guests.length;
+    final personCount = baseGuests + (perVirtual ? virtual : 0.0);
 
     final names = budget['coupleNames'];
     final coupleNames = (names is List && names.length >= 2)

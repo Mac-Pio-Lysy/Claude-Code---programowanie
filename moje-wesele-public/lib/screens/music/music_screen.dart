@@ -9,6 +9,7 @@ import '../../models/wedding_data.dart';
 import '../../services/deezer_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/music_service.dart';
+import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
 import '../../widgets/public_link_card.dart';
 import '../budget/budget_fields.dart';
@@ -40,6 +41,7 @@ class _MusicScreenState extends State<MusicScreen> {
 
   String _momentFilter = 'all';
   String _statusFilter = 'all';
+  bool _filtersVisible = false;
   String _genreFilter = '';
 
   /// Liczba kolumn w widoku kafelkowym (0 = widok listy).
@@ -172,7 +174,31 @@ class _MusicScreenState extends State<MusicScreen> {
             children: [
               _searchCard(),
               const SizedBox(height: 12),
-              _filters(),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Filtry i sortowanie',
+                        style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text)),
+                  ),
+                  FilterToggleButton(
+                    expanded: _filtersVisible,
+                    onTap: () =>
+                        setState(() => _filtersVisible = !_filtersVisible),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.topCenter,
+                curve: Curves.easeInOut,
+                child: _filtersVisible
+                    ? _filters()
+                    : const SizedBox(width: double.infinity),
+              ),
               const SizedBox(height: 12),
               _viewToggle(),
               const SizedBox(height: 12),

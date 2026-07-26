@@ -12,12 +12,16 @@ class TableDraft {
     required this.shape,
     required this.seats,
     required this.isHonor,
+    this.isChild = false,
   });
 
   final String name;
   final String shape; // 'round' | 'rect'
   final int seats;
   final bool isHonor;
+
+  /// Stół dla dzieci (wesele z dziećmi). Wzajemnie wykluczający się z honorowym.
+  final bool isChild;
 }
 
 /// Operacje na stołach i przypisaniach gości w `weddingPlanner/main`.
@@ -54,6 +58,7 @@ class TableService {
       'rectWM': 0,
       'rectLM': 0,
       if (draft.isHonor) 'isHonorTable': true,
+      if (draft.isChild) 'isChildTable': true,
     });
     nextId++;
 

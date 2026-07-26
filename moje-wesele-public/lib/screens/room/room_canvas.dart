@@ -271,6 +271,7 @@ class _RoomTableVisual extends StatelessWidget {
     final shape = (table['shape'] as String?) ?? 'round';
     final isRound = shape == 'round';
     final honor = table['isHonorTable'] == true;
+    final child = table['isChildTable'] == true;
     final name = (table['name'] as String?) ?? 'Stół';
     final seats = (table['seatsData'] as List?) ?? const [];
     final seatPos = geo.seatPositions(table);
@@ -278,7 +279,9 @@ class _RoomTableVisual extends StatelessWidget {
 
     final bodyGradient = honor
         ? const [Color(0xFFB45309), Color(0xFFF59E0B)]
-        : const [AppColors.accent, AppColors.accent2];
+        : child
+            ? const [Color(0xFF0EA5A5), Color(0xFF34D399)]
+            : const [AppColors.accent, AppColors.accent2];
 
     return Stack(
       clipBehavior: Clip.none,
@@ -314,7 +317,7 @@ class _RoomTableVisual extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('${honor ? '★ ' : ''}$name',
+                Text('${honor ? '★ ' : child ? '🧒 ' : ''}$name',
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

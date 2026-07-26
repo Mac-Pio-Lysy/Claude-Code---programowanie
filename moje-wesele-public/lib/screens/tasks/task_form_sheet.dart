@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../models/task.dart';
 import '../../models/vendor.dart' show kVendorBudgetCategories;
+import '../../models/wedding_data.dart';
 import '../../services/task_service.dart';
 import '../../utils/format.dart';
 
@@ -16,13 +17,19 @@ const _kCustomGoal = '__custom__';
 /// status); reszta jest rozwijana przyciskiem „Pokaż więcej opcji", aby nie
 /// przytłaczać formularza przy dodawaniu.
 class TaskFormSheet extends StatefulWidget {
-  const TaskFormSheet({super.key, this.existing});
+  const TaskFormSheet({super.key, this.existing, this.data});
 
   final Task? existing;
+
+  /// Dane wesela — do wypełnienia list wyboru w sekcji „Powiązania".
+  final WeddingData? data;
 
   @override
   State<TaskFormSheet> createState() => _TaskFormSheetState();
 }
+
+/// Sentinel wartości „utwórz nowy element" w rozwijanych powiązań.
+const int _kCreateNew = -1;
 
 class _TaskFormSheetState extends State<TaskFormSheet> {
   final _formKey = GlobalKey<FormState>();
@@ -42,6 +49,13 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   bool _isBudgetLinked = false;
   String _budgetCategory = 'Sala';
   bool _showMore = false;
+
+  // Powiązania (null = brak, _kCreateNew = utwórz nowy, >=0 = istniejący ID).
+  int? _vendorSel;
+  int? _transportSel;
+  int? _accommodationSel;
+  int? _musicSel;
+  bool _showLinks = false;
 
   bool get _isEdit => widget.existing != null;
   bool get _hasGoal =>
@@ -83,7 +97,62 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     if (!kVendorBudgetCategories.contains(_budgetCategory)) {
       _budgetCategory = 'Sala';
     }
+
+    // Powiązania — ustaw bieżące ID, o ile element wciąż istnieje.
+    _vendorSel = _initSel(t?.vendorId, _vendorList);
+    _transportSel = _initSel(t?.transportId, _transportList);
+    _accommodationSel = _initSel(t?.accommodationId, _accommodationList);
+    _musicSel = _initSel(t?.musicId, _musicList);
+    _showLinks = _vendorSel != null ||
+        _transportSel != null ||
+        _accommodationSel != null ||
+        _musicSel != null;
   }
+
+  int? _initSel(int? id, List<(int, String)> list) =>
+      (id != null && list.any((e) => e.$1 == id)) ? id : null;
+
+  // ── Listy wyboru powiązań (z danych wesela) ──
+  List<Map<String, dynamic>> _rawList(String key) {
+    final v = widget.data?.raw[key];
+    return v is List
+        ? v.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
+        : <Map<String, dynamic>>[];
+  }
+
+  List<(int, String)> _asChoices(
+      String key, String Function(Map<String, dynamic>) nameOf) {
+    return [
+      for (final m in _rawList(key))
+        if ((m['id'] as num?)?.toInt() != null)
+          ((m['id'] as num).toInt(), nameOf(m)),
+    ];
+  }
+
+  List<(int, String)> get _vendorList => _asChoices('vendors', (m) {
+        final n = (m['companyName'] as String?)?.trim();
+        return (n == null || n.isEmpty)
+            ? ((m['category'] as String?) ?? 'Dostawca')
+            : n;
+      });
+
+  List<(int, String)> get _transportList => _asChoices('vehicles', (m) {
+        final d = (m['description'] as String?)?.trim();
+        final type = (m['type'] as String?)?.trim() ?? '';
+        return (d == null || d.isEmpty) ? (type.isEmpty ? 'Pojazd' : type) : d;
+      });
+
+  List<(int, String)> get _accommodationList => _asChoices('hotels', (m) {
+        final n = (m['name'] as String?)?.trim();
+        return (n == null || n.isEmpty) ? 'Nocleg' : n;
+      });
+
+  List<(int, String)> get _musicList => _asChoices('songs', (m) {
+        final t = (m['title'] as String?)?.trim() ?? '';
+        final a = (m['artist'] as String?)?.trim() ?? '';
+        if (t.isEmpty) return 'Utwór';
+        return a.isEmpty ? t : '$t — $a';
+      });
 
   @override
   void dispose() {
@@ -120,6 +189,12 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     final goal = _goalSelection == _kCustomGoal
         ? _customGoal.text.trim()
         : _goalSelection;
+    TaskLinkChoice choice(int? sel) => sel == null
+        ? TaskLinkChoice.none
+        : sel == _kCreateNew
+            ? const TaskLinkChoice(createNew: true)
+            : TaskLinkChoice(existingId: sel);
+
     Navigator.of(context).pop(
       TaskDraft(
         name: _name.text.trim(),
@@ -135,6 +210,10 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
         isBudgetLinked: _isBudgetLinked,
         estimatedCost: parsePln(_estimatedCost.text) ?? 0,
         budgetCategory: _budgetCategory,
+        vendorLink: choice(_vendorSel),
+        transportLink: choice(_transportSel),
+        accommodationLink: choice(_accommodationSel),
+        musicLink: choice(_musicSel),
       ),
     );
   }
@@ -438,7 +517,90 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               ),
             ),
           ],
+          const Divider(height: 24),
+          _linksSection(),
         ],
+      ),
+    );
+  }
+
+  /// Sekcja „Powiązania" (rozwijana) — wybór po jednym elemencie na sekcję:
+  /// istniejący lub „utwórz nowy" (referencja, bez duplikowania danych).
+  Widget _linksSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => setState(() => _showLinks = !_showLinks),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text('🔗 Powiązania',
+                      style: GoogleFonts.inter(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
+                ),
+                Icon(_showLinks ? Icons.expand_less : Icons.expand_more,
+                    size: 18, color: AppColors.accent),
+              ],
+            ),
+          ),
+        ),
+        Text(
+          'Powiąż zadanie z Dostawcą, Transportem, Noclegiem lub Muzyką. '
+          'Możesz utworzyć nowy element — powstanie jako referencja (ten sam '
+          'rekord widoczny w obu sekcjach), bez duplikowania danych.',
+          style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          curve: Curves.easeInOut,
+          child: _showLinks
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _linkDropdown('👨‍🍳 Dostawca', _vendorList, _vendorSel,
+                          '➕ Utwórz nowego dostawcę',
+                          (v) => setState(() => _vendorSel = v)),
+                      _linkDropdown('🚗 Transport', _transportList,
+                          _transportSel, '➕ Utwórz wpis transportu',
+                          (v) => setState(() => _transportSel = v)),
+                      _linkDropdown('🏨 Nocleg', _accommodationList,
+                          _accommodationSel, '➕ Utwórz wpis noclegu',
+                          (v) => setState(() => _accommodationSel = v)),
+                      _linkDropdown('🎵 Muzyka', _musicList, _musicSel,
+                          '➕ Utwórz utwór',
+                          (v) => setState(() => _musicSel = v)),
+                    ],
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
+      ],
+    );
+  }
+
+  Widget _linkDropdown(String label, List<(int, String)> options, int? value,
+      String createLabel, ValueChanged<int?> onChanged) {
+    return _field(
+      label,
+      DropdownButtonFormField<int?>(
+        initialValue: value,
+        isExpanded: true,
+        decoration: _dec(),
+        items: [
+          const DropdownMenuItem<int?>(value: null, child: Text('— brak —')),
+          DropdownMenuItem<int?>(value: _kCreateNew, child: Text(createLabel)),
+          for (final (id, name) in options)
+            DropdownMenuItem<int?>(
+                value: id,
+                child: Text(name, overflow: TextOverflow.ellipsis)),
+        ],
+        onChanged: onChanged,
       ),
     );
   }

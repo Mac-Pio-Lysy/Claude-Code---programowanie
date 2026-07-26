@@ -9,6 +9,7 @@ import '../../models/advice.dart';
 import '../../models/wedding_data.dart';
 import '../../services/advice_service.dart';
 import '../../services/pdf_service.dart';
+import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
 
 /// Podzakładka „Rady dla Pary Młodej" (w sekcji „Ślubne pamiątki").
@@ -31,6 +32,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
 
   /// Klucz filtrowanej kategorii ('' = wszystkie).
   String _filter = '';
+  bool _filtersVisible = false;
 
   void _toast(String msg) {
     if (!mounted) return;
@@ -100,7 +102,31 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
           children: [
             _toolbar(all, filtered),
             const SizedBox(height: 12),
-            _filters(all),
+            Row(
+              children: [
+                Expanded(
+                  child: Text('Filtruj po kategorii',
+                      style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text)),
+                ),
+                FilterToggleButton(
+                  expanded: _filtersVisible,
+                  onTap: () =>
+                      setState(() => _filtersVisible = !_filtersVisible),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              alignment: Alignment.topCenter,
+              curve: Curves.easeInOut,
+              child: _filtersVisible
+                  ? _filters(all)
+                  : const SizedBox(width: double.infinity),
+            ),
             const SizedBox(height: 14),
             if (filtered.isEmpty)
               _info(all.isEmpty

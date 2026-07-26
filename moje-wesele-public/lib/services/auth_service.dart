@@ -92,6 +92,15 @@ class AuthService {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+  // Logowanie anonimowe. Pozwala uzyskać prawdziwego użytkownika Firebase
+  // (a więc zapis/odczyt do Firestore) BEZ okna logowania Google — używane
+  // wyłącznie przez flagę `bypassLogin` w AuthGate, gdy nie ma zapamiętanej
+  // sesji. Do usunięcia przy przywróceniu normalnego logowania.
+  Future<UserCredential> signInAnonymously() => _auth.signInAnonymously();
+  // ─────────────────────────────────────────────────────────────────────────
+
   Future<void> signOut() async {
     if (!kIsWeb) {
       try {

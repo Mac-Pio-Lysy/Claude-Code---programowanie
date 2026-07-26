@@ -109,11 +109,13 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
 
   // ── Akcje ──
   Future<void> _addTable() async {
+    final bd = widget.data?.raw['budgetData'];
+    final withChildren = bd is Map && bd['withChildren'] == true;
     final draft = await showModalBottomSheet<TableDraft>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const AddTableSheet(),
+      builder: (_) => AddTableSheet(allowChildTable: withChildren),
     );
     if (draft == null) return;
     await widget.tableSvc.addTable(draft);

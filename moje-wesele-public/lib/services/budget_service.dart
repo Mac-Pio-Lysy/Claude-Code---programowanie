@@ -86,6 +86,28 @@ class BudgetService {
   Future<void> setStaffPricePerPerson(num value) =>
       _mergeBudget({'staffPricePerPerson': value});
 
+  // ── CATERING ODDZIELNY (osobna firma niż sala) ───────────────────────
+
+  Future<void> setCateringSeparate(bool value) =>
+      _mergeBudget({'cateringSeparate': value});
+
+  Future<void> setCateringPricePerPerson(num value) =>
+      _mergeBudget({'cateringPricePerPerson': value});
+
+  // ── WESELE Z DZIEĆMI ─────────────────────────────────────────────────
+
+  Future<void> setWithChildren(bool value) =>
+      _mergeBudget({'withChildren': value});
+
+  Future<void> setChildrenCount(num value) =>
+      _mergeBudget({'childrenCount': value});
+
+  Future<void> setChildMenuSeparate(bool value) =>
+      _mergeBudget({'childMenuSeparate': value});
+
+  Future<void> setChildMenuPricePerPerson(num value) =>
+      _mergeBudget({'childMenuPricePerPerson': value});
+
   // ── OBSŁUGA (kelnerzy, fotograf, DJ…) — `staffTables` (top-level) ─────
   // Współdzielone z planem sali; pozycja nadawana automatycznie (jak w web).
 
@@ -155,6 +177,37 @@ class BudgetService {
     final list = _mapList(_budget(data)['menuAddons'])
       ..removeWhere((m) => _idOf(m) == id);
     await _mergeBudget({'menuAddons': list});
+  }
+
+  // ── DODATKI DO MENU CATERINGU (per osoba, gdy catering oddzielny) ─────
+
+  Future<void> addCateringMenuAddon() async {
+    final data = await _read();
+    final list = _mapList(_budget(data)['cateringMenuAddons']);
+    final nextId = _nextId(data['nextCateringAddonId'], list);
+    list.add({'id': nextId, 'name': '', 'pricePerPerson': 0});
+    await _firestore.mainDoc.set({
+      'budgetData': {'cateringMenuAddons': list},
+      'nextCateringAddonId': nextId + 1,
+    }, SetOptions(merge: true));
+  }
+
+  Future<void> updateCateringMenuAddon(int id,
+      {String? name, num? pricePerPerson}) async {
+    final data = await _read();
+    final list = _mapList(_budget(data)['cateringMenuAddons']);
+    final item = _find(list, id);
+    if (item == null) return;
+    if (name != null) item['name'] = name;
+    if (pricePerPerson != null) item['pricePerPerson'] = pricePerPerson;
+    await _mergeBudget({'cateringMenuAddons': list});
+  }
+
+  Future<void> deleteCateringMenuAddon(int id) async {
+    final data = await _read();
+    final list = _mapList(_budget(data)['cateringMenuAddons'])
+      ..removeWhere((m) => _idOf(m) == id);
+    await _mergeBudget({'cateringMenuAddons': list});
   }
 
   // ── DEKORACJE STOŁÓW (honorowy / zwykłe) ─────────────────────────────

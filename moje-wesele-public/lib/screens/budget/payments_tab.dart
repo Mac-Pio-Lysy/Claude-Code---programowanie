@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/payment_item.dart';
 import '../../models/wedding_data.dart';
 import '../../utils/format.dart';
+import '../../widgets/filter_toggle_button.dart';
 
 /// Terminy płatności (Sala, Wydatki, Podróż poślubna, raty dostawców) —
 /// przypomnienia o zbliżających się/zaległych terminach oraz filtrowana lista
@@ -22,6 +23,7 @@ class PaymentsSection extends StatefulWidget {
 
 class _PaymentsSectionState extends State<PaymentsSection> {
   PaymentSource? _filter; // null = wszystkie
+  bool _filtersVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +60,30 @@ class _PaymentsSectionState extends State<PaymentsSection> {
               child: _PaymentCard(item: item),
             ),
         const SizedBox(height: 12),
-        _filters(),
+        Row(
+          children: [
+            Expanded(
+              child: Text('Filtruj płatności',
+                  style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text)),
+            ),
+            FilterToggleButton(
+              expanded: _filtersVisible,
+              onTap: () => setState(() => _filtersVisible = !_filtersVisible),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          curve: Curves.easeInOut,
+          child: _filtersVisible
+              ? _filters()
+              : const SizedBox(width: double.infinity),
+        ),
       ],
     );
   }

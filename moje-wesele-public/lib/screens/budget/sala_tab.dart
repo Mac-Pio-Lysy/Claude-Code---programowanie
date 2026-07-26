@@ -18,6 +18,7 @@ class SalaTab extends StatelessWidget {
   final BudgetService service;
 
   List<Map<String, dynamic>> get _menuAddons => _list('menuAddons');
+  List<Map<String, dynamic>> get _cateringMenuAddons => _list('cateringMenuAddons');
   List<Map<String, dynamic>> get _honorAddons => _decoList('honorAddons');
   List<Map<String, dynamic>> get _regularAddons => _decoList('regularAddons');
 
@@ -45,8 +46,14 @@ class SalaTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
+        _childrenCard(s),
+        const SizedBox(height: 16),
         _salaCard(s),
         const SizedBox(height: 16),
+        if (s.cateringSeparate) ...[
+          _cateringCard(s),
+          const SizedBox(height: 16),
+        ],
         _staffCard(s),
         const SizedBox(height: 16),
         _menuAddonsCard(s),
@@ -55,6 +62,138 @@ class SalaTab extends StatelessWidget {
         const SizedBox(height: 16),
         _summaryCard(s),
       ],
+    );
+  }
+
+  // ── Karta „Wesele z dziećmi" (znacznik na początku sekcji Sala) ──
+  Widget _childrenCard(SalaSummary s) {
+    return _card(
+      title: 'Wesele z dziećmi',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Czy to wesele z dziećmi?',
+                style: GoogleFonts.inter(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+            subtitle: Text(
+              'Dzieci są wyłączane z przeliczeń alkoholu. Możesz też dodać '
+              'stół dla dzieci (w Planie sali) i osobne menu dziecięce.',
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: s.withChildren,
+            onChanged: service.setWithChildren,
+          ),
+          if (s.withChildren) ...[
+            const SizedBox(height: 8),
+            BudgetNumberField(
+              key: const ValueKey('childrenCount'),
+              label: 'Liczba dzieci',
+              suffix: 'dzieci',
+              integer: true,
+              initial: s.childrenCount.toDouble(),
+              onSaved: service.setChildrenCount,
+            ),
+            const SizedBox(height: 8),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              activeThumbColor: AppColors.accent,
+              title: Text('Czy dla dzieci jest oddzielne menu?',
+                  style: GoogleFonts.inter(fontSize: 13)),
+              subtitle: Text(
+                s.childMenuSeparate
+                    ? 'Dzieci (${s.childBilledCount.round()}) liczone po cenie dziecięcej.'
+                    : 'Dzieci liczone jak dorośli (cena za osobę).',
+                style:
+                    GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+              ),
+              value: s.childMenuSeparate,
+              onChanged: service.setChildMenuSeparate,
+            ),
+            if (s.childMenuSeparate) ...[
+              const SizedBox(height: 8),
+              BudgetNumberField(
+                key: const ValueKey('childMenuPricePerPerson'),
+                label: 'Cena za dziecko (menu)',
+                suffix: 'zł',
+                initial: s.childMenuPricePerPerson,
+                onSaved: service.setChildMenuPricePerPerson,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _infoRow('Koszt menu dziecięcego',
+                    formatPlnZl(s.childMenuTotal),
+                    bold: true),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Karta „Catering" (gdy oddzielny od sali) — jak Sala: cena/os. + dodatki ──
+  Widget _cateringCard(SalaSummary s) {
+    final addons = _cateringMenuAddons;
+    return _card(
+      title: 'Catering (oddzielny)',
+      trailing: _addButton(() => service.addCateringMenuAddon()),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Catering od innej firmy niż sala — liczony osobno, po cenie za '
+            'osobę (te same przeliczenia liczby osób co sala).',
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          BudgetNumberField(
+            key: const ValueKey('cateringPricePerPerson'),
+            label: 'Cena cateringu za osobę',
+            suffix: 'zł',
+            initial: s.cateringPricePerPerson,
+            onSaved: service.setCateringPricePerPerson,
+          ),
+          const SizedBox(height: 12),
+          Text('Dodatki cateringu (per osoba)',
+              style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text)),
+          const SizedBox(height: 6),
+          if (addons.isEmpty)
+            _emptyHint('Brak dodatków. Dodaj przyciskiem +.')
+          else
+            for (final a in addons)
+              _AddonRow(
+                key: ValueKey('cmenu-${a['id']}'),
+                name: (a['name'] as String?) ?? '',
+                amount: _d(a['pricePerPerson']),
+                amountSuffix: 'zł/os.',
+                lineTotal: _d(a['pricePerPerson']) * s.effectiveGuestCount,
+                onNameSaved: (v) =>
+                    service.updateCateringMenuAddon(_id(a), name: v),
+                onAmountSaved: (v) =>
+                    service.updateCateringMenuAddon(_id(a), pricePerPerson: v),
+                onDelete: () => service.deleteCateringMenuAddon(_id(a)),
+              ),
+          const Divider(height: 20),
+          _infoRow('Liczba osób do przeliczeń',
+              '${s.effectiveGuestCount.round()}'),
+          _infoRow('Baza cateringu',
+              formatPlnZl(s.effectiveGuestCount * s.cateringPricePerPerson)),
+          _infoRow('Dodatki cateringu', formatPlnZl(s.cateringMenuAddonsTotal)),
+          _infoRow('Łącznie catering', formatPlnZl(s.cateringSeparateTotal),
+              bold: true),
+        ],
+      ),
     );
   }
 
@@ -135,6 +274,22 @@ class SalaTab extends StatelessWidget {
                 style: GoogleFonts.inter(fontSize: 13)),
             value: s.includeVirtual,
             onChanged: service.setIncludeVirtual,
+          ),
+          const Divider(height: 8),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Czy catering jest oddzielny?',
+                style: GoogleFonts.inter(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+            subtitle: Text(
+              s.cateringSeparate
+                  ? 'Catering (osobna firma) liczony w osobnej karcie poniżej.'
+                  : 'Catering wliczony w cenę sali za osobę.',
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: s.cateringSeparate,
+            onChanged: service.setCateringSeparate,
           ),
         ],
       ),
@@ -294,19 +449,16 @@ class SalaTab extends StatelessWidget {
   }
 
   Widget _summaryCard(SalaSummary s) {
-    final assignedCost = s.assignedCount * s.pricePerPerson;
-    final unassignedCost = s.unassignedCount * s.pricePerPerson;
     return _card(
       title: 'Podsumowanie kosztów sali',
       child: Column(
         children: [
-          _infoRow('Goście przypisani (${s.assignedCount} os.)',
-              formatPlnZl(assignedCost)),
-          _infoRow(
-              s.includeUnassigned
-                  ? 'Goście nieprzypisani (${s.unassignedCount} os.)'
-                  : 'Goście nieprzypisani (${s.unassignedCount} os., nieliczeni)',
-              formatPlnZl(s.includeUnassigned ? unassignedCost : 0)),
+          _infoRow('Koszt gości (${s.guestBilledCount.round()} os.)',
+              formatPlnZl(s.guestCost)),
+          if (s.childMenuSeparate && s.childBilledCount > 0)
+            _infoRow(
+                'w tym menu dzieci (${s.childBilledCount.round()} os.)',
+                formatPlnZl(s.childMenuTotal)),
           if (s.includeVirtual && s.virtualGuests > 0)
             _infoRow('Goście wirtualni (${s.virtualGuests.round()} os.)',
                 formatPlnZl(s.virtualCost)),
@@ -317,6 +469,9 @@ class SalaTab extends StatelessWidget {
               formatPlnZl(s.staffCost)),
           _infoRow('Dodatki do menu', formatPlnZl(s.menuAddonsTotal)),
           _infoRow('Dekoracje stołów', formatPlnZl(s.tableDecoTotal)),
+          if (s.cateringSeparate)
+            _infoRow('Catering (oddzielny)',
+                formatPlnZl(s.cateringSeparateTotal)),
           const Divider(height: 20),
           _infoRow('Razem sala', formatPlnZl(s.cateringTotal),
               bold: true, big: true),

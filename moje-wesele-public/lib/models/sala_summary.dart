@@ -44,6 +44,18 @@ class SalaSummary {
     required this.regularDecoTotal,
     required this.regularTableCount,
     required this.cateringTotal,
+    // ── Catering oddzielny ──
+    required this.cateringSeparate,
+    required this.cateringPricePerPerson,
+    required this.cateringMenuAddonsTotal,
+    required this.cateringSeparateTotal,
+    // ── Wesele z dziećmi ──
+    required this.withChildren,
+    required this.childrenCount,
+    required this.childBilledCount,
+    required this.childMenuSeparate,
+    required this.childMenuPricePerPerson,
+    required this.childMenuTotal,
   });
 
   final double pricePerPerson;
@@ -94,7 +106,33 @@ class SalaSummary {
   final double honorDecoTotal;
   final double regularDecoTotal;
   final int regularTableCount;
+
+  /// Łączny koszt sekcji „Sala" (sala + catering oddzielny, jeśli włączony).
   final double cateringTotal;
+
+  // ── Catering oddzielny (osobna firma niż sala) ──
+  final bool cateringSeparate;
+  final double cateringPricePerPerson;
+  final double cateringMenuAddonsTotal;
+
+  /// Łączny koszt cateringu oddzielnego (baza per-osoba + dodatki).
+  final double cateringSeparateTotal;
+
+  // ── Wesele z dziećmi ──
+  final bool withChildren;
+
+  /// Liczba dzieci (do przeliczeń: wyłączane z alkoholu, opcjonalnie osobne menu).
+  final int childrenCount;
+
+  /// Dzieci faktycznie liczone do sali (min z liczby dzieci i gości liczonych).
+  final double childBilledCount;
+
+  /// Czy dzieci mają OSOBNE menu (inna cena za dziecko).
+  final bool childMenuSeparate;
+  final double childMenuPricePerPerson;
+
+  /// Koszt osobnego menu dziecięcego (0, gdy wyłączone).
+  final double childMenuTotal;
 
   double get tableDecoTotal => honorDecoTotal + regularDecoTotal;
 
@@ -125,8 +163,26 @@ class SalaSummary {
     final includeStaff = bd['includeStaffInCalc'] == true;
 
     final guestBilledCount =
-        assigned + (includeUnassigned ? unassigned : 0);
-    final guestCost = guestBilledCount * pricePerPerson;
+        (assigned + (includeUnassigned ? unassigned : 0)).toDouble();
+
+    // ── Wesele z dziećmi ──
+    final withChildren = bd['withChildren'] == true;
+    final childrenCount =
+        withChildren ? max(0, _d(bd['childrenCount']).round()) : 0;
+    final childMenuSeparate = withChildren && bd['childMenuSeparate'] == true;
+    final childMenuPPP = _d(bd['childMenuPricePerPerson']);
+    // Dzieci faktycznie liczone (nie więcej niż liczonych gości).
+    final childBilled =
+        min(childrenCount.toDouble(), guestBilledCount);
+
+    // Koszt gości: gdy dzieci mają osobne menu, liczymy je po cenie dziecięcej,
+    // a dorosłych po cenie za osobę. W przeciwnym razie wszyscy po cenie sali.
+    final adultBilled = guestBilledCount - childBilled;
+    final childMenuTotal =
+        childMenuSeparate ? childBilled * childMenuPPP : 0.0;
+    final guestCost = childMenuSeparate
+        ? adultBilled * pricePerPerson + childMenuTotal
+        : guestBilledCount * pricePerPerson;
     final virtualCost = (includeVirtual ? virtual : 0.0) * pricePerPerson;
 
     final staffList = (raw['staffTables'] is List)
@@ -158,12 +214,25 @@ class SalaSummary {
         _sum(tableDeco['regularAddons'], (a) => _d(a['pricePerTable'])) *
             regularTableCount;
 
+    // ── Catering oddzielny (osobna firma niż sala) — te same przeliczenia
+    // per-osoba co sala (baza = liczba osób do przeliczeń + dodatki). ──
+    final cateringSeparate = bd['cateringSeparate'] == true;
+    final cateringPPP = _d(bd['cateringPricePerPerson']);
+    final cateringAddonsPerPerson =
+        _sum(bd['cateringMenuAddons'], (a) => _d(a['pricePerPerson']));
+    final cateringMenuAddonsTotal =
+        cateringSeparate ? cateringAddonsPerPerson * effectiveGuestCount : 0.0;
+    final cateringSeparateTotal = cateringSeparate
+        ? effectiveGuestCount * cateringPPP + cateringMenuAddonsTotal
+        : 0.0;
+
     final cateringTotal = guestCost +
         virtualCost +
         staffCost +
         menuAddonsTotal +
         honorDeco +
-        regularDeco;
+        regularDeco +
+        cateringSeparateTotal;
 
     return SalaSummary(
       pricePerPerson: pricePerPerson,
@@ -190,6 +259,16 @@ class SalaSummary {
       regularDecoTotal: regularDeco,
       regularTableCount: regularTableCount,
       cateringTotal: cateringTotal,
+      cateringSeparate: cateringSeparate,
+      cateringPricePerPerson: cateringPPP,
+      cateringMenuAddonsTotal: cateringMenuAddonsTotal,
+      cateringSeparateTotal: cateringSeparateTotal,
+      withChildren: withChildren,
+      childrenCount: childrenCount,
+      childBilledCount: childBilled,
+      childMenuSeparate: childMenuSeparate,
+      childMenuPricePerPerson: childMenuPPP,
+      childMenuTotal: childMenuTotal,
     );
   }
 
@@ -218,6 +297,16 @@ class SalaSummary {
     regularDecoTotal: 0,
     regularTableCount: 0,
     cateringTotal: 0,
+    cateringSeparate: false,
+    cateringPricePerPerson: 0,
+    cateringMenuAddonsTotal: 0,
+    cateringSeparateTotal: 0,
+    withChildren: false,
+    childrenCount: 0,
+    childBilledCount: 0,
+    childMenuSeparate: false,
+    childMenuPricePerPerson: 0,
+    childMenuTotal: 0,
   );
 
   static double _d(dynamic v) => v is num ? v.toDouble() : 0.0;

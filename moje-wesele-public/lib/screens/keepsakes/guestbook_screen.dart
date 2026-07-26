@@ -7,6 +7,7 @@ import '../../models/guestbook_entry.dart';
 import '../../models/wedding_data.dart';
 import '../../services/guestbook_service.dart';
 import '../../services/pdf_service.dart';
+import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
 
 /// Podzakładka „Księga gości" (w sekcji „Ślubne pamiątki").
@@ -28,6 +29,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
   late final Stream<List<GuestbookEntry>> _entriesStream =
       _service.watchEntries();
   bool _newestFirst = true;
+  bool _filtersVisible = false;
 
   void _toast(String msg) {
     if (!mounted) return;
@@ -163,16 +165,35 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
           const Divider(height: 20),
           Row(
             children: [
-              Text('Sortuj:',
-                  style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textLight)),
-              const SizedBox(width: 10),
-              _sortChip('Najnowsze', true),
-              const SizedBox(width: 8),
-              _sortChip('Najstarsze', false),
+              Expanded(
+                child: Text('Sortowanie',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textLight)),
+              ),
+              FilterToggleButton(
+                expanded: _filtersVisible,
+                onTap: () => setState(() => _filtersVisible = !_filtersVisible),
+              ),
             ],
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            alignment: Alignment.topCenter,
+            curve: Curves.easeInOut,
+            child: _filtersVisible
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Row(
+                      children: [
+                        _sortChip('Najnowsze', true),
+                        const SizedBox(width: 8),
+                        _sortChip('Najstarsze', false),
+                      ],
+                    ),
+                  )
+                : const SizedBox(width: double.infinity),
           ),
         ],
       ),

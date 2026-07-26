@@ -6,9 +6,8 @@ import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/guest_service.dart';
+import 'guest_filters.dart';
 import 'guest_form_sheet.dart';
-
-enum _Quick { all, assigned, unassigned, groom, bride }
 
 /// Sekcja „Goście" — lista z Firestore, filtry, dodawanie/edycja/usuwanie.
 class GuestsScreen extends StatefulWidget {
@@ -30,9 +29,8 @@ class GuestsScreen extends StatefulWidget {
 }
 
 class _GuestsScreenState extends State<GuestsScreen> {
-  _Quick _quick = _Quick.all;
-  String? _category; // null = wszyscy
-  bool _filtersVisible = true;
+  GuestFilter _filter = const GuestFilter();
+  bool _filtersVisible = false;
 
   List<String> get _menuOptions {
     final cfg = widget.data?.raw['appConfig'];
@@ -53,23 +51,6 @@ class _GuestsScreenState extends State<GuestsScreen> {
       }
     }
     return res;
-  }
-
-  bool _matches(Guest g) {
-    switch (_quick) {
-      case _Quick.assigned:
-        if (!g.isAssigned) return false;
-      case _Quick.unassigned:
-        if (g.isAssigned) return false;
-      case _Quick.groom:
-        if (g.invitedBy != 'groom') return false;
-      case _Quick.bride:
-        if (g.invitedBy != 'bride') return false;
-      case _Quick.all:
-        break;
-    }
-    if (_category != null && g.category != _category) return false;
-    return true;
   }
 
   void _toast(String message) {
@@ -148,7 +129,7 @@ class _GuestsScreenState extends State<GuestsScreen> {
       for (final e in widget.data?.guests ?? const [])
         if (e is Map) Guest(Map<String, dynamic>.from(e)),
     ];
-    final filtered = guests.where(_matches).toList();
+    final filtered = filterGuests(guests, _filter);
     final tableNames = _tableNames;
 
     return Padding(
@@ -217,13 +198,9 @@ class _GuestsScreenState extends State<GuestsScreen> {
             alignment: Alignment.topCenter,
             curve: Curves.easeInOut,
             child: _filtersVisible
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _filterRow1(),
-                      const SizedBox(height: 8),
-                      _filterRow2(),
-                    ],
+                ? GuestFilterControls(
+                    filter: _filter,
+                    onChanged: (f) => setState(() => _filter = f),
                   )
                 : const SizedBox(width: double.infinity),
           ),
@@ -289,40 +266,6 @@ class _GuestsScreenState extends State<GuestsScreen> {
     );
   }
 
-  Widget _filterRow1() {
-    return _ChipRow(
-      chips: [
-        _ChipData('Wszyscy', _quick == _Quick.all,
-            () => setState(() => _quick = _Quick.all)),
-        _ChipData('Przypisani', _quick == _Quick.assigned,
-            () => setState(() => _quick = _Quick.assigned)),
-        _ChipData('Nieprzypisani', _quick == _Quick.unassigned,
-            () => setState(() => _quick = _Quick.unassigned)),
-        _ChipData('Od Pana Młodego', _quick == _Quick.groom,
-            () => setState(() => _quick = _Quick.groom)),
-        _ChipData('Od Panny Młodej', _quick == _Quick.bride,
-            () => setState(() => _quick = _Quick.bride)),
-      ],
-    );
-  }
-
-  Widget _filterRow2() {
-    _ChipData cat(String label, String? value) => _ChipData(
-          label,
-          _category == value,
-          () => setState(() => _category = value),
-        );
-    return _ChipRow(
-      chips: [
-        cat('Wszyscy', null),
-        cat('Rodzina', 'Rodzina'),
-        cat('Znajomi', 'Znajomi'),
-        cat('Praca', 'Praca'),
-        cat('Inne', 'Inne'),
-      ],
-    );
-  }
-
   Widget _emptyState() {
     return Center(
       child: Column(
@@ -340,52 +283,6 @@ class _GuestsScreenState extends State<GuestsScreen> {
   }
 
   static String _guestWord(int n) => n == 1 ? 'gość' : 'gości';
-}
-
-class _ChipData {
-  _ChipData(this.label, this.selected, this.onTap);
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-}
-
-class _ChipRow extends StatelessWidget {
-  const _ChipRow({required this.chips});
-  final List<_ChipData> chips;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final c in chips)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
-                label: Text(c.label),
-                selected: c.selected,
-                onSelected: (_) => c.onTap(),
-                showCheckmark: false,
-                labelStyle: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: c.selected ? Colors.white : AppColors.textLight,
-                ),
-                selectedColor: AppColors.accent,
-                backgroundColor: Colors.white,
-                side: BorderSide(
-                  color: c.selected ? AppColors.accent : const Color(0xFFDCE4F2),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Rozwijana karta gościa.

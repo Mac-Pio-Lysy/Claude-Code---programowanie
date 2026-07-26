@@ -15,6 +15,7 @@ class AppConfigDraft {
     required this.person2,
     required this.menuOptions,
     required this.expenseCategories,
+    this.witnessCount = 2,
   });
 
   final String eventName;
@@ -27,6 +28,9 @@ class AppConfigDraft {
   final String person2;
   final List<String> menuOptions;
   final List<String> expenseCategories;
+
+  /// Docelowa liczba świadków (domyślnie 2; można ustawić więcej).
+  final int witnessCount;
 }
 
 /// Operacje na konfiguracji aplikacji (`appConfig`, `weddingDate`,
@@ -49,6 +53,7 @@ class ConfigService {
         'receptionPlace': d.receptionPlace,
         'menuOptions': d.menuOptions,
         'expenseCategories': d.expenseCategories,
+        'witnessCount': d.witnessCount < 1 ? 2 : d.witnessCount,
       },
       'weddingDate': d.weddingDate.isEmpty ? null : d.weddingDate,
       'weddingTime': d.weddingTime.isEmpty ? '16:00' : d.weddingTime,
@@ -60,6 +65,20 @@ class ConfigService {
       },
     }, SetOptions(merge: true));
   }
+
+  /// Zapisuje ustawienia budżetu z Konfiguracji: budżet planowany
+  /// (`budgetData.total`) i rezerwę (`budgetData.reserve`). Głębokie scalanie —
+  /// pozostałe pola `budgetData` (wydatki, sala, napoje…) pozostają nietknięte.
+  Future<void> saveBudgetSettings({
+    required num plannedBudget,
+    required num reserve,
+  }) =>
+      _firestore.mainDoc.set({
+        'budgetData': {
+          'total': plannedBudget < 0 ? 0 : plannedBudget,
+          'reserve': reserve < 0 ? 0 : reserve,
+        },
+      }, SetOptions(merge: true));
 
   /// Pełny dokument danych (do eksportu).
   Future<Map<String, dynamic>> exportData() async =>

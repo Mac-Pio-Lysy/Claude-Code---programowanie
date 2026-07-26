@@ -101,6 +101,21 @@ class Task {
   String get budgetCategory => (raw['budgetCategory'] as String?) ?? '';
   int? get budgetExpenseId => (raw['budgetExpenseId'] as num?)?.toInt();
 
+  /// Powiązania przez REFERENCJĘ (ID), bez duplikatów danych — zgodnie z
+  /// integracją budżetu. Każde opcjonalne, wiele naraz (po jednym na sekcję).
+  int? get transportId => (raw['transportId'] as num?)?.toInt();
+  int? get accommodationId => (raw['accommodationId'] as num?)?.toInt();
+  int? get musicId => (raw['musicId'] as num?)?.toInt();
+
+  /// Czy zadanie ma jakiekolwiek powiązanie.
+  bool get hasAnyLink =>
+      isBudgetLinked ||
+      vendorId != null ||
+      giftId != null ||
+      transportId != null ||
+      accommodationId != null ||
+      musicId != null;
+
   /// Cel/zdarzenie powiązane z zadaniem (np. „Znalezienie DJa"), opcjonalne.
   String get goal => (raw['goal'] as String?) ?? '';
 

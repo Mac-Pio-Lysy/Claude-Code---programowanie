@@ -10,6 +10,7 @@ import '../../services/auth_service.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
+import '../../utils/format.dart';
 import 'security_settings_screen.dart';
 
 /// Sekcja „Ustawienia" — konfiguracja, dostęp, narzędzia programistyczne,
@@ -50,6 +51,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _person2;
   late final TextEditingController _menu;
   late final TextEditingController _expenseCats;
+  late final TextEditingController _witnessCount;
+  late final TextEditingController _plannedBudget;
+  late final TextEditingController _reserve;
   String _weddingDate = '';
   String _weddingTime = '16:00';
 
@@ -82,6 +86,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
         text: (cfg['expenseCategories'] is List)
             ? (cfg['expenseCategories'] as List).join('\n')
             : '');
+    final wc = (cfg['witnessCount'] is num)
+        ? (cfg['witnessCount'] as num).toInt()
+        : 2;
+    _witnessCount = TextEditingController(text: '${wc < 1 ? 2 : wc}');
+    final totalNum = (bd['total'] is num) ? (bd['total'] as num).toDouble() : 0.0;
+    final reserveNum =
+        (bd['reserve'] is num) ? (bd['reserve'] as num).toDouble() : 0.0;
+    _plannedBudget =
+        TextEditingController(text: totalNum == 0 ? '' : formatPln(totalNum));
+    _reserve =
+        TextEditingController(text: reserveNum == 0 ? '' : formatPln(reserveNum));
     _weddingDate = (raw['weddingDate'] as String?) ?? '';
     _weddingTime = (raw['weddingTime'] as String?) ?? '16:00';
   }
@@ -90,7 +105,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     for (final c in [
       _eventName, _displayNames, _ceremony, _reception,
-      _person1, _person2, _menu, _expenseCats,
+      _person1, _person2, _menu, _expenseCats, _witnessCount,
+      _plannedBudget, _reserve,
     ]) {
       c.dispose();
     }
@@ -119,6 +135,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       person2: _person2.text.trim(),
       menuOptions: _lines(_menu),
       expenseCategories: _lines(_expenseCats),
+      witnessCount: int.tryParse(_witnessCount.text.trim()) ?? 2,
     ));
     _toast('Konfiguracja zapisana ✓');
   }
@@ -147,6 +164,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _loginCard(),
               const SizedBox(height: 12),
               _configCard(),
+              const SizedBox(height: 12),
+              _budgetSettingsCard(),
               const SizedBox(height: 12),
               _accessCard(),
               const SizedBox(height: 12),
@@ -295,6 +314,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Expanded(child: _field('Osoba 2', _person2)),
             ],
           ),
+          Row(
+            children: [
+              Expanded(
+                child: _field('Liczba świadków', _witnessCount,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    'Domyślnie 2. Dla nietradycyjnych ślubów możesz ustawić więcej.',
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight),
+                  ),
+                ),
+              ),
+            ],
+          ),
           _field('Słownik menu (po jednym w linii)', _menu, maxLines: 4),
           _field('Kategorie wydatków (po jednym w linii)', _expenseCats,
               maxLines: 4),
@@ -314,6 +353,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Widget _budgetSettingsCard() {
+    return _card(
+      'Ustawienia budżetu',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Budżet planowany to kwota założona na start. Rezerwa to opcjonalny '
+            'bufor na nieprzewidziane wydatki — doliczany do planowanego jako '
+            'bezpiecznik.',
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _field('Budżet planowany (zł)', _plannedBudget,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _field('Rezerwa (zł)', _reserve,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _saveBudgetSettings,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: const Text('Zapisz ustawienia budżetu'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _saveBudgetSettings() async {
+    final planned = parsePln(_plannedBudget.text) ?? 0;
+    final reserve = parsePln(_reserve.text) ?? 0;
+    try {
+      await widget.config
+          .saveBudgetSettings(plannedBudget: planned, reserve: reserve);
+      _toast('Zapisano ustawienia budżetu ✓');
+    } catch (e) {
+      _toast('Błąd zapisu: $e');
+    }
   }
 
   Widget _accessCard() {
@@ -585,7 +682,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Widget _field(String label, TextEditingController c, {int maxLines = 1}) {
+  Widget _field(String label, TextEditingController c,
+      {int maxLines = 1,
+      TextInputType? keyboardType,
+      List<TextInputFormatter>? inputFormatters}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -602,6 +702,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextField(
             controller: c,
             maxLines: maxLines,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
             decoration: _dec(),
           ),
         ],

@@ -122,12 +122,17 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Budżet całkowity',
+            'Budżet planowany',
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.text,
             ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Rezerwę ustawisz w Ustawieniach → „Ustawienia budżetu".',
+            style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -226,9 +231,13 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
             runSpacing: 6,
             children: [
               _legend(const Color(0xFF93C5FD),
-                  'Orientacyjnie: ${formatPlnZl(s.planForCalc)}'),
-              _legend(const Color(0xFF059669), 'Opłacono: ${formatPlnZl(s.totalPaid)}'),
-              _legend(const Color(0xFFCBD5E1), 'Budżet: ${formatPlnZl(s.budget)}'),
+                  'Rzeczywiste: ${formatPlnZl(s.actualCost)}'),
+              _legend(const Color(0xFF059669),
+                  'Opłacono: ${formatPlnZl(s.totalPaid)}'),
+              _legend(
+                  const Color(0xFFCBD5E1),
+                  'Planowany${s.reserve > 0 ? ' + rezerwa' : ''}: '
+                      '${formatPlnZl(s.plannedWithReserve)}'),
             ],
           ),
         ],
@@ -258,26 +267,46 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
   }
 
   Widget _valuesCard(BudgetSummary s) {
+    final leftover = s.plannedWithReserve - s.actualCost;
     return _card(
       child: Column(
         children: [
-          _valueRow('Orientacyjnie', formatPlnZl(s.planForCalc),
+          // ── Budżet planowany (+ rezerwa) ──
+          _valueRow('Budżet planowany', formatPlnZl(s.budget),
               const Color(0xFF1D4ED8)),
+          if (s.reserve > 0)
+            _valueRow('Rezerwa', formatPlnZl(s.reserve),
+                const Color(0xFF7C3AED)),
+          if (s.reserve > 0)
+            _valueRow('Planowany + rezerwa', formatPlnZl(s.plannedWithReserve),
+                const Color(0xFF1D4ED8),
+                bold: true),
+          const Divider(height: 18),
+          // ── Budżet rzeczywisty (faktyczne koszty) ──
+          _valueRow('Budżet rzeczywisty (koszty)', formatPlnZl(s.actualCost),
+              const Color(0xFFEA580C)),
           if (s.catering > 0)
             _valueRow('w tym sala', formatPlnZl(s.catering),
                 AppColors.textLight,
                 small: true),
+          _valueRow('w tym opłacono', formatPlnZl(s.totalPaid),
+              const Color(0xFF059669),
+              small: true),
           const Divider(height: 18),
-          _valueRow('Opłacono', formatPlnZl(s.totalPaid),
-              const Color(0xFF059669)),
-          const Divider(height: 18),
-          _valueRow('Pozostało', formatPlnZl(s.remaining),
-              const Color(0xFFEA580C)),
-          const Divider(height: 18),
+          // ── Rezerwa wykorzystana + pozostało ──
+          if (s.reserve > 0)
+            _valueRow(
+              'Wykorzystana rezerwa',
+              '${formatPlnZl(s.reserveUsed)} z ${formatPlnZl(s.reserve)}',
+              s.reserveUsed > 0
+                  ? const Color(0xFFB45309)
+                  : AppColors.textLight,
+              small: true,
+            ),
           _valueRow(
-            'Budżet − orientacyjnie',
-            '${s.diff >= 0 ? '+' : ''}${formatPlnZl(s.diff)}',
-            s.diff >= 0 ? const Color(0xFF059669) : const Color(0xFFC0392B),
+            'Pozostało z budżetu',
+            '${leftover >= 0 ? '+' : ''}${formatPlnZl(leftover)}',
+            leftover >= 0 ? const Color(0xFF059669) : const Color(0xFFC0392B),
             bold: true,
           ),
         ],

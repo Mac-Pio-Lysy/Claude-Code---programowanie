@@ -92,7 +92,7 @@ class LoginScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'PANEL ŚLUBNY',
+            'WEDDING PLANNER',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 13,

@@ -49,7 +49,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
   String? _sortField; // null = ręcznie (kolejność expenseOrder)
   bool _sortAsc = true;
   bool _quickVisible = true;
-  bool _filtersVisible = true;
+  bool _filtersVisible = false;
 
   Map<String, dynamic> get _bd {
     final v = widget.data?.raw['budgetData'];
@@ -325,8 +325,19 @@ class _ExpensesTabState extends State<ExpensesTab> {
 
   /// Sekcja „⚡ Szybkie pozycje" — gotowe wydatki z konfigurowalnych kategorii
   /// (spójne z listą kategorii). Chowana przyciskiem.
+  /// Czy kategoria dotyczy sali/cateringu — takie pozycje NIE pojawiają się
+  /// w szybkich pozycjach (mają własną, dedykowaną sekcję „Sala").
+  static bool _isSalaOrCatering(String c) {
+    final l = c.toLowerCase();
+    return l.contains('sala') || l.contains('catering');
+  }
+
   Widget _quickAddSection() {
-    final cats = _categories.where((c) => c != 'Inne').toList();
+    // „Sala" i „Catering" usunięte z szybkich pozycji — konfiguruje się je
+    // w dedykowanej sekcji „Sala" (Budżet → Sala).
+    final cats = _categories
+        .where((c) => c != 'Inne' && !_isSalaOrCatering(c))
+        .toList();
     final counts = <String, int>{};
     for (final e in _allExpenses) {
       counts[e.category] = (counts[e.category] ?? 0) + 1;

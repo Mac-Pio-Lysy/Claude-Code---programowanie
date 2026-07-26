@@ -6,6 +6,7 @@ import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/guest_service.dart';
 import '../budget/budget_fields.dart';
+import 'guest_filters.dart';
 import 'guest_form_sheet.dart';
 
 /// Podzakładka „Kartoteka" — rozszerzony widok gości (menu, preferencje,
@@ -22,6 +23,8 @@ class GuestsCardTab extends StatefulWidget {
 
 class _GuestsCardTabState extends State<GuestsCardTab> {
   bool _grid = false;
+  bool _filtersVisible = false;
+  GuestFilter _filter = const GuestFilter();
 
   List<Guest> get _guests => [
         for (final e in widget.data?.guests ?? const [])
@@ -52,6 +55,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
   @override
   Widget build(BuildContext context) {
     final guests = _guests;
+    final filtered = filterGuests(guests, _filter);
     final menus = _menuOptions;
 
     return Column(
@@ -61,9 +65,20 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
           child: Row(
             children: [
               Expanded(
-                child: Text('${guests.length} gości',
+                child: Text(
+                    filtered.length == guests.length
+                        ? '${guests.length} gości'
+                        : '${filtered.length} z ${guests.length} gości',
                     style: GoogleFonts.inter(
                         fontSize: 14, color: AppColors.textLight)),
+              ),
+              IconButton(
+                tooltip: _filtersVisible ? 'Ukryj filtry' : 'Pokaż filtry',
+                onPressed: () =>
+                    setState(() => _filtersVisible = !_filtersVisible),
+                icon: Icon(Icons.filter_list,
+                    color:
+                        _filtersVisible ? AppColors.accent : AppColors.textLight),
               ),
               IconButton(
                 tooltip: 'Lista',
@@ -80,19 +95,36 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
             ],
           ),
         ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          curve: Curves.easeInOut,
+          child: _filtersVisible
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  child: GuestFilterControls(
+                    filter: _filter,
+                    onChanged: (f) => setState(() => _filter = f),
+                  ),
+                )
+              : const SizedBox(width: double.infinity),
+        ),
         Expanded(
-          child: guests.isEmpty
+          child: filtered.isEmpty
               ? Center(
-                  child: Text('Brak gości.',
+                  child: Text(
+                      guests.isEmpty
+                          ? 'Brak gości.'
+                          : 'Brak gości spełniających kryteria.',
                       style: GoogleFonts.inter(
                           fontSize: 14, color: AppColors.textLight)),
                 )
               : _grid
-                  ? _gridView(guests, menus)
+                  ? _gridView(filtered, menus)
                   : ListView(
                       padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
                       children: [
-                        for (final g in guests) _card(g, menus),
+                        for (final g in filtered) _card(g, menus),
                       ],
                     ),
         ),

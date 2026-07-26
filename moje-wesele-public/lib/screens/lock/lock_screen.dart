@@ -128,7 +128,10 @@ class _LockScreenState extends State<LockScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 12),
-                      Image.asset('assets/ikona_apki.png', width: 64, height: 64),
+                      ClipOval(
+                        child: Image.asset('assets/ikona.png',
+                            width: 64, height: 64, fit: BoxFit.cover),
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'Aplikacja zablokowana',

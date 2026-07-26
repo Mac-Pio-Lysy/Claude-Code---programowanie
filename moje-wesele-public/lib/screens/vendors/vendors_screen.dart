@@ -37,7 +37,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
   String _categoryFilter = 'all';
   String _statusFilter = 'all';
   String _sort = 'none'; // none | name | status
-  bool _filtersVisible = true;
+  bool _filtersVisible = false;
 
   List<Vendor> get _vendors {
     final v = widget.data?.raw['vendors'];

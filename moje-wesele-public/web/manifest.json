@@ -1,11 +1,11 @@
 {
-    "name": "moje_wesele",
-    "short_name": "moje_wesele",
+    "name": "Moje Wesele - Wedding Planner",
+    "short_name": "Moje Wesele",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#E8F1FC",
     "theme_color": "#1A56DB",
-    "description": "A new Flutter project.",
+    "description": "Moje Wesele - Wedding Planner: panel organizacji wesela.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

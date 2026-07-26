@@ -12,6 +12,7 @@ import 'wedding_data.dart';
 class BudgetSummary {
   const BudgetSummary({
     required this.budget,
+    required this.reserve,
     required this.totalConfirmed,
     required this.totalEffective,
     required this.totalPaid,
@@ -23,8 +24,12 @@ class BudgetSummary {
     required this.planForCalc,
   });
 
-  /// Budżet całkowity (`budgetData.total`).
+  /// Budżet PLANOWANY (`budgetData.total`) — kwota założona na start.
   final double budget;
+
+  /// Rezerwa (`budgetData.reserve`) — opcjonalny bufor na nieprzewidziane,
+  /// doliczany do planowanego jako bezpiecznik.
+  final double reserve;
 
   /// „Potwierdzone" — sumy potwierdzone (planowane).
   final double totalConfirmed;
@@ -57,8 +62,22 @@ class BudgetSummary {
   int get paidPercentLabel =>
       (totalPaid / max(planForCalc, 1) * 100).round().clamp(0, 999);
 
-  // Podstawa skali paska postępu (jak `base` w wersji web).
-  double get _base => [budget, totalEffective, 1.0].reduce(max);
+  /// Budżet planowany powiększony o rezerwę (bezpiecznik).
+  double get plannedWithReserve => budget + reserve;
+
+  /// Budżet RZECZYWISTY — faktyczne (bieżące) koszty wszystkich pozycji.
+  /// Alias na [planForCalc] dla czytelności w podsumowaniach.
+  double get actualCost => planForCalc;
+
+  /// Ile rezerwy zostało wykorzystane: część kosztów przekraczająca budżet
+  /// planowany, ograniczona do wysokości rezerwy.
+  double get reserveUsed => (planForCalc - budget).clamp(0.0, reserve);
+
+  /// Kwota przekraczająca budżet planowany + rezerwę (0, jeśli mieścimy się).
+  double get overPlannedWithReserve => max(0.0, planForCalc - plannedWithReserve);
+
+  // Podstawa skali paska postępu — uwzględnia rezerwę (bezpiecznik).
+  double get _base => [plannedWithReserve, totalEffective, 1.0].reduce(max);
 
   double get confirmedFraction => (totalConfirmed / _base).clamp(0, 1);
   double get effectiveFraction => (totalEffective / _base).clamp(0, 1);
@@ -69,6 +88,7 @@ class BudgetSummary {
     if (data == null) {
       return const BudgetSummary(
         budget: 0,
+        reserve: 0,
         totalConfirmed: 0,
         totalEffective: 0,
         totalPaid: 0,
@@ -170,10 +190,12 @@ class BudgetSummary {
     final planForCalc = hasEstimates ? totalEffective : totalConfirmed;
     final remaining = max(0.0, planForCalc - totalPaid);
     final budget = _d(bd['total']);
+    final reserve = max(0.0, _d(bd['reserve']));
     final diff = budget - planForCalc;
 
     return BudgetSummary(
       budget: budget,
+      reserve: reserve,
       totalConfirmed: totalConfirmed,
       totalEffective: totalEffective,
       totalPaid: totalPaid,

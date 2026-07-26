@@ -13,6 +13,7 @@ class WeddingData {
     required this.scheduleEvents,
     required this.eventName,
     required this.displayNames,
+    required this.witnessCount,
     required this.weddingDate,
     required this.budgetTotal,
     required this.raw,
@@ -38,6 +39,10 @@ class WeddingData {
 
   /// Osoby (wyświetlane pod nazwą) — `appConfig.displayNames`.
   final String? displayNames;
+
+  /// Docelowa liczba świadków (`appConfig.witnessCount`, domyślnie 2).
+  /// Konfigurowalna — dla nietradycyjnych ślubów można ustawić więcej.
+  final int witnessCount;
 
   /// Data ślubu (z pola `weddingDate`, format "YYYY-MM-DD").
   final DateTime? weddingDate;
@@ -70,6 +75,8 @@ class WeddingData {
     final eventName = (appConfig is Map) ? appConfig['eventName'] as String? : null;
     final displayNames =
         (appConfig is Map) ? appConfig['displayNames'] as String? : null;
+    final wc = (appConfig is Map) ? appConfig['witnessCount'] : null;
+    final witnessCount = (wc is num && wc.toInt() >= 1) ? wc.toInt() : 2;
 
     final budgetData = map['budgetData'];
     final total = (budgetData is Map) ? budgetData['total'] : null;
@@ -82,6 +89,7 @@ class WeddingData {
       scheduleEvents: _asList(map['scheduleEvents']),
       eventName: eventName,
       displayNames: displayNames,
+      witnessCount: witnessCount,
       weddingDate: _parseDate(map['weddingDate']),
       budgetTotal: total is num ? total : 0,
       raw: map,

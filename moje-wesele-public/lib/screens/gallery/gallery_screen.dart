@@ -10,6 +10,7 @@ import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/gallery_service.dart';
 import '../../services/pdf_service.dart';
+import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
 
 /// Sekcja „Galeria & QR" (panel organizatora).
@@ -35,6 +36,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   String _typeFilter = 'all'; // all | image | video
   String _sort = 'newest';
   String _pdfFormat = 'A4';
+  bool _filtersVisible = false;
 
   List<ScheduleEvent> get _events {
     final list = [
@@ -188,43 +190,77 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        // Filtry
+        // Filtry i sortowanie — domyślnie schowane.
         Row(
           children: [
             Expanded(
-              child: DropdownButtonFormField<String>(
-                initialValue:
-                    persons.contains(_personFilter) ? _personFilter : 'all',
-                isExpanded: true,
-                decoration: _miniDec('Osoba'),
-                items: [
-                  const DropdownMenuItem(value: 'all', child: Text('Wszyscy')),
-                  for (final p in persons)
-                    DropdownMenuItem(value: p, child: Text(p)),
-                ],
-                onChanged: (v) => setState(() => _personFilter = v ?? 'all'),
-              ),
+              child: Text('Filtry i sortowanie',
+                  style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text)),
             ),
-            const SizedBox(width: 8),
-            DropdownButton<String>(
-              value: _sort,
-              items: const [
-                DropdownMenuItem(value: 'newest', child: Text('Najnowsze')),
-                DropdownMenuItem(value: 'oldest', child: Text('Najstarsze')),
-              ],
-              onChanged: (v) => setState(() => _sort = v ?? 'newest'),
+            FilterToggleButton(
+              expanded: _filtersVisible,
+              onTap: () => setState(() => _filtersVisible = !_filtersVisible),
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            _typeChip('Wszystko', 'all'),
-            const SizedBox(width: 6),
-            _typeChip('📷 Zdjęcia', 'image'),
-            const SizedBox(width: 6),
-            _typeChip('▶ Filmy', 'video'),
-          ],
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          alignment: Alignment.topCenter,
+          curve: Curves.easeInOut,
+          child: _filtersVisible
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            initialValue: persons.contains(_personFilter)
+                                ? _personFilter
+                                : 'all',
+                            isExpanded: true,
+                            decoration: _miniDec('Osoba'),
+                            items: [
+                              const DropdownMenuItem(
+                                  value: 'all', child: Text('Wszyscy')),
+                              for (final p in persons)
+                                DropdownMenuItem(value: p, child: Text(p)),
+                            ],
+                            onChanged: (v) =>
+                                setState(() => _personFilter = v ?? 'all'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        DropdownButton<String>(
+                          value: _sort,
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'newest', child: Text('Najnowsze')),
+                            DropdownMenuItem(
+                                value: 'oldest', child: Text('Najstarsze')),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _sort = v ?? 'newest'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _typeChip('Wszystko', 'all'),
+                        const SizedBox(width: 6),
+                        _typeChip('📷 Zdjęcia', 'image'),
+                        const SizedBox(width: 6),
+                        _typeChip('▶ Filmy', 'video'),
+                      ],
+                    ),
+                  ],
+                )
+              : const SizedBox(width: double.infinity),
         ),
         const SizedBox(height: 12),
         if (filtered.isEmpty)

@@ -28,7 +28,7 @@ class MojeWeseleApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'Moje Wesele',
+      title: 'Moje Wesele - Wedding Planner',
       debugShowCheckedModeBanner: false,
       theme: base.copyWith(
         textTheme: GoogleFonts.interTextTheme(base.textTheme),

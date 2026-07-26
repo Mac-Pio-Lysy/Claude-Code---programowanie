@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
@@ -76,12 +77,17 @@ class AppLockService {
   /// Czy urządzenie ma sprawny i skonfigurowany czytnik biometryczny.
   /// Gdy false — proponujemy wyłącznie PIN/wzór.
   Future<bool> canUseBiometrics() async {
+    // Web nie ma implementacji local_auth — biometria niedostępna.
+    if (kIsWeb) return false;
     try {
       final supported = await _auth.isDeviceSupported();
       final canCheck = await _auth.canCheckBiometrics;
       final available = await _auth.getAvailableBiometrics();
       return supported && canCheck && available.isNotEmpty;
     } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      // Platforma bez wtyczki local_auth (np. web/desktop) — brak biometrii.
       return false;
     }
   }
@@ -111,6 +117,8 @@ class AppLockService {
         ),
       );
     } on PlatformException {
+      return false;
+    } on MissingPluginException {
       return false;
     }
   }

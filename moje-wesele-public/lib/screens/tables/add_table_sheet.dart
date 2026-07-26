@@ -6,7 +6,10 @@ import '../../services/table_service.dart';
 
 /// Modalny formularz dodawania stołu. Zwraca [TableDraft] przez `Navigator.pop`.
 class AddTableSheet extends StatefulWidget {
-  const AddTableSheet({super.key});
+  const AddTableSheet({super.key, this.allowChildTable = false});
+
+  /// Czy pokazać opcję „Stół dla dzieci" (gdy wesele z dziećmi).
+  final bool allowChildTable;
 
   @override
   State<AddTableSheet> createState() => _AddTableSheetState();
@@ -17,6 +20,7 @@ class _AddTableSheetState extends State<AddTableSheet> {
   String _shape = 'round';
   int _seats = 8;
   bool _isHonor = false;
+  bool _isChild = false;
 
   @override
   void dispose() {
@@ -31,6 +35,7 @@ class _AddTableSheetState extends State<AddTableSheet> {
         shape: _shape,
         seats: _seats,
         isHonor: _isHonor,
+        isChild: _isChild,
       ),
     );
   }
@@ -121,8 +126,28 @@ class _AddTableSheetState extends State<AddTableSheet> {
                               fontSize: 11, color: AppColors.textLight))
                       : null,
                   value: _isHonor,
-                  onChanged: (v) => setState(() => _isHonor = v),
+                  onChanged: (v) => setState(() {
+                    _isHonor = v;
+                    if (v) _isChild = false; // wykluczają się wzajemnie
+                  }),
                 ),
+                if (widget.allowChildTable)
+                  SwitchListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    activeThumbColor: AppColors.accent,
+                    title: Text('🧒 Stół dla dzieci',
+                        style: GoogleFonts.inter(fontSize: 14)),
+                    subtitle: _isChild
+                        ? Text('Osobny stół dla najmłodszych gości',
+                            style: GoogleFonts.inter(
+                                fontSize: 11, color: AppColors.textLight))
+                        : null,
+                    value: _isChild,
+                    onChanged: (v) => setState(() {
+                      _isChild = v;
+                      if (v) _isHonor = false; // wykluczają się wzajemnie
+                    }),
+                  ),
                 const SizedBox(height: 16),
                 Row(
                   children: [

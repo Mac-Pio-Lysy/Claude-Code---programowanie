@@ -8,6 +8,7 @@ import '../../models/rsvp_entry.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/rsvp_service.dart';
+import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
 
 /// Sekcja „Potwierdzenia" (panel RSVP organizatora).
@@ -27,6 +28,7 @@ class RsvpScreen extends StatefulWidget {
 
 class _RsvpScreenState extends State<RsvpScreen> {
   String _filter = 'all'; // all | attending | not_attending | noreply
+  bool _filtersVisible = false;
 
   List<Guest> get _guests => [
         for (final e in widget.data?.guests ?? const [])
@@ -150,13 +152,31 @@ class _RsvpScreenState extends State<RsvpScreen> {
                   _unmatchedRow(context, e, guests),
                 const SizedBox(height: 16),
               ],
-              Text('Goście (${filteredGuests.length})',
-                  style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text)),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Goście (${filteredGuests.length})',
+                        style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text)),
+                  ),
+                  FilterToggleButton(
+                    expanded: _filtersVisible,
+                    onTap: () =>
+                        setState(() => _filtersVisible = !_filtersVisible),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
-              _filterChips(attending, notAtt, noReply),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 200),
+                alignment: Alignment.topCenter,
+                curve: Curves.easeInOut,
+                child: _filtersVisible
+                    ? _filterChips(attending, notAtt, noReply)
+                    : const SizedBox(width: double.infinity),
+              ),
               const SizedBox(height: 10),
               if (filteredGuests.isEmpty)
                 Padding(

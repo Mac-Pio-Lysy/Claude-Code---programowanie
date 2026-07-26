@@ -20,9 +20,22 @@ class AppColors {
     Color(0xFF60A5FA),
   ];
 
-  /// Gradient dolnego paska nawigacji (jasnoniebieski → indygo).
+  /// Gradient nawigacji (dolny pasek telefonu i boczna szyna tabletu):
+  /// jasno-niebieski (góra) → indygo (dół). Lekki i elegancki; ikony/etykiety
+  /// są w bieli, więc pozostają czytelne na indygo w dolnej części.
   static const List<Color> navBarGradient = [
-    Color(0xFF3B76E8),
-    Color(0xFF15328C),
+    Color(0xFFC7D2FE), // jasno-niebieski
+    Color(0xFF6366F1), // indygo
+    Color(0xFF4F46E5), // głębsze indygo
+  ];
+
+  /// Złote akcenty nawigacji (subtelne linie/ornamenty, wskaźnik zaznaczenia).
+  static const Color gold = Color(0xFFCBA24B);
+  static const Color goldLight = Color(0xFFE6C878);
+
+  /// Gradient złotej linii/ornamentu.
+  static const List<Color> goldGradient = [
+    Color(0xFFE6C878),
+    Color(0xFFB8860B),
   ];
 }

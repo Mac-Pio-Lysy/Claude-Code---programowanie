@@ -7,8 +7,25 @@ import '../app_colors.dart';
 import '../screens/lock/lock_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_navigation.dart';
+import '../screens/welcome_screen.dart';
 import '../services/app_lock_service.dart';
 import '../services/auth_service.dart';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TRYB TESTOWY - przywrócić logowanie przed wydaniem
+//
+// Gdy `bypassLogin == true`, aplikacja POMIJA ekran logowania Google,
+// weryfikację listy dozwolonych maili oraz blokadę biometryczną/PIN i wchodzi
+// od razu do panelu głównego. Dane nadal są czytane/zapisywane do Firestore
+// (projekt wedding-planner-pub): jeśli istnieje zapamiętana sesja — używamy jej,
+// a w razie jej braku logujemy się anonimowo, aby zapis do Firestore działał.
+//
+// PRZYWRÓCENIE PRZED WYDANIEM:
+//   1. Ustaw `bypassLogin = false`.
+//   2. Odkomentuj blok „lista dozwolonych maili" w _onAuthChanged.
+//   3. (Opcjonalnie) usuń AuthService.signInAnonymously().
+const bool bypassLogin = true;
+// ═══════════════════════════════════════════════════════════════════════════
 
 /// Bramka autoryzacji — decyduje, który ekran pokazać w zależności od
 /// stanu logowania. Odpowiednik `onAuthStateChanged` z zrodlo-web/auth.js:
@@ -47,10 +64,22 @@ class _AuthGateState extends State<AuthGate> {
   /// pomijamy ekran blokady (tożsamość już potwierdzona).
   bool _interactiveSignIn = false;
 
+  /// TRYB TESTOWY: czy użytkownik przeszedł ekran tytułowy do aplikacji.
+  bool _entered = false;
+
   @override
   void initState() {
     super.initState();
     _sub = _authService.authStateChanges().listen(_onAuthChanged);
+
+    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+    // Best-effort: bez zapamiętanej sesji próbujemy zalogować anonimowo w tle,
+    // aby Firestore działał. Panel i tak pokaże się od razu (patrz build()),
+    // więc ewentualna porażka (anonimowe wyłączone w projekcie) niczego nie
+    // blokuje — po prostu dane z Firestore mogą być wtedy niedostępne.
+    if (bypassLogin && _authService.currentUser == null) {
+      _authService.signInAnonymously().then((_) {}, onError: (_) {});
+    }
   }
 
   @override
@@ -60,6 +89,21 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _onAuthChanged(User? user) async {
+    // ───────────────────────────────────────────────────────────────────────
+    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+    // W trybie testowym panel jest pokazywany OD RAZU w build() — niezależnie
+    // od FirebaseAuth. Tu tylko aktualizujemy `_user`, gdy pojawi się realna
+    // (lub anonimowa) sesja, żeby Firestore dostał prawdziwy uid.
+    if (bypassLogin) {
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _initializing = false;
+      });
+      return;
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     // Brak zalogowanego użytkownika
     if (user == null) {
       if (!mounted) return;
@@ -71,19 +115,22 @@ class _AuthGateState extends State<AuthGate> {
       return;
     }
 
-    // Użytkownik spoza listy dozwolonych → wyloguj i pokaż komunikat
-    if (!AuthService.isAllowed(user)) {
-      await _authService.signOut();
-      if (!mounted) return;
-      setState(() {
-        _user = null;
-        _signingIn = false;
-        _initializing = false;
-        _error = 'Brak dostępu — ta aplikacja jest prywatna.\n'
-            'Skontaktuj się z organizatorem.';
-      });
-      return;
-    }
+    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+    // Blokada dostępu oparta na liście 3 maili — tymczasowo wyłączona, aby nie
+    // przeszkadzała w testach. NIE KASOWAĆ: odkomentować przy przywróceniu.
+    // // Użytkownik spoza listy dozwolonych → wyloguj i pokaż komunikat
+    // if (!AuthService.isAllowed(user)) {
+    //   await _authService.signOut();
+    //   if (!mounted) return;
+    //   setState(() {
+    //     _user = null;
+    //     _signingIn = false;
+    //     _initializing = false;
+    //     _error = 'Brak dostępu — ta aplikacja jest prywatna.\n'
+    //         'Skontaktuj się z organizatorem.';
+    //   });
+    //   return;
+    // }
 
     // Użytkownik dozwolony — sprawdź blokadę aplikacji.
     final lockEnabled = await _lock.isLockEnabled();
@@ -162,6 +209,24 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
+    // ───────────────────────────────────────────────────────────────────────
+    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
+    // Panel pokazywany OD RAZU, całkowicie z pominięciem ekranu logowania,
+    // sprawdzania FirebaseAuth i blokady PIN/biometrii. `_user` może być null
+    // (dopóki ewentualne logowanie anonimowe w tle nie ustawi realnej sesji).
+    if (bypassLogin) {
+      // Najpierw elegancki ekran tytułowy (docelowo logowanie/rejestracja),
+      // potem — po „Wejdź" — panel główny.
+      if (!_entered) {
+        return WelcomeScreen(onEnter: () => setState(() => _entered = true));
+      }
+      return MainNavigation(
+        user: _user,
+        onSignOut: () => _authService.signOut(),
+      );
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     if (_initializing) {
       return const _SplashLoader();
     }

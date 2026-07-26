@@ -84,6 +84,9 @@ class FloatingBottomNav extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: AppColors.navBarGradient,
+                      // Biel tylko wąskim pasem u góry (przy pływającym
+                      // przycisku), reszta indygo — ikony w bieli czytelne.
+                      stops: [0.0, 0.5, 1.0],
                     ),
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(26)),
@@ -105,39 +108,39 @@ class FloatingBottomNav extends StatelessWidget {
                       return CustomPaint(
                         painter: _NavOrnamentPainter(),
                         child: Row(
-                          children: [
-                            for (var i = 0; i < left.length; i++)
-                              Expanded(
-                                child: _NavItem(
-                                  key: leftKeys[i],
-                                  section: left[i],
-                                  selected: current == left[i],
-                                  compact: compact,
-                                  onTap: () => onSelect(left[i]),
-                                ),
-                              ),
-                            SizedBox(width: _fabSize + 6),
-                            for (var i = 0; i < right.length; i++)
-                              Expanded(
-                                child: _NavItem(
-                                  key: rightKeys[i],
-                                  section: right[i],
-                                  selected: current == right[i],
-                                  compact: compact,
-                                  onTap: () => onSelect(right[i]),
-                                ),
-                              ),
+                        children: [
+                          for (var i = 0; i < left.length; i++)
                             Expanded(
                               child: _NavItem(
-                                key: moreKey,
-                                icon: Icons.more_horiz,
-                                label: 'Więcej',
-                                selected: false,
+                                key: leftKeys[i],
+                                section: left[i],
+                                selected: current == left[i],
                                 compact: compact,
-                                onTap: onMore,
+                                onTap: () => onSelect(left[i]),
                               ),
                             ),
-                          ],
+                          SizedBox(width: _fabSize + 6),
+                          for (var i = 0; i < right.length; i++)
+                            Expanded(
+                              child: _NavItem(
+                                key: rightKeys[i],
+                                section: right[i],
+                                selected: current == right[i],
+                                compact: compact,
+                                onTap: () => onSelect(right[i]),
+                              ),
+                            ),
+                          Expanded(
+                            child: _NavItem(
+                              key: moreKey,
+                              icon: Icons.more_horiz,
+                              label: 'Więcej',
+                              selected: false,
+                              compact: compact,
+                              onTap: onMore,
+                            ),
+                          ),
+                        ],
                         ),
                       );
                     },
@@ -193,7 +196,9 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? Colors.white : Colors.white.withValues(alpha: 0.62);
+    // Pasek indygo → białe ikony/etykiety (pełna biel dla zaznaczonej,
+    // przygaszona dla pozostałych).
+    final color = selected ? Colors.white : Colors.white.withValues(alpha: 0.66);
     return InkWell(
       onTap: onTap,
       customBorder: const StadiumBorder(),
@@ -260,7 +265,7 @@ class _DashboardFab extends StatelessWidget {
             border: Border.all(color: Colors.white, width: 3),
             boxShadow: [
               BoxShadow(
-                color: AppColors.accent.withValues(alpha: 0.35),
+                color: AppColors.accent.withValues(alpha: 0.28),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -273,35 +278,47 @@ class _DashboardFab extends StatelessWidget {
   }
 }
 
-/// Subtelne ornamenty (łuki i kropki) wokół pływającego przycisku Dashboard,
-/// rysowane na górnej krawędzi paska nawigacji.
+/// Subtelne, eleganckie ZŁOTE ornamenty na górnej krawędzi paska: cienka
+/// złota linia (z przerwą na pływający przycisk), delikatne łuki i kropki
+/// po obu stronach Dashboardu. Lekki akcent spójny z designem aplikacji.
 class _NavOrnamentPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
-    const gap = 40.0;
+    const gap = 42.0;
 
-    final arcPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.22)
+    // Cienka złota linia wzdłuż górnej krawędzi — z przerwą na przycisk.
+    final linePaint = Paint()
+      ..shader = const LinearGradient(colors: AppColors.goldGradient)
+          .createShader(Rect.fromLTWH(0, 0, size.width, 2))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
+      ..strokeWidth = 1.1;
+    canvas.drawLine(const Offset(14, 1.4), Offset(cx - gap - 6, 1.4), linePaint);
+    canvas.drawLine(
+        Offset(cx + gap + 6, 1.4), Offset(size.width - 14, 1.4), linePaint);
+
+    // Delikatne łuki flankujące przycisk.
+    final arcPaint = Paint()
+      ..color = AppColors.goldLight.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
+    final leftArc = Path()
+      ..moveTo(cx - gap, 6)
+      ..quadraticBezierTo(cx - gap - 20, 2, cx - gap - 38, 11);
+    canvas.drawPath(leftArc, arcPaint);
+    final rightArc = Path()
+      ..moveTo(cx + gap, 6)
+      ..quadraticBezierTo(cx + gap + 20, 2, cx + gap + 38, 11);
+    canvas.drawPath(rightArc, arcPaint);
 
-    final left = Path()
-      ..moveTo(cx - gap, 5)
-      ..quadraticBezierTo(cx - gap - 22, 1, cx - gap - 40, 11);
-    canvas.drawPath(left, arcPaint);
-
-    final right = Path()
-      ..moveTo(cx + gap, 5)
-      ..quadraticBezierTo(cx + gap + 22, 1, cx + gap + 40, 11);
-    canvas.drawPath(right, arcPaint);
-
-    final dotPaint = Paint()..color = Colors.white.withValues(alpha: 0.3);
-    canvas.drawCircle(Offset(cx - gap - 44, 15), 2, dotPaint);
-    canvas.drawCircle(Offset(cx + gap + 44, 15), 2, dotPaint);
+    // Drobne złote kropki na końcach łuków.
+    final dotPaint = Paint()..color = AppColors.gold.withValues(alpha: 0.75);
+    canvas.drawCircle(Offset(cx - gap - 42, 14), 1.8, dotPaint);
+    canvas.drawCircle(Offset(cx + gap + 42, 14), 1.8, dotPaint);
   }
 
   @override
   bool shouldRepaint(covariant _NavOrnamentPainter oldDelegate) => false;
 }
+
