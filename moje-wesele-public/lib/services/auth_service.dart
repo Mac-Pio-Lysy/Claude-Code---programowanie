@@ -4,8 +4,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 /// Uwierzytelnianie przez Google — odpowiednik zrodlo-web/auth.js.
 ///
-/// Dostęp do aplikacji mają wyłącznie adresy z listy [allowedEmails]
-/// (zgodnej z ALLOWED_EMAILS w wersji webowej).
+/// ETAP 4a: REJESTRACJA OTWARTA — każde konto Google może się zalogować
+/// i założyć własne wesele. Dawne ograniczenie do listy dozwolonych adresów
+/// jest zachowane (zakomentowane niżej) na wypadek potrzeby przywrócenia.
 class AuthService {
   AuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
 
@@ -20,23 +21,28 @@ class AuthService {
   /// Jednorazowa inicjalizacja google_sign_in (tylko platformy natywne).
   Future<void>? _googleInit;
 
-  /// Lista dozwolonych adresów e-mail — identyczna jak w aplikacji webowej.
-  static const List<String> allowedEmails = [
-    'macholak.piotr@gmail.com',
-    'ceremonia.panstwa.macholak@gmail.com',
-    'patrycja.staniow@gmail.com',
-  ];
+  // ───────────────────────────────────────────────────────────────────────
+  // ETAP 4a: rejestracja otwarta — lista dozwolonych maili WYŁĄCZONA.
+  // Zachowana (zakomentowana) na wypadek powrotu do dostępu prywatnego.
+  //
+  // /// Lista dozwolonych adresów e-mail — identyczna jak w aplikacji webowej.
+  // static const List<String> allowedEmails = [
+  //   'macholak.piotr@gmail.com',
+  //   'ceremonia.panstwa.macholak@gmail.com',
+  //   'patrycja.staniow@gmail.com',
+  // ];
+  //
+  // /// Czy dany użytkownik jest na liście dozwolonych adresów.
+  // static bool isAllowed(User? user) {
+  //   final email = (user?.email ?? '').toLowerCase();
+  //   return allowedEmails.contains(email);
+  // }
+  // ───────────────────────────────────────────────────────────────────────
 
   /// Strumień zmian stanu logowania (umożliwia auto-login po starcie aplikacji).
   Stream<User?> authStateChanges() => _auth.authStateChanges();
 
   User? get currentUser => _auth.currentUser;
-
-  /// Czy dany użytkownik jest na liście dozwolonych adresów.
-  static bool isAllowed(User? user) {
-    final email = (user?.email ?? '').toLowerCase();
-    return allowedEmails.contains(email);
-  }
 
   Future<void> _ensureGoogleInit() =>
       _googleInit ??= GoogleSignIn.instance.initialize(

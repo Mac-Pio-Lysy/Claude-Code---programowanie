@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/wedding_data.dart';
-import '../../services/auth_service.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
@@ -456,27 +455,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _accessCard() {
     return _card(
       'Dostęp',
-      Column(
+      Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Autoryzowane adresy e-mail:',
+          const Icon(Icons.group_add_outlined,
+              size: 18, color: AppColors.accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Rejestracja otwarta — każde konto Google może się zalogować '
+              'i założyć własne wesele. Dostęp do tego wesela mają osoby z nim '
+              'powiązane (właściciel i zaproszeni).',
               style: GoogleFonts.inter(
-                  fontSize: 13, color: AppColors.textLight)),
-          const SizedBox(height: 6),
-          for (final e in AuthService.allowedEmails)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.lock_outline,
-                      size: 14, color: AppColors.accent),
-                  const SizedBox(width: 6),
-                  Text(e,
-                      style: GoogleFonts.inter(
-                          fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
+                  fontSize: 13, height: 1.45, color: AppColors.textLight),
             ),
+          ),
         ],
       ),
     );

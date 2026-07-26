@@ -117,10 +117,20 @@ class LoginScreen extends StatelessWidget {
             _ErrorBox(message: errorMessage!),
           ],
 
-          // Informacja o prywatności
+          // Informacja o logowaniu / rejestracji
           const SizedBox(height: 22),
           Text(
-            '🔒 Aplikacja prywatna — dostęp tylko dla zaproszonych',
+            'Zaloguj się lub załóż konto swoim kontem Google',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '🔒 Bezpieczne logowanie — bez osobnego hasła',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 12,

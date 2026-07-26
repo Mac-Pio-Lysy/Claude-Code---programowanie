@@ -133,15 +133,92 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createWedding,
-        backgroundColor: AppColors.accent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: Text(
-          'Nowe wesele',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+      bottomNavigationBar: _actionBar(),
+    );
+  }
+
+  /// Dwa główne przyciski: „Załóż wesele" (tworzy nowe) i „Dołącz do wesela"
+  /// (placeholder — pełne dołączanie kodem w kroku 4b).
+  Widget _actionBar() {
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _createWedding,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+              ),
+              icon: const Text('➕', style: TextStyle(fontSize: 15)),
+              label: Text(
+                'Załóż wesele',
+                style: GoogleFonts.inter(
+                    fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _joinWedding,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Text('🔗', style: TextStyle(fontSize: 15)),
+              label: Text(
+                'Dołącz do wesela',
+                style: GoogleFonts.inter(
+                    fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Placeholder dołączania do wesela — pełna funkcja (kod zaproszenia) w 4b.
+  Future<void> _joinWedding() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Row(
+          children: [
+            const Text('🔗 ', style: TextStyle(fontSize: 20)),
+            Expanded(
+              child: Text(
+                'Dołącz do wesela',
+                style: GoogleFonts.playfairDisplay(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text),
+              ),
+            ),
+          ],
         ),
+        content: Text(
+          'Dołączanie do istniejącego wesela za pomocą kodu zaproszenia '
+          'będzie dostępne wkrótce (kolejny krok). Na razie możesz założyć '
+          'własne wesele przyciskiem „Załóż wesele".',
+          style: GoogleFonts.inter(
+              fontSize: 13, height: 1.5, color: AppColors.textLight),
+        ),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Rozumiem'),
+          ),
+        ],
       ),
     );
   }
@@ -235,7 +312,8 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Utwórz pierwsze wesele, aby rozpocząć organizację.',
+                  'Załóż pierwsze wesele, aby rozpocząć organizację. '
+                  'Możesz też dołączyć do wesela, do którego ktoś Cię zaprosi.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 14,
@@ -251,13 +329,13 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 24, vertical: 14),
                   ),
-                  icon: const Icon(Icons.add),
+                  icon: const Text('➕', style: TextStyle(fontSize: 15)),
                   label: Text(
-                    'Utwórz pierwsze wesele',
+                    'Załóż pierwsze wesele',
                     style: GoogleFonts.inter(fontWeight: FontWeight.w700),
                   ),
                 ),
-                const SizedBox(height: 80),
+                const SizedBox(height: 40),
               ],
             ),
           ),

@@ -6,15 +6,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:moje_wesele/screens/login_screen.dart';
 
 void main() {
-  testWidgets('Ekran logowania pokazuje tytuł, przycisk i informację o prywatności',
+  testWidgets('Ekran logowania pokazuje nazwę, przycisk Google i zachętę do rejestracji',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(home: LoginScreen(onGoogleSignIn: () {})),
     );
 
-    expect(find.textContaining('Ceremonia'), findsOneWidget);
-    expect(find.text('Panel organizacji wesela'), findsOneWidget);
+    expect(find.text('Moje Wesele'), findsOneWidget);
+    expect(find.text('WEDDING PLANNER'), findsOneWidget);
     expect(find.text('Zaloguj się przez Google'), findsOneWidget);
-    expect(find.textContaining('Aplikacja prywatna'), findsOneWidget);
+    // Rejestracja otwarta — zachęta do logowania/założenia konta.
+    expect(find.textContaining('załóż konto'), findsOneWidget);
   });
 }

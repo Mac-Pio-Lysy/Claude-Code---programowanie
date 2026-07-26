@@ -14,30 +14,31 @@ import '../services/app_lock_service.dart';
 import '../services/auth_service.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TRYB TESTOWY - przywrócić logowanie przed wydaniem
+// PRZEŁĄCZNIK TEST/PROD (ETAP 4a: logowanie WŁĄCZONE — domyślnie false)
 //
-// Gdy `bypassLogin == true`, aplikacja POMIJA ekran logowania Google,
-// weryfikację listy dozwolonych maili oraz blokadę biometryczną/PIN i wchodzi
-// od razu do panelu głównego. Dane nadal są czytane/zapisywane do Firestore
-// (projekt wedding-planner-pub): jeśli istnieje zapamiętana sesja — używamy jej,
-// a w razie jej braku logujemy się anonimowo, aby zapis do Firestore działał.
+// Gdy `bypassLogin == true`, aplikacja POMIJA ekran logowania Google i blokadę
+// biometryczną/PIN, wchodząc od razu do listy wesel (z testowym uid). Przydatne
+// przy pracy nad wyglądem bez ciągłego logowania.
 //
-// PRZYWRÓCENIE PRZED WYDANIEM:
-//   1. Ustaw `bypassLogin = false`.
-//   2. Odkomentuj blok „lista dozwolonych maili" w _onAuthChanged.
-//   3. (Opcjonalnie) usuń AuthService.signInAnonymously().
-const bool bypassLogin = true;
+// Gdy `bypassLogin == false` (produkcyjnie), działa normalne logowanie Google:
+//   • brak sesji           → ekran logowania,
+//   • po zalogowaniu       → „Twoje wesela" → panel wybranego wesela,
+//   • wylogowanie          → powrót do ekranu logowania.
+//
+// Rejestracja jest OTWARTA — dawna lista dozwolonych maili jest wyłączona
+// (zakomentowana tu i w AuthService).
+const bool bypassLogin = false; // przełącznik test/prod
 // ═══════════════════════════════════════════════════════════════════════════
 
 /// Bramka autoryzacji — decyduje, który ekran pokazać w zależności od
 /// stanu logowania. Odpowiednik `onAuthStateChanged` z zrodlo-web/auth.js:
 ///
 ///  • brak użytkownika           → [LoginScreen]
-///  • użytkownik spoza listy     → wylogowanie + komunikat „Brak dostępu"
-///  • użytkownik dozwolony       → [HomeScreen]
+///  • użytkownik zalogowany      → [WeddingsListScreen] → [MainNavigation]
 ///
-/// Sesja jest zapamiętywana przez Firebase, więc po ponownym otwarciu
-/// aplikacji następuje automatyczne logowanie.
+/// Rejestracja jest otwarta (każde konto Google). Sesja jest zapamiętywana
+/// przez Firebase, więc po ponownym otwarciu aplikacji następuje automatyczne
+/// logowanie.
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
