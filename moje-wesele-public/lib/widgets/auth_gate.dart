@@ -265,6 +265,7 @@ class _AuthGateState extends State<AuthGate> {
     return MainNavigation(
       user: user,
       weddingId: _activeWeddingId!,
+      role: _activeRole,
       onSwitchWedding: _switchWedding,
       onSignOut: () => _authService.signOut(),
     );

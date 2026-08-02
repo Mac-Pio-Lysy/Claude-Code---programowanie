@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/wedding_summary.dart';
+import '../utils/warsaw_time.dart';
 import 'membership_service.dart';
+import 'user_service.dart';
 
 /// Wynik próby dołączenia do wesela jako gość.
 enum JoinOutcome {
@@ -28,6 +30,31 @@ class JoinResult {
   final String? role;
 }
 
+/// Wynik dodawania osoby po e-mailu (panel „Osoby i dostęp").
+enum AddPersonOutcome {
+  /// Dodano członkostwo dla znalezionego konta.
+  success,
+
+  /// Nikt z tym adresem nie ma jeszcze konta w aplikacji.
+  noAccount,
+
+  /// Osoba już ma dostęp do tego wesela.
+  alreadyMember,
+
+  /// Błąd techniczny.
+  error,
+}
+
+/// Wynik odbierania zaproszenia kodem (współorganizator/planer).
+enum ClaimOutcome { success, alreadyMember, invalid, error }
+
+class ClaimResult {
+  const ClaimResult(this.outcome, {this.weddingId, this.role});
+  final ClaimOutcome outcome;
+  final String? weddingId;
+  final String? role;
+}
+
 /// Zarządzanie weselami (kolekcja `weddings`) i ich powiązaniem z użytkownikiem.
 ///
 /// Odpowiada za:
@@ -36,12 +63,17 @@ class JoinResult {
 ///   • listę wesel dostępnych użytkownikowi (przez jego członkostwa),
 ///   • dołączanie gościa po potrójnej weryfikacji (kod + data + nazwisko).
 class WeddingService {
-  WeddingService({FirebaseFirestore? db, MembershipService? memberships})
-      : _db = db ?? FirebaseFirestore.instance,
-        _memberships = memberships ?? MembershipService(db: db);
+  WeddingService({
+    FirebaseFirestore? db,
+    MembershipService? memberships,
+    UserService? users,
+  })  : _db = db ?? FirebaseFirestore.instance,
+        _memberships = memberships ?? MembershipService(db: db),
+        _users = users ?? UserService(db: db);
 
   final FirebaseFirestore _db;
   final MembershipService _memberships;
+  final UserService _users;
 
   static const String collectionName = 'weddings';
 
@@ -146,13 +178,104 @@ class WeddingService {
     }
   }
 
+  // ── Zarządzanie osobami (tylko owner — egzekwowane w UI) ─────────────────
+
+  /// Dodaje osobę po e-mailu (osoba MUSI mieć już konto). `role` = 'planner'
+  /// lub 'collaborator'; `expiresAt` ("YYYY-MM-DD") tylko dla planera.
+  Future<AddPersonOutcome> addPersonByEmail({
+    required String weddingId,
+    required String email,
+    required String role,
+    String? expiresAt,
+  }) async {
+    try {
+      final found = await _users.findByEmail(email);
+      if (found == null) return AddPersonOutcome.noAccount;
+
+      final existing = await _memberships.findFor(found.uid, weddingId);
+      if (existing != null) return AddPersonOutcome.alreadyMember;
+
+      await _memberships.create(
+        userId: found.uid,
+        weddingId: weddingId,
+        role: role,
+        status: 'active',
+        expiresAt: role == 'planner' ? expiresAt : null,
+        email: (found.data['email'] as String?) ?? email.trim().toLowerCase(),
+        displayName: (found.data['displayName'] as String?) ?? '',
+      );
+      return AddPersonOutcome.success;
+    } catch (_) {
+      return AddPersonOutcome.error;
+    }
+  }
+
+  /// Tworzy zaproszenie z KODEM (dla współorganizatora/planera). Zwraca kod do
+  /// przekazania osobie. Powstaje `pending` membership bez `userId`.
+  Future<String> createRoleInvite({
+    required String weddingId,
+    required String role,
+    String? expiresAt,
+  }) async {
+    final code = await _uniqueInviteCode();
+    await _memberships.create(
+      userId: '',
+      weddingId: weddingId,
+      role: role,
+      status: 'pending',
+      expiresAt: role == 'planner' ? expiresAt : null,
+      inviteCode: code,
+    );
+    return code;
+  }
+
+  /// Odbiera zaproszenie kodem — przypisuje bieżącego użytkownika do roli.
+  Future<ClaimResult> claimRoleInvite({
+    required String userId,
+    required String email,
+    required String displayName,
+    required String code,
+  }) async {
+    try {
+      final normCode = code.trim().toUpperCase();
+      if (normCode.isEmpty) return const ClaimResult(ClaimOutcome.invalid);
+
+      final pending = await _memberships.findPendingByInviteCode(normCode);
+      if (pending == null) return const ClaimResult(ClaimOutcome.invalid);
+
+      final existing =
+          await _memberships.findFor(userId, pending.weddingId);
+      if (existing != null) {
+        return ClaimResult(ClaimOutcome.alreadyMember,
+            weddingId: pending.weddingId, role: existing.role);
+      }
+
+      await _memberships.update(
+        pending.id,
+        userId: userId,
+        status: 'active',
+        email: email.trim().toLowerCase(),
+        displayName: displayName,
+        inviteCode: null, // jednorazowy — czyścimy po odebraniu
+      );
+      return ClaimResult(ClaimOutcome.success,
+          weddingId: pending.weddingId, role: pending.role);
+    } catch (_) {
+      return const ClaimResult(ClaimOutcome.error);
+    }
+  }
+
   /// Lista wesel dostępnych użytkownikowi (z jego członkostw). Wesela usunięte
   /// (brak dokumentu) są pomijane. Sortowanie: najbliższa data pierwsza,
   /// wesela bez daty na końcu.
   Future<List<WeddingSummary>> listForUser(String userId) async {
     final memberships = await _memberships.forUser(userId);
+    final today = warsawToday();
     final result = <WeddingSummary>[];
     for (final m in memberships) {
+      // Pomijamy zablokowane oraz wygasłe (planer po dacie ważności) —
+      // taka osoba nie widzi wesela, dopóki owner nie przywróci/przedłuży.
+      if (!m.isEffectiveOn(today)) continue;
       final snap = await _col.doc(m.weddingId).get();
       final data = snap.data();
       if (data == null) continue; // wesele nie istnieje / zostało usunięte
@@ -242,6 +365,16 @@ class WeddingService {
       if (taken.docs.isEmpty) return code;
     }
     // Skrajnie mało prawdopodobne — dokładamy przyrostek z czasu.
+    return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
+  }
+
+  /// Generuje unikalny kod zaproszenia roli (sprawdza oczekujące zaproszenia).
+  Future<String> _uniqueInviteCode() async {
+    for (var i = 0; i < 6; i++) {
+      final code = _generateCode();
+      final taken = await _memberships.findPendingByInviteCode(code);
+      if (taken == null) return code;
+    }
     return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
   }
 

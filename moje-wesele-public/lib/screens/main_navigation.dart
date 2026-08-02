@@ -49,6 +49,7 @@ class MainNavigation extends StatefulWidget {
     required this.user,
     required this.weddingId,
     required this.onSignOut,
+    this.role = 'owner',
     this.onSwitchWedding,
     FirestoreService? firestoreService,
   }) : firestore = firestoreService ?? FirestoreService(weddingId: weddingId);
@@ -60,6 +61,10 @@ class MainNavigation extends StatefulWidget {
 
   /// ID aktywnego wesela (multi-wedding) — wyznacza dokument `weddings/{id}`.
   final String weddingId;
+
+  /// Rola użytkownika w tym weselu ('owner'/'planner'/'collaborator'). Decyduje
+  /// m.in. o widoczności sekcji „Osoby i dostęp" (tylko owner).
+  final String role;
 
   final VoidCallback onSignOut;
 
@@ -792,6 +797,8 @@ class _MainNavigationState extends State<MainNavigation> {
         return SettingsScreen(
           data: data,
           firestore: widget.firestore,
+          isOwner: widget.role == 'owner',
+          currentUserId: _uid,
           onSignOut: _handleSignOut,
           onStartTour: _promptAndStartTour,
           onOpenPlanning: () => Navigator.of(context).push(

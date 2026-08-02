@@ -29,7 +29,7 @@ class UserService {
     final payload = <String, dynamic>{
       if (displayName != null && displayName.isNotEmpty)
         'displayName': displayName,
-      if (email != null && email.isNotEmpty) 'email': email,
+      if (email != null && email.isNotEmpty) 'email': email.trim().toLowerCase(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
     // Typ konta ustawiamy tylko przy pierwszym utworzeniu (nie nadpisujemy).
@@ -43,6 +43,21 @@ class UserService {
   /// Jednorazowy odczyt profilu użytkownika.
   Future<Map<String, dynamic>?> read(String uid) async =>
       (await _col.doc(uid).get()).data();
+
+  /// Znajduje użytkownika po adresie e-mail (do dodawania osób do wesela).
+  /// Zwraca `(uid, dane)` lub `null`, gdy nikt z tym adresem nie ma konta.
+  Future<({String uid, Map<String, dynamic> data})?> findByEmail(
+      String email) async {
+    final normalized = email.trim().toLowerCase();
+    if (normalized.isEmpty) return null;
+    final snap =
+        await _col.where('email', isEqualTo: normalized).limit(1).get();
+    if (snap.docs.isNotEmpty) {
+      final d = snap.docs.first;
+      return (uid: d.id, data: d.data());
+    }
+    return null;
+  }
 
   /// Zmiana typu konta ('para' | 'planer').
   Future<void> setAccountType(String uid, String accountType) =>

@@ -13,6 +13,7 @@ import '../../services/firestore_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/format.dart';
 import 'guest_visibility_screen.dart';
+import 'people_access_screen.dart';
 import 'security_settings_screen.dart';
 
 /// Sekcja „Ustawienia" — konfiguracja, dostęp, narzędzia programistyczne,
@@ -25,10 +26,20 @@ class SettingsScreen extends StatefulWidget {
     required this.onSignOut,
     required this.onStartTour,
     required this.onOpenPlanning,
+    this.isOwner = true,
+    this.currentUserId = '',
   }) : config = ConfigService(firestore: firestore);
 
   final WeddingData? data;
   final FirestoreService firestore;
+
+  /// Czy bieżący użytkownik jest właścicielem (owner) — tylko owner widzi
+  /// sekcję „Osoby i dostęp".
+  final bool isOwner;
+
+  /// UID bieżącego użytkownika (do panelu osób — oznaczenie „Ty").
+  final String currentUserId;
+
   final VoidCallback onSignOut;
 
   /// Uruchamia przewodnik (z ekranem wyboru tempa).
@@ -188,6 +199,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               _joinCodeCard(),
               const SizedBox(height: 12),
+              // „Osoby i dostęp" — TYLKO dla właściciela (owner).
+              if (widget.isOwner) ...[
+                _peopleAccessCard(),
+                const SizedBox(height: 12),
+              ],
               _loginCard(),
               const SizedBox(height: 12),
               _configCard(),
@@ -267,6 +283,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: widget.onOpenPlanning,
               icon: const Text('📋', style: TextStyle(fontSize: 16)),
               label: const Text('Od czego zacząć?'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _peopleAccessCard() {
+    return _card(
+      'Osoby i dostęp',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Zarządzaj osobami z dostępem do wesela: dodawaj współorganizatorów '
+            'i planerów, ustawiaj datę ważności, blokuj i usuwaj dostęp.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PeopleAccessScreen(
+                    weddingId: widget.firestore.weddingId,
+                    currentUserId: widget.currentUserId,
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.admin_panel_settings_outlined, size: 18),
+              label: const Text('Zarządzaj osobami'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),

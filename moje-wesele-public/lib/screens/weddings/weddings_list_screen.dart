@@ -182,9 +182,96 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
               ),
             ),
           ),
+          TextButton.icon(
+            onPressed: _claimInvite,
+            icon: const Icon(Icons.vpn_key_outlined, size: 16),
+            label: const Text('Mam kod zaproszenia (współorganizator / planer)'),
+            style: TextButton.styleFrom(foregroundColor: AppColors.textLight),
+          ),
         ],
       ),
     );
+  }
+
+  /// Odbieranie zaproszenia kodem (współorganizator/planer) — kod od Pary Młodej.
+  Future<void> _claimInvite() async {
+    final codeCtrl = TextEditingController();
+    final code = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Mam kod zaproszenia',
+            style: GoogleFonts.playfairDisplay(
+                fontSize: 19, fontWeight: FontWeight.w700, color: AppColors.text)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Wpisz kod otrzymany od Pary Młodej, aby odebrać dostęp jako '
+              'współorganizator lub planer.',
+              style:
+                  GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: codeCtrl,
+              textCapitalization: TextCapitalization.characters,
+              style: GoogleFonts.robotoMono(
+                  fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 2),
+              decoration: const InputDecoration(
+                hintText: 'np. ABC234',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Anuluj'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            onPressed: () =>
+                Navigator.of(context).pop(codeCtrl.text.trim().toUpperCase()),
+            child: const Text('Odbierz'),
+          ),
+        ],
+      ),
+    );
+    if (code == null || code.isEmpty || !mounted) return;
+
+    final result = await _weddings.claimRoleInvite(
+      userId: widget.userId,
+      email: widget.email ?? '',
+      displayName: widget.displayName ?? '',
+      code: code,
+    );
+    if (!mounted) return;
+    switch (result.outcome) {
+      case ClaimOutcome.success:
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('Dostęp odebrany ✓')));
+        widget.onOpen(result.weddingId!, result.role ?? 'collaborator');
+      case ClaimOutcome.alreadyMember:
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+              const SnackBar(content: Text('Już masz dostęp do tego wesela.')));
+        widget.onOpen(result.weddingId!, result.role ?? 'collaborator');
+      case ClaimOutcome.invalid:
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(
+              content: Text('Nieprawidłowy lub wykorzystany kod zaproszenia.')));
+      case ClaimOutcome.error:
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+              const SnackBar(content: Text('Błąd. Spróbuj ponownie.')));
+    }
   }
 
   /// Dołączanie do wesela jako gość — otwiera formularz (kod + data + nazwisko).
