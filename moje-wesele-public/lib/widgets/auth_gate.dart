@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../app_colors.dart';
+import '../screens/guest/guest_home_screen.dart';
 import '../screens/lock/lock_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_navigation.dart';
@@ -74,14 +75,21 @@ class _AuthGateState extends State<AuthGate> {
   /// Ustawiane po wyborze wesela z listy, czyszczone przy „Zmień wesele".
   String? _activeWeddingId;
 
+  /// Rola użytkownika w aktywnym weselu ('owner'/'planner'/'collaborator'/
+  /// 'guest'). Decyduje o interfejsie: gość dostaje uproszczony panel.
+  String _activeRole = 'owner';
+
   /// Identyfikator używany do danych — uid zalogowanego użytkownika lub
   /// zastępczy w trybie bez logowania (bypassLogin).
   String get _dataUid => _user?.uid ?? 'tryb-testowy';
 
   /// Ustawia aktywne wesele (globalnie i w stanie) — wybór z listy.
-  void _openWedding(String weddingId) {
+  void _openWedding(String weddingId, String role) {
     ActiveWedding.id = weddingId;
-    setState(() => _activeWeddingId = weddingId);
+    setState(() {
+      _activeWeddingId = weddingId;
+      _activeRole = role;
+    });
   }
 
   /// Powrót do listy wesel („Zmień wesele").
@@ -241,6 +249,16 @@ class _AuthGateState extends State<AuthGate> {
         displayName: user?.displayName,
         email: user?.email,
         onOpen: _openWedding,
+        onSignOut: () => _authService.signOut(),
+      );
+    }
+    // Gość → uproszczony panel (tylko dozwolone sekcje). Pozostałe role →
+    // pełny panel organizatora.
+    if (_activeRole == 'guest') {
+      return GuestHomeScreen(
+        user: user,
+        weddingId: _activeWeddingId!,
+        onSwitchWedding: _switchWedding,
         onSignOut: () => _authService.signOut(),
       );
     }

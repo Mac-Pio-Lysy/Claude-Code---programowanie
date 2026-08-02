@@ -31,8 +31,12 @@ class WeddingSummary {
         'owner' => 'Właściciel',
         'planner' => 'Planer',
         'collaborator' => 'Współpraca',
+        'guest' => 'Gość',
         _ => role,
       };
+
+  /// Czy bieżący użytkownik jest w tym weselu gościem (ograniczony dostęp).
+  bool get isGuest => role == 'guest';
 
   factory WeddingSummary.fromWeddingDoc(
     String id,

@@ -6,6 +6,7 @@ import '../../models/wedding_summary.dart';
 import '../../services/user_service.dart';
 import '../../services/wedding_service.dart';
 import 'create_wedding_sheet.dart';
+import 'join_wedding_screen.dart';
 
 /// Ekran „Twoje wesela" — pokazywany po wejściu do aplikacji, przed panelem.
 ///
@@ -25,8 +26,9 @@ class WeddingsListScreen extends StatefulWidget {
   /// Identyfikator użytkownika (uid lub testowy w trybie bypassLogin).
   final String userId;
 
-  /// Wywoływane po wyborze wesela — przekazuje wybrane `weddingId`.
-  final ValueChanged<String> onOpen;
+  /// Wywoływane po wyborze wesela — przekazuje `weddingId` i rolę użytkownika
+  /// w tym weselu ('owner'/'planner'/'collaborator'/'guest').
+  final void Function(String weddingId, String role) onOpen;
 
   final String? displayName;
   final String? email;
@@ -85,8 +87,8 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
       return;
     }
     if (!mounted) return;
-    // Od razu otwieramy nowo utworzone wesele.
-    widget.onOpen(weddingId);
+    // Od razu otwieramy nowo utworzone wesele (twórca = owner).
+    widget.onOpen(weddingId, 'owner');
   }
 
   @override
@@ -185,42 +187,16 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
     );
   }
 
-  /// Placeholder dołączania do wesela — pełna funkcja (kod zaproszenia) w 4b.
+  /// Dołączanie do wesela jako gość — otwiera formularz (kod + data + nazwisko).
+  /// Po pomyślnej weryfikacji otwiera wesele w uproszczonym widoku gościa.
   Future<void> _joinWedding() async {
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Row(
-          children: [
-            const Text('🔗 ', style: TextStyle(fontSize: 20)),
-            Expanded(
-              child: Text(
-                'Dołącz do wesela',
-                style: GoogleFonts.playfairDisplay(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.text),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          'Dołączanie do istniejącego wesela za pomocą kodu zaproszenia '
-          'będzie dostępne wkrótce (kolejny krok). Na razie możesz założyć '
-          'własne wesele przyciskiem „Załóż wesele".',
-          style: GoogleFonts.inter(
-              fontSize: 13, height: 1.5, color: AppColors.textLight),
-        ),
-        actions: [
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Rozumiem'),
-          ),
-        ],
+    final weddingId = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (_) => JoinWeddingScreen(userId: widget.userId),
       ),
     );
+    if (weddingId == null || !mounted) return;
+    widget.onOpen(weddingId, 'guest');
   }
 
   Widget _header() {
@@ -272,7 +248,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
         separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, i) => _WeddingCard(
           wedding: weddings[i],
-          onTap: () => widget.onOpen(weddings[i].id),
+          onTap: () => widget.onOpen(weddings[i].id, weddings[i].role),
         ),
       ),
     );

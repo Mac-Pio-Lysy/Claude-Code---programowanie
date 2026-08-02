@@ -41,6 +41,17 @@ class MembershipService {
         .toList();
   }
 
+  /// Znajduje członkostwo danego użytkownika w danym weselu (lub null).
+  Future<Membership?> findFor(String userId, String weddingId) async {
+    final snap = await _col
+        .where('userId', isEqualTo: userId)
+        .where('weddingId', isEqualTo: weddingId)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    return Membership.fromMap(snap.docs.first.id, snap.docs.first.data());
+  }
+
   /// Strumień członkostw użytkownika (na żywo).
   Stream<List<Membership>> watchForUser(String userId) => _col
       .where('userId', isEqualTo: userId)

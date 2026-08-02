@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
 import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/wedding_service.dart';
 import '../../utils/format.dart';
 import 'guest_visibility_screen.dart';
 import 'security_settings_screen.dart';
@@ -57,6 +59,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _weddingDate = '';
   String _weddingTime = '16:00';
 
+  /// Kod dołączenia dla gości (z `weddings/{id}.joinCode`). Null = jeszcze
+  /// wczytywany/generowany.
+  String? _joinCode;
+
   @override
   void initState() {
     super.initState();
@@ -99,6 +105,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextEditingController(text: reserveNum == 0 ? '' : formatPln(reserveNum));
     _weddingDate = (raw['weddingDate'] as String?) ?? '';
     _weddingTime = (raw['weddingTime'] as String?) ?? '16:00';
+    _loadJoinCode(raw);
+  }
+
+  /// Wczytuje kod dołączenia; gdy brak (starsze wesele) — generuje i zapisuje.
+  Future<void> _loadJoinCode(Map raw) async {
+    final existing = (raw['joinCode'] as String?)?.trim();
+    if (existing != null && existing.isNotEmpty) {
+      setState(() => _joinCode = existing);
+      return;
+    }
+    try {
+      final code =
+          await WeddingService().ensureJoinCode(widget.firestore.weddingId);
+      if (mounted) setState(() => _joinCode = code);
+    } catch (_) {
+      // Ciche niepowodzenie — karta pokaże stan „—".
+    }
   }
 
   @override
@@ -162,6 +185,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _helpCard(),
               const SizedBox(height: 12),
               _guestVisibilityCard(),
+              const SizedBox(height: 12),
+              _joinCodeCard(),
               const SizedBox(height: 12),
               _loginCard(),
               const SizedBox(height: 12),
@@ -249,6 +274,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _joinCodeCard() {
+    final code = _joinCode;
+    return _card(
+      'Kod dołączenia dla gości',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Podaj ten kod gościom (np. na zaproszeniu). Aby dołączyć, gość '
+            'wpisuje kod, datę ślubu i nazwisko Państwa Młodych.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 14),
+          if (code == null)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.accent),
+                ),
+              ),
+            )
+          else
+            Row(
+              children: [
+                // Kod + przycisk kopiowania
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.accent, width: 1.4),
+                        ),
+                        child: Text(
+                          code,
+                          style: GoogleFonts.robotoMono(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 4,
+                            color: AppColors.accent,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: code));
+                          _toast('Skopiowano kod: $code');
+                        },
+                        icon: const Icon(Icons.copy, size: 16),
+                        label: const Text('Kopiuj kod'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.accent,
+                          side: const BorderSide(color: AppColors.accent),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // QR z kodem
+                Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2EAF7)),
+                      ),
+                      child: QrImageView(
+                        data: code,
+                        size: 96,
+                        eyeStyle: const QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: Color(0xFF1040B0)),
+                        dataModuleStyle: const QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: Color(0xFF1040B0)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Kod QR',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, color: AppColors.textLight)),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );
