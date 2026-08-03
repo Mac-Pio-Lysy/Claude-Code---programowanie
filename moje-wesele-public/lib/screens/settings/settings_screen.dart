@@ -171,6 +171,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       expenseCategories: _lines(_expenseCats),
       witnessCount: int.tryParse(_witnessCount.text.trim()) ?? 2,
     ));
+    // Odśwież publiczny indeks kodu (data/nazwisko dla weryfikacji gościa).
+    try {
+      await WeddingService().ensureJoinCode(widget.firestore.weddingId);
+    } catch (_) {}
     _toast('Konfiguracja zapisana ✓');
   }
 

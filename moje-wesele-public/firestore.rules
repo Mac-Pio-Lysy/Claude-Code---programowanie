@@ -1,33 +1,176 @@
 rules_version = '2';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// REGUŁY TESTOWE - CAŁKOWICIE OTWARTE - zastąpić bezpiecznymi przed wydaniem
+// REGUŁY IZOLACJI — wedding-planner-pub
 //
-// Na czas budowy architektury WIELU wesel: pełny odczyt i zapis dla WSZYSTKICH.
-// Powód: w trybie `bypassLogin` aplikacja może działać BEZ zalogowania
-// (logowanie anonimowe bywa wyłączone w projekcie), więc `request.auth` jest
-// null i reguły oparte na uwierzytelnieniu blokowałyby zapis do nowych
-// kolekcji (weddings, memberships, users).
+// Cel: użytkownik ma dostęp do weddings/{id} TYLKO przez aktywny membership,
+// zgodnie z rolą. Owner/planer/współorganizator = pełny; guest = tylko odczyt
+// (ukrycie wrażliwych pól przed gościem = przyszły krok „rozdzielenia danych",
+// decyzja D1 = wariant A — jeden dokument wesela).
 //
-// PRAWDZIWA IZOLACJA (do zrobienia w OSOBNYM kroku):
-//   • users/{uid}          — tylko właściciel dokumentu,
-//   • weddings/{id}        — tylko użytkownicy z powiazaniem do tego wesela,
-//   • memberships/{id}     — tylko właściciel powiązania / owner wesela,
-//   • gallery/guestbook/musicProposals — publiczny odczyt + dodawanie (goście),
-//     usuwanie tylko organizatorzy.
+// Zależy od kodu aplikacji:
+//   • memberships mają DETERMINISTYCZNE ID: "{uid}__{weddingId}",
+//   • publiczne indeksy: weddingCodes/{KOD}, roleInvites/{KOD}, usersByEmail/{email},
+//   • planer: pole expiresAtTs (Timestamp) do porównania daty w regule.
 //
-// NIE WYDAWAĆ Z TYMI REGUŁAMI. Zastąpić bezpiecznymi regułami przed premierą.
+// ⚠️ PLAN AWARYJNY: w razie zablokowania aplikacji wróć do otwartych reguł —
+//    patrz firestore.rules.OPEN-BACKUP (lub wklej je w konsoli Firebase → Rules).
 // ═══════════════════════════════════════════════════════════════════════════
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // REGUŁY TESTOWE - CAŁKOWICIE OTWARTE - zastąpić bezpiecznymi przed wydaniem
-    // Pełny dostęp do wszystkich kolekcji (weddings, memberships, users,
-    // gallery, guestbook, musicProposals, weddingPlanner, …) — bez wyjątków,
-    // BEZ wymogu logowania (działa z bypassLogin, gdy request.auth == null).
-    match /{document=**} {
-      allow read, write: if true;
+    // ── Pomocnicze ──────────────────────────────────────────────────────────
+    function signedIn() { return request.auth != null; }
+    function uid() { return request.auth.uid; }
+
+    function mPath(w) {
+      return /databases/$(database)/documents/memberships/$(uid() + '__' + w);
     }
+    function mData(w) { return get(mPath(w)).data; }
+
+    // Nie wygasł: brak daty LUB teraz < expiresAtTs (planer).
+    function notExpired(d) {
+      return !('expiresAtTs' in d) || d.expiresAtTs == null
+             || request.time < d.expiresAtTs;
+    }
+
+    // Aktywny członek wesela (istnieje, status active, nie wygasł).
+    function activeMember(w) {
+      return signedIn() && exists(mPath(w))
+             && mData(w).status == 'active' && notExpired(mData(w));
+    }
+    function roleIn(w, roles) {
+      return activeMember(w) && (mData(w).role in roles);
+    }
+    function isOwner(w) { return roleIn(w, ['owner']); }
+    // Pełny dostęp = owner / planer / współorganizator (NIE guest).
+    function fullAccess(w) { return roleIn(w, ['owner', 'planner', 'collaborator']); }
+
+    // ── weddings/{weddingId} ────────────────────────────────────────────────
+    match /weddings/{w} {
+      // Odczyt: każdy aktywny członek (w tym guest — D1, wariant A).
+      allow read:   if activeMember(w);
+      // Edycja danych wesela: tylko pełny dostęp (guest NIE zapisuje).
+      allow update: if fullAccess(w);
+      // Utworzenie: zalogowany, wpisujący siebie jako ownerId.
+      allow create: if signedIn() && request.resource.data.ownerId == uid();
+      // Usunięcie wesela: tylko owner.
+      allow delete: if isOwner(w);
+
+      // GOTOWE NA PRZYSZŁOŚĆ (rozdzielenie danych — krok po D1):
+      //   match /private/{doc} { allow read, write: if fullAccess(w); } // budżet, goście…
+      //   match /guest/{doc}   { allow read: if activeMember(w); allow write: if fullAccess(w); }
+    }
+
+    // ── users/{userId} ──────────────────────────────────────────────────────
+    // Każdy czyta/pisze tylko swój profil.
+    match /users/{userId} {
+      allow read, write: if signedIn() && uid() == userId;
+    }
+
+    // Indeks e-mail → uid (D3). Odczyt dla zalogowanych; każdy pisze tylko
+    // wpis wskazujący na SIEBIE.
+    match /usersByEmail/{email} {
+      // Tylko `get` (owner zna dokładny adres) — NIE `list`, by nie dało się
+      // pobrać całej mapy e-mail→uid (wyciek adresów wszystkich użytkowników).
+      allow get:   if signedIn();
+      allow list:  if false;
+      allow write: if signedIn() && request.resource.data.uid == uid();
+    }
+
+    // ── memberships/{mid} ───────────────────────────────────────────────────
+    match /memberships/{mid} {
+      function selfId(w) { return uid() + '__' + w; }
+      function req() { return request.resource.data; }
+
+      // Twórca zakłada wesele → nadaje sobie owner (weryfikacja ownerId wesela).
+      function ownerSelf() {
+        return req().role == 'owner'
+          && get(/databases/$(database)/documents/weddings/$(req().weddingId)).data.ownerId == uid();
+      }
+      // Gość dołącza sam — musi znać KOD dołączenia (weddingCodes).
+      function guestClaim() {
+        return req().role == 'guest'
+          && 'claimCode' in req()
+          && exists(/databases/$(database)/documents/weddingCodes/$(req().claimCode))
+          && get(/databases/$(database)/documents/weddingCodes/$(req().claimCode)).data.weddingId == req().weddingId;
+      }
+      // Odbiór zaproszenia roli — musi znać KOD zaproszenia (roleInvites).
+      function roleClaim() {
+        return req().role in ['planner', 'collaborator']
+          && 'claimCode' in req()
+          && exists(/databases/$(database)/documents/roleInvites/$(req().claimCode))
+          && get(/databases/$(database)/documents/roleInvites/$(req().claimCode)).data.weddingId == req().weddingId
+          && get(/databases/$(database)/documents/roleInvites/$(req().claimCode)).data.role == req().role;
+      }
+
+      // Odczyt: własne członkostwo LUB owner danego wesela (panel osób).
+      // Odczyt POJEDYNCZEGO dokumentu: własne członkostwo, owner wesela, albo
+      // dokument nieistniejący (resource == null) — żeby findFor() nie rzucał
+      // permission-denied przy sprawdzaniu „czy już jest członkiem".
+      allow get: if signedIn() && (
+           resource == null
+        || resource.data.userId == uid()
+        || isOwner(resource.data.weddingId)
+      );
+      // Zapytania (list): tylko własne (userId==uid) albo owner (weddingId==...).
+      allow list: if signedIn()
+        && (resource.data.userId == uid() || isOwner(resource.data.weddingId));
+
+      // Tworzenie:
+      allow create: if signedIn() && (
+           // a) owner dodaje inną osobę
+           isOwner(req().weddingId)
+           // b) twórca wesela nadaje sobie owner
+        || (req().userId == uid() && mid == selfId(req().weddingId) && ownerSelf())
+           // c) gość dołącza sam (zna kod dołączenia)
+        || (req().userId == uid() && mid == selfId(req().weddingId) && guestClaim())
+           // d) odbiór zaproszenia roli (zna kod zaproszenia)
+        || (req().userId == uid() && mid == selfId(req().weddingId) && roleClaim())
+      );
+
+      // Zmiana (blokada/rola/data ważności): tylko owner wesela; NIE ownera.
+      allow update: if signedIn()
+        && isOwner(resource.data.weddingId)
+        && resource.data.role != 'owner';
+
+      // Usunięcie: tylko owner wesela; NIE ownera.
+      allow delete: if signedIn()
+        && isOwner(resource.data.weddingId)
+        && resource.data.role != 'owner';
+    }
+
+    // ── Publiczne indeksy dołączania (D2) ───────────────────────────────────
+    // KRYTYCZNE: tylko `get` (trzeba ZNAĆ kod = ID dokumentu). `list` = false,
+    // żeby nie dało się wylistować wszystkich kodów/wesel (enumeracja = wyciek
+    // weddingId/daty/nazwiska + możliwość dołączenia do dowolnego wesela).
+    match /weddingCodes/{code} {
+      allow get:   if true;          // gość weryfikuje kod+data+nazwisko
+      allow list:  if false;
+      allow write: if signedIn();    // owner/zespół tworzy
+    }
+    match /roleInvites/{code} {
+      allow get:   if signedIn();    // odbiorca zna kod zaproszenia
+      allow list:  if false;
+      allow write: if signedIn();    // owner tworzy
+    }
+
+    // ── Kolekcje treści gości (D5) — GLOBALNE, jeszcze bez weddingId ─────────
+    // Na teraz publiczny odczyt i tworzenie (pod przyszłe strony web bez
+    // logowania); moderacja (edycja/usuwanie) dla zalogowanych.
+    // TODO (przyszły krok): dodać pole weddingId przy zapisie i zawęzić dostęp.
+    match /gallery/{d}            { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /guestbook/{d}          { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /advices/{d}            { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /guestMap/{d}           { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /timeCapsule/{d}        { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /musicProposals/{d}     { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /photoChallenges/{d}    { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /quizResults/{d}        { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /photoGuessResults/{d}  { allow read, create: if true; allow update, delete: if signedIn(); }
+    match /trueFalseResults/{d}   { allow read, create: if true; allow update, delete: if signedIn(); }
+
+    // ── Wszystko inne: DOMYŚLNIE ZABLOKOWANE (brak match = deny). ────────────
   }
 }

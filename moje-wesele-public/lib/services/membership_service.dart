@@ -4,9 +4,14 @@ import '../models/membership.dart';
 
 /// Operacje na powiązaniach użytkownik ↔ wesele (kolekcja `memberships`).
 ///
-/// Każdy dokument łączy `userId` z `weddingId`, nadaje rolę, status i (dla
-/// planera) datę ważności. Lista wesel użytkownika powstaje z zapytania
-/// `where('userId', ==, uid)`; lista osób wesela z `where('weddingId', ==, id)`.
+/// ID dokumentu jest DETERMINISTYCZNE: `{userId}__{weddingId}` — dzięki temu
+/// reguły bezpieczeństwa mogą sprawdzić członkostwo przez `exists()/get()` po
+/// znanej ścieżce (izolacja wesel).
+///
+/// Pola: userId, weddingId, role, status ('active'/'blocked'), email,
+/// displayName, expiresAt ("YYYY-MM-DD", planer) oraz `expiresAtTs` (Timestamp
+/// — do porównania daty w regułach). `claimCode` bywa dołączane, gdy członkostwo
+/// powstaje z odebrania zaproszenia kodem (reguła weryfikuje `roleInvites`).
 class MembershipService {
   MembershipService({FirebaseFirestore? db})
       : _db = db ?? FirebaseFirestore.instance;
@@ -18,7 +23,11 @@ class MembershipService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
-  /// Tworzy członkostwo (auto-ID). Zwraca ID utworzonego dokumentu.
+  /// Deterministyczne ID członkostwa.
+  static String idFor(String userId, String weddingId) =>
+      '${userId}__$weddingId';
+
+  /// Tworzy/ustawia członkostwo pod deterministycznym ID. Zwraca ID dokumentu.
   Future<String> create({
     required String userId,
     required String weddingId,
@@ -27,44 +36,46 @@ class MembershipService {
     String? expiresAt,
     String email = '',
     String displayName = '',
-    String? inviteCode,
+    String? claimCode,
   }) async {
-    final ref = _col.doc();
-    await ref.set({
+    final id = idFor(userId, weddingId);
+    await _col.doc(id).set({
       'userId': userId,
       'weddingId': weddingId,
       'role': role,
       'status': status,
       'expiresAt': expiresAt,
+      'expiresAtTs': expiresAtTimestamp(expiresAt),
       'email': email,
       'displayName': displayName,
-      'inviteCode': ?inviteCode,
+      'claimCode': ?claimCode,
       'createdAt': FieldValue.serverTimestamp(),
     });
-    return ref.id;
+    return id;
   }
 
-  /// Aktualizuje wybrane pola członkostwa (scalanie).
+  /// Aktualizuje wybrane pola członkostwa (scalanie). Zmiana `expiresAt`
+  /// synchronizuje też `expiresAtTs`.
   Future<void> update(
     String membershipId, {
     String? role,
     String? status,
     String? expiresAt,
     bool clearExpiresAt = false,
-    String? userId,
-    String? email,
     String? displayName,
-    Object? inviteCode = _noChange,
   }) async {
     final payload = <String, dynamic>{
       'role': ?role,
       'status': ?status,
-      if (clearExpiresAt) 'expiresAt': null else 'expiresAt': ?expiresAt,
-      'userId': ?userId,
-      'email': ?email,
       'displayName': ?displayName,
-      if (!identical(inviteCode, _noChange)) 'inviteCode': inviteCode,
     };
+    if (clearExpiresAt) {
+      payload['expiresAt'] = null;
+      payload['expiresAtTs'] = null;
+    } else if (expiresAt != null) {
+      payload['expiresAt'] = expiresAt;
+      payload['expiresAtTs'] = expiresAtTimestamp(expiresAt);
+    }
     if (payload.isEmpty) return;
     await _col.doc(membershipId).set(payload, SetOptions(merge: true));
   }
@@ -93,24 +104,9 @@ class MembershipService {
 
   /// Znajduje członkostwo danego użytkownika w danym weselu (lub null).
   Future<Membership?> findFor(String userId, String weddingId) async {
-    final snap = await _col
-        .where('userId', isEqualTo: userId)
-        .where('weddingId', isEqualTo: weddingId)
-        .limit(1)
-        .get();
-    if (snap.docs.isEmpty) return null;
-    return Membership.fromMap(snap.docs.first.id, snap.docs.first.data());
-  }
-
-  /// Znajduje OCZEKUJĄCE zaproszenie po kodzie (do odebrania roli).
-  Future<Membership?> findPendingByInviteCode(String code) async {
-    final snap = await _col
-        .where('inviteCode', isEqualTo: code)
-        .where('status', isEqualTo: 'pending')
-        .limit(1)
-        .get();
-    if (snap.docs.isEmpty) return null;
-    return Membership.fromMap(snap.docs.first.id, snap.docs.first.data());
+    final snap = await _col.doc(idFor(userId, weddingId)).get();
+    if (!snap.exists) return null;
+    return Membership.fromMap(snap.id, snap.data()!);
   }
 
   /// Strumień członkostw użytkownika (na żywo).
@@ -121,5 +117,15 @@ class MembershipService {
           snap.docs.map((d) => Membership.fromMap(d.id, d.data())).toList());
 }
 
-/// Sentinel — odróżnia „nie zmieniaj" od „ustaw na null".
-const Object _noChange = Object();
+/// Zamienia datę "YYYY-MM-DD" na Timestamp KOŃCA ważności = początek dnia
+/// NASTĘPNEGO (00:00 UTC). Dzięki temu dostęp obowiązuje przez CAŁY dzień
+/// `expiresAt` (reguła: `request.time < expiresAtTs`). Uwaga: granica liczona
+/// w UTC (ok. 01:00–02:00 czasu polskiego — nieznacznie „na korzyść" osoby).
+Timestamp? expiresAtTimestamp(String? ymd) {
+  if (ymd == null) return null;
+  final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(ymd);
+  if (m == null) return null;
+  final next = DateTime.utc(
+      int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!) + 1);
+  return Timestamp.fromDate(next);
+}

@@ -77,6 +77,15 @@ class WeddingService {
 
   static const String collectionName = 'weddings';
 
+  /// Publiczny indeks kodu dołączenia gościa: `weddingCodes/{KOD}` →
+  /// `{ weddingId, weddingDate, displayNames, eventName }`. Pozwala zweryfikować
+  /// dane bez czytania całego (chronionego) dokumentu wesela.
+  static const String weddingCodesCollection = 'weddingCodes';
+
+  /// Indeks zaproszeń ról: `roleInvites/{KOD}` → `{ weddingId, role, expiresAt,
+  /// expiresAtTs }`. Odczyt dla zalogowanych; tworzy owner.
+  static const String roleInvitesCollection = 'roleInvites';
+
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
@@ -108,20 +117,58 @@ class WeddingService {
       role: 'owner',
     );
 
+    // Publiczny indeks kodu (do weryfikacji dołączania gościa).
+    await _upsertWeddingCode(
+      code: joinCode,
+      weddingId: weddingId,
+      weddingDate: (date != null && date.isNotEmpty) ? date : null,
+      displayNames: persons.trim(),
+      eventName: name.trim().isEmpty ? 'Nasze Wesele' : name.trim(),
+    );
+
     return weddingId;
   }
 
   /// Zwraca kod dołączenia wesela; jeśli go nie ma (starsze wesele) — generuje
-  /// nowy, unikalny i zapisuje. Używane w panelu właściciela.
+  /// nowy, unikalny i zapisuje. Dodatkowo SYNCHRONIZUJE publiczny indeks
+  /// `weddingCodes` z bieżącą datą/nazwiskiem (wywoływane m.in. po zapisie
+  /// konfiguracji, by weryfikacja gościa działała po zmianie danych).
   Future<String> ensureJoinCode(String weddingId) async {
     final ref = _col.doc(weddingId);
     final snap = await ref.get();
-    final existing = (snap.data()?['joinCode'] as String?)?.trim();
-    if (existing != null && existing.isNotEmpty) return existing;
-    final code = await _uniqueJoinCode();
-    await ref.set({'joinCode': code}, SetOptions(merge: true));
+    final data = snap.data() ?? const <String, dynamic>{};
+    var code = (data['joinCode'] as String?)?.trim();
+    if (code == null || code.isEmpty) {
+      code = await _uniqueJoinCode();
+      await ref.set({'joinCode': code}, SetOptions(merge: true));
+    }
+    final cfg = data['appConfig'];
+    await _upsertWeddingCode(
+      code: code,
+      weddingId: weddingId,
+      weddingDate: (data['weddingDate'] as String?)?.trim(),
+      displayNames:
+          (cfg is Map ? cfg['displayNames'] as String? : null)?.trim() ?? '',
+      eventName:
+          (cfg is Map ? cfg['eventName'] as String? : null)?.trim() ?? '',
+    );
     return code;
   }
+
+  /// Zapisuje/aktualizuje publiczny indeks kodu dołączenia.
+  Future<void> _upsertWeddingCode({
+    required String code,
+    required String weddingId,
+    required String? weddingDate,
+    required String displayNames,
+    required String eventName,
+  }) =>
+      _db.collection(weddingCodesCollection).doc(code).set({
+        'weddingId': weddingId,
+        'weddingDate': weddingDate,
+        'displayNames': displayNames,
+        'eventName': eventName,
+      }, SetOptions(merge: true));
 
   /// Dołącza użytkownika jako GOŚĆ po potrójnej weryfikacji: kod + data ślubu
   /// + nazwisko/nazwa Państwa Młodych. Wszystkie trzy muszą się zgadzać.
@@ -141,37 +188,41 @@ class WeddingService {
         return const JoinResult(JoinOutcome.invalid);
       }
 
-      final query =
-          await _col.where('joinCode', isEqualTo: normCode).limit(1).get();
-      if (query.docs.isEmpty) return const JoinResult(JoinOutcome.invalid);
+      // Weryfikacja przez PUBLICZNY indeks (bez czytania chronionego wesela).
+      final idxSnap =
+          await _db.collection(weddingCodesCollection).doc(normCode).get();
+      final idx = idxSnap.data();
+      if (idx == null) return const JoinResult(JoinOutcome.invalid);
 
-      final doc = query.docs.first;
-      final data = doc.data();
+      final weddingId = (idx['weddingId'] as String?) ?? '';
+      if (weddingId.isEmpty) return const JoinResult(JoinOutcome.invalid);
 
       // 1) Data ślubu musi się zgadzać (i musi być ustawiona).
-      final wDate = (data['weddingDate'] as String?)?.trim() ?? '';
+      final wDate = (idx['weddingDate'] as String?)?.trim() ?? '';
       if (wDate.isEmpty || wDate != date.trim()) {
         return const JoinResult(JoinOutcome.invalid);
       }
 
       // 2) Nazwisko/nazwa Państwa Młodych.
-      final cfg = data['appConfig'];
-      final display =
-          (cfg is Map ? cfg['displayNames'] as String? : null) ?? '';
-      final event = (cfg is Map ? cfg['eventName'] as String? : null) ?? '';
+      final display = (idx['displayNames'] as String?) ?? '';
+      final event = (idx['eventName'] as String?) ?? '';
       if (!_surnameMatches(surname, display, event)) {
         return const JoinResult(JoinOutcome.invalid);
       }
 
       // Weryfikacja OK → dodaj gościa (jeśli jeszcze nie należy).
-      final weddingId = doc.id;
       final existing = await _memberships.findFor(userId, weddingId);
       if (existing != null) {
         return JoinResult(JoinOutcome.alreadyMember,
             weddingId: weddingId, role: existing.role);
       }
+      // `claimCode` = kod dołączenia — reguła weryfikuje go względem weddingCodes.
       await _memberships.create(
-          userId: userId, weddingId: weddingId, role: 'guest');
+        userId: userId,
+        weddingId: weddingId,
+        role: 'guest',
+        claimCode: normCode,
+      );
       return JoinResult(JoinOutcome.success, weddingId: weddingId, role: 'guest');
     } catch (_) {
       return const JoinResult(JoinOutcome.error);
@@ -201,8 +252,7 @@ class WeddingService {
         role: role,
         status: 'active',
         expiresAt: role == 'planner' ? expiresAt : null,
-        email: (found.data['email'] as String?) ?? email.trim().toLowerCase(),
-        displayName: (found.data['displayName'] as String?) ?? '',
+        email: email.trim().toLowerCase(),
       );
       return AddPersonOutcome.success;
     } catch (_) {
@@ -211,25 +261,27 @@ class WeddingService {
   }
 
   /// Tworzy zaproszenie z KODEM (dla współorganizatora/planera). Zwraca kod do
-  /// przekazania osobie. Powstaje `pending` membership bez `userId`.
+  /// przekazania osobie. Powstaje dokument w indeksie `roleInvites/{KOD}`.
   Future<String> createRoleInvite({
     required String weddingId,
     required String role,
     String? expiresAt,
   }) async {
     final code = await _uniqueInviteCode();
-    await _memberships.create(
-      userId: '',
-      weddingId: weddingId,
-      role: role,
-      status: 'pending',
-      expiresAt: role == 'planner' ? expiresAt : null,
-      inviteCode: code,
-    );
+    final exp = role == 'planner' ? expiresAt : null;
+    await _db.collection(roleInvitesCollection).doc(code).set({
+      'weddingId': weddingId,
+      'role': role,
+      'expiresAt': exp,
+      'expiresAtTs': expiresAtTimestamp(exp),
+      'createdAt': FieldValue.serverTimestamp(),
+    });
     return code;
   }
 
-  /// Odbiera zaproszenie kodem — przypisuje bieżącego użytkownika do roli.
+  /// Odbiera zaproszenie kodem — tworzy członkostwo dla bieżącego użytkownika
+  /// na podstawie `roleInvites/{KOD}`. Membership zawiera `claimCode` (regułą
+  /// weryfikowany względem istniejącego zaproszenia).
   Future<ClaimResult> claimRoleInvite({
     required String userId,
     required String email,
@@ -240,26 +292,34 @@ class WeddingService {
       final normCode = code.trim().toUpperCase();
       if (normCode.isEmpty) return const ClaimResult(ClaimOutcome.invalid);
 
-      final pending = await _memberships.findPendingByInviteCode(normCode);
-      if (pending == null) return const ClaimResult(ClaimOutcome.invalid);
+      final inviteSnap =
+          await _db.collection(roleInvitesCollection).doc(normCode).get();
+      final invite = inviteSnap.data();
+      if (invite == null) return const ClaimResult(ClaimOutcome.invalid);
 
-      final existing =
-          await _memberships.findFor(userId, pending.weddingId);
-      if (existing != null) {
-        return ClaimResult(ClaimOutcome.alreadyMember,
-            weddingId: pending.weddingId, role: existing.role);
+      final weddingId = (invite['weddingId'] as String?) ?? '';
+      final role = (invite['role'] as String?) ?? '';
+      if (weddingId.isEmpty || role.isEmpty) {
+        return const ClaimResult(ClaimOutcome.invalid);
       }
 
-      await _memberships.update(
-        pending.id,
+      final existing = await _memberships.findFor(userId, weddingId);
+      if (existing != null) {
+        return ClaimResult(ClaimOutcome.alreadyMember,
+            weddingId: weddingId, role: existing.role);
+      }
+
+      await _memberships.create(
         userId: userId,
+        weddingId: weddingId,
+        role: role,
         status: 'active',
+        expiresAt: (invite['expiresAt'] as String?),
         email: email.trim().toLowerCase(),
         displayName: displayName,
-        inviteCode: null, // jednorazowy — czyścimy po odebraniu
+        claimCode: normCode,
       );
-      return ClaimResult(ClaimOutcome.success,
-          weddingId: pending.weddingId, role: pending.role);
+      return ClaimResult(ClaimOutcome.success, weddingId: weddingId, role: role);
     } catch (_) {
       return const ClaimResult(ClaimOutcome.error);
     }
@@ -356,24 +416,26 @@ class WeddingService {
     ).join();
   }
 
-  /// Generuje kod i sprawdza, czy nie jest już zajęty (kilka prób).
+  /// Generuje kod dołączenia i sprawdza unikalność przez publiczny indeks
+  /// `weddingCodes` (odczyt dozwolony bez członkostwa).
   Future<String> _uniqueJoinCode() async {
     for (var i = 0; i < 6; i++) {
       final code = _generateCode();
       final taken =
-          await _col.where('joinCode', isEqualTo: code).limit(1).get();
-      if (taken.docs.isEmpty) return code;
+          await _db.collection(weddingCodesCollection).doc(code).get();
+      if (!taken.exists) return code;
     }
     // Skrajnie mało prawdopodobne — dokładamy przyrostek z czasu.
     return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
   }
 
-  /// Generuje unikalny kod zaproszenia roli (sprawdza oczekujące zaproszenia).
+  /// Generuje unikalny kod zaproszenia roli (sprawdza indeks `roleInvites`).
   Future<String> _uniqueInviteCode() async {
     for (var i = 0; i < 6; i++) {
       final code = _generateCode();
-      final taken = await _memberships.findPendingByInviteCode(code);
-      if (taken == null) return code;
+      final taken =
+          await _db.collection(roleInvitesCollection).doc(code).get();
+      if (!taken.exists) return code;
     }
     return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
   }
