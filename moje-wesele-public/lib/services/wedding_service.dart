@@ -86,6 +86,15 @@ class WeddingService {
   /// expiresAtTs }`. Odczyt dla zalogowanych; tworzy owner.
   static const String roleInvitesCollection = 'roleInvites';
 
+  /// Mapowanie token gościa → weddingId. Klient NIE czyta (token nie ujawnia
+  /// weddingId); reguły używają go wewnętrznie przez `get()`.
+  static const String guestTokensCollection = 'guestTokens';
+
+  /// Publiczna „przestrzeń gościa" (mirror tylko z danymi dla gości), kluczem
+  /// jest TOKEN: `guestSpaces/{token}` → { eventName, displayNames, data,
+  /// guestVisibility, scheduleEvents }. NIE zawiera budżetu/listy gości itp.
+  static const String guestSpacesCollection = 'guestSpaces';
+
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
@@ -102,6 +111,7 @@ class WeddingService {
     final ref = _col.doc(); // auto-generowane, unikalne weddingId
     final weddingId = ref.id;
     final joinCode = await _uniqueJoinCode();
+    final guestToken = _generateGuestToken();
 
     await ref.set(_defaultWeddingData(
       ownerId: userId,
@@ -109,6 +119,7 @@ class WeddingService {
       persons: persons,
       date: date,
       joinCode: joinCode,
+      guestToken: guestToken,
     ));
 
     await _memberships.create(
@@ -126,7 +137,74 @@ class WeddingService {
       eventName: name.trim().isEmpty ? 'Nasze Wesele' : name.trim(),
     );
 
+    // Token + publiczny mirror dla gości (best-effort — wymaga reguł strefy
+    // publicznej; przy ich braku nie blokuje zakładania wesela).
+    await _syncGuestSpaceSafe(weddingId);
+
     return weddingId;
+  }
+
+  /// Zwraca token gościa; jeśli go nie ma (starsze wesele) — generuje, zapisuje
+  /// przy weddings/{id} i synchronizuje mapowanie oraz publiczny mirror.
+  Future<String> ensureGuestToken(String weddingId) async {
+    final ref = _col.doc(weddingId);
+    final snap = await ref.get();
+    final data = snap.data() ?? const <String, dynamic>{};
+    var token = (data['guestToken'] as String?)?.trim();
+    if (token == null || token.isEmpty) {
+      token = _generateGuestToken();
+      await ref.set({'guestToken': token}, SetOptions(merge: true));
+    }
+    await _syncGuestSpace(weddingId, token, data);
+    return token;
+  }
+
+  /// Synchronizuje publiczny mirror gościa (best-effort; łapie błędy uprawnień,
+  /// gdy reguły strefy publicznej nie są jeszcze wdrożone).
+  Future<void> _syncGuestSpaceSafe(String weddingId) async {
+    try {
+      final snap = await _col.doc(weddingId).get();
+      final data = snap.data();
+      final token = (data?['guestToken'] as String?)?.trim();
+      if (data == null || token == null || token.isEmpty) return;
+      await _syncGuestSpace(weddingId, token, data);
+    } catch (_) {
+      // Reguły strefy publicznej jeszcze niewdrożone — pominąć bez błędu.
+    }
+  }
+
+  /// Zapisuje mapowanie token→weddingId oraz publiczny mirror (tylko dane dla
+  /// gości). Wołane przy tworzeniu wesela, zapisie konfiguracji i widoczności.
+  Future<void> _syncGuestSpace(
+      String weddingId, String token, Map<String, dynamic> data) async {
+    // Mapowanie (potrzebne regułom do autoryzacji zapisu mirrora/moderacji).
+    await _db
+        .collection(guestTokensCollection)
+        .doc(token)
+        .set({'weddingId': weddingId}, SetOptions(merge: true));
+    // Publiczny mirror — WYŁĄCZNIE dane dla gości (bez budżetu/gości/dostawców).
+    await _db
+        .collection(guestSpacesCollection)
+        .doc(token)
+        .set(_guestMirror(data), SetOptions(merge: true));
+  }
+
+  /// Buduje bezpieczny dla gości „mirror" z dokumentu wesela.
+  Map<String, dynamic> _guestMirror(Map<String, dynamic> data) {
+    final cfg = data['appConfig'] is Map
+        ? Map<String, dynamic>.from(data['appConfig'] as Map)
+        : const <String, dynamic>{};
+    return {
+      'eventName': (cfg['eventName'] as String?) ?? '',
+      'displayNames': (cfg['displayNames'] as String?) ?? '',
+      'ceremonyPlace': (cfg['ceremonyPlace'] as String?) ?? '',
+      'receptionPlace': (cfg['receptionPlace'] as String?) ?? '',
+      'weddingDate': data['weddingDate'],
+      'weddingTime': (data['weddingTime'] as String?) ?? '16:00',
+      'guestVisibility': data['guestVisibility'] ?? const <String, dynamic>{},
+      'scheduleEvents': data['scheduleEvents'] ?? const <dynamic>[],
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
   }
 
   /// Zwraca kod dołączenia wesela; jeśli go nie ma (starsze wesele) — generuje
@@ -358,12 +436,14 @@ class WeddingService {
     required String name,
     required String persons,
     required String joinCode,
+    required String guestToken,
     String? date,
   }) {
     final coupleNames = _splitPersons(persons);
     return {
       'ownerId': ownerId,
       'joinCode': joinCode,
+      'guestToken': guestToken,
       'appConfig': {
         'eventName': name.trim().isEmpty ? 'Nasze Wesele' : name.trim(),
         'displayNames': persons.trim(),
@@ -413,6 +493,20 @@ class WeddingService {
     return List.generate(
       6,
       (_) => _codeAlphabet[rnd.nextInt(_codeAlphabet.length)],
+    ).join();
+  }
+
+  /// Alfabet URL-safe dla długiego tokenu gościa.
+  static const String _tokenAlphabet =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  /// Generuje długi (32-znakowy), kryptograficznie losowy token gościa.
+  /// Oddzielony od weddingId — nie ujawnia wewnętrznego ID.
+  String _generateGuestToken() {
+    final rnd = Random.secure();
+    return List.generate(
+      32,
+      (_) => _tokenAlphabet[rnd.nextInt(_tokenAlphabet.length)],
     ).join();
   }
 

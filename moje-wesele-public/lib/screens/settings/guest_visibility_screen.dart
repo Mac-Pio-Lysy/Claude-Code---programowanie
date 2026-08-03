@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/guest_visibility.dart';
 import '../../services/firestore_service.dart';
 import '../../services/guest_visibility_service.dart';
+import '../../services/wedding_service.dart';
 import '../../utils/warsaw_time.dart';
 
 /// Panel właściciela: „Widoczność dla gości" — steruje tym, KIEDY każda sekcja
@@ -56,6 +57,10 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
     setState(() => _saving = true);
     try {
       await _service.save(_current);
+      // Odśwież publiczny mirror gościa (widoczność sekcji na stronie web).
+      try {
+        await WeddingService().ensureGuestToken(widget.firestore.weddingId);
+      } catch (_) {}
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()

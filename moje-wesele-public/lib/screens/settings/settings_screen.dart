@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
+import '../../config/public_urls.dart';
 import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
@@ -74,6 +76,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// wczytywany/generowany.
   String? _joinCode;
 
+  /// Token gościa (długi) do linku/QR strony web dla gości. Null = wczytywany.
+  String? _guestToken;
+
   @override
   void initState() {
     super.initState();
@@ -117,6 +122,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _weddingDate = (raw['weddingDate'] as String?) ?? '';
     _weddingTime = (raw['weddingTime'] as String?) ?? '16:00';
     _loadJoinCode(raw);
+    _loadGuestToken(raw);
+  }
+
+  /// Wczytuje token gościa; gdy brak — generuje i synchronizuje publiczny
+  /// mirror (best-effort — wymaga reguł strefy publicznej).
+  Future<void> _loadGuestToken(Map raw) async {
+    final existing = (raw['guestToken'] as String?)?.trim();
+    if (existing != null && existing.isNotEmpty) {
+      setState(() => _guestToken = existing);
+    }
+    try {
+      final token =
+          await WeddingService().ensureGuestToken(widget.firestore.weddingId);
+      if (mounted) setState(() => _guestToken = token);
+    } catch (_) {
+      // Reguły strefy publicznej jeszcze niewdrożone — pokaż sam token, jeśli był.
+    }
+  }
+
+  /// Buduje link do strony gości z tokenem.
+  String _guestLink(String token) {
+    final base = kIsWeb
+        ? Uri.base.origin
+        : PublicPages.baseUrl(widget.data?.raw);
+    return '$base/?t=$token';
   }
 
   /// Wczytuje kod dołączenia; gdy brak (starsze wesele) — generuje i zapisuje.
@@ -171,9 +201,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       expenseCategories: _lines(_expenseCats),
       witnessCount: int.tryParse(_witnessCount.text.trim()) ?? 2,
     ));
-    // Odśwież publiczny indeks kodu (data/nazwisko dla weryfikacji gościa).
+    // Odśwież publiczny indeks kodu + mirror gościa (data/nazwisko/harmonogram).
     try {
-      await WeddingService().ensureJoinCode(widget.firestore.weddingId);
+      final ws = WeddingService();
+      await ws.ensureJoinCode(widget.firestore.weddingId);
+      await ws.ensureGuestToken(widget.firestore.weddingId);
     } catch (_) {}
     _toast('Konfiguracja zapisana ✓');
   }
@@ -202,6 +234,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _guestVisibilityCard(),
               const SizedBox(height: 12),
               _joinCodeCard(),
+              const SizedBox(height: 12),
+              _guestLinkCard(),
               const SizedBox(height: 12),
               // „Osoby i dostęp" — TYLKO dla właściciela (owner).
               if (widget.isOwner) ...[
@@ -294,6 +328,101 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _guestLinkCard() {
+    final token = _guestToken;
+    final link = token == null ? null : _guestLink(token);
+    return _card(
+      'Link i QR dla gości (strona web)',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Udostępnij gościom ten link lub kod QR. Otworzą stronę gości '
+            'BEZ logowania — zobaczą tylko sekcje dla gości (z Twoimi '
+            'ustawieniami widoczności).',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 14),
+          if (link == null)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.accent),
+                ),
+              ),
+            )
+          else
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SelectableText(
+                        link,
+                        style: GoogleFonts.robotoMono(
+                            fontSize: 12, color: AppColors.text),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: link));
+                              _toast('Skopiowano link dla gości');
+                            },
+                            icon: const Icon(Icons.copy, size: 16),
+                            label: const Text('Kopiuj link'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.accent,
+                              side: const BorderSide(color: AppColors.accent),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2EAF7)),
+                      ),
+                      child: QrImageView(
+                        data: link,
+                        size: 104,
+                        eyeStyle: const QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: Color(0xFF1040B0)),
+                        dataModuleStyle: const QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: Color(0xFF1040B0)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text('Kod QR',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, color: AppColors.textLight)),
+                  ],
+                ),
+              ],
+            ),
         ],
       ),
     );

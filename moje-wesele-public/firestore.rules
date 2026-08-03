@@ -156,6 +156,36 @@ service cloud.firestore {
       allow write: if signedIn();    // owner tworzy
     }
 
+    // ── Strona gości po TOKENIE (krok 5a) ───────────────────────────────────
+    // Rozwiązuje weddingId z tokenu WEWNĄTRZ reguł (get() pomija reguły odczytu).
+    function tokenWedding(t) {
+      return get(/databases/$(database)/documents/guestTokens/$(t)).data.weddingId;
+    }
+
+    // Mapowanie token→weddingId. Klient NIE czyta (token nie ujawnia weddingId);
+    // zapis tylko przez organizatora (pełny dostęp) danego wesela.
+    match /guestTokens/{token} {
+      allow read:  if false;
+      allow write: if signedIn() && fullAccess(request.resource.data.weddingId);
+    }
+
+    // Publiczny „mirror" gościa — TYLKO dane dla gości (bez budżetu/organizacji).
+    match /guestSpaces/{token} {
+      allow get:   if true;          // gość czyta bez logowania
+      allow list:  if false;
+      allow write: if signedIn() && fullAccess(tokenWedding(token)); // organizator synchronizuje
+
+      // Interakcje gości (bez logowania) — WYŁĄCZNIE pod tym tokenem (= weselem):
+      // rsvp, propozycje muzyki, wpisy księgi, wyniki gier, zdjęcia.
+      match /{coll}/{id} {
+        allow read:   if true;                                        // np. księga gości
+        // Tworzenie tylko, gdy token wskazuje ISTNIEJĄCE wesele (blokuje
+        // śmieci pod zmyślonymi tokenami). Wciąż bez logowania.
+        allow create: if exists(/databases/$(database)/documents/guestTokens/$(token));
+        allow update, delete: if signedIn() && fullAccess(tokenWedding(token)); // moderacja
+      }
+    }
+
     // ── Kolekcje treści gości (D5) — GLOBALNE, jeszcze bez weddingId ─────────
     // Na teraz publiczny odczyt i tworzenie (pod przyszłe strony web bez
     // logowania); moderacja (edycja/usuwanie) dla zalogowanych.
