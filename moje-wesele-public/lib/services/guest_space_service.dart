@@ -28,23 +28,90 @@ class GuestSpaceService {
   CollectionReference<Map<String, dynamic>> _coll(String name) =>
       _space.collection(name);
 
-  // ── Interakcje gości ──────────────────────────────────────────────────────
-
-  /// Wpis do księgi gości (imię + treść).
-  Future<void> addGuestbookEntry({
-    required String name,
-    required String message,
-  }) =>
-      _coll('guestbook').add({
-        'name': name.trim(),
-        'message': message.trim(),
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      });
-
-  /// Strumień wpisów księgi gości (najnowsze pierwsze).
-  Stream<List<Map<String, dynamic>>> watchGuestbook() => _coll('guestbook')
+  /// Uniwersalny strumień wpisów kolekcji (najnowsze pierwsze).
+  Stream<List<Map<String, dynamic>>> _watch(String coll) => _coll(coll)
       .orderBy('timestamp', descending: true)
       .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+      .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+
+  int get _now => DateTime.now().millisecondsSinceEpoch;
+
+  // ── Interakcje gości (kształt payloadu ZGODNY z walidacją w regułach) ──────
+
+  /// Wpis do księgi gości (imię + treść). PUBLICZNY odczyt.
+  Future<void> addGuestbookEntry(
+          {required String name, required String message}) =>
+      _coll('guestbook').add({
+        'name': _cap(name, 80),
+        'message': _cap(message, 1000),
+        'timestamp': _now,
+      });
+
+  Stream<List<Map<String, dynamic>>> watchGuestbook() => _watch('guestbook');
+
+  /// Rada dla Pary Młodej. PUBLICZNY odczyt.
+  Future<void> addAdvice({required String name, required String message}) =>
+      _coll('advice').add({
+        'name': _cap(name, 80),
+        'message': _cap(message, 1000),
+        'timestamp': _now,
+      });
+
+  Stream<List<Map<String, dynamic>>> watchAdvice() => _watch('advice');
+
+  /// Wpis na mapę gości (miasto). PUBLICZNY odczyt.
+  Future<void> addGuestMapEntry({
+    required String name,
+    required String city,
+    String greeting = '',
+  }) =>
+      _coll('guestMap').add({
+        'name': _cap(name, 80),
+        'city': _cap(city, 80),
+        'greeting': _cap(greeting, 300),
+        'timestamp': _now,
+      });
+
+  Stream<List<Map<String, dynamic>>> watchGuestMap() => _watch('guestMap');
+
+  /// Wiadomość do kapsuły czasu (dla Pary Młodej). Odczyt TYLKO organizator.
+  Future<void> addTimeCapsule(
+          {required String name, required String message}) =>
+      _coll('timeCapsule').add({
+        'name': _cap(name, 80),
+        'message': _cap(message, 2000),
+        'timestamp': _now,
+      });
+
+  /// Potwierdzenie obecności (RSVP). Odczyt TYLKO organizator (nie inni goście).
+  Future<void> addRsvp({
+    required String name,
+    required bool attending,
+    int companions = 0,
+    String diet = '',
+    String note = '',
+  }) =>
+      _coll('rsvp').add({
+        'name': _cap(name, 80),
+        'attending': attending,
+        'companions': companions.clamp(0, 20),
+        'diet': _cap(diet, 200),
+        'note': _cap(note, 500),
+        'timestamp': _now,
+      });
+
+  // ── Odczyt dla ORGANIZATORA (moderacja; token = własny guestToken) ─────────
+
+  Stream<List<Map<String, dynamic>>> watchCollection(String coll) =>
+      _watch(coll);
+
+  /// Usuwa wpis (moderacja organizatora).
+  Future<void> deleteEntry(String coll, String id) =>
+      _coll(coll).doc(id).delete();
+
+  /// Przycina i czyści tekst do limitu (spójne z walidacją reguł).
+  String _cap(String s, int max) {
+    final t = s.trim();
+    return t.length <= max ? t : t.substring(0, max);
+  }
 }

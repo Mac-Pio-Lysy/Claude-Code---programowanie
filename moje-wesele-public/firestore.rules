@@ -156,10 +156,38 @@ service cloud.firestore {
       allow write: if signedIn();    // owner tworzy
     }
 
-    // ── Strona gości po TOKENIE (krok 5a) ───────────────────────────────────
+    // ── Strona gości po TOKENIE (kroki 5a/5b) ───────────────────────────────
     // Rozwiązuje weddingId z tokenu WEWNĄTRZ reguł (get() pomija reguły odczytu).
     function tokenWedding(t) {
       return get(/databases/$(database)/documents/guestTokens/$(t)).data.weddingId;
+    }
+    function tokenReal(t) {
+      return exists(/databases/$(database)/documents/guestTokens/$(t));
+    }
+    function orgOf(t) { return request.auth != null && fullAccess(tokenWedding(t)); }
+
+    // ── Walidacja wpisów gościa (5b) — dozwolone pola + limity rozmiaru ──────
+    function _s(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
+    function _ts() { return request.resource.data.timestamp is int; }
+    // Imię + treść (księga gości, rady).
+    function vMessage(maxMsg) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','message','timestamp'])
+        && _s(d.name, 1, 80) && _s(d.message, 1, maxMsg) && _ts();
+    }
+    // Mapa gości: imię + miasto + pozdrowienie.
+    function vGuestMap() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','city','greeting','timestamp'])
+        && _s(d.name, 1, 80) && _s(d.city, 1, 80) && _s(d.greeting, 0, 300) && _ts();
+    }
+    // RSVP: imię + obecność + osoby + dieta + notatka.
+    function vRsvp() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','attending','companions','diet','note','timestamp'])
+        && _s(d.name, 1, 80) && d.attending is bool
+        && d.companions is int && d.companions >= 0 && d.companions <= 20
+        && _s(d.diet, 0, 200) && _s(d.note, 0, 500) && _ts();
     }
 
     // Mapowanie token→weddingId. Klient NIE czyta (token nie ujawnia weddingId);
@@ -175,15 +203,43 @@ service cloud.firestore {
       allow list:  if false;
       allow write: if signedIn() && fullAccess(tokenWedding(token)); // organizator synchronizuje
 
-      // Interakcje gości (bez logowania) — WYŁĄCZNIE pod tym tokenem (= weselem):
-      // rsvp, propozycje muzyki, wpisy księgi, wyniki gier, zdjęcia.
-      match /{coll}/{id} {
-        allow read:   if true;                                        // np. księga gości
-        // Tworzenie tylko, gdy token wskazuje ISTNIEJĄCE wesele (blokuje
-        // śmieci pod zmyślonymi tokenami). Wciąż bez logowania.
-        allow create: if exists(/databases/$(database)/documents/guestTokens/$(token));
-        allow update, delete: if signedIn() && fullAccess(tokenWedding(token)); // moderacja
+      // ── Interakcje gości (bez logowania) — WYŁĄCZNIE pod tym tokenem ──────
+      // ROZRÓŻNIENIE ODCZYTU:
+      //  • PUBLICZNE (goście widzą się nawzajem): księga gości, rady, mapa.
+      //  • TYLKO ORGANIZATOR: RSVP, kapsuła czasu (prywatne dla Pary Młodej).
+      // Tworzenie: bez logowania, ale token musi wskazywać ISTNIEJĄCE wesele
+      // (blokuje śmieci pod zmyślonymi tokenami) + walidacja pól/rozmiaru.
+
+      match /guestbook/{id} {
+        allow read:   if true;                              // publiczny
+        allow create: if tokenReal(token) && vMessage(1000);
+        allow update, delete: if orgOf(token);              // moderacja
       }
+      match /advice/{id} {
+        allow read:   if true;                              // publiczny
+        allow create: if tokenReal(token) && vMessage(1000);
+        allow update, delete: if orgOf(token);
+      }
+      match /guestMap/{id} {
+        allow read:   if true;                              // publiczny
+        allow create: if tokenReal(token) && vGuestMap();
+        allow update, delete: if orgOf(token);
+      }
+      match /rsvp/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vRsvp();
+        allow update, delete: if orgOf(token);
+      }
+      match /timeCapsule/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vMessage(2000);
+        allow update, delete: if orgOf(token);
+      }
+
+      // POZOSTAŁE sekcje (galeria, muzyka, gry) — 5b-part-2. Do czasu wiringu
+      // ich podkolekcje są DOMYŚLNIE ZABLOKOWANE (brak match = deny). Planowane
+      // rozróżnienie: galeria — odczyt publiczny; muzyka i wyniki gier — odczyt
+      // tylko organizator (bez publicznego rankingu na start).
     }
 
     // ── Kolekcje treści gości (D5) — GLOBALNE, jeszcze bez weddingId ─────────

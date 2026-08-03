@@ -14,6 +14,7 @@ import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/format.dart';
+import 'guest_interactions_screen.dart';
 import 'guest_visibility_screen.dart';
 import 'people_access_screen.dart';
 import 'security_settings_screen.dart';
@@ -237,6 +238,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 12),
               _guestLinkCard(),
               const SizedBox(height: 12),
+              _guestInteractionsCard(),
+              const SizedBox(height: 12),
               // „Osoby i dostęp" — TYLKO dla właściciela (owner).
               if (widget.isOwner) ...[
                 _peopleAccessCard(),
@@ -321,6 +324,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: widget.onOpenPlanning,
               icon: const Text('📋', style: TextStyle(fontSize: 16)),
               label: const Text('Od czego zacząć?'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _guestInteractionsCard() {
+    final token = _guestToken;
+    return _card(
+      'Interakcje gości (moderacja)',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Zobacz i moderuj to, co goście przesłali przez stronę web: '
+            'potwierdzenia RSVP, wpisy księgi, rady, mapę gości i kapsułę czasu.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: token == null
+                  ? null
+                  : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              GuestInteractionsScreen(guestToken: token),
+                        ),
+                      ),
+              icon: const Icon(Icons.forum_outlined, size: 18),
+              label: Text(token == null
+                  ? 'Ładowanie…'
+                  : 'Zobacz interakcje gości'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
