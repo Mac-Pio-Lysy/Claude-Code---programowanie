@@ -49,8 +49,20 @@ service cloud.firestore {
 
     // ── weddings/{weddingId} ────────────────────────────────────────────────
     match /weddings/{w} {
-      // Odczyt: każdy aktywny członek (w tym guest — D1, wariant A).
-      allow read:   if activeMember(w);
+      // Odczyt: TYLKO pełny dostęp — owner / planer / współorganizator.
+      //
+      // D1 WARIANT B, ETAP 5 (było: `activeMember`, czyli także rola `guest`).
+      // Dokument wesela zawiera budżet, pełną listę gości z danymi osobowymi,
+      // dostawców z kwotami umów, plan sali i zadania. Reguły Firestore działają
+      // na poziomie DOKUMENTU, nie pola — dopóki gość mógł go czytać, ukrycie
+      // budżetu było wyłącznie zabiegiem interfejsu, a surowe dane były dla
+      // niego dostępne. Teraz nie ma do nich technicznego dostępu.
+      //
+      // Gość czyta wyłącznie `weddings/{w}/guestView/main` (niżej) — mały
+      // wyciąg ze wskaźnikiem na publiczny mirror `guestSpaces/{token}`.
+      // Podkolekcja NIE dziedziczy uprawnień dokumentu nadrzędnego, więc ta
+      // zmiana jej nie dotyka.
+      allow read:   if fullAccess(w);
       // Edycja danych wesela: tylko pełny dostęp (guest NIE zapisuje).
       allow update: if fullAccess(w);
       // Utworzenie: zalogowany, wpisujący siebie jako ownerId.

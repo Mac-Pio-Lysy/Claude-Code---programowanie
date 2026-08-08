@@ -224,6 +224,13 @@ service cloud.firestore {
     }
     function orgOf(t) { return request.auth != null && fullAccess(tokenWedding(t)); }
 
+    // Wpis należy do bieżącego użytkownika, gdy ID dokumentu = jego `uid`.
+    // Tak zapisuje klient od etapu B antyspamu (`.doc(uid).set(...)`).
+    // Nie wykonuje ŻADNEGO odczytu — sam warunek na `request.auth`.
+    function isSelf(id) {
+      return request.auth != null && request.auth.uid == id;
+    }
+
     // ── Walidacja wpisów gościa (5b) — dozwolone pola + limity rozmiaru ──────
     function _s(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
     // Timestamp klienta musi być BLISKI czasu serwera (audyt 5b, naprawa #3).
@@ -377,15 +384,42 @@ service cloud.firestore {
         allow create: if tokenReal(token) && vMessage(1000);
         allow update, delete: if orgOf(token);
       }
+      // ── „Jeden wpis na gościa" (antyspam, etap C) ─────────────────────────
+      // Klient zapisuje RSVP i wpis na mapę pod IDENTYFIKATOREM dokumentu
+      // równym `uid` gościa (anonimowe konto zakładane w tle). Skoro `create`
+      // działa wyłącznie na nieistniejącym dokumencie, drugi wpis tego samego
+      // gościa jest niemożliwy — bez liczenia i bez Cloud Functions.
+      //
+      // `isSelf` sprawdzane jest PRZED `orgOf`, bo nie kosztuje ani jednego
+      // odczytu — `orgOf` rozwiązuje token i czyta członkostwo.
+      //
+      // ⚠️ To tożsamość PRZEGLĄDARKI, nie osoby: wyczyszczenie danych albo inne
+      // urządzenie daje nowy `uid` i możliwość kolejnego wpisu. Spowalniacz,
+      // nie zabezpieczenie kryptograficzne.
+
       match /guestMap/{id} {
-        allow read:   if true;                              // publiczny
-        allow create: if tokenReal(token) && vGuestMap();
-        allow update, delete: if orgOf(token);
+        // Odczyt zostaje PUBLICZNY — mapa gości ma z założenia pokazywać
+        // wszystkich (get i list, bez zmian względem poprzedniej wersji).
+        allow read:   if true;
+        allow create: if tokenReal(token) && isSelf(id) && vGuestMap();
+        allow update: if (isSelf(id) && vGuestMap()) || orgOf(token);
+        allow delete: if orgOf(token);
       }
       match /rsvp/{id} {
-        allow read:   if orgOf(token);                      // TYLKO organizator
-        allow create: if tokenReal(token) && vRsvp();
-        allow update, delete: if orgOf(token);
+        // ROZDZIELENIE get/list JEST TU KLUCZOWE:
+        //  • `get` — organizator ORAZ autor (gość wypełnia formularz swoim
+        //    wcześniejszym potwierdzeniem),
+        //  • `list` — WYŁĄCZNIE organizator. Gdyby listowanie było otwarte dla
+        //    gościa, zapytanie o kolekcję zwróciłoby potwierdzenia wszystkich
+        //    gości: kto będzie, z kim, jaka dieta. Odczyt pojedynczego
+        //    dokumentu po znanym ID takiego wycieku nie daje, bo trzeba znać
+        //    cudzy `uid`, a i tak `isSelf` go nie przepuści.
+        allow get:    if isSelf(id) || orgOf(token);
+        allow list:   if orgOf(token);
+        allow create: if tokenReal(token) && isSelf(id) && vRsvp();
+        allow update: if (isSelf(id) && vRsvp()) || orgOf(token);
+        // Kasowanie tylko organizator — gość poprawia swój wpis, nie usuwa go.
+        allow delete: if orgOf(token);
       }
       match /timeCapsule/{id} {
         allow read:   if orgOf(token);                      // TYLKO organizator
