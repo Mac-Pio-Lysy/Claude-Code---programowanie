@@ -277,17 +277,12 @@ class WeddingService {
     return WeddingSummary.fromWeddingDoc(weddingId, data, role);
   }
 
-  /// Podsumowanie wesela dla GOŚCIA (D1, etap 3) — z `guestView/main`, NIE z
-  /// dokumentu wesela.
+  /// Podsumowanie wesela dla GOŚCIA (D1) — WYŁĄCZNIE z `guestView/main`.
   ///
-  /// To jest zabezpieczenie przed etapem 5: gdy odczyt `weddings/{id}` zawęzi
-  /// się do `fullAccess`, dotychczasowe `get()` na dokumencie wesela rzuciłoby
-  /// gościowi wyjątek i wywaliło CAŁĄ listę wesel (nie tylko jedną pozycję).
-  ///
-  /// Zachowanie przejściowe: gdy `guestView/main` jeszcze nie istnieje (wesele
-  /// sprzed migracji), próbujemy po staremu dokumentu wesela. Przed etapem 5 to
-  /// zadziała, po nim zostanie odrzucone — dlatego próba jest w `try`, a jej
-  /// niepowodzenie oznacza pominięcie POZYCJI, nigdy przewrócenie listy.
+  /// Gość nie ma już prawa odczytu dokumentu wesela (etap 5), więc nie ma tu
+  /// żadnej ścieżki awaryjnej: wesele bez `guestView/main` po prostu nie pokaże
+  /// się na jego liście. Błąd (brak uprawnień, brak sieci) pomija POZYCJĘ, a
+  /// nie przewraca całej listy — to była pułapka #1 z analizy D1.
   Future<WeddingSummary?> _summaryForGuest(String weddingId, String role) async {
     try {
       final gv = await _col
@@ -296,20 +291,9 @@ class WeddingService {
           .doc(guestViewDoc)
           .get();
       final data = gv.data();
-      if (data != null) {
-        return WeddingSummary.fromGuestView(weddingId, data, role);
-      }
-    } catch (_) {
-      // Brak uprawnień lub błąd sieci — spróbujemy ścieżki przejściowej niżej.
-    }
-    try {
-      final snap = await _col.doc(weddingId).get();
-      final data = snap.data();
       if (data == null) return null;
-      return WeddingSummary.fromWeddingDoc(weddingId, data, role);
+      return WeddingSummary.fromGuestView(weddingId, data, role);
     } catch (_) {
-      // Po etapie 5 to jest OCZEKIWANA odmowa dla gościa. Pomijamy pozycję —
-      // wesele bez `guestView` po prostu nie pokaże się na liście gościa.
       return null;
     }
   }
@@ -417,6 +401,55 @@ class WeddingService {
   Future<void> syncGuestMirrorSafe(String weddingId) =>
       _syncGuestSpaceSafe(weddingId);
 
+  /// Harmonogram przefiltrowany do BIAŁEJ LISTY pól dla gościa.
+  ///
+  /// Pełne wydarzenie w dokumencie wesela ma pola organizacyjne, których gość
+  /// widzieć NIE MA: `responsible` (kto odpowiada za punkt), `private` (punkt
+  /// wewnętrzny) i `locationUrl` sterowany osobnym przełącznikiem. Wcześniej
+  /// mirror dostawał całą tablicę bez zmian — czyli publicznie, pod tokenem z
+  /// zaproszenia, leżały też punkty oznaczone jako prywatne.
+  ///
+  /// Zasady:
+  ///   • punkt z `private == true` NIE trafia do mirrora w ogóle,
+  ///   • punkt bez nazwy jest pomijany (pusty wiersz u gościa),
+  ///   • przepuszczamy tylko: godzinę (gotowy tekst `time`), `name`,
+  ///     `description`, `location`,
+  ///   • `locationUrl` wyłącznie gdy organizator ustawił `showLinkToGuests`,
+  ///   • wynik jest posortowany po godzinie, z godzinami po północy (0–5)
+  ///     traktowanymi jako „następnego dnia" — tak samo jak w panelu.
+  ///
+  /// ⚠️ `description` JEST widoczne dla gościa. Notatki wewnętrzne wpisuje się
+  /// w „osobę odpowiedzialną" albo oznacza punkt jako prywatny.
+  List<Map<String, dynamic>> _guestSchedule(dynamic raw) {
+    const sortKey = '_sort';
+    final events = <Map<String, dynamic>>[];
+    for (final e in (raw is List ? raw : const [])) {
+      if (e is! Map) continue;
+      final m = Map<String, dynamic>.from(e);
+      if (m['private'] == true) continue;
+      final name = (m['name'] as String?)?.trim() ?? '';
+      if (name.isEmpty) continue;
+      final hour = (m['hour'] as num?)?.toInt() ?? 0;
+      final minute = (m['minute'] as num?)?.toInt() ?? 0;
+      final url = (m['locationUrl'] as String?)?.trim() ?? '';
+      events.add({
+        'time': '${hour.toString().padLeft(2, '0')}'
+            ':${minute.toString().padLeft(2, '0')}',
+        'name': name,
+        'description': (m['description'] as String?)?.trim() ?? '',
+        'location': (m['location'] as String?)?.trim() ?? '',
+        if (m['showLinkToGuests'] == true && url.isNotEmpty) 'locationUrl': url,
+        sortKey: (hour < 6 ? hour + 24 : hour) * 60 + minute,
+      });
+    }
+    events.sort(
+        (a, b) => (a[sortKey] as int).compareTo(b[sortKey] as int));
+    for (final e in events) {
+      e.remove(sortKey);
+    }
+    return events;
+  }
+
   /// Buduje bezpieczny dla gości „mirror" z dokumentu wesela.
   ///
   /// ZASADA: trafia tu WYŁĄCZNIE to, co gość ma prawo zobaczyć. Nie ma budżetu,
@@ -450,7 +483,9 @@ class WeddingService {
       'weddingDate': data['weddingDate'],
       'weddingTime': (data['weddingTime'] as String?) ?? '16:00',
       'guestVisibility': data['guestVisibility'] ?? const <String, dynamic>{},
-      'scheduleEvents': ifOn('schedule', data['scheduleEvents']),
+      'scheduleEvents': vis.sectionFor('schedule').enabled
+          ? _guestSchedule(data['scheduleEvents'])
+          : const <dynamic>[],
       // ── Treści gier (5b-part-2) ──
       'quizActive': data['quizActive'] == true,
       'quizQuestions': ifOn('quiz', data['quizQuestions']),
