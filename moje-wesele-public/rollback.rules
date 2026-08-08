@@ -58,9 +58,25 @@ service cloud.firestore {
       // Usunięcie wesela: tylko owner.
       allow delete: if isOwner(w);
 
-      // GOTOWE NA PRZYSZŁOŚĆ (rozdzielenie danych — krok po D1):
+      // ── D1 etap 1: dane dla ZALOGOWANEGO gościa ──────────────────────────
+      // `weddings/{w}/guestView/main` → { guestToken, eventName, displayNames,
+      // weddingDate }. Czyta KAŻDY aktywny członek (w tym rola `guest`), pisze
+      // wyłącznie organizator.
+      //
+      // Uwaga na model reguł: podkolekcja NIE dziedziczy uprawnień dokumentu
+      // nadrzędnego (w żadną stronę). Dlatego w etapie 5, gdy odczyt
+      // `weddings/{w}` zawęzi się do `fullAccess`, ta reguła NIE wymaga zmiany —
+      // gość straci dostęp do dokumentu wesela, a zachowa do tego dokumentu.
+      //
+      // ⚠️ Do `guestView` nie wolno dopisywać danych wrażliwych — to jedyne
+      // okno, przez które rola `guest` widzi cokolwiek z wesela.
+      match /guestView/{doc} {
+        allow read:  if activeMember(w);
+        allow write: if fullAccess(w);
+      }
+
+      // GOTOWE NA PRZYSZŁOŚĆ (D3 — podział dla skalowania, nie dla bezpieczeństwa):
       //   match /private/{doc} { allow read, write: if fullAccess(w); } // budżet, goście…
-      //   match /guest/{doc}   { allow read: if activeMember(w); allow write: if fullAccess(w); }
     }
 
     // ── users/{userId} ──────────────────────────────────────────────────────
@@ -223,6 +239,66 @@ service cloud.firestore {
       return d.keys().hasOnly(['name','city','greeting','timestamp'])
         && _s(d.name, 1, 80) && _s(d.city, 1, 80) && _s(d.greeting, 0, 300) && _ts();
     }
+    // ── Walidacja sekcji 5b-part-2 (galeria, muzyka, gry) ───────────────────
+    // Zdjęcie MUSI pochodzić z naszego Cloudinary — blokuje podpięcie dowolnego
+    // obrazu z internetu (obcy hosting, treści, których nie da się moderować,
+    // podpięcie „licznika odsłon" pod adresem gościa).
+    function _photo(v) {
+      return v is string && v.size() <= 500
+        && v.matches('https://res[.]cloudinary[.]com/dybgmjmu3/.*');
+    }
+    // Adres http(s) albo pusty (okładka z Deezera — obcy hosting, więc tylko
+    // ograniczenie długości i schematu).
+    function _url(v, maxLen) {
+      return v is string && v.size() <= maxLen
+        && (v == '' || v.matches('https://.*'));
+    }
+
+    // Galeria gościa: imię + zdjęcie + opcjonalny podpis.
+    function vGallery() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','caption','photoUrl','photoPublicId','timestamp'])
+        && _s(d.name, 1, 80) && _s(d.caption, 0, 200)
+        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200) && _ts();
+    }
+    // Propozycja utworu: imię + tytuł + wykonawca + okładka.
+    function vMusic() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','title','artist','cover','timestamp'])
+        && _s(d.name, 1, 80) && _s(d.title, 1, 200) && _s(d.artist, 0, 200)
+        && _url(d.cover, 500) && _ts();
+    }
+    // Wynik gry (quiz, prawda/fałsz, zgadnij zdjęcie): punkty + mapa odpowiedzi.
+    // `answers` celowo bez walidacji wartości — to mapa id→wybór, a reguły nie
+    // iterują po mapach; chroni limit liczby kluczy i rozmiar dokumentu.
+    function vGameResult() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','score','total','answers','timestamp'])
+        && _s(d.name, 1, 80)
+        && d.score is int && d.score >= 0 && d.score <= 500
+        && d.total is int && d.total >= 0 && d.total <= 500
+        && d.score <= d.total
+        && d.answers is map && d.answers.keys().size() <= 200
+        && _ts();
+    }
+    // Zgłoszenie foto-wyzwania: imię + numer wyzwania + zdjęcie.
+    function vPhotoChallenge() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','challengeId','photoUrl','photoPublicId','timestamp'])
+        && _s(d.name, 1, 80)
+        && d.challengeId is int && d.challengeId >= 0 && d.challengeId <= 100000
+        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200) && _ts();
+    }
+    // Zgłoszenie bingo: ile pól skreślonych z ilu.
+    function vBingo() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['name','marked','total','timestamp'])
+        && _s(d.name, 1, 80)
+        && d.marked is int && d.marked >= 0 && d.marked <= 100
+        && d.total is int && d.total >= 0 && d.total <= 100
+        && d.marked <= d.total && _ts();
+    }
+
     // RSVP: imię + obecność + osoby + dieta + notatka.
     function vRsvp() {
       let d = request.resource.data;
@@ -305,10 +381,54 @@ service cloud.firestore {
         allow update, delete: if orgOf(token);
       }
 
-      // POZOSTAŁE sekcje (galeria, muzyka, gry) — 5b-part-2. Do czasu wiringu
-      // ich podkolekcje są DOMYŚLNIE ZABLOKOWANE (brak match = deny). Planowane
-      // rozróżnienie: galeria — odczyt publiczny; muzyka i wyniki gier — odczyt
-      // tylko organizator (bez publicznego rankingu na start).
+      // ── 5b-part-2: galeria, muzyka, gry ──────────────────────────────────
+      // Zasada podziału odczytu:
+      //  • PUBLICZNE (wspólna zabawa — goście oglądają nawzajem): galeria i
+      //    foto-wyzwania. To ściany zdjęć; ukrycie ich przed gośćmi odbiera
+      //    sens sekcji. Cena: nieodpowiednie zdjęcie jest widoczne do czasu
+      //    moderacji — dlatego URL musi pochodzić z naszego Cloudinary, a
+      //    organizator kasuje wpis jednym kliknięciem w panelu.
+      //  • TYLKO ORGANIZATOR: propozycje muzyki i wszystkie wyniki gier.
+      //    Brak publicznego rankingu = brak wyścigu, brak podglądania cudzych
+      //    odpowiedzi przed własną grą i brak listy „kto co zaproponował".
+
+      match /gallery/{id} {
+        allow read:   if true;                              // publiczny
+        allow create: if tokenReal(token) && vGallery();
+        allow update, delete: if orgOf(token);              // moderacja
+      }
+      match /photoChallenges/{id} {
+        allow read:   if true;                              // publiczny
+        allow create: if tokenReal(token) && vPhotoChallenge();
+        allow update, delete: if orgOf(token);
+      }
+      match /musicProposals/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vMusic();
+        allow update, delete: if orgOf(token);              // + zmiana statusu
+      }
+      match /quizResults/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vGameResult();
+        allow update, delete: if orgOf(token);
+      }
+      match /trueFalseResults/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vGameResult();
+        allow update, delete: if orgOf(token);
+      }
+      match /photoGuessResults/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vGameResult();
+        allow update, delete: if orgOf(token);
+      }
+      match /bingoResults/{id} {
+        allow read:   if orgOf(token);                      // TYLKO organizator
+        allow create: if tokenReal(token) && vBingo();
+        allow update, delete: if orgOf(token);
+      }
+
+      // Każda INNA podkolekcja pozostaje domyślnie zablokowana (brak match).
     }
 
     // ── Kolekcje treści gości (D5) — LEGACY, po starych stronach web ─────────
