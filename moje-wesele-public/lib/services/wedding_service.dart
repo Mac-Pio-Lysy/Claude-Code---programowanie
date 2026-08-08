@@ -259,6 +259,15 @@ class WeddingService {
     };
   }
 
+  /// Strumień `weddings/{id}/guestView/main` — jedyne okno, przez które rola
+  /// `guest` widzi dane wesela (D1). `null`, gdy dokument jeszcze nie powstał.
+  Stream<Map<String, dynamic>?> watchGuestView(String weddingId) => _col
+      .doc(weddingId)
+      .collection(guestViewCollection)
+      .doc(guestViewDoc)
+      .snapshots()
+      .map((s) => s.data());
+
   /// Podsumowanie wesela dla ORGANIZATORA — z dokumentu wesela, jak dotąd.
   Future<WeddingSummary?> _summaryForOrganizer(
       String weddingId, String role) async {
