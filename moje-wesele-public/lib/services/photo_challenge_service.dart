@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/photo_challenge.dart';
 import 'firestore_service.dart';
+import 'legacy_scope.dart';
 
 /// Operacje gry „Foto-wyzwania".
 ///
@@ -99,9 +100,9 @@ class PhotoChallengeService {
 
   // ── ZDJĘCIA (osobna kolekcja) ────────────────────────────────────────
 
-  Stream<List<PhotoChallengeSubmission>> watchSubmissions() => _db
-      .collection(submissionsCollection)
-      .orderBy('timestamp', descending: true)
+  Stream<List<PhotoChallengeSubmission>> watchSubmissions() =>
+      LegacyScope.scoped(_db.collection(submissionsCollection))
+          .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) =>
           snap.docs.map(PhotoChallengeSubmission.fromDoc).toList());

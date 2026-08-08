@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/quiz.dart';
 import 'firestore_service.dart';
+import 'legacy_scope.dart';
 
 /// Operacje quizu o Parze Młodej.
 ///
@@ -135,9 +136,9 @@ class QuizService {
 
   // ── WYNIKI (osobna kolekcja) ─────────────────────────────────────────
 
-  Stream<List<QuizResult>> watchResults() => _db
-      .collection(resultsCollection)
-      .orderBy('timestamp', descending: true)
+  Stream<List<QuizResult>> watchResults() =>
+      LegacyScope.scoped(_db.collection(resultsCollection))
+          .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) => snap.docs.map(QuizResult.fromDoc).toList());
 

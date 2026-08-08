@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/guest_map_entry.dart';
+import 'legacy_scope.dart';
 
 /// Dostęp do mapy gości — osobna kolekcja `guestMap` w Firestore
 /// (publiczny zapis ze strony `mapa.html`, jak `guestbook`).
@@ -18,7 +19,8 @@ class GuestMapService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
-  Stream<List<GuestMapEntry>> watchEntries() => _col
+  /// Strumień wpisów AKTYWNEGO wesela (najnowsze pierwsze).
+  Stream<List<GuestMapEntry>> watchEntries() => LegacyScope.scoped(_col)
       .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) => snap.docs.map(GuestMapEntry.fromDoc).toList());
@@ -31,14 +33,14 @@ class GuestMapService {
     double? lat,
     double? lng,
   }) =>
-      _col.add({
+      _col.add(LegacyScope.stamp({
         'name': name.trim(),
         'city': city.trim(),
         'greeting': greeting.trim(),
         'lat': lat,
         'lng': lng,
         'timestamp': DateTime.now().millisecondsSinceEpoch,
-      });
+      }));
 
   Future<void> updateEntry(String id,
       {String? name, String? city, String? greeting, double? lat, double? lng}) {

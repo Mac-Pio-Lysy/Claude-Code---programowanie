@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/guestbook_entry.dart';
+import 'legacy_scope.dart';
 
 /// Dostęp do księgi gości — osobnej kolekcji `guestbook` w Firestore
 /// (publiczny zapis ze strony `ksiega.html`, jak `musicProposals`).
@@ -19,8 +20,8 @@ class GuestbookService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
-  /// Strumień wszystkich wpisów (najnowsze pierwsze).
-  Stream<List<GuestbookEntry>> watchEntries() => _col
+  /// Strumień wpisów AKTYWNEGO wesela (najnowsze pierwsze).
+  Stream<List<GuestbookEntry>> watchEntries() => LegacyScope.scoped(_col)
       .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) => snap.docs.map(GuestbookEntry.fromDoc).toList());

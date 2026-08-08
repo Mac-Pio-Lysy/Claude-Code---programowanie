@@ -1,4 +1,77 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "gallery",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "guestbook",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "advices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "guestMap",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "timeCapsule",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "openDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "photoChallenges",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "quizResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "photoGuessResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "trueFalseResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "weddingId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/advice.dart';
+import 'legacy_scope.dart';
 
 /// Dostęp do rad dla Pary Młodej — osobna kolekcja `advices` w Firestore
 /// (publiczny zapis ze strony `rady.html`, jak `guestbook`/`musicProposals`).
@@ -18,8 +19,8 @@ class AdviceService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
-  /// Strumień wszystkich rad (najnowsze pierwsze).
-  Stream<List<Advice>> watchAdvices() => _col
+  /// Strumień rad AKTYWNEGO wesela (najnowsze pierwsze).
+  Stream<List<Advice>> watchAdvices() => LegacyScope.scoped(_col)
       .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) => snap.docs.map(Advice.fromDoc).toList());

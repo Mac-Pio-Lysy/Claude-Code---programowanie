@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/true_false.dart';
 import 'firestore_service.dart';
+import 'legacy_scope.dart';
 
 /// Operacje gry „Prawda czy Fałsz".
 ///
@@ -121,9 +122,9 @@ class TrueFalseService {
 
   // ── WYNIKI (osobna kolekcja) ─────────────────────────────────────────
 
-  Stream<List<TFResult>> watchResults() => _db
-      .collection(resultsCollection)
-      .orderBy('timestamp', descending: true)
+  Stream<List<TFResult>> watchResults() =>
+      LegacyScope.scoped(_db.collection(resultsCollection))
+          .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) => snap.docs.map(TFResult.fromDoc).toList());
 

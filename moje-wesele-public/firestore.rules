@@ -145,15 +145,45 @@ service cloud.firestore {
     // KRYTYCZNE: tylko `get` (trzeba ZNAĆ kod = ID dokumentu). `list` = false,
     // żeby nie dało się wylistować wszystkich kodów/wesel (enumeracja = wyciek
     // weddingId/daty/nazwiska + możliwość dołączenia do dowolnego wesela).
+    //
+    // ZAPIS (audyt 5b, naprawa #1): wcześniej `write: if signedIn()` pozwalało
+    // DOWOLNEMU zalogowanemu wystawić SOBIE zaproszenie do CUDZEGO wesela
+    // (roleInvites) albo przekierować cudzy kod dołączenia (weddingCodes) —
+    // czyli wejść na cudze dane.
+    //
+    // ZAWĘŻENIE (decyzja: Para Młoda ma nadrzędną kontrolę): oba indeksy to
+    // narzędzia DODAWANIA OSÓB do wesela, więc pisze je WYŁĄCZNIE owner.
+    // Planer i współorganizator (mimo `fullAccess` do danych wesela) NIE mogą
+    // wystawić zaproszenia ani wygenerować/odświeżyć kodu dołączenia — nie
+    // wprowadzą więc kolejnych osób z pominięciem Pary Młodej. Jest to spójne z
+    // regułą `memberships`, gdzie dodanie innej osoby też wymaga `isOwner`.
+    //
+    // `weddingId` jest niezmienne po utworzeniu: kod raz przypisany do wesela
+    // nie może zostać przepięty na inne.
+    function ownerIndexCreate() {
+      return signedIn() && isOwner(request.resource.data.weddingId);
+    }
+    function ownerIndexUpdate() {
+      return signedIn() && isOwner(resource.data.weddingId)
+        && request.resource.data.weddingId == resource.data.weddingId;
+    }
+    function ownerIndexDelete() {
+      return signedIn() && isOwner(resource.data.weddingId);
+    }
+
     match /weddingCodes/{code} {
-      allow get:   if true;          // gość weryfikuje kod+data+nazwisko
-      allow list:  if false;
-      allow write: if signedIn();    // owner/zespół tworzy
+      allow get:    if true;         // gość weryfikuje kod+data+nazwisko
+      allow list:   if false;
+      allow create: if ownerIndexCreate();
+      allow update: if ownerIndexUpdate();
+      allow delete: if ownerIndexDelete();
     }
     match /roleInvites/{code} {
-      allow get:   if signedIn();    // odbiorca zna kod zaproszenia
-      allow list:  if false;
-      allow write: if signedIn();    // owner tworzy
+      allow get:    if signedIn();   // odbiorca zna kod zaproszenia
+      allow list:   if false;
+      allow create: if ownerIndexCreate();
+      allow update: if ownerIndexUpdate();
+      allow delete: if ownerIndexDelete();
     }
 
     // ── Strona gości po TOKENIE (kroki 5a/5b) ───────────────────────────────
@@ -168,7 +198,19 @@ service cloud.firestore {
 
     // ── Walidacja wpisów gościa (5b) — dozwolone pola + limity rozmiaru ──────
     function _s(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
-    function _ts() { return request.resource.data.timestamp is int; }
+    // Timestamp klienta musi być BLISKI czasu serwera (audyt 5b, naprawa #3).
+    // Wcześniej sprawdzane było tylko `is int` — wpis z `timestamp: 9e18` zostawał
+    // na zawsze na szczycie każdej listy (wszystko jest orderBy timestamp desc).
+    // Tolerancja niesymetryczna — chroni tylko przed „przypięciem":
+    //   • do przodu maks. 15 min (tyle wpis może stać na górze — bez znaczenia),
+    //   • wstecz maks. 7 dni (rozjechany zegar urządzenia; wpis w przeszłości
+    //     ląduje na dole listy, więc nie jest narzędziem nadużycia).
+    function _ts() {
+      let t = request.resource.data.timestamp;
+      return t is int
+        && t <= request.time.toMillis() + 900000
+        && t >= request.time.toMillis() - 604800000;
+    }
     // Imię + treść (księga gości, rady).
     function vMessage(maxMsg) {
       let d = request.resource.data;
@@ -192,9 +234,36 @@ service cloud.firestore {
 
     // Mapowanie token→weddingId. Klient NIE czyta (token nie ujawnia weddingId);
     // zapis tylko przez organizatora (pełny dostęp) danego wesela.
+    //
+    // AUDYT 5b, naprawa #2: poprzednia wersja sprawdzała WYŁĄCZNIE nową wartość
+    // (`request.resource.data.weddingId`). Token gościa jest półjawny (link/QR),
+    // więc dowolny organizator mógł nadpisać CUDZE mapowanie na własne wesele i
+    // przejąć cudzą strefę gości (odczyt RSVP i kapsuły, kasowanie wpisów,
+    // podmiana mirrora), a prawowity organizator tracił zapis do własnej strony.
+    // Teraz istniejące mapowanie jest NIEZMIENNE (nie da się przepiąć tokenu na
+    // inne wesele), a `delete` sprawdza stan ISTNIEJĄCY — dzięki temu rotacja
+    // tokenu w ogóle działa (przy `write` delete zawsze padał: request.resource
+    // jest wtedy null).
+    //
+    // Tu ZOSTAJE `fullAccess` (nie `isOwner`): token gościa nie dodaje nikogo do
+    // wesela — to synchronizacja strony gości, robiona przy każdym zapisie
+    // konfiguracji, więc planer i współorganizator muszą móc ją wykonać.
+    function tokenMapCreate() {
+      return signedIn() && fullAccess(request.resource.data.weddingId);
+    }
+    function tokenMapUpdate() {
+      return signedIn() && fullAccess(resource.data.weddingId)
+        && request.resource.data.weddingId == resource.data.weddingId;
+    }
+    function tokenMapDelete() {
+      return signedIn() && fullAccess(resource.data.weddingId);
+    }
+
     match /guestTokens/{token} {
-      allow read:  if false;
-      allow write: if signedIn() && fullAccess(request.resource.data.weddingId);
+      allow read:   if false;
+      allow create: if tokenMapCreate();
+      allow update: if tokenMapUpdate();
+      allow delete: if tokenMapDelete();
     }
 
     // Publiczny „mirror" gościa — TYLKO dane dla gości (bez budżetu/organizacji).
@@ -242,20 +311,46 @@ service cloud.firestore {
       // tylko organizator (bez publicznego rankingu na start).
     }
 
-    // ── Kolekcje treści gości (D5) — GLOBALNE, jeszcze bez weddingId ─────────
-    // Na teraz publiczny odczyt i tworzenie (pod przyszłe strony web bez
-    // logowania); moderacja (edycja/usuwanie) dla zalogowanych.
-    // TODO (przyszły krok): dodać pole weddingId przy zapisie i zawęzić dostęp.
-    match /gallery/{d}            { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /guestbook/{d}          { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /advices/{d}            { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /guestMap/{d}           { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /timeCapsule/{d}        { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /musicProposals/{d}     { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /photoChallenges/{d}    { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /quizResults/{d}        { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /photoGuessResults/{d}  { allow read, create: if true; allow update, delete: if signedIn(); }
-    match /trueFalseResults/{d}   { allow read, create: if true; allow update, delete: if signedIn(); }
+    // ── Kolekcje treści gości (D5) — LEGACY, po starych stronach web ─────────
+    // AUDYT 5b, naprawa #4. Poprzednio: `read, create: if true` + `update,
+    // delete: if signedIn()` — czyli jeden wspólny worek dla WSZYSTKICH wesel:
+    // anonim czytał i tworzył cokolwiek (m.in. kapsułę czasu reklamowaną jako
+    // prywatna), a dowolny zalogowany użytkownik kasował treści cudzego wesela.
+    //
+    // Teraz: każdy dokument MUSI mieć pole `weddingId`, a dostęp ma wyłącznie
+    // organizator (owner/planner/collaborator) TEGO wesela. Anonimowy odczyt i
+    // zapis są usunięte — nowe treści gości trafiają do guestSpaces/{token}/…,
+    // gdzie mają własną walidację i rozdział „publiczne / tylko organizator".
+    //
+    // ⚠️ SKUTEK: dokumenty sprzed migracji (bez `weddingId`) są NIEDOSTĘPNE dla
+    // wszystkich. Przed wdrożeniem reguł uruchom jednorazową migrację:
+    // Ustawienia → „Dane starych sekcji (legacy)" → Migruj. Migracja MUSI pójść
+    // na STARYCH regułach (nowe zabraniają zapisu dokumentu bez weddingId).
+    //
+    // ⚠️ SKUTEK 2: stare strony web (wedding-planner/*.html, zrodlo-web/) tracą
+    // dostęp całkowicie — i tak są już martwe, bo `weddingPlanner/main` nie ma
+    // żadnej reguły. To jest zamierzone wyłączenie razem z tymi stronami.
+    function legacyRead() {
+      return signedIn() && fullAccess(resource.data.weddingId);
+    }
+    function legacyCreate() {
+      return signedIn() && fullAccess(request.resource.data.weddingId);
+    }
+    function legacyUpdate() {
+      return legacyRead()
+        && request.resource.data.weddingId == resource.data.weddingId;
+    }
+
+    match /gallery/{d}            { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /guestbook/{d}          { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /advices/{d}            { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /guestMap/{d}           { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /timeCapsule/{d}        { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /musicProposals/{d}     { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /photoChallenges/{d}    { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /quizResults/{d}        { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /photoGuessResults/{d}  { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
+    match /trueFalseResults/{d}   { allow read, delete: if legacyRead(); allow create: if legacyCreate(); allow update: if legacyUpdate(); }
 
     // ── Wszystko inne: DOMYŚLNIE ZABLOKOWANE (brak match = deny). ────────────
   }

@@ -12,6 +12,7 @@ import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/legacy_migration_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/format.dart';
 import 'guest_interactions_screen.dart';
@@ -79,6 +80,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Token gościa (długi) do linku/QR strony web dla gości. Null = wczytywany.
   String? _guestToken;
+
+  /// Trwa migracja/podgląd danych legacy (blokuje przyciski).
+  bool _legacyBusy = false;
+
+  /// Ostatni raport z migracji legacy (null = jeszcze nie uruchamiano).
+  String? _legacyReport;
 
   @override
   void initState() {
@@ -244,6 +251,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (widget.isOwner) ...[
                 _peopleAccessCard(),
                 const SizedBox(height: 12),
+                _legacyMigrationCard(),
+                const SizedBox(height: 12),
               ],
               _loginCard(),
               const SizedBox(height: 12),
@@ -334,6 +343,148 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  /// Jednorazowa migracja kolekcji legacy (`gallery`, `guestbook`, `advices`,
+  /// `guestMap`, `timeCapsule`, wyniki gier) do modelu wielu wesel — dokłada
+  /// `weddingId` do dokumentów, które go nie mają.
+  ///
+  /// ⚠️ Uruchomić PRZED wdrożeniem nowych reguł: nowe reguły blokują zapis
+  /// dokumentu bez `weddingId`, więc później migracja już nie przejdzie.
+  Widget _legacyMigrationCard() {
+    return _card(
+      'Dane starych sekcji (legacy)',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Wpisy z czasów jednego wesela (galeria, księga gości, rady, mapa, '
+            'kapsuła czasu, wyniki gier) nie mają przypisanego wesela. '
+            'Migracja przypisuje je do TEGO wesela — bez niej znikną z panelu '
+            'po wdrożeniu nowych reguł bezpieczeństwa.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Uruchom PRZED wdrożeniem nowych reguł.',
+            style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFC0392B)),
+          ),
+          if (_legacyReport != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.bgGradient.last,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _legacyReport!,
+                style: GoogleFonts.robotoMono(
+                    fontSize: 12, color: AppColors.text),
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _legacyBusy ? null : _legacyDryRun,
+                  icon: const Icon(Icons.search, size: 18),
+                  label: const Text('Sprawdź'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _legacyBusy ? null : _legacyMigrate,
+                  icon: const Icon(Icons.move_down, size: 18),
+                  label: const Text('Migruj'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _legacySummary(List<LegacyMigrationResult> res, {required bool dry}) {
+    final lines = <String>[];
+    for (final r in res) {
+      if (!r.ok) {
+        lines.add('${r.collection}: BŁĄD — ${r.error}');
+      } else if (dry) {
+        lines.add('${r.collection}: do migracji ${r.stamped}, '
+            'już przypisane ${r.skipped}');
+      } else {
+        lines.add('${r.collection}: przypisano ${r.stamped}, '
+            'pominięto ${r.skipped}');
+      }
+    }
+    return lines.join('\n');
+  }
+
+  Future<void> _legacyDryRun() async {
+    setState(() => _legacyBusy = true);
+    try {
+      final res = await LegacyMigrationService().dryRun();
+      if (!mounted) return;
+      setState(() => _legacyReport = _legacySummary(res, dry: true));
+    } catch (e) {
+      if (mounted) _toast('Nie udało się sprawdzić: $e');
+    } finally {
+      if (mounted) setState(() => _legacyBusy = false);
+    }
+  }
+
+  Future<void> _legacyMigrate() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Przypisać stare wpisy do tego wesela?'),
+        content: const Text(
+          'Wszystkie wpisy bez przypisanego wesela (galeria, księga gości, '
+          'rady, mapa, kapsuła czasu, wyniki gier) zostaną przypisane do '
+          'AKTYWNEGO wesela. Wpisy, które już mają wesele, nie zostaną '
+          'ruszone. Operacji nie da się cofnąć jednym kliknięciem.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Anuluj')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Przypisz')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _legacyBusy = true);
+    try {
+      final res = await LegacyMigrationService().run();
+      if (!mounted) return;
+      setState(() => _legacyReport = _legacySummary(res, dry: false));
+      _toast('Migracja zakończona ✓');
+    } catch (e) {
+      if (mounted) _toast('Migracja nieudana: $e');
+    } finally {
+      if (mounted) setState(() => _legacyBusy = false);
+    }
   }
 
   Widget _guestInteractionsCard() {
@@ -686,6 +837,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Publiczny indeks kodu dołączenia (weddingCodes) może odświeżyć tylko
+          // owner — reguły celowo nie dają tego planerowi ani współorganizatorowi.
+          if (!widget.isOwner)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Zmianę daty ślubu i nazwisk musi zapisać właściciel wesela — '
+                'inaczej dane dołączania gości pozostaną nieaktualne.',
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFFC0392B)),
+              ),
+            ),
           _field('Nazwa wydarzenia', _eventName),
           _field('Osoby', _displayNames),
           Row(

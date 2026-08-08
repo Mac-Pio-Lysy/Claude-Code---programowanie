@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/photo_guess.dart';
 import 'firestore_service.dart';
+import 'legacy_scope.dart';
 
 /// Operacje gry „Zgadnij zdjęcie".
 ///
@@ -101,9 +102,9 @@ class PhotoGuessService {
 
   // ── WYNIKI (osobna kolekcja) ─────────────────────────────────────────
 
-  Stream<List<PhotoGuessResult>> watchResults() => _db
-      .collection(resultsCollection)
-      .orderBy('timestamp', descending: true)
+  Stream<List<PhotoGuessResult>> watchResults() =>
+      LegacyScope.scoped(_db.collection(resultsCollection))
+          .orderBy('timestamp', descending: true)
       .snapshots()
       .map((snap) => snap.docs.map(PhotoGuessResult.fromDoc).toList());
 

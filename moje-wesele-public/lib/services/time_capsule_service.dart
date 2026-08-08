@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/time_capsule_message.dart';
+import 'legacy_scope.dart';
 
 /// Dostęp do kapsuły czasu — osobna kolekcja `timeCapsule` w Firestore
 /// (publiczny zapis ze strony `kapsula.html`, jak `guestbook`).
@@ -19,8 +20,8 @@ class TimeCapsuleService {
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
 
-  /// Strumień wszystkich wiadomości (wg daty otwarcia rosnąco).
-  Stream<List<TimeCapsuleMessage>> watchMessages() => _col
+  /// Strumień wiadomości AKTYWNEGO wesela (wg daty otwarcia rosnąco).
+  Stream<List<TimeCapsuleMessage>> watchMessages() => LegacyScope.scoped(_col)
       .orderBy('openDate')
       .snapshots()
       .map((snap) => snap.docs.map(TimeCapsuleMessage.fromDoc).toList());
