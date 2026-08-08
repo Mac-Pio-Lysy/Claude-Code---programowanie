@@ -10,6 +10,7 @@ class WeddingSummary {
     required this.persons,
     required this.date,
     required this.role,
+    this.guestToken,
   });
 
   final String id;
@@ -25,6 +26,14 @@ class WeddingSummary {
 
   /// Rola bieżącego użytkownika w tym weselu ('owner'/'planner'/'collaborator').
   final String role;
+
+  /// Token strefy gości — wypełniany TYLKO gdy podsumowanie powstało z
+  /// `weddings/{id}/guestView/main` (rola guest). Dla organizatorów `null`,
+  /// bo czytają dokument wesela i token biorą stamtąd.
+  ///
+  /// Etap 3 go jeszcze nie używa; potrzebuje go etap 4, w którym ekran gościa
+  /// renderuje stronę gościa po tokenie zamiast czytać dokument wesela.
+  final String? guestToken;
 
   /// Etykieta roli po polsku.
   String get roleLabel => switch (role) {
@@ -55,6 +64,26 @@ class WeddingSummary {
       persons: (persons ?? '').trim(),
       date: _parseDate(data['weddingDate']),
       role: role,
+    );
+  }
+
+  /// Buduje podsumowanie z `weddings/{id}/guestView/main` — dokumentu, który
+  /// czyta rola `guest` (D1). W przeciwieństwie do dokumentu wesela pola są
+  /// PŁASKIE (bez `appConfig`), bo to wyliczany wyciąg, a nie kopia.
+  factory WeddingSummary.fromGuestView(
+    String id,
+    Map<String, dynamic> data,
+    String role,
+  ) {
+    final name = (data['eventName'] as String?)?.trim() ?? '';
+    final token = (data['guestToken'] as String?)?.trim();
+    return WeddingSummary(
+      id: id,
+      name: name.isNotEmpty ? name : 'Nasze Wesele',
+      persons: (data['displayNames'] as String?)?.trim() ?? '',
+      date: _parseDate(data['weddingDate']),
+      role: role,
+      guestToken: (token != null && token.isNotEmpty) ? token : null,
     );
   }
 

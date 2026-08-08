@@ -259,6 +259,52 @@ class WeddingService {
     };
   }
 
+  /// Podsumowanie wesela dla ORGANIZATORA — z dokumentu wesela, jak dotąd.
+  Future<WeddingSummary?> _summaryForOrganizer(
+      String weddingId, String role) async {
+    final snap = await _col.doc(weddingId).get();
+    final data = snap.data();
+    if (data == null) return null; // wesele nie istnieje / zostało usunięte
+    return WeddingSummary.fromWeddingDoc(weddingId, data, role);
+  }
+
+  /// Podsumowanie wesela dla GOŚCIA (D1, etap 3) — z `guestView/main`, NIE z
+  /// dokumentu wesela.
+  ///
+  /// To jest zabezpieczenie przed etapem 5: gdy odczyt `weddings/{id}` zawęzi
+  /// się do `fullAccess`, dotychczasowe `get()` na dokumencie wesela rzuciłoby
+  /// gościowi wyjątek i wywaliło CAŁĄ listę wesel (nie tylko jedną pozycję).
+  ///
+  /// Zachowanie przejściowe: gdy `guestView/main` jeszcze nie istnieje (wesele
+  /// sprzed migracji), próbujemy po staremu dokumentu wesela. Przed etapem 5 to
+  /// zadziała, po nim zostanie odrzucone — dlatego próba jest w `try`, a jej
+  /// niepowodzenie oznacza pominięcie POZYCJI, nigdy przewrócenie listy.
+  Future<WeddingSummary?> _summaryForGuest(String weddingId, String role) async {
+    try {
+      final gv = await _col
+          .doc(weddingId)
+          .collection(guestViewCollection)
+          .doc(guestViewDoc)
+          .get();
+      final data = gv.data();
+      if (data != null) {
+        return WeddingSummary.fromGuestView(weddingId, data, role);
+      }
+    } catch (_) {
+      // Brak uprawnień lub błąd sieci — spróbujemy ścieżki przejściowej niżej.
+    }
+    try {
+      final snap = await _col.doc(weddingId).get();
+      final data = snap.data();
+      if (data == null) return null;
+      return WeddingSummary.fromWeddingDoc(weddingId, data, role);
+    } catch (_) {
+      // Po etapie 5 to jest OCZEKIWANA odmowa dla gościa. Pomijamy pozycję —
+      // wesele bez `guestView` po prostu nie pokaże się na liście gościa.
+      return null;
+    }
+  }
+
   /// Przygotowuje strefę gości we WSZYSTKICH weselach użytkownika [userId],
   /// w których ma pełny dostęp (owner / planer / współorganizator).
   ///
@@ -618,10 +664,11 @@ class WeddingService {
       // Pomijamy zablokowane oraz wygasłe (planer po dacie ważności) —
       // taka osoba nie widzi wesela, dopóki owner nie przywróci/przedłuży.
       if (!m.isEffectiveOn(today)) continue;
-      final snap = await _col.doc(m.weddingId).get();
-      final data = snap.data();
-      if (data == null) continue; // wesele nie istnieje / zostało usunięte
-      result.add(WeddingSummary.fromWeddingDoc(m.weddingId, data, m.role));
+
+      final summary = m.role == 'guest'
+          ? await _summaryForGuest(m.weddingId, m.role)
+          : await _summaryForOrganizer(m.weddingId, m.role);
+      if (summary != null) result.add(summary);
     }
     result.sort((a, b) {
       if (a.date == null && b.date == null) return a.name.compareTo(b.name);
