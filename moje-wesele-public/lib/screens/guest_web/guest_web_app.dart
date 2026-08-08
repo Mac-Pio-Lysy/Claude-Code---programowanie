@@ -1,10 +1,17 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../app_colors.dart';
 import '../../models/guest_visibility.dart';
+import '../../services/cloudinary_service.dart';
+import '../../services/deezer_service.dart';
 import '../../services/guest_space_service.dart';
 import '../../utils/warsaw_time.dart';
+
+part 'guest_web_sections.dart';
 
 /// Aplikacja w TRYBIE GOŚCIA WEB — uruchamiana, gdy w URL jest token (`?t=...`).
 /// Bez logowania: czyta publiczny mirror `guestSpaces/{token}` i pokazuje
@@ -334,6 +341,48 @@ class _GuestWebHomeState extends State<GuestWebHome> {
         page = _ScheduleView(
           events: space['scheduleEvents'],
           weddingDate: space['weddingDate'] as String?,
+        );
+      // ── 5b-part-2 ──
+      case 'gallery':
+        page = _GalleryPage(service: _service);
+      case 'music':
+        page = _MusicPage(service: _service);
+      case 'quiz':
+        page = _ChoiceGamePage(
+          service: _service,
+          questions: _mapsFrom(space['quizQuestions']),
+          collection: 'quizResults',
+          active: space['quizActive'] == true,
+        );
+      case 'trueFalse':
+        page = _TrueFalseGamePage(
+          service: _service,
+          statements: _mapsFrom(space['tfStatements']),
+          active: space['tfActive'] == true,
+        );
+      case 'photoGuess':
+        page = _ChoiceGamePage(
+          service: _service,
+          questions: _mapsFrom(space['photoQuestions']),
+          collection: 'photoGuessResults',
+          active: space['photoGuessActive'] == true,
+          withPhoto: true,
+        );
+      case 'photoChallenge':
+        page = _PhotoChallengePage(
+          service: _service,
+          tasks: _mapsFrom(space['photoChallengeTasks']),
+          active: space['photoChallengesActive'] == true,
+        );
+      case 'bingo':
+        page = _BingoPage(
+          service: _service,
+          fields: _mapsFrom(space['bingoFields']),
+          centerLabel: space['bingoCenterMode'] == 'names'
+              ? (((space['displayNames'] as String?)?.trim().isNotEmpty ?? false)
+                  ? (space['displayNames'] as String).trim()
+                  : 'GRATIS')
+              : 'GRATIS',
         );
       default:
         page = const _ComingSoon();

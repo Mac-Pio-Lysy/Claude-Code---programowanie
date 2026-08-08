@@ -54,7 +54,7 @@ class TrueFalseService {
       'isTrue': isTrue,
       'explanation': explanation.trim(),
     });
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'tfStatements': list, 'nextTfId': nextId + 1},
       SetOptions(merge: true),
     );
@@ -69,16 +69,14 @@ class TrueFalseService {
     if (text != null) item['text'] = text.trim();
     if (isTrue != null) item['isTrue'] = isTrue;
     if (explanation != null) item['explanation'] = explanation.trim();
-    await _firestore.mainDoc
-        .set({'tfStatements': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'tfStatements': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteStatement(int id) async {
     final data = await _read();
     final list = _mapList(data['tfStatements'])
       ..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc
-        .set({'tfStatements': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'tfStatements': list}, SetOptions(merge: true));
   }
 
   /// Zapisuje nową kolejność stwierdzeń (po przeciągnięciu na liście).
@@ -92,12 +90,11 @@ class TrueFalseService {
       if (m != null) result.add(m);
     }
     result.addAll(byId.values);
-    await _firestore.mainDoc
-        .set({'tfStatements': result}, SetOptions(merge: true));
+    await _firestore.setAndSync({'tfStatements': result}, SetOptions(merge: true));
   }
 
   Future<void> setActive(bool value) =>
-      _firestore.mainDoc.set({'tfActive': value}, SetOptions(merge: true));
+      _firestore.setAndSync({'tfActive': value}, SetOptions(merge: true));
 
   /// Dodaje przykładowe stwierdzenia (tylko gdy lista jest pusta).
   Future<void> seedExamples() async {
@@ -114,7 +111,7 @@ class TrueFalseService {
       });
       nextId++;
     }
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'tfStatements': list, 'nextTfId': nextId},
       SetOptions(merge: true),
     );

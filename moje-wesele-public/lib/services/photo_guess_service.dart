@@ -44,7 +44,7 @@ class PhotoGuessService {
       'answers': ans,
       'correctIndex': correctIndex.clamp(0, ans.length - 1),
     });
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'photoQuestions': list, 'nextPhotoQuestionId': nextId + 1},
       SetOptions(merge: true),
     );
@@ -71,16 +71,14 @@ class PhotoGuessService {
       final len = (item['answers'] as List?)?.length ?? 1;
       item['correctIndex'] = correctIndex.clamp(0, len - 1);
     }
-    await _firestore.mainDoc
-        .set({'photoQuestions': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'photoQuestions': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteQuestion(int id) async {
     final data = await _read();
     final list = _mapList(data['photoQuestions'])
       ..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc
-        .set({'photoQuestions': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'photoQuestions': list}, SetOptions(merge: true));
   }
 
   Future<void> reorderQuestions(List<int> orderedIds) async {
@@ -93,12 +91,10 @@ class PhotoGuessService {
       if (m != null) result.add(m);
     }
     result.addAll(byId.values);
-    await _firestore.mainDoc
-        .set({'photoQuestions': result}, SetOptions(merge: true));
+    await _firestore.setAndSync({'photoQuestions': result}, SetOptions(merge: true));
   }
 
-  Future<void> setActive(bool value) => _firestore.mainDoc
-      .set({'photoGuessActive': value}, SetOptions(merge: true));
+  Future<void> setActive(bool value) => _firestore.setAndSync({'photoGuessActive': value}, SetOptions(merge: true));
 
   // ── WYNIKI (osobna kolekcja) ─────────────────────────────────────────
 

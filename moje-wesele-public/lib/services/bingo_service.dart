@@ -18,7 +18,7 @@ class BingoService {
     final list = _mapList(data['bingoFields']);
     final nextId = _nextId(data['nextBingoFieldId'], list);
     list.add({'id': nextId, 'text': t, 'enabled': true});
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'bingoFields': list, 'nextBingoFieldId': nextId + 1},
       SetOptions(merge: true),
     );
@@ -31,21 +31,19 @@ class BingoService {
     if (item == null) return;
     if (text != null) item['text'] = text;
     if (enabled != null) item['enabled'] = enabled;
-    await _firestore.mainDoc.set({'bingoFields': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'bingoFields': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteField(int id) async {
     final data = await _read();
     final list = _mapList(data['bingoFields'])
       ..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc.set({'bingoFields': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'bingoFields': list}, SetOptions(merge: true));
   }
 
-  Future<void> setUseSchedule(bool value) => _firestore.mainDoc
-      .set({'bingoUseSchedule': value}, SetOptions(merge: true));
+  Future<void> setUseSchedule(bool value) => _firestore.setAndSync({'bingoUseSchedule': value}, SetOptions(merge: true));
 
-  Future<void> setCenterMode(String mode) => _firestore.mainDoc
-      .set({'bingoCenterMode': mode}, SetOptions(merge: true));
+  Future<void> setCenterMode(String mode) => _firestore.setAndSync({'bingoCenterMode': mode}, SetOptions(merge: true));
 
   /// Ustawia, czy wydarzenie harmonogramu jest wykluczone z puli bingo.
   Future<void> setScheduleEventExcluded(int eventId, bool excluded) async {
@@ -56,8 +54,7 @@ class BingoService {
     } else {
       list.remove(eventId);
     }
-    await _firestore.mainDoc
-        .set({'bingoScheduleExclude': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'bingoScheduleExclude': list}, SetOptions(merge: true));
   }
 
   // ── Pomocnicze ──

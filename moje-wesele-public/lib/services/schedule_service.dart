@@ -63,7 +63,7 @@ class ScheduleService {
       'duration': 60,
       ...draft.toFields(),
     });
-    await _firestore.mainDoc.set({
+    await _firestore.setAndSync({
       'scheduleEvents': list,
       'nextScheduleId': nextId + 1,
     }, SetOptions(merge: true));
@@ -75,16 +75,14 @@ class ScheduleService {
     final item = _find(list, id);
     if (item == null) return;
     item.addAll(draft.toFields());
-    await _firestore.mainDoc
-        .set({'scheduleEvents': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'scheduleEvents': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteEvent(int id) async {
     final data = await _read();
     final list = _mapList(data['scheduleEvents'])
       ..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc
-        .set({'scheduleEvents': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'scheduleEvents': list}, SetOptions(merge: true));
   }
 
   /// Ustawia, czy wydarzenie jest widoczne dla gości na stronie /harmonogram
@@ -95,8 +93,7 @@ class ScheduleService {
     final item = _find(list, id);
     if (item == null) return;
     item['private'] = !visibleToGuests;
-    await _firestore.mainDoc
-        .set({'scheduleEvents': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'scheduleEvents': list}, SetOptions(merge: true));
   }
 
   // ── CHECKLISTA ───────────────────────────────────────────────────────
@@ -113,7 +110,7 @@ class ScheduleService {
       'text': '',
       'done': false,
     });
-    await _firestore.mainDoc.set({
+    await _firestore.setAndSync({
       'checklist': list,
       'nextChecklistId': nextId + 1,
     }, SetOptions(merge: true));
@@ -126,13 +123,13 @@ class ScheduleService {
     if (item == null) return;
     if (text != null) item['text'] = text;
     if (done != null) item['done'] = done;
-    await _firestore.mainDoc.set({'checklist': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'checklist': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteChecklistItem(int id) async {
     final data = await _read();
     final list = _mapList(data['checklist'])..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc.set({'checklist': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'checklist': list}, SetOptions(merge: true));
   }
 
   // ── Pomocnicze ──

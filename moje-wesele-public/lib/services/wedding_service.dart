@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/guest_visibility.dart';
 import '../models/wedding_summary.dart';
 import '../utils/warsaw_time.dart';
 import 'membership_service.dart';
@@ -189,11 +190,39 @@ class WeddingService {
         .set(_guestMirror(data), SetOptions(merge: true));
   }
 
+  /// Odświeża publiczny mirror gościa dla [weddingId] (best-effort — nie rzuca).
+  ///
+  /// Wołane przez [FirestoreService.setAndSync] po każdej zmianie treści, która
+  /// trafia na stronę gości (harmonogram, pytania gier), żeby gość nie oglądał
+  /// wersji z ostatniego zapisu konfiguracji.
+  Future<void> syncGuestMirrorSafe(String weddingId) =>
+      _syncGuestSpaceSafe(weddingId);
+
   /// Buduje bezpieczny dla gości „mirror" z dokumentu wesela.
+  ///
+  /// ZASADA: trafia tu WYŁĄCZNIE to, co gość ma prawo zobaczyć. Nie ma budżetu,
+  /// listy gości, dostawców, planu sali ani zadań. Treści gier dokładane są
+  /// tylko dla sekcji WŁĄCZONYCH w widoczności — wyłączona gra nie leży w
+  /// publicznym dokumencie „na wszelki wypadek".
+  ///
+  /// ⚠️ ŚWIADOMY KOMPROMIS: pytania quizu, „prawda/fałsz" i „zgadnij zdjęcie"
+  /// jadą razem z poprawnymi odpowiedziami (`correctIndex`, `isTrue`), bo wynik
+  /// liczy się na urządzeniu gościa. Kto otworzy narzędzia deweloperskie, może
+  /// je podejrzeć. To zabawa weselna, nie egzamin — usunięcie tego wymagałoby
+  /// liczenia punktów w Cloud Function.
   Map<String, dynamic> _guestMirror(Map<String, dynamic> data) {
     final cfg = data['appConfig'] is Map
         ? Map<String, dynamic>.from(data['appConfig'] as Map)
         : const <String, dynamic>{};
+    final vis = GuestVisibility.fromRaw(data);
+    // Treść sekcji jedzie do mirrora tylko, gdy sekcja jest włączona. Daty
+    // OD/DO celowo NIE są tu sprawdzane — mirror odświeża się przy zapisie, a
+    // nie codziennie o północy; gdyby zależał od dat, sekcja włączająca się
+    // „jutro" nie miałaby treści do czasu kolejnego zapisu. Zakres dat i tak
+    // egzekwuje strona gościa.
+    List<dynamic> ifOn(String key, dynamic value) =>
+        vis.sectionFor(key).enabled && value is List ? value : const <dynamic>[];
+
     return {
       'eventName': (cfg['eventName'] as String?) ?? '',
       'displayNames': (cfg['displayNames'] as String?) ?? '',
@@ -202,7 +231,18 @@ class WeddingService {
       'weddingDate': data['weddingDate'],
       'weddingTime': (data['weddingTime'] as String?) ?? '16:00',
       'guestVisibility': data['guestVisibility'] ?? const <String, dynamic>{},
-      'scheduleEvents': data['scheduleEvents'] ?? const <dynamic>[],
+      'scheduleEvents': ifOn('schedule', data['scheduleEvents']),
+      // ── Treści gier (5b-part-2) ──
+      'quizActive': data['quizActive'] == true,
+      'quizQuestions': ifOn('quiz', data['quizQuestions']),
+      'tfActive': data['tfActive'] == true,
+      'tfStatements': ifOn('trueFalse', data['tfStatements']),
+      'photoGuessActive': data['photoGuessActive'] == true,
+      'photoQuestions': ifOn('photoGuess', data['photoQuestions']),
+      'photoChallengesActive': data['photoChallengesActive'] == true,
+      'photoChallengeTasks': ifOn('photoChallenge', data['photoChallengeTasks']),
+      'bingoFields': ifOn('bingo', data['bingoFields']),
+      'bingoCenterMode': (data['bingoCenterMode'] as String?) ?? '',
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

@@ -41,7 +41,7 @@ class PhotoChallengeService {
     final list = _mapList(data['photoChallengeTasks']);
     final nextId = _nextId(data['nextPhotoChallengeId'], list);
     list.add({'id': nextId, 'text': t, 'points': points < 0 ? 0 : points});
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'photoChallengeTasks': list, 'nextPhotoChallengeId': nextId + 1},
       SetOptions(merge: true),
     );
@@ -54,16 +54,14 @@ class PhotoChallengeService {
     if (item == null) return;
     if (text != null) item['text'] = text.trim();
     if (points != null) item['points'] = points < 0 ? 0 : points;
-    await _firestore.mainDoc
-        .set({'photoChallengeTasks': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'photoChallengeTasks': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteTask(int id) async {
     final data = await _read();
     final list = _mapList(data['photoChallengeTasks'])
       ..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc
-        .set({'photoChallengeTasks': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'photoChallengeTasks': list}, SetOptions(merge: true));
   }
 
   Future<void> reorderTasks(List<int> orderedIds) async {
@@ -76,12 +74,10 @@ class PhotoChallengeService {
       if (m != null) result.add(m);
     }
     result.addAll(byId.values);
-    await _firestore.mainDoc
-        .set({'photoChallengeTasks': result}, SetOptions(merge: true));
+    await _firestore.setAndSync({'photoChallengeTasks': result}, SetOptions(merge: true));
   }
 
-  Future<void> setActive(bool value) => _firestore.mainDoc
-      .set({'photoChallengesActive': value}, SetOptions(merge: true));
+  Future<void> setActive(bool value) => _firestore.setAndSync({'photoChallengesActive': value}, SetOptions(merge: true));
 
   Future<void> seedExamples() async {
     final data = await _read();
@@ -92,7 +88,7 @@ class PhotoChallengeService {
       list.add({'id': nextId, 'text': e.text, 'points': e.points});
       nextId++;
     }
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'photoChallengeTasks': list, 'nextPhotoChallengeId': nextId},
       SetOptions(merge: true),
     );

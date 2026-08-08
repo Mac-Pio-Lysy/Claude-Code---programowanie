@@ -100,6 +100,91 @@ class GuestSpaceService {
         'timestamp': _now,
       });
 
+  // ── 5b-part-2: galeria, muzyka, gry ───────────────────────────────────────
+
+  /// Zdjęcie gościa do wspólnej galerii. PUBLICZNY odczyt (goście widzą się
+  /// nawzajem). [photoUrl] MUSI pochodzić z naszego Cloudinary — reguły
+  /// odrzucą adres z innego hosta.
+  Future<void> addGalleryPhoto({
+    required String name,
+    required String photoUrl,
+    required String photoPublicId,
+    String caption = '',
+  }) =>
+      _coll('gallery').add({
+        'name': _cap(name, 80),
+        'caption': _cap(caption, 200),
+        'photoUrl': photoUrl,
+        'photoPublicId': _cap(photoPublicId, 200),
+        'timestamp': _now,
+      });
+
+  Stream<List<Map<String, dynamic>>> watchGallery() => _watch('gallery');
+
+  /// Propozycja utworu. Odczyt TYLKO organizator (bez publicznego rankingu).
+  Future<void> addMusicProposal({
+    required String name,
+    required String title,
+    String artist = '',
+    String cover = '',
+  }) =>
+      _coll('musicProposals').add({
+        'name': _cap(name, 80),
+        'title': _cap(title, 200),
+        'artist': _cap(artist, 200),
+        'cover': _cap(cover, 500),
+        'timestamp': _now,
+      });
+
+  /// Zdjęcie do foto-wyzwania. PUBLICZNY odczyt (wspólna ściana zdjęć).
+  Future<void> addPhotoChallenge({
+    required String name,
+    required int challengeId,
+    required String photoUrl,
+    required String photoPublicId,
+  }) =>
+      _coll('photoChallenges').add({
+        'name': _cap(name, 80),
+        'challengeId': challengeId,
+        'photoUrl': photoUrl,
+        'photoPublicId': _cap(photoPublicId, 200),
+        'timestamp': _now,
+      });
+
+  Stream<List<Map<String, dynamic>>> watchPhotoChallenges() =>
+      _watch('photoChallenges');
+
+  /// Wynik gry (quiz / prawda-fałsz / zgadnij zdjęcie). Odczyt TYLKO organizator.
+  /// [coll] musi być jedną z: `quizResults`, `trueFalseResults`,
+  /// `photoGuessResults` — inne nazwy odrzucą reguły.
+  Future<void> addGameResult({
+    required String coll,
+    required String name,
+    required int score,
+    required int total,
+    required Map<String, dynamic> answers,
+  }) =>
+      _coll(coll).add({
+        'name': _cap(name, 80),
+        'score': score,
+        'total': total,
+        'answers': answers,
+        'timestamp': _now,
+      });
+
+  /// Zgłoszenie bingo (ile pól skreślonych z ilu). Odczyt TYLKO organizator.
+  Future<void> addBingoResult({
+    required String name,
+    required int marked,
+    required int total,
+  }) =>
+      _coll('bingoResults').add({
+        'name': _cap(name, 80),
+        'marked': marked,
+        'total': total,
+        'timestamp': _now,
+      });
+
   // ── Odczyt dla ORGANIZATORA (moderacja; token = własny guestToken) ─────────
 
   Stream<List<Map<String, dynamic>>> watchCollection(String coll) =>
@@ -108,6 +193,13 @@ class GuestSpaceService {
   /// Usuwa wpis (moderacja organizatora).
   Future<void> deleteEntry(String coll, String id) =>
       _coll(coll).doc(id).delete();
+
+  /// Dopisuje pola do wpisu (moderacja organizatora) — np. status propozycji
+  /// muzycznej. Reguły dopuszczają `update` wyłącznie dla organizatora, więc
+  /// gość tą drogą nic nie zmieni.
+  Future<void> updateEntry(
+          String coll, String id, Map<String, dynamic> data) =>
+      _coll(coll).doc(id).set(data, SetOptions(merge: true));
 
   /// Przycina i czyści tekst do limitu (spójne z walidacją reguł).
   String _cap(String s, int max) {

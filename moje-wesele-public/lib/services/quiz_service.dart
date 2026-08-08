@@ -62,7 +62,7 @@ class QuizService {
       'answers': ans,
       'correctIndex': correctIndex.clamp(0, ans.length - 1),
     });
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'quizQuestions': list, 'nextQuizQuestionId': nextId + 1},
       SetOptions(merge: true),
     );
@@ -83,16 +83,14 @@ class QuizService {
       final len = (item['answers'] as List?)?.length ?? 1;
       item['correctIndex'] = correctIndex.clamp(0, len - 1);
     }
-    await _firestore.mainDoc
-        .set({'quizQuestions': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'quizQuestions': list}, SetOptions(merge: true));
   }
 
   Future<void> deleteQuestion(int id) async {
     final data = await _read();
     final list = _mapList(data['quizQuestions'])
       ..removeWhere((m) => _idOf(m) == id);
-    await _firestore.mainDoc
-        .set({'quizQuestions': list}, SetOptions(merge: true));
+    await _firestore.setAndSync({'quizQuestions': list}, SetOptions(merge: true));
   }
 
   /// Zapisuje nową kolejność pytań (po przeciągnięciu na liście).
@@ -106,12 +104,11 @@ class QuizService {
       if (m != null) result.add(m);
     }
     result.addAll(byId.values); // dopisz ewentualne brakujące
-    await _firestore.mainDoc
-        .set({'quizQuestions': result}, SetOptions(merge: true));
+    await _firestore.setAndSync({'quizQuestions': result}, SetOptions(merge: true));
   }
 
   Future<void> setActive(bool value) =>
-      _firestore.mainDoc.set({'quizActive': value}, SetOptions(merge: true));
+      _firestore.setAndSync({'quizActive': value}, SetOptions(merge: true));
 
   /// Dodaje przykładowe pytania (tylko gdy lista jest pusta).
   Future<void> seedExamples() async {
@@ -128,7 +125,7 @@ class QuizService {
       });
       nextId++;
     }
-    await _firestore.mainDoc.set(
+    await _firestore.setAndSync(
       {'quizQuestions': list, 'nextQuizQuestionId': nextId},
       SetOptions(merge: true),
     );
