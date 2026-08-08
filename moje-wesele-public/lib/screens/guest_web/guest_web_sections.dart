@@ -545,6 +545,30 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
   bool _done = false;
   int _score = 0;
 
+  /// Wynik pochodzi z wcześniejszego podejścia (wczytany, nie policzony teraz).
+  bool _earlier = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwn();
+  }
+
+  /// Wczytuje własny, wcześniejszy wynik — gość widzi, że już grał, i decyduje,
+  /// czy podejść ponownie (powtórka nadpisze wpis).
+  Future<void> _loadOwn() async {
+    final uid = GuestIdentity.uid;
+    if (uid == null) return;
+    final data = await widget.service.readOwn(widget.collection, uid);
+    if (!mounted || data == null) return;
+    setState(() {
+      _score = (data['score'] as num?)?.toInt() ?? 0;
+      _nameCtrl.text = (data['name'] as String?) ?? '';
+      _done = true;
+      _earlier = true;
+    });
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -573,6 +597,12 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
       _snack('Odpowiedz na wszystkie pytania.');
       return;
     }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack('Nie udało się przygotować sesji gościa. '
+          'Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
     var score = 0;
     for (var i = 0; i < widget.questions.length; i++) {
       final q = widget.questions[i];
@@ -581,8 +611,9 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
     }
     setState(() => _sending = true);
     try {
-      await widget.service.addGameResult(
+      await widget.service.saveGameResult(
         coll: widget.collection,
+        uid: uid,
         name: name,
         score: score,
         total: widget.questions.length,
@@ -592,6 +623,7 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
       setState(() {
         _score = score;
         _done = true;
+        _earlier = false;
       });
     } catch (e) {
       if (mounted) _snack('Nie udało się wysłać wyniku: $e');
@@ -610,7 +642,18 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
       return _centerInfo('Pytania pojawią się wkrótce.',
           icon: Icons.hourglass_empty);
     }
-    if (_done) return _summary();
+    if (_done) {
+      return _ResultSummary(
+        score: _score,
+        total: widget.questions.length,
+        earlier: _earlier,
+        onReplay: () => setState(() {
+          _done = false;
+          _earlier = false;
+          _picked.clear();
+        }),
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -682,28 +725,6 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
     );
   }
 
-  Widget _summary() => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🎉', style: TextStyle(fontSize: 44)),
-              const SizedBox(height: 12),
-              Text('Twój wynik: $_score / ${widget.questions.length}',
-                  style: GoogleFonts.playfairDisplay(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text)),
-              const SizedBox(height: 10),
-              Text('Dziękujemy za zabawę! Wynik trafił do Pary Młodej.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                      fontSize: 14, color: AppColors.textLight)),
-            ],
-          ),
-        ),
-      );
 }
 
 /// Pojedyncza odpowiedź do wyboru (zamiast `RadioListTile`, którego API jest
@@ -770,7 +791,28 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
   final Map<String, bool> _picked = {};
   bool _sending = false;
   bool _done = false;
+  bool _earlier = false;
   int _score = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwn();
+  }
+
+  /// Wczytuje własny, wcześniejszy wynik (powtórka go nadpisze).
+  Future<void> _loadOwn() async {
+    final uid = GuestIdentity.uid;
+    if (uid == null) return;
+    final data = await widget.service.readOwn('trueFalseResults', uid);
+    if (!mounted || data == null) return;
+    setState(() {
+      _score = (data['score'] as num?)?.toInt() ?? 0;
+      _nameCtrl.text = (data['name'] as String?) ?? '';
+      _done = true;
+      _earlier = true;
+    });
+  }
 
   @override
   void dispose() {
@@ -795,6 +837,12 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
       _snack('Odpowiedz na wszystkie stwierdzenia.');
       return;
     }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack('Nie udało się przygotować sesji gościa. '
+          'Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
     var score = 0;
     for (var i = 0; i < widget.statements.length; i++) {
       final s = widget.statements[i];
@@ -802,8 +850,9 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
     }
     setState(() => _sending = true);
     try {
-      await widget.service.addGameResult(
+      await widget.service.saveGameResult(
         coll: 'trueFalseResults',
+        uid: uid,
         name: name,
         score: score,
         total: widget.statements.length,
@@ -813,6 +862,7 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
       setState(() {
         _score = score;
         _done = true;
+        _earlier = false;
       });
     } catch (e) {
       if (mounted) _snack('Nie udało się wysłać wyniku: $e');
@@ -832,7 +882,16 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
           icon: Icons.hourglass_empty);
     }
     if (_done) {
-      return _ResultSummary(score: _score, total: widget.statements.length);
+      return _ResultSummary(
+        score: _score,
+        total: widget.statements.length,
+        earlier: _earlier,
+        onReplay: () => setState(() {
+          _done = false;
+          _earlier = false;
+          _picked.clear();
+        }),
+      );
     }
 
     return ListView(
@@ -915,12 +974,27 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
             );
 }
 
-/// Podsumowanie wyniku gry (wspólne dla prawda/fałsz i bingo).
+/// Podsumowanie wyniku gry — wspólne dla wszystkich gier.
+///
+/// [onReplay] pokazuje przycisk powtórki. Ponowne podejście NADPISUJE wynik
+/// (jeden wpis na gościa), więc gość może poprawić rezultat, a organizator ma
+/// jedną pozycję na osobę zamiast listy prób.
 class _ResultSummary extends StatelessWidget {
-  const _ResultSummary({required this.score, required this.total, this.emoji});
+  const _ResultSummary({
+    required this.score,
+    required this.total,
+    this.emoji,
+    this.onReplay,
+    this.earlier = false,
+  });
+
   final int score;
   final int total;
   final String? emoji;
+  final VoidCallback? onReplay;
+
+  /// Czy to wynik wczytany z wcześniejszego podejścia (inny tekst).
+  final bool earlier;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -937,10 +1011,26 @@ class _ResultSummary extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppColors.text)),
               const SizedBox(height: 10),
-              Text('Dziękujemy za zabawę! Wynik trafił do Pary Młodej.',
+              Text(
+                  earlier
+                      ? 'To Twój wcześniejszy wynik. Możesz spróbować ponownie — '
+                          'nowy wynik zastąpi poprzedni.'
+                      : 'Dziękujemy za zabawę! Wynik trafił do Pary Młodej.',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 14, color: AppColors.textLight)),
+              if (onReplay != null) ...[
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: onReplay,
+                  icon: const Icon(Icons.replay, size: 18),
+                  label: const Text('Zagraj ponownie'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -988,6 +1078,12 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
       _snack('Najpierw podaj swoje imię.');
       return;
     }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack('Nie udało się przygotować sesji gościa. '
+          'Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
     try {
       final file = await _picker.pickImage(
           source: source, maxWidth: 1600, imageQuality: 85);
@@ -995,7 +1091,8 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
       setState(() => _busyTask = challengeId);
       final bytes = await file.readAsBytes();
       final up = await _cloudinary.uploadImage(bytes, filename: file.name);
-      await widget.service.addPhotoChallenge(
+      await widget.service.savePhotoChallenge(
+        uid: uid,
         name: name,
         challengeId: challengeId,
         photoUrl: up.url,
@@ -1023,7 +1120,12 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
       padding: const EdgeInsets.all(16),
       children: [
         _nameField(_nameCtrl),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
+        Text(
+          'Jedno zdjęcie na wyzwanie — kolejne zastąpi poprzednie.',
+          style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight),
+        ),
+        const SizedBox(height: 10),
         for (final t in widget.tasks) _taskCard(t),
         const SizedBox(height: 16),
         Text('Zdjęcia gości',
@@ -1202,9 +1304,16 @@ class _BingoPageState extends State<_BingoPage> {
       _snack('Najpierw podaj swoje imię.');
       return;
     }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack('Nie udało się przygotować sesji gościa. '
+          'Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
     setState(() => _sending = true);
     try {
-      await widget.service.addBingoResult(
+      await widget.service.saveBingoResult(
+        uid: uid,
         name: name,
         marked: _marked.length,
         total: _board.length,

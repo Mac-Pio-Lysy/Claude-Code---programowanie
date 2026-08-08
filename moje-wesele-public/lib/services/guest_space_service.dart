@@ -161,14 +161,20 @@ class GuestSpaceService {
         'timestamp': _now,
       });
 
-  /// Zdjęcie do foto-wyzwania. PUBLICZNY odczyt (wspólna ściana zdjęć).
-  Future<void> addPhotoChallenge({
+  /// Zdjęcie do foto-wyzwania — JEDNO NA WYZWANIE NA GOŚCIA.
+  /// PUBLICZNY odczyt (wspólna ściana zdjęć).
+  ///
+  /// Identyfikator dokumentu to `{uid}__{challengeId}`, więc kolejne zdjęcie do
+  /// tego samego wyzwania zastępuje poprzednie zamiast się dokładać. Format ID
+  /// musi być zgodny z regułą `isSelfChallenge`.
+  Future<void> savePhotoChallenge({
+    required String uid,
     required String name,
     required int challengeId,
     required String photoUrl,
     required String photoPublicId,
   }) =>
-      _coll('photoChallenges').add({
+      _coll('photoChallenges').doc(photoChallengeId(uid, challengeId)).set({
         'name': _cap(name, 80),
         'challengeId': challengeId,
         'photoUrl': photoUrl,
@@ -176,20 +182,30 @@ class GuestSpaceService {
         'timestamp': _now,
       });
 
+  /// Identyfikator zgłoszenia foto-wyzwania. Jedno źródło prawdy dla klienta
+  /// i dla reguł — zmiana formatu tutaj wymaga zmiany w `firestore.rules`.
+  static String photoChallengeId(String uid, int challengeId) =>
+      '${uid}__$challengeId';
+
   Stream<List<Map<String, dynamic>>> watchPhotoChallenges() =>
       _watch('photoChallenges');
 
-  /// Wynik gry (quiz / prawda-fałsz / zgadnij zdjęcie). Odczyt TYLKO organizator.
+  /// Wynik gry (quiz / prawda-fałsz / zgadnij zdjęcie) — JEDEN NA GOŚCIA NA GRĘ.
+  /// Odczyt: organizator oraz sam autor (własny wynik).
+  ///
+  /// Identyfikatorem dokumentu jest [uid], więc powtórka nadpisuje poprzedni
+  /// wynik. Dzięki temu organizator ma jedną pozycję na osobę, a nie listę prób.
   /// [coll] musi być jedną z: `quizResults`, `trueFalseResults`,
   /// `photoGuessResults` — inne nazwy odrzucą reguły.
-  Future<void> addGameResult({
+  Future<void> saveGameResult({
     required String coll,
+    required String uid,
     required String name,
     required int score,
     required int total,
     required Map<String, dynamic> answers,
   }) =>
-      _coll(coll).add({
+      _coll(coll).doc(uid).set({
         'name': _cap(name, 80),
         'score': score,
         'total': total,
@@ -197,13 +213,14 @@ class GuestSpaceService {
         'timestamp': _now,
       });
 
-  /// Zgłoszenie bingo (ile pól skreślonych z ilu). Odczyt TYLKO organizator.
-  Future<void> addBingoResult({
+  /// Zgłoszenie bingo — JEDNO NA GOŚCIA. Odczyt: organizator i autor.
+  Future<void> saveBingoResult({
+    required String uid,
     required String name,
     required int marked,
     required int total,
   }) =>
-      _coll('bingoResults').add({
+      _coll('bingoResults').doc(uid).set({
         'name': _cap(name, 80),
         'marked': marked,
         'total': total,
