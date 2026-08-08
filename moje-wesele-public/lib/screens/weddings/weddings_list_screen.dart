@@ -286,6 +286,108 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
     widget.onOpen(weddingId, 'guest');
   }
 
+  /// Przygotowanie strefy gości (D1, etap 2) dla wszystkich wesel użytkownika,
+  /// w których ma pełny dostęp. Idempotentne — można powtarzać.
+  ///
+  /// Każde wesele jest po zapisie weryfikowane odczytem z serwera, więc raport
+  /// pokazuje stan faktyczny, a nie samą „próbę zapisu".
+  Future<void> _prepareGuestZone() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.accent)),
+            SizedBox(width: 16),
+            Expanded(child: Text('Przygotowuję strefę gości…')),
+          ],
+        ),
+      ),
+    );
+
+    List<GuestViewSyncResult> results;
+    try {
+      results = await _weddings.ensureGuestViewForUser(widget.userId);
+    } catch (e) {
+      results = [];
+      if (mounted) {
+        Navigator.of(context).pop(); // zamknij „w toku"
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text('Nie udało się: $e')));
+      }
+      return;
+    }
+    if (!mounted) return;
+    Navigator.of(context).pop(); // zamknij „w toku"
+    await _showGuestZoneReport(results);
+  }
+
+  Future<void> _showGuestZoneReport(List<GuestViewSyncResult> results) async {
+    final ok = results.where((r) => r.ok).length;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(
+          results.isEmpty
+              ? 'Brak wesel do przygotowania'
+              : 'Gotowe: $ok z ${results.length}',
+          style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w700),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: results.isEmpty
+              ? Text(
+                  'Nie masz wesel z pełnym dostępem. Wesela, w których jesteś '
+                  'tylko gościem, przygotowuje ich organizator.',
+                  style: GoogleFonts.inter(
+                      fontSize: 13, color: AppColors.textLight),
+                )
+              : ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final r in results)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
+                        leading: Icon(
+                          r.ok ? Icons.check_circle : Icons.error_outline,
+                          color: r.ok
+                              ? const Color(0xFF2E7D32)
+                              : const Color(0xFFC0392B),
+                          size: 20,
+                        ),
+                        title: Text(r.name,
+                            style: GoogleFonts.inter(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
+                        subtitle: Text(
+                          r.ok ? 'gotowe ✓' : 'BŁĄD: ${r.error}',
+                          style: GoogleFonts.inter(
+                            fontSize: 11.5,
+                            color: r.ok
+                                ? AppColors.textLight
+                                : const Color(0xFFC0392B),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Zamknij')),
+        ],
+      ),
+    );
+  }
+
   Widget _header() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 12, 8),
@@ -313,6 +415,24 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                 ),
               ],
             ),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Więcej',
+            icon: const Icon(Icons.more_vert, color: AppColors.textLight),
+            onSelected: (v) {
+              if (v == 'guestView') _prepareGuestZone();
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'guestView',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.groups_outlined, size: 20),
+                  title: Text('Przygotuj strefę gości'),
+                  subtitle: Text('Dla wszystkich Twoich wesel'),
+                ),
+              ),
+            ],
           ),
           if (widget.onSignOut != null)
             IconButton(

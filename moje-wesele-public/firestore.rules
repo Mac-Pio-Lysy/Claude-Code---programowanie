@@ -58,9 +58,25 @@ service cloud.firestore {
       // Usunięcie wesela: tylko owner.
       allow delete: if isOwner(w);
 
-      // GOTOWE NA PRZYSZŁOŚĆ (rozdzielenie danych — krok po D1):
+      // ── D1 etap 1: dane dla ZALOGOWANEGO gościa ──────────────────────────
+      // `weddings/{w}/guestView/main` → { guestToken, eventName, displayNames,
+      // weddingDate }. Czyta KAŻDY aktywny członek (w tym rola `guest`), pisze
+      // wyłącznie organizator.
+      //
+      // Uwaga na model reguł: podkolekcja NIE dziedziczy uprawnień dokumentu
+      // nadrzędnego (w żadną stronę). Dlatego w etapie 5, gdy odczyt
+      // `weddings/{w}` zawęzi się do `fullAccess`, ta reguła NIE wymaga zmiany —
+      // gość straci dostęp do dokumentu wesela, a zachowa do tego dokumentu.
+      //
+      // ⚠️ Do `guestView` nie wolno dopisywać danych wrażliwych — to jedyne
+      // okno, przez które rola `guest` widzi cokolwiek z wesela.
+      match /guestView/{doc} {
+        allow read:  if activeMember(w);
+        allow write: if fullAccess(w);
+      }
+
+      // GOTOWE NA PRZYSZŁOŚĆ (D3 — podział dla skalowania, nie dla bezpieczeństwa):
       //   match /private/{doc} { allow read, write: if fullAccess(w); } // budżet, goście…
-      //   match /guest/{doc}   { allow read: if activeMember(w); allow write: if fullAccess(w); }
     }
 
     // ── users/{userId} ──────────────────────────────────────────────────────

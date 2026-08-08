@@ -8,6 +8,27 @@ import '../utils/warsaw_time.dart';
 import 'membership_service.dart';
 import 'user_service.dart';
 
+/// Wynik przygotowania strefy gości dla jednego wesela (D1, etap 2).
+class GuestViewSyncResult {
+  const GuestViewSyncResult({
+    required this.weddingId,
+    required this.name,
+    required this.ok,
+    this.error,
+  });
+
+  final String weddingId;
+
+  /// Czytelna nazwa do raportu.
+  final String name;
+
+  /// Czy `guestView/main` istnieje na serwerze i wskazuje właściwy token.
+  final bool ok;
+
+  /// Powód niepowodzenia (null, gdy [ok]).
+  final String? error;
+}
+
 /// Wynik próby dołączenia do wesela jako gość.
 enum JoinOutcome {
   /// Dołączono (utworzono członkostwo gościa).
@@ -95,6 +116,13 @@ class WeddingService {
   /// jest TOKEN: `guestSpaces/{token}` → { eventName, displayNames, data,
   /// guestVisibility, scheduleEvents }. NIE zawiera budżetu/listy gości itp.
   static const String guestSpacesCollection = 'guestSpaces';
+
+  /// Podkolekcja z danymi dla ZALOGOWANEGO gościa (D1):
+  /// `weddings/{id}/guestView/main` → `{ guestToken, eventName, displayNames,
+  /// weddingDate }`. Odczyt dla każdego aktywnego członka, zapis dla
+  /// organizatora. Docelowo zastępuje gościowi odczyt całego dokumentu wesela.
+  static const String guestViewCollection = 'guestView';
+  static const String guestViewDoc = 'main';
 
   CollectionReference<Map<String, dynamic>> get _col =>
       _db.collection(collectionName);
@@ -188,6 +216,142 @@ class WeddingService {
         .collection(guestSpacesCollection)
         .doc(token)
         .set(_guestMirror(data), SetOptions(merge: true));
+
+    // D1 etap 1 — dokument dla ZALOGOWANEGO gościa. Na tym etapie NIKT go
+    // jeszcze nie czyta; powstaje po to, żeby przy zacieśnianiu reguły odczytu
+    // wesela (etap 5) istniał już dla każdego wesela.
+    //
+    // Własny try/catch, a zapis JAKO OSTATNI: dopóki reguła dla tej podkolekcji
+    // nie jest wdrożona, ten zapis dostanie permission-denied — i nie może
+    // przewrócić działającej synchronizacji `guestSpaces` powyżej. Dzięki temu
+    // kolejność wdrożenia (kod przed regułami czy odwrotnie) jest bez znaczenia.
+    try {
+      await _db
+          .collection(collectionName)
+          .doc(weddingId)
+          .collection(guestViewCollection)
+          .doc(guestViewDoc)
+          .set(_guestViewDoc(token, data), SetOptions(merge: true));
+    } catch (_) {
+      // Reguła jeszcze niewdrożona — pomijamy bez błędu.
+    }
+  }
+
+  /// Minimalny zestaw danych dla ZALOGOWANEGO gościa (D1).
+  ///
+  /// Zawiera wyłącznie wskaźnik na publiczny mirror (`guestToken`) oraz tyle,
+  /// ile trzeba, by pokazać wesele na liście „Twoje wesela" BEZ czytania
+  /// dokumentu wesela. Całą treść (harmonogram, gry, widoczność) gość i tak
+  /// pobierze z `guestSpaces/{token}` — nie ma powodu jej tu duplikować.
+  ///
+  /// ⚠️ Nie wolno tu wstawiać niczego wrażliwego: ten dokument czyta KAŻDY
+  /// aktywny członek wesela, łącznie z rolą `guest`.
+  Map<String, dynamic> _guestViewDoc(String token, Map<String, dynamic> data) {
+    final cfg = data['appConfig'] is Map
+        ? Map<String, dynamic>.from(data['appConfig'] as Map)
+        : const <String, dynamic>{};
+    return {
+      'guestToken': token,
+      'eventName': (cfg['eventName'] as String?) ?? '',
+      'displayNames': (cfg['displayNames'] as String?) ?? '',
+      'weddingDate': data['weddingDate'],
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  /// Przygotowuje strefę gości we WSZYSTKICH weselach użytkownika [userId],
+  /// w których ma pełny dostęp (owner / planer / współorganizator).
+  ///
+  /// Dla każdego wesela: dogenerowuje brakujący `guestToken`, zapisuje mapowanie
+  /// tokenu, publiczny mirror i `guestView/main`, a następnie **odczytuje
+  /// `guestView/main` z SERWERA i potwierdza**, że dokument istnieje i wskazuje
+  /// na ten sam token.
+  ///
+  /// Weryfikacja zwrotna nie jest ozdobnikiem: zapis `guestView` w
+  /// [_syncGuestSpace] celowo połyka błąd uprawnień (żeby nie przewrócić
+  /// synchronizacji mirrora), a Firestore stosuje zapisy najpierw lokalnie —
+  /// więc bez odczytu z serwera „udany" zapis mógłby w rzeczywistości zostać
+  /// odrzucony przez reguły i nikt by się o tym nie dowiedział.
+  ///
+  /// Operacja jest idempotentna — można ją uruchamiać wielokrotnie.
+  ///
+  /// ⚠️ Obejmuje wyłącznie wesela TEGO użytkownika. Wesela, w których jest
+  /// tylko gościem (albo cudze), musi przygotować ich własny organizator.
+  Future<List<GuestViewSyncResult>> ensureGuestViewForUser(String userId) async {
+    final memberships = await _memberships.forUser(userId);
+    final today = warsawToday();
+    final results = <GuestViewSyncResult>[];
+
+    for (final m in memberships) {
+      // Pomijamy zablokowanych/wygasłych oraz role bez prawa zapisu.
+      if (!m.isEffectiveOn(today)) continue;
+      if (!const ['owner', 'planner', 'collaborator'].contains(m.role)) continue;
+
+      final snap = await _col.doc(m.weddingId).get();
+      final data = snap.data();
+      if (data == null) {
+        results.add(GuestViewSyncResult(
+          weddingId: m.weddingId,
+          name: 'Wesele ${m.weddingId}',
+          ok: false,
+          error: 'Dokument wesela nie istnieje',
+        ));
+        continue;
+      }
+
+      final label = _weddingLabel(data, m.weddingId);
+      try {
+        // Dogenerowuje token (gdy brak) i synchronizuje mapowanie + mirror
+        // + guestView.
+        final token = await ensureGuestToken(m.weddingId);
+
+        // Odczyt Z SERWERA — pomija lokalny bufor, więc widzimy stan faktyczny.
+        final check = await _col
+            .doc(m.weddingId)
+            .collection(guestViewCollection)
+            .doc(guestViewDoc)
+            .get(const GetOptions(source: Source.server));
+        final gv = check.data();
+
+        if (gv == null) {
+          results.add(GuestViewSyncResult(
+            weddingId: m.weddingId,
+            name: label,
+            ok: false,
+            error: 'guestView/main nie powstał — sprawdź reguły',
+          ));
+        } else if ((gv['guestToken'] as String?)?.trim() != token) {
+          results.add(GuestViewSyncResult(
+            weddingId: m.weddingId,
+            name: label,
+            ok: false,
+            error: 'Token w guestView nie zgadza się z weselem',
+          ));
+        } else {
+          results.add(GuestViewSyncResult(
+              weddingId: m.weddingId, name: label, ok: true));
+        }
+      } catch (e) {
+        results.add(GuestViewSyncResult(
+          weddingId: m.weddingId,
+          name: label,
+          ok: false,
+          error: '$e',
+        ));
+      }
+    }
+    return results;
+  }
+
+  /// Czytelna nazwa wesela do raportu (nazwa → osoby → identyfikator).
+  String _weddingLabel(Map<String, dynamic> data, String weddingId) {
+    final cfg = data['appConfig'];
+    final name = (cfg is Map ? cfg['eventName'] as String? : null)?.trim() ?? '';
+    if (name.isNotEmpty) return name;
+    final persons =
+        (cfg is Map ? cfg['displayNames'] as String? : null)?.trim() ?? '';
+    if (persons.isNotEmpty) return persons;
+    return 'Wesele $weddingId';
   }
 
   /// Odświeża publiczny mirror gościa dla [weddingId] (best-effort — nie rzuca).
