@@ -8,6 +8,7 @@ import '../../app_colors.dart';
 import '../../models/guest_visibility.dart';
 import '../../services/cloudinary_service.dart';
 import '../../services/deezer_service.dart';
+import '../../services/guest_identity.dart';
 import '../../services/guest_space_service.dart';
 import '../../utils/warsaw_time.dart';
 
@@ -53,6 +54,35 @@ class _GuestWebHomeState extends State<GuestWebHome> {
   late final GuestSpaceService _service =
       GuestSpaceService(token: widget.token);
 
+  /// Komunikat, gdy nie udało się ustalić tożsamości gościa (null = w porządku).
+  /// Nie blokuje strony — treść jest publiczna i czyta się bez logowania.
+  /// Ostrzega tylko, że wysyłanie wpisów może nie zadziałać.
+  String? _identityError;
+
+  /// Trwa ustalanie tożsamości (blokuje przycisk „Spróbuj ponownie").
+  bool _identityBusy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureIdentity();
+  }
+
+  /// Zakłada w tle anonimowe konto gościa (albo używa istniejącej sesji).
+  /// Świadomie NIE blokuje interfejsu: strona gościa ma się pokazać od razu,
+  /// bo jej treść nie wymaga logowania.
+  Future<void> _ensureIdentity() async {
+    setState(() => _identityBusy = true);
+    try {
+      await GuestIdentity.ensure();
+      if (mounted) setState(() => _identityError = null);
+    } catch (e) {
+      if (mounted) setState(() => _identityError = GuestIdentity.messageFor(e));
+    } finally {
+      if (mounted) setState(() => _identityBusy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,23 +97,74 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           ),
         ),
         child: SafeArea(
-          child: StreamBuilder<Map<String, dynamic>?>(
-            stream: _service.watchSpace(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: AppColors.accent),
-                );
-              }
-              final space = snapshot.data;
-              if (space == null) return _invalid();
-              return _content(space);
-            },
+          child: Column(
+            children: [
+              if (_identityError != null) _identityBanner(_identityError!),
+              Expanded(
+                child: StreamBuilder<Map<String, dynamic>?>(
+                  stream: _service.watchSpace(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child:
+                            CircularProgressIndicator(color: AppColors.accent),
+                      );
+                    }
+                    final space = snapshot.data;
+                    if (space == null) return _invalid();
+                    return _content(space);
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  /// Pasek ostrzegawczy, gdy nie udało się ustalić tożsamości gościa.
+  ///
+  /// Świadomie WIDOCZNY, a nie cichy: jeśli w dniu wesela wysyłanie wpisów
+  /// przestanie działać, gość ma od razu wiedzieć, co się dzieje i móc spróbować
+  /// ponownie, zamiast klikać „Wyślij" w pustkę.
+  Widget _identityBanner(String message) => Container(
+        width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF4E5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFF0C48A)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.warning_amber_rounded,
+                size: 20, color: Color(0xFF9A6200)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.inter(
+                    fontSize: 12.5, height: 1.4, color: const Color(0xFF7A4E00)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            TextButton(
+              onPressed: _identityBusy ? null : _ensureIdentity,
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF9A6200),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: const Size(0, 32),
+              ),
+              child: Text(_identityBusy ? 'Łączę…' : 'Spróbuj ponownie',
+                  style: GoogleFonts.inter(
+                      fontSize: 12, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
+      );
 
   Widget _invalid() => Center(
         child: Padding(
