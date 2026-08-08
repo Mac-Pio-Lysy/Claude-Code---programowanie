@@ -59,13 +59,17 @@ class GuestSpaceService {
 
   Stream<List<Map<String, dynamic>>> watchAdvice() => _watch('advice');
 
-  /// Wpis na mapę gości (miasto). PUBLICZNY odczyt.
-  Future<void> addGuestMapEntry({
+  /// Wpis na mapę gości (miasto) — JEDEN NA GOŚCIA. PUBLICZNY odczyt.
+  ///
+  /// Identyfikatorem dokumentu jest [uid] gościa, więc ponowne wysłanie
+  /// nadpisuje własny wpis zamiast tworzyć kolejny.
+  Future<void> saveGuestMapEntry({
+    required String uid,
     required String name,
     required String city,
     String greeting = '',
   }) =>
-      _coll('guestMap').add({
+      _coll('guestMap').doc(uid).set({
         'name': _cap(name, 80),
         'city': _cap(city, 80),
         'greeting': _cap(greeting, 300),
@@ -83,15 +87,21 @@ class GuestSpaceService {
         'timestamp': _now,
       });
 
-  /// Potwierdzenie obecności (RSVP). Odczyt TYLKO organizator (nie inni goście).
-  Future<void> addRsvp({
+  /// Potwierdzenie obecności (RSVP) — JEDEN NA GOŚCIA.
+  /// Odczyt TYLKO organizator oraz sam autor (od etapu C reguł).
+  ///
+  /// Identyfikatorem dokumentu jest [uid] gościa: pierwszy zapis tworzy wpis,
+  /// każdy kolejny go nadpisuje. Dzięki temu organizator nie dostaje kilku
+  /// sprzecznych potwierdzeń od tej samej osoby, a gość może poprawić swoje.
+  Future<void> saveRsvp({
+    required String uid,
     required String name,
     required bool attending,
     int companions = 0,
     String diet = '',
     String note = '',
   }) =>
-      _coll('rsvp').add({
+      _coll('rsvp').doc(uid).set({
         'name': _cap(name, 80),
         'attending': attending,
         'companions': companions.clamp(0, 20),
@@ -99,6 +109,21 @@ class GuestSpaceService {
         'note': _cap(note, 500),
         'timestamp': _now,
       });
+
+  /// Odczyt WŁASNEGO wpisu gościa (do wypełnienia formularza przy edycji).
+  ///
+  /// Zwraca `null`, gdy wpisu nie ma **albo gdy reguły jeszcze go nie
+  /// udostępniają** — do etapu C `rsvp` ma odczyt wyłącznie dla organizatora,
+  /// więc gość dostanie tu odmowę. Celowo połykamy błąd: brak podglądu własnego
+  /// wpisu nie jest awarią, formularz po prostu startuje pusty.
+  Future<Map<String, dynamic>?> readOwn(String coll, String uid) async {
+    try {
+      final snap = await _coll(coll).doc(uid).get();
+      return snap.data();
+    } catch (_) {
+      return null;
+    }
+  }
 
   // ── 5b-part-2: galeria, muzyka, gry ───────────────────────────────────────
 

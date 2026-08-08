@@ -879,6 +879,30 @@ class _GuestMapPageState extends State<_GuestMapPage> {
   final _greetCtrl = TextEditingController();
   bool _sending = false;
 
+  /// Czy gość ma już swój wpis na mapie (zmienia teksty na „popraw").
+  bool _existing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwn();
+  }
+
+  /// Wczytuje własny wpis, żeby gość poprawiał go zamiast dodawać kolejny.
+  /// Mapa ma odczyt publiczny, więc to działa już przed etapem C reguł.
+  Future<void> _loadOwn() async {
+    final uid = GuestIdentity.uid;
+    if (uid == null) return;
+    final data = await widget.service.readOwn('guestMap', uid);
+    if (!mounted || data == null) return;
+    setState(() {
+      _nameCtrl.text = (data['name'] as String?) ?? '';
+      _cityCtrl.text = (data['city'] as String?) ?? '';
+      _greetCtrl.text = (data['greeting'] as String?) ?? '';
+      _existing = true;
+    });
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -894,12 +918,24 @@ class _GuestMapPageState extends State<_GuestMapPage> {
       _snack('Podaj imię i miasto.');
       return;
     }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack('Nie udało się przygotować sesji gościa. '
+          'Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
     setState(() => _sending = true);
     try {
-      await widget.service.addGuestMapEntry(
-          name: name, city: city, greeting: _greetCtrl.text.trim());
-      _greetCtrl.clear();
-      if (mounted) _snack('Dziękujemy ✓');
+      await widget.service.saveGuestMapEntry(
+          uid: uid,
+          name: name,
+          city: city,
+          greeting: _greetCtrl.text.trim());
+      final wasExisting = _existing;
+      if (mounted) {
+        setState(() => _existing = true);
+        _snack(wasExisting ? 'Zaktualizowano ✓' : 'Dziękujemy ✓');
+      }
     } catch (e) {
       if (mounted) _snack('Nie udało się wysłać: $e');
     } finally {
@@ -937,7 +973,9 @@ class _GuestMapPageState extends State<_GuestMapPage> {
                   decoration: _guestDec('Pozdrowienie (opcjonalnie)')),
               const SizedBox(height: 6),
               _SubmitButton(
-                  label: 'Dodaj na mapę', sending: _sending, onTap: _send),
+                  label: _existing ? 'Zapisz zmiany' : 'Dodaj na mapę',
+                  sending: _sending,
+                  onTap: _send),
             ],
           ),
         ),
@@ -1096,6 +1134,41 @@ class _RsvpPageState extends State<_RsvpPage> {
   bool _sending = false;
   bool _sent = false;
 
+  /// Trwa wczytywanie własnego, wcześniejszego potwierdzenia.
+  bool _loading = true;
+
+  /// Czy gość ma już zapisane potwierdzenie (zmienia teksty na „popraw").
+  bool _existing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOwn();
+  }
+
+  /// Wczytuje WŁASNE potwierdzenie i wypełnia nim formularz.
+  ///
+  /// Do etapu C reguł gość nie ma prawa odczytu `rsvp`, więc tu zwykle wyjdzie
+  /// `null` i formularz wystartuje pusty. To nie jest błąd — zapis i tak działa.
+  Future<void> _loadOwn() async {
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+    final data = await widget.service.readOwn('rsvp', uid);
+    if (!mounted) return;
+    if (data != null) {
+      _nameCtrl.text = (data['name'] as String?) ?? '';
+      _dietCtrl.text = (data['diet'] as String?) ?? '';
+      _noteCtrl.text = (data['note'] as String?) ?? '';
+      _attending = data['attending'] == true;
+      _companions = (data['companions'] as num?)?.toInt() ?? 0;
+      _existing = true;
+    }
+    setState(() => _loading = false);
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -1110,16 +1183,28 @@ class _RsvpPageState extends State<_RsvpPage> {
       _snack('Podaj imię i nazwisko.');
       return;
     }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack('Nie udało się przygotować sesji gościa. '
+          'Odśwież stronę i spróbuj ponownie.');
+      return;
+    }
     setState(() => _sending = true);
     try {
-      await widget.service.addRsvp(
+      await widget.service.saveRsvp(
+        uid: uid,
         name: name,
         attending: _attending,
         companions: _attending ? _companions : 0,
         diet: _attending ? _dietCtrl.text.trim() : '',
         note: _noteCtrl.text.trim(),
       );
-      if (mounted) setState(() => _sent = true);
+      if (mounted) {
+        setState(() {
+          _sent = true;
+          _existing = true;
+        });
+      }
     } catch (e) {
       if (mounted) _snack('Nie udało się wysłać: $e');
     } finally {
@@ -1157,16 +1242,48 @@ class _RsvpPageState extends State<_RsvpPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 14, color: AppColors.textLight)),
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: () => setState(() => _sent = false),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Popraw odpowiedź'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.accent,
+                  side: const BorderSide(color: AppColors.accent),
+                ),
+              ),
             ],
           ),
         ),
       );
+    }
+    if (_loading) {
+      return const Center(
+          child: CircularProgressIndicator(color: AppColors.accent));
     }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _existing
+                  ? 'To Twoje wcześniejsze potwierdzenie. Możesz je poprawić — '
+                      'zapiszemy nową wersję zamiast dodawać kolejną.'
+                  : 'Wystarczy jedno potwierdzenie. Jeśli plany się zmienią, '
+                      'wróć tutaj i popraw odpowiedź.',
+              style: GoogleFonts.inter(
+                  fontSize: 12.5, height: 1.4, color: AppColors.textLight),
+            ),
+          ),
           TextField(
               controller: _nameCtrl,
               maxLength: 80,
@@ -1230,7 +1347,9 @@ class _RsvpPageState extends State<_RsvpPage> {
               decoration: _guestDec('Wiadomość dla Pary Młodej (opcjonalnie)')),
           const SizedBox(height: 6),
           _SubmitButton(
-              label: 'Wyślij potwierdzenie', sending: _sending, onTap: _send),
+              label: _existing ? 'Zapisz zmiany' : 'Wyślij potwierdzenie',
+              sending: _sending,
+              onTap: _send),
         ],
       ),
     );
