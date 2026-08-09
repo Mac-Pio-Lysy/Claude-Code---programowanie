@@ -37,6 +37,16 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
   bool _hasCompanion = false;
   bool _needsAccommodation = false;
 
+  /// Typ relacji osoby towarzyszącej (#3).
+  String _companionRelation = CompanionRelation.unknown;
+
+  /// „Imienia jeszcze nie znam" (#5) — rekord powstaje z nazwą zastępczą.
+  bool _companionNamePending = false;
+
+  /// Kategoria osoby towarzyszącej. `null` = dziedzicz po zapraszającym
+  /// (z podpowiedzią wynikającą z typu relacji).
+  String? _companionCategory;
+
   bool get _isEdit => widget.existing != null;
 
   @override
@@ -85,9 +95,16 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
       witness: _witness,
       menuChoice: _menuChoice,
       hasCompanion: _hasCompanion,
-      companionFirstName: _companionFirst.text.trim(),
-      companionLastName: _companionLast.text.trim(),
+      // Przy „imię do potwierdzenia" nie przekazujemy danych osobowych —
+      // serwis nada wtedy nazwę zastępczą.
+      companionFirstName:
+          _companionNamePending ? '' : _companionFirst.text.trim(),
+      companionLastName:
+          _companionNamePending ? '' : _companionLast.text.trim(),
       needsAccommodation: _needsAccommodation,
+      companionRelation: _companionRelation,
+      companionNamePending: _companionNamePending,
+      companionCategory: _companionCategory,
     );
     Navigator.of(context).pop(draft);
   }
@@ -243,28 +260,109 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           onChanged: (v) => setState(() => _hasCompanion = v),
                         ),
                         if (_hasCompanion) ...[
+                          // ── Typ relacji (#3) ──
                           _field(
-                            label: 'Imię os. towarzyszącej',
-                            child: TextFormField(
-                              controller: _companionFirst,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: _inputDecoration('Imię'),
+                            label: 'Typ relacji',
+                            child: Wrap(
+                              spacing: 8,
+                              children: [
+                                for (final r in CompanionRelation.all)
+                                  ChoiceChip(
+                                    label: Text(CompanionRelation.label(r)),
+                                    selected: _companionRelation == r,
+                                    showCheckmark: false,
+                                    onSelected: (_) => setState(() {
+                                      _companionRelation = r;
+                                      // Podpowiedź kategorii — nadpisujemy tylko
+                                      // wtedy, gdy użytkownik sam jej jeszcze
+                                      // nie wybrał.
+                                      final hint =
+                                          CompanionRelation.suggestedCategory(r);
+                                      if (hint != null &&
+                                          _companionCategory == null) {
+                                        _companionCategory = hint;
+                                      }
+                                    }),
+                                    labelStyle: GoogleFonts.inter(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: _companionRelation == r
+                                          ? Colors.white
+                                          : AppColors.textLight,
+                                    ),
+                                    selectedColor: AppColors.accent,
+                                    backgroundColor: Colors.white,
+                                    side: BorderSide(
+                                        color: _companionRelation == r
+                                            ? AppColors.accent
+                                            : const Color(0xFFDCE4F2)),
+                                  ),
+                              ],
                             ),
                           ),
+                          // ── Imię do potwierdzenia (#5) ──
+                          SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            activeThumbColor: AppColors.accent,
+                            title: Text('Imienia jeszcze nie znam',
+                                style: GoogleFonts.inter(fontSize: 14)),
+                            subtitle: Text(
+                              'Zapiszemy „Osoba towarzysząca" — dane uzupełnisz '
+                              'później. Osoba i tak liczy się do listy gości '
+                              'i do cateringu.',
+                              style: GoogleFonts.inter(
+                                  fontSize: 11, color: AppColors.textLight),
+                            ),
+                            value: _companionNamePending,
+                            onChanged: (v) =>
+                                setState(() => _companionNamePending = v),
+                          ),
+                          if (!_companionNamePending) ...[
+                            _field(
+                              label: 'Imię os. towarzyszącej',
+                              child: TextFormField(
+                                controller: _companionFirst,
+                                textCapitalization: TextCapitalization.words,
+                                decoration: _inputDecoration('Imię'),
+                              ),
+                            ),
+                            _field(
+                              label: 'Nazwisko os. towarzyszącej',
+                              child: TextFormField(
+                                controller: _companionLast,
+                                textCapitalization: TextCapitalization.words,
+                                decoration: _inputDecoration('Nazwisko'),
+                              ),
+                            ),
+                          ],
+                          // ── Kategoria osoby towarzyszącej ──
                           _field(
-                            label: 'Nazwisko os. towarzyszącej',
-                            child: TextFormField(
-                              controller: _companionLast,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: _inputDecoration('Nazwisko'),
+                            label: 'Kategoria os. towarzyszącej',
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _companionCategory ?? '',
+                              isExpanded: true,
+                              decoration: _inputDecoration(''),
+                              items: [
+                                DropdownMenuItem(
+                                  value: '',
+                                  child: Text('Jak zapraszający ($_category)'),
+                                ),
+                                for (final c in GuestOptions.categories)
+                                  if (c != 'Państwo Młodzi')
+                                    DropdownMenuItem(value: c, child: Text(c)),
+                              ],
+                              onChanged: (v) => setState(() =>
+                                  _companionCategory =
+                                      (v == null || v.isEmpty) ? null : v),
                             ),
                           ),
                           if (!_isEdit)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
-                                'Po podaniu danych osoba towarzysząca zostanie dodana '
-                                'jako osobny gość (jak w wersji web).',
+                                'Osoba towarzysząca zostanie dodana jako osobny '
+                                'gość powiązany z tą osobą — dzięki temu wiadomo, '
+                                'kto z kim przychodzi.',
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   color: AppColors.textLight,

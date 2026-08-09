@@ -98,7 +98,10 @@ class ScheduleService {
 
   // ── CHECKLISTA ───────────────────────────────────────────────────────
 
-  Future<void> addChecklistItem(String category) async {
+  /// Dodaje pozycję checklisty. [text] pochodzi z okienka „Nowa pozycja" —
+  /// wcześniej pozycja powstawała zawsze pusta, przez co po kliknięciu „+"
+  /// pojawiał się pusty wiersz bez żadnej informacji (zgłoszenie #15).
+  Future<void> addChecklistItem(String category, {String text = ''}) async {
     final data = await _read();
     final list = _mapList(data['checklist']);
     final nextId = _nextId(data['nextChecklistId'], list);
@@ -107,7 +110,7 @@ class ScheduleService {
       'category': kChecklistCategories.contains(category)
           ? category
           : kChecklistCategories.first,
-      'text': '',
+      'text': text.trim(),
       'done': false,
     });
     await _firestore.setAndSync({

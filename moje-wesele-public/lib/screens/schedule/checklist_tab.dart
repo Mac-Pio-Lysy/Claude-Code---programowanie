@@ -25,6 +25,49 @@ class ChecklistTab extends StatelessWidget {
     return v is List ? v : const [];
   }
 
+  /// Pyta o treść pozycji i dopiero wtedy ją zapisuje.
+  ///
+  /// Wcześniej „+" tworzyło od razu PUSTY wiersz — użytkownik widział puste
+  /// pole bez żadnej informacji i nie wiedział, czy coś się zapisało
+  /// (zgłoszenie #15). Edycja w miejscu nadal działa, tylko nie jest już
+  /// jedynym sposobem wpisania treści.
+  Future<void> _addItem(BuildContext context, String category) async {
+    final ctrl = TextEditingController();
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Nowa pozycja — $category',
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(hintText: 'Co zrobić…'),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Anuluj')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+            onPressed: () => Navigator.of(ctx).pop(ctrl.text.trim()),
+            child: const Text('Dodaj'),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    if (text == null || text.isEmpty) return;
+    await service.addChecklistItem(category, text: text);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('Dodano: $text')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = _items;
@@ -38,7 +81,8 @@ class ChecklistTab extends StatelessWidget {
         _progressCard(done, total, pct),
         const SizedBox(height: 16),
         for (final cat in kChecklistCategories)
-          _categorySection(cat, items.where((i) => i.category == cat).toList()),
+          _categorySection(
+              context, cat, items.where((i) => i.category == cat).toList()),
       ],
     );
   }
@@ -82,7 +126,8 @@ class ChecklistTab extends StatelessWidget {
     );
   }
 
-  Widget _categorySection(String category, List<ChecklistItem> items) {
+  Widget _categorySection(
+      BuildContext context, String category, List<ChecklistItem> items) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
@@ -105,7 +150,7 @@ class ChecklistTab extends StatelessWidget {
                           color: AppColors.text)),
                 ),
                 IconButton(
-                  onPressed: () => service.addChecklistItem(category),
+                  onPressed: () => _addItem(context, category),
                   icon: const Icon(Icons.add_circle_outline),
                   color: AppColors.accent,
                   tooltip: 'Dodaj pozycję',

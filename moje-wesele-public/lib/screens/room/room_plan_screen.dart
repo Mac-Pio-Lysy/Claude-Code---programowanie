@@ -502,6 +502,16 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
         table: t,
         guests: _guests,
         editMode: _editMode,
+        // Świeże dane na żądanie: panel po każdej zmianie dociąga aktualny stan
+        // z ekranu (a ten ma go ze strumienia Firestore), zamiast trzymać
+        // migawkę z chwili otwarcia.
+        liveTable: () {
+          for (final x in _tables) {
+            if ((x['id'] as num?)?.toInt() == id) return x;
+          }
+          return null;
+        },
+        liveGuests: () => _guests,
         onAssign: (gid) => _assignGuest(id, gid),
         onUnassign: (gid) => widget.tableSvc.unassignGuest(gid),
         onResize: ({diamM, rectWM, rectLM}) => widget.room
@@ -536,18 +546,39 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
 }
 
 // ── Arkusz stołu (przypisania + rozmiar) ──
-class _TableSheet extends StatelessWidget {
+/// Panel stołu (arkusz dolny).
+///
+/// BYŁ bezstanowy i pracował na MIGAWCE mapy stołu z chwili otwarcia — stąd dwa
+/// zgłoszone błędy:
+///  • #10 rozmiar stołu: każde kliknięcie „+" liczyło `wartość + 0,1` od tej
+///    samej, nieaktualnej wartości, więc rozmiar nigdy się nie kumulował,
+///    a wyświetlana liczba w ogóle się nie zmieniała,
+///  • #14 przypisanie gościa: lista gości przy stole pochodziła z migawki, więc
+///    dodany gość pojawiał się dopiero po zamknięciu i ponownym otwarciu panelu.
+///
+/// Teraz panel jest stanowy: po każdej zmianie dociąga świeży stan przez
+/// [liveTable] / [liveGuests] i przerysowuje się sam.
+class _TableSheet extends StatefulWidget {
   const _TableSheet({
     required this.table,
     required this.guests,
     required this.editMode,
+    required this.liveTable,
+    required this.liveGuests,
     required this.onAssign,
     required this.onUnassign,
     required this.onResize,
     required this.onDelete,
   });
 
+  /// Stan początkowy (z chwili otwarcia).
   final Map<String, dynamic> table;
+
+  /// Aktualny stół z danych ekranu; `null`, gdy stół zniknął (np. usunięty).
+  final Map<String, dynamic>? Function() liveTable;
+
+  /// Aktualna lista gości z danych ekranu.
+  final List<Guest> Function() liveGuests;
   final List<Guest> guests;
   final bool editMode;
   final void Function(int guestId) onAssign;
@@ -556,7 +587,72 @@ class _TableSheet extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
+  State<_TableSheet> createState() => _TableSheetState();
+}
+
+class _TableSheetState extends State<_TableSheet> {
+  late Map<String, dynamic> _table = Map<String, dynamic>.from(widget.table);
+  late List<Guest> _guests = widget.guests;
+
+  /// Dociąga aktualny stan stołu i gości po zapisie.
+  ///
+  /// Firestore stosuje zapisy najpierw lokalnie, więc zanim `await` wróci,
+  /// strumień zdążył już przerysować ekran nadrzędny nowymi danymi.
+  void _sync() {
+    final fresh = widget.liveTable();
+    if (!mounted) return;
+    setState(() {
+      if (fresh != null) _table = Map<String, dynamic>.from(fresh);
+      _guests = widget.liveGuests();
+    });
+  }
+
+  double _dim(String key) => (_table[key] as num?)?.toDouble() ?? 0;
+
+  /// Zmiana rozmiaru: najpierw lokalnie (natychmiastowa reakcja i poprawne
+  /// kumulowanie kolejnych kliknięć), potem zapis i odświeżenie.
+  Future<void> _resize({num? diamM, num? rectWM, num? rectLM}) async {
+    setState(() {
+      if (diamM != null) _table['diamM'] = diamM;
+      if (rectWM != null) _table['rectWM'] = rectWM;
+      if (rectLM != null) _table['rectLM'] = rectLM;
+    });
+    widget.onResize(diamM: diamM, rectWM: rectWM, rectLM: rectLM);
+  }
+
+  Future<void> _assign(int guestId, String name) async {
+    final seatsBefore = _seatedCount;
+    widget.onAssign(guestId);
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    _sync();
+    if (!mounted) return;
+    // Potwierdzenie tylko wtedy, gdy gość faktycznie usiadł — przy pełnym stole
+    // ekran nadrzędny pokazuje własny komunikat „Stół jest pełny!".
+    if (_seatedCount > seatsBefore) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          content: Text('Dodano do stołu: $name'),
+          duration: const Duration(seconds: 2),
+        ));
+    }
+  }
+
+  Future<void> _unassign(int guestId) async {
+    widget.onUnassign(guestId);
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    _sync();
+  }
+
+  int get _seatedCount {
+    final seats = (_table['seatsData'] as List?) ?? const [];
+    return seats.where((s) => s != null).length;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final table = _table;
+    final guests = _guests;
     final shape = (table['shape'] as String?) ?? 'round';
     final seats = (table['seatsData'] as List?) ?? const [];
     final guestById = {for (final g in guests) g.id: g};
@@ -595,7 +691,7 @@ class _TableSheet extends StatelessWidget {
                 for (final g in seated)
                   Chip(
                     label: Text(g.fullName),
-                    onDeleted: g.id != null ? () => onUnassign(g.id!) : null,
+                    onDeleted: g.id != null ? () => _unassign(g.id!) : null,
                   ),
               ],
             ),
@@ -610,7 +706,7 @@ class _TableSheet extends StatelessWidget {
                 side: const BorderSide(color: AppColors.accent),
               ),
             ),
-          if (editMode) ...[
+          if (widget.editMode) ...[
             const Divider(height: 24),
             Text('Rozmiar stołu',
                 style: GoogleFonts.inter(
@@ -619,19 +715,19 @@ class _TableSheet extends StatelessWidget {
             if (shape == 'round')
               _RoomDimRow(
                 label: 'Średnica (m)',
-                value: (table['diamM'] as num?)?.toDouble() ?? 0,
-                onChanged: (v) => onResize(diamM: v),
+                value: _dim('diamM'),
+                onChanged: (v) => _resize(diamM: v),
               )
             else ...[
               _RoomDimRow(
                 label: 'Szerokość (m)',
-                value: (table['rectWM'] as num?)?.toDouble() ?? 0,
-                onChanged: (v) => onResize(rectWM: v),
+                value: _dim('rectWM'),
+                onChanged: (v) => _resize(rectWM: v),
               ),
               _RoomDimRow(
                 label: 'Długość (m)',
-                value: (table['rectLM'] as num?)?.toDouble() ?? 0,
-                onChanged: (v) => onResize(rectLM: v),
+                value: _dim('rectLM'),
+                onChanged: (v) => _resize(rectLM: v),
               ),
             ],
             const SizedBox(height: 8),
@@ -640,7 +736,7 @@ class _TableSheet extends StatelessWidget {
                     fontSize: 11, color: AppColors.textLight)),
             const SizedBox(height: 12),
             OutlinedButton.icon(
-              onPressed: onDelete,
+              onPressed: widget.onDelete,
               icon: const Icon(Icons.delete_outline, size: 18),
               label: const Text('Usuń stół'),
               style: OutlinedButton.styleFrom(
@@ -671,7 +767,11 @@ class _TableSheet extends StatelessWidget {
         ],
       ),
     );
-    if (gid != null) onAssign(gid);
+    if (gid == null) return;
+    final picked = options.firstWhere((g) => g.id == gid,
+        orElse: () => options.isNotEmpty ? options.first : throw StateError('brak'));
+    final name = picked.fullName.isEmpty ? 'Gość' : picked.fullName;
+    await _assign(gid, name);
   }
 }
 

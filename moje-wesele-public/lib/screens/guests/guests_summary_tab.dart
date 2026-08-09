@@ -204,7 +204,7 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
                 DataCell(Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName)),
                 DataCell(Text(GuestSummary.rsvpLabel(
                     GuestSummary.rsvpStatus(g.id, rsvp)))),
-                DataCell(Text(GuestSummary.companion(g))),
+                DataCell(Text(GuestSummary.companion(g, _guests))),
                 DataCell(Text(g.menuChoice.isEmpty ? '—' : g.menuChoice)),
                 DataCell(Text(GuestSummary.dietAllergies(g))),
                 DataCell(Text(GuestSummary.transport(g, vehicles).$3)),

@@ -28,8 +28,37 @@ class Guest {
     return (v == null || v.isEmpty) ? null : v;
   }
 
+  /// „+1" BEZ własnego rekordu gościa.
+  ///
+  /// Pole zgodności ze starymi danymi. W nowym modelu osoba towarzysząca ma
+  /// zawsze własny rekord, więc u zapraszającego ta flaga jest `false`.
+  /// Reguła „rekord istnieje ⇒ hasCompanion == false" chroni przed policzeniem
+  /// tej samej osoby dwa razy w cateringu.
   bool get hasCompanion => raw['hasCompanion'] == true;
+
+  /// Imię towarzyszącej wpisane tekstem (stary model, bez powiązania).
   String get companionName => (raw['companionName'] as String?)?.trim() ?? '';
+
+  // ── Powiązanie osoby towarzyszącej (nowy model) ───────────────────────────
+
+  /// ID gościa, który zaprosił tę osobę. `null` = gość samodzielny.
+  ///
+  /// Relacja jest JEDNOKIERUNKOWA (towarzysząca → zapraszający). U zapraszającego
+  /// nie dublujemy jej, żeby nie mieć dwóch źródeł prawdy do rozjechania.
+  int? get companionOfId => (raw['companionOfId'] as num?)?.toInt();
+
+  /// Czy ten gość jest czyjąś osobą towarzyszącą.
+  bool get isCompanion => companionOfId != null;
+
+  /// Typ relacji z zapraszającym — patrz [CompanionRelation].
+  String? get relationType {
+    final v = (raw['relationType'] as String?)?.trim();
+    return (v == null || v.isEmpty) ? null : v;
+  }
+
+  /// Imię jeszcze nieznane — rekord istnieje (liczy się do cateringu i ma
+  /// miejsce przy stole), ale dane osobowe czekają na uzupełnienie.
+  bool get namePending => raw['namePending'] == true;
   bool get needsAccommodation => raw['needsAccommodation'] == true;
   String get menuChoice => (raw['menuChoice'] as String?)?.trim() ?? '';
 
@@ -59,6 +88,40 @@ class Guest {
     if (l.isNotEmpty) return (f.isNotEmpty ? f[0] : '') + l[0];
     return f.length >= 2 ? f.substring(0, 2) : f;
   }
+}
+
+/// Typ relacji osoby towarzyszącej z gościem, który ją zaprosił.
+class CompanionRelation {
+  CompanionRelation._();
+
+  /// Partner / partnerka, mąż / żona.
+  static const String partner = 'partner';
+
+  /// Ktoś z rodziny zapraszającego.
+  static const String family = 'family';
+
+  /// Osoba jeszcze nieznana — gość wie, że przyjdzie z kimś, ale nie z kim.
+  static const String unknown = 'unknown';
+
+  static const List<String> all = [partner, family, unknown];
+
+  static String label(String? value) => switch (value) {
+        partner => 'Para',
+        family => 'Rodzina',
+        unknown => 'Nieznana',
+        _ => '—',
+      };
+
+  /// Kategoria podpowiadana dla danego typu relacji (`null` = dziedzicz po
+  /// zapraszającym). Dla rodziny sensowniejsza jest „Rodzina" niż kategoria
+  /// zapraszającego.
+  static String? suggestedCategory(String? value) =>
+      value == family ? 'Rodzina' : null;
+
+  /// Nazwa zastępcza osoby bez podanego imienia. Nazwisko zapraszającego
+  /// dokładamy dla czytelności listy i planu sali („Osoba towarzysząca
+  /// Kowalski"), żeby dało się ją odróżnić od innych takich wpisów.
+  static const String placeholderFirstName = 'Osoba towarzysząca';
 }
 
 /// Stałe i etykiety pól gościa — zgodne z formularzem w zrodlo-web/index.html.

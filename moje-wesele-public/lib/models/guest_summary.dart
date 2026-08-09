@@ -65,7 +65,24 @@ class GuestSummary {
     });
   }
 
-  static String companion(Guest g) {
+  /// Etykieta „osoba towarzysząca" w kartotece i podsumowaniach.
+  ///
+  /// Obsługuje oba modele: powiązany rekord (nowy) oraz stare „+1" zapisane
+  /// jako flaga z tekstowym imieniem. [all] pozwala odnaleźć powiązany rekord;
+  /// bez niej działa jak dotąd.
+  static String companion(Guest g, [List<Guest> all = const []]) {
+    final linked = all.where((x) => x.companionOfId == g.id).toList();
+    if (linked.isNotEmpty) {
+      return linked
+          .map((c) => c.namePending ? 'osoba towarzysząca' : c.fullName)
+          .join(', ');
+    }
+    if (g.companionOfId != null) {
+      final inviter = all.where((x) => x.id == g.companionOfId).firstOrNull;
+      return inviter == null
+          ? 'towarzyszy gościowi'
+          : 'towarzyszy: ${inviter.fullName}';
+    }
     if (!g.hasCompanion) return '—';
     return g.companionName.isNotEmpty ? g.companionName : '+1';
   }

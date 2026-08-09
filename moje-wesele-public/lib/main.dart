@@ -55,9 +55,15 @@ class MojeWeseleApp extends StatelessWidget {
       // Nasłuch trybu wyświetlania w korzeniu drzewa: zmiana w Ustawieniach
       // („Automatyczny / Wymuś telefon / Wymuś tablet") przebudowuje CAŁĄ
       // aplikację od razu, bez wychodzenia z ekranu.
+      //
+      // ⚠️ NIE dodawać `const` przed AuthGate. Stała jest kanonizowana, więc
+      // builder zwracałby przy każdej zmianie DOKŁADNIE ten sam obiekt widgetu;
+      // Flutter porównuje go z poprzednim (`child.widget == newWidget`) i
+      // pomija przebudowę poddrzewa. Efekt: wybór trybu zapisuje się, ale układ
+      // się nie zmienia — dokładnie ten błąd zgłoszony jako #20.
       home: ValueListenableBuilder<DisplayMode>(
         valueListenable: DisplayModeController.mode,
-        builder: (context, _, _) => const AuthGate(),
+        builder: (context, _, _) => AuthGate(),
       ),
     );
   }

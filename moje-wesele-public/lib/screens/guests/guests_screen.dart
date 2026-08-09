@@ -131,8 +131,11 @@ class _GuestsScreenState extends State<GuestsScreen> {
       for (final e in widget.data?.guests ?? const [])
         if (e is Map) Guest(Map<String, dynamic>.from(e)),
     ];
-    final filtered = filterGuests(guests, _filter);
+    final filtered = _withCompanionsGrouped(filterGuests(guests, _filter));
     final tableNames = _tableNames;
+    // Podpowiedzi powiązań: kto kogo zaprosił (po ID, na pełnej liście — także
+    // gdy zapraszający wypadł z filtra).
+    final byId = {for (final g in guests) if (g.id != null) g.id!: g};
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -221,6 +224,13 @@ class _GuestsScreenState extends State<GuestsScreen> {
                         guest: g,
                         tableName:
                             g.tableId != null ? tableNames[g.tableId] : null,
+                        inviter: g.companionOfId != null
+                            ? byId[g.companionOfId]
+                            : null,
+                        companions: [
+                          for (final c in guests)
+                            if (c.companionOfId == g.id) c,
+                        ],
                         onEdit: () => _editGuest(g),
                         onDelete: () => _deleteGuest(g),
                       );
@@ -230,6 +240,35 @@ class _GuestsScreenState extends State<GuestsScreen> {
         ],
       ),
     );
+  }
+
+  /// Układa listę tak, żeby osoba towarzysząca stała ZARAZ POD zapraszającym.
+  ///
+  /// Dzięki temu na pierwszy rzut oka widać, kto z kim przychodzi, bez szukania
+  /// po całej liście. Osoba towarzysząca, której zapraszający wypadł z filtra,
+  /// zostaje na swoim miejscu jako samodzielna pozycja — inaczej zniknęłaby
+  /// z widoku mimo pasowania do filtra.
+  List<Guest> _withCompanionsGrouped(List<Guest> filtered) {
+    final ids = {for (final g in filtered) g.id};
+    final companionsByInviter = <int, List<Guest>>{};
+    for (final g in filtered) {
+      final inviterId = g.companionOfId;
+      if (inviterId != null && ids.contains(inviterId)) {
+        companionsByInviter.putIfAbsent(inviterId, () => []).add(g);
+      }
+    }
+    if (companionsByInviter.isEmpty) return filtered;
+
+    final grouped = <Guest>[];
+    for (final g in filtered) {
+      // Towarzyszącą wstawiamy przy zapraszającym, więc pomijamy ją tutaj.
+      final inviterId = g.companionOfId;
+      if (inviterId != null && ids.contains(inviterId)) continue;
+      grouped.add(g);
+      final own = companionsByInviter[g.id];
+      if (own != null) grouped.addAll(own);
+    }
+    return grouped;
   }
 
   /// Mała strzałka obok „Dodaj gościa" — chowa/pokazuje wiersze filtrów,
@@ -295,10 +334,19 @@ class _GuestCard extends StatefulWidget {
     required this.tableName,
     required this.onEdit,
     required this.onDelete,
+    this.inviter,
+    this.companions = const [],
   });
 
   final Guest guest;
   final String? tableName;
+
+  /// Gość, który zaprosił tę osobę (gdy to osoba towarzysząca).
+  final Guest? inviter;
+
+  /// Osoby towarzyszące zaproszone przez tego gościa.
+  final List<Guest> companions;
+
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
@@ -394,12 +442,36 @@ class _GuestCardState extends State<_GuestCard> {
         _Badge('● Świadkowa', const Color(0xFFFDF2F8), const Color(0xFFDB2777)),
       if (g.needsAccommodation)
         _Badge('🏨 Nocleg', const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
+      // Stary „+1" bez własnego rekordu (dane sprzed powiązań).
       if (g.hasCompanion)
         _Badge(
           '👥 +1${g.companionName.isNotEmpty ? ' ${g.companionName}' : ''}',
           const Color(0xFFF1F5F9),
           const Color(0xFF475569),
         ),
+      // Powiązane osoby towarzyszące — widać, kto z kim przychodzi (#4).
+      for (final c in widget.companions)
+        _Badge(
+          '👥 z: ${c.namePending ? 'osoba towarzysząca' : c.fullName}',
+          const Color(0xFFF1F5F9),
+          const Color(0xFF475569),
+        ),
+      // Ten gość JEST czyjąś osobą towarzyszącą.
+      if (widget.inviter != null)
+        _Badge(
+          '↳ towarzyszy: ${widget.inviter!.fullName}',
+          const Color(0xFFEEF3FF),
+          AppColors.accent,
+        ),
+      if (g.isCompanion && g.relationType != null)
+        _Badge(
+          CompanionRelation.label(g.relationType),
+          const Color(0xFFF5F3FF),
+          const Color(0xFF7C3AED),
+        ),
+      if (g.namePending)
+        _Badge('✎ imię do potwierdzenia', const Color(0xFFFFF7ED),
+            const Color(0xFFB45309)),
     ];
   }
 

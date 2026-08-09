@@ -53,7 +53,54 @@ class AnalyticsScreen extends StatelessWidget {
                   color: AppColors.text)),
         ),
         Expanded(
-          child: ListView(
+          child: _hasAnyData(summary, guestCount)
+              ? _charts(context, summary, guests, guestCount, costPerGuest)
+              : _sectionEmptyState(),
+        ),
+      ],
+    );
+  }
+
+  /// Czy jest cokolwiek do pokazania. Przy świeżo założonym weselu wszystkie
+  /// wykresy pokazywałyby „Brak…", co wygląda jak awaria — lepiej powiedzieć
+  /// wprost, czego brakuje.
+  bool _hasAnyData(BudgetSummary summary, int guestCount) =>
+      guestCount > 0 ||
+      summary.budget > 0 ||
+      summary.totalConfirmed > 0 ||
+      summary.planForCalc > 0;
+
+  Widget _sectionEmptyState() => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.insights_outlined,
+                  size: 44, color: AppColors.textLight),
+              const SizedBox(height: 14),
+              Text('Brak danych do analizy',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.playfairDisplay(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.text)),
+              const SizedBox(height: 8),
+              Text(
+                'Dodaj gości i wydatki, żeby zobaczyć analitykę — potwierdzenia '
+                'obecności, rozkład kosztów, postęp płatności, menu i diety.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                    fontSize: 14, height: 1.5, color: AppColors.textLight),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _charts(BuildContext context, BudgetSummary summary,
+      List<Guest> guests, int guestCount, double costPerGuest) {
+    return ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             children: [
               _forecastCard(summary, costPerGuest),
@@ -75,9 +122,6 @@ class AnalyticsScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _chartCard(context, 'Rozkład diet', _dietPie(guests)),
             ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -202,8 +246,17 @@ class AnalyticsScreen extends StatelessWidget {
       ('Budżet', s.budget, const Color(0xFF7C3AED)),
     ];
     final maxY = values.map((v) => v.$2).fold<double>(1, (m, v) => v > m ? v : m);
-    return BarChart(
-      BarChartData(
+    // ⚠️ WYSOKOŚĆ JEST OBOWIĄZKOWA. Wykresy fl_chart starają się zająć całą
+    // dostępną przestrzeń, a w `ListView` wysokość jest nieograniczona — bez
+    // `SizedBox` render dostaje `h <= Infinity`, ustala rozmiar `Infinity`
+    // i wywala asercję w `performLayout`. Ponieważ to pierwszy wykres na
+    // liście, jego wyjątek przewracał renderowanie CAŁEJ sekcji i Analityka
+    // wyświetlała się jako pusta (zgłoszenie #19). Pozostałe wykresy mają
+    // własne `SizedBox` — ten jeden go nie miał.
+    return SizedBox(
+      height: 180,
+      child: BarChart(
+        BarChartData(
         maxY: maxY * 1.15,
         barTouchData: BarTouchData(enabled: true),
         gridData: const FlGridData(show: false),
@@ -230,17 +283,18 @@ class AnalyticsScreen extends StatelessWidget {
             ),
           ),
         ),
-        barGroups: [
-          for (var i = 0; i < values.length; i++)
-            BarChartGroupData(x: i, barRods: [
-              BarChartRodData(
-                toY: values[i].$2,
-                color: values[i].$3,
-                width: 26,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ]),
-        ],
+          barGroups: [
+            for (var i = 0; i < values.length; i++)
+              BarChartGroupData(x: i, barRods: [
+                BarChartRodData(
+                  toY: values[i].$2,
+                  color: values[i].$3,
+                  width: 26,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ]),
+          ],
+        ),
       ),
     );
   }

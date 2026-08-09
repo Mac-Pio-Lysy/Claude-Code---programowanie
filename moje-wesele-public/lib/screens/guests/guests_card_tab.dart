@@ -211,6 +211,8 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
                 ),
               ],
             ),
+            // Powiązanie: kogo zaprosił / przez kogo został zaproszony (#4).
+            ..._relationLines(g),
             const SizedBox(height: 8),
             _label('Menu'),
             DropdownButtonFormField<String>(
@@ -254,6 +256,54 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
       ),
     );
   }
+
+  /// Wiersze powiązania w kartotece: „towarzyszy X (Para)" u osoby
+  /// towarzyszącej oraz „przychodzi z Y" u zapraszającego.
+  List<Widget> _relationLines(Guest g) {
+    final all = _guests;
+    final lines = <Widget>[];
+
+    if (g.companionOfId != null) {
+      final inviter =
+          all.where((x) => x.id == g.companionOfId).firstOrNull;
+      final relation = g.relationType == null
+          ? ''
+          : ' (${CompanionRelation.label(g.relationType)})';
+      lines.add(_relationChip(
+        '↳ towarzyszy: ${inviter?.fullName ?? 'nieznany gość'}$relation',
+        AppColors.accent,
+      ));
+    }
+
+    final own = all.where((x) => x.companionOfId == g.id).toList();
+    for (final c in own) {
+      lines.add(_relationChip(
+        '👥 przychodzi z: '
+        '${c.namePending ? 'osoba towarzysząca (imię do potwierdzenia)' : c.fullName}',
+        const Color(0xFF475569),
+      ));
+    }
+
+    if (g.namePending) {
+      lines.add(_relationChip(
+          '✎ imię do potwierdzenia', const Color(0xFFB45309)));
+    }
+
+    return lines.isEmpty
+        ? const []
+        : [const SizedBox(height: 6), ...lines];
+  }
+
+  Widget _relationChip(String text, Color color) => Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: Text(
+          text,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: GoogleFonts.inter(
+              fontSize: 11, fontWeight: FontWeight.w600, color: color),
+        ),
+      );
 
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 4, left: 2),
