@@ -32,6 +32,7 @@ class SettingsScreen extends StatefulWidget {
     required this.onSignOut,
     required this.onStartTour,
     required this.onOpenPlanning,
+    required this.onOpenSetupWizard,
     required this.onOpenHelp,
     this.isOwner = true,
     this.currentUserId = '',
@@ -54,6 +55,9 @@ class SettingsScreen extends StatefulWidget {
 
   /// Otwiera listę „Od czego zacząć?".
   final VoidCallback onOpenPlanning;
+
+  /// Otwiera kreator „Poprowadź mnie za rękę" (#17).
+  final VoidCallback onOpenSetupWizard;
 
   /// Otwiera ekran Pomocy w wariancie zgodnym z rolą (panel zna rolę, Ustawienia
   /// nie — dlatego przychodzi tu jako wywołanie zwrotne, tak jak przewodnik).
@@ -372,6 +376,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: widget.onOpenPlanning,
               icon: const Text('📋', style: TextStyle(fontSize: 16)),
               label: const Text('Od czego zacząć?'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: widget.onOpenSetupWizard,
+              icon: const Text('🤝', style: TextStyle(fontSize: 16)),
+              label: const Text('Poprowadź mnie za rękę'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -784,17 +802,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  /// Nazwisko, którego gość ma użyć przy dołączaniu.
+  ///
+  /// Pierwszeństwo ma dedykowane pole weryfikacji; gdy jest puste, weryfikacja
+  /// nadal przyjmuje „Osoby" — pokazujemy więc to, co realnie zadziała.
+  String get _verificationValue {
+    final raw = widget.data?.raw ?? const {};
+    final cfg = (raw['appConfig'] is Map) ? raw['appConfig'] as Map : const {};
+    final surnames = (cfg['verificationSurnames'] as String?)?.trim() ?? '';
+    if (surnames.isNotEmpty) return surnames;
+    return (cfg['displayNames'] as String?)?.trim() ?? '';
+  }
+
+  /// Czy organizator uzupełnił dedykowane pole nazwiska.
+  bool get _hasVerificationSurnames {
+    final raw = widget.data?.raw ?? const {};
+    final cfg = (raw['appConfig'] is Map) ? raw['appConfig'] as Map : const {};
+    return ((cfg['verificationSurnames'] as String?)?.trim() ?? '').isNotEmpty;
+  }
+
+  /// Data ślubu w formie czytelnej dla gościa („12 czerwca 2027").
+  String get _weddingDateLabel {
+    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(_weddingDate);
+    if (m == null) return '';
+    const months = [
+      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
+      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
+    ];
+    final month = int.parse(m.group(2)!);
+    if (month < 1 || month > 12) return _weddingDate;
+    return '${int.parse(m.group(3)!)} ${months[month - 1]} ${m.group(1)}';
+  }
+
+  /// Gotowy tekst zaproszenia do wysłania gościom.
+  String _inviteText(String code) {
+    final date = _weddingDateLabel;
+    return [
+      'Zapraszamy! Dołącz do naszego wesela w aplikacji Moje Wesele:',
+      '',
+      '1. Zainstaluj aplikację i załóż konto.',
+      '2. Wybierz „Dołącz do wesela".',
+      '3. Podaj poniższe dane:',
+      '   • Kod wesela: $code',
+      if (date.isNotEmpty) '   • Data ślubu: $date',
+      if (_verificationValue.isNotEmpty)
+        '   • Nazwisko Państwa Młodych: $_verificationValue',
+      '',
+      'Możesz też zeskanować nasz kod QR — wypełni kod za Ciebie.',
+    ].join('\n');
+  }
+
   Widget _joinCodeCard() {
     final code = _joinCode;
     return _card(
-      'Kod dołączenia dla gości',
+      'Zaproszenie dla gości (dołączenie na konto)',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Podaj ten kod gościom (np. na zaproszeniu). Aby dołączyć, gość '
-            'wpisuje kod, datę ślubu i nazwisko Państwa Młodych.',
-            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+            'Przekaż gościom kod QR albo trzy dane z tej karty. Gość poda je '
+            'w aplikacji („Dołącz do wesela") i zobaczy wesele na swoim '
+            'koncie. To inna droga niż link do strony gości niżej — ten '
+            'działa bez logowania.',
+            style: GoogleFonts.inter(
+                fontSize: 13, height: 1.45, color: AppColors.textLight),
           ),
           const SizedBox(height: 14),
           if (code == null)
@@ -877,12 +948,207 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Text('Kod QR',
                         style: GoogleFonts.inter(
                             fontSize: 11, color: AppColors.textLight)),
+                    SizedBox(
+                      width: 96,
+                      child: Text('skanuje się w aplikacji',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                              fontSize: 10, color: AppColors.textLight)),
+                    ),
                   ],
                 ),
               ],
             ),
+          if (code != null) ...[
+            const SizedBox(height: 18),
+            _inviteDataBlock(),
+            const SizedBox(height: 16),
+            _guestStepsBlock(),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: _inviteText(code)));
+                  _toast('Skopiowano gotowe zaproszenie');
+                },
+                icon: const Icon(Icons.content_paste, size: 16),
+                label: const Text('Kopiuj gotowe zaproszenie'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.accent,
+                  side: const BorderSide(color: AppColors.accent),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  /// Komplet danych, których potrzebuje gość — dokładnie te trzy pola widzi
+  /// on na ekranie „Dołącz do wesela" (#23).
+  Widget _inviteDataBlock() {
+    final date = _weddingDateLabel;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Co gość musi podać',
+              style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text)),
+          const SizedBox(height: 10),
+          _inviteRow('Kod wesela', _joinCode ?? '—'),
+          _inviteRow(
+            'Data ślubu',
+            date.isEmpty ? 'nie ustawiono' : date,
+            missing: date.isEmpty,
+          ),
+          _inviteRow(
+            'Nazwisko Państwa Młodych',
+            _verificationValue.isEmpty ? 'nie ustawiono' : _verificationValue,
+            missing: _verificationValue.isEmpty,
+          ),
+          if (!_hasVerificationSurnames) ...[
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFFCD9A6)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline,
+                      size: 16, color: Color(0xFFB45309)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _verificationValue.isEmpty
+                          ? 'Uzupełnij pole „Nazwisko / nazwiska Pary Młodej" '
+                              'w Konfiguracji — bez niego gość nie ma czego '
+                              'wpisać i nie dołączy.'
+                          : 'Gość poda tu na razie „Osoby". Wpisz w Konfiguracji '
+                              'pole „Nazwisko / nazwiska Pary Młodej", jeśli '
+                              'wolisz, żeby podawał nazwisko.',
+                      style: GoogleFonts.inter(
+                          fontSize: 11.5,
+                          height: 1.4,
+                          color: const Color(0xFF7C4A03)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _inviteRow(String label, String value, {bool missing = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 150,
+            child: Text(label,
+                style: GoogleFonts.inter(
+                    fontSize: 12, color: AppColors.textLight)),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                fontStyle: missing ? FontStyle.italic : FontStyle.normal,
+                color: missing ? const Color(0xFFB45309) : AppColors.text,
+              ),
+            ),
+          ),
+          if (!missing)
+            InkWell(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: value));
+                _toast('Skopiowano: $value');
+              },
+              borderRadius: BorderRadius.circular(6),
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(Icons.copy, size: 15, color: AppColors.accent),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Instrukcja krok po kroku — w kolejności, w jakiej gość faktycznie klika.
+  Widget _guestStepsBlock() {
+    const steps = [
+      'Gość instaluje aplikację i zakłada konto (albo loguje się na swoje).',
+      'Na liście wesel wybiera „Dołącz do wesela".',
+      'Wpisuje kod wesela — albo klika „Skanuj" i skanuje Twój kod QR, '
+          'co wypełnia to pole automatycznie.',
+      'Wybiera datę ślubu z kalendarza.',
+      'Wpisuje nazwisko Państwa Młodych (to z tej karty).',
+      'Gotowe — wesele pojawia się na jego liście.',
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Jak gość dołącza — krok po kroku',
+            style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text)),
+        const SizedBox(height: 8),
+        for (var i = 0; i < steps.length; i++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 20,
+                  height: 20,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text('${i + 1}',
+                      style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accent)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(steps[i],
+                      style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          height: 1.45,
+                          color: AppColors.textLight)),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 

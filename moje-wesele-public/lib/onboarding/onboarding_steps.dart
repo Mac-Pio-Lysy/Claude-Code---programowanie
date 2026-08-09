@@ -187,9 +187,13 @@ const List<(String, String)> _settingsSubs = [
           'propozycje muzyki i wyniki gier. Tu też moderujesz — kasujesz '
           'nieodpowiednie wpisy jednym kliknięciem.'),
   ('Ustawienia · Osoby i dostęp',
-      'Dodawaj współorganizatorów i planera, nadawaj datę ważności, blokuj '
-          'i przywracaj dostęp. Tylko właściciel wesela może tu cokolwiek '
-          'zmienić — to zabezpieczenie, nie ograniczenie.'),
+      'Tu dodajesz współorganizatora (świadek, mama) i planera. „Dodaj osobę" '
+          '→ wybierz rolę → podaj e-mail osoby z kontem albo wygeneruj '
+          'jednorazowy kod zaproszenia i prześlij go jej. Zaproszona osoba '
+          'wpisuje kod na liście wesel („Mam kod zaproszenia"). Planerowi '
+          'ustawisz datę ważności — po niej wesele znika z jego listy. Dostęp '
+          'blokujesz i przywracasz w każdej chwili. Tylko właściciel wesela '
+          'może tu cokolwiek zmienić — to zabezpieczenie, nie ograniczenie.'),
   ('Ustawienia · Konfiguracja',
       'Nazwa imprezy, data, miejsca, podział kosztów i słowniki.'),
   ('Ustawienia · Logowanie',

@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app_colors.dart';
+import '../../models/wedding_countdown.dart';
+import '../../widgets/wedding_countdown_card.dart';
 import '../../help/help_screen.dart';
 import '../../models/guest_visibility.dart';
 import '../../onboarding/onboarding_steps.dart' show OnbVariant;
@@ -238,6 +240,13 @@ class _GuestWebHomeState extends State<GuestWebHome> {
             ),
           ),
         _header(eventName, persons, space),
+        const SizedBox(height: 14),
+        // Licznik do wesela (#24) — data i godzina z konfiguracji wesela,
+        // przeniesione do mirrora gości.
+        WeddingCountdownCard(
+          weddingDate: space['weddingDate'] as String?,
+          weddingTime: space['weddingTime'] as String?,
+        ),
         const SizedBox(height: 18),
         if (cards.isEmpty)
           _emptyInfo()
@@ -441,6 +450,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
         page = _ScheduleView(
           events: space['scheduleEvents'],
           weddingDate: space['weddingDate'] as String?,
+          weddingTime: space['weddingTime'] as String?,
         );
       // ── 5b-part-2 ──
       case 'gallery':
@@ -567,19 +577,29 @@ class _ComingSoon extends StatelessWidget {
 
 /// Harmonogram (tylko odczyt) — z mirrora, bez danych organizacyjnych.
 class _ScheduleView extends StatelessWidget {
-  const _ScheduleView({required this.events, this.weddingDate});
+  const _ScheduleView(
+      {required this.events, this.weddingDate, this.weddingTime});
   final dynamic events;
   final String? weddingDate;
+  final String? weddingTime;
 
   @override
   Widget build(BuildContext context) {
     final list = events is List ? events as List : const [];
-    final countdown = _countdown(weddingDate);
+    // Ten sam licznik co na stronie głównej strefy gości (#24).
+    final countdown = WeddingCountdown.from(weddingDate, time: weddingTime);
+    final banner = countdown == null || countdown.isPast
+        ? null
+        : WeddingCountdownCard(
+            weddingDate: weddingDate,
+            weddingTime: weddingTime,
+            compact: true,
+          );
     if (list.isEmpty) {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (countdown != null) _countdownBanner(countdown),
+          ?banner,
           const SizedBox(height: 16),
           Center(
             child: Text('Harmonogram pojawi się wkrótce.',
@@ -590,11 +610,11 @@ class _ScheduleView extends StatelessWidget {
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
-      itemCount: list.length + (countdown != null ? 1 : 0),
+      itemCount: list.length + (banner != null ? 1 : 0),
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (context, i) {
-        if (countdown != null && i == 0) return _countdownBanner(countdown);
-        final idx = countdown != null ? i - 1 : i;
+        if (banner != null && i == 0) return banner;
+        final idx = banner != null ? i - 1 : i;
         final e = list[idx] is Map ? Map<String, dynamic>.from(list[idx]) : {};
         final time = _first(e, ['time', 'startTime', 'hour', 'start']);
         final title = _first(e, ['title', 'name', 'label', 'text']);
@@ -649,55 +669,6 @@ class _ScheduleView extends StatelessWidget {
     return '';
   }
 
-  /// Liczba pełnych dni do ślubu (null, gdy brak/minęła data ≥ 0).
-  static int? _countdown(String? date) {
-    if (date == null || date.isEmpty) return null;
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(date);
-    if (m == null) return null;
-    final target = DateTime(
-        int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
-    final today = warsawToday();
-    final diff = target.difference(today).inDays;
-    return diff < 0 ? null : diff;
-  }
-
-  Widget _countdownBanner(int days) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.accent.withValues(alpha: 0.12),
-              AppColors.accent2.withValues(alpha: 0.06),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFD6E4FB)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              days == 0 ? 'To już dziś! 🎉' : '$days',
-              style: GoogleFonts.playfairDisplay(
-                  fontSize: days == 0 ? 22 : 34,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.accent),
-            ),
-            if (days > 0)
-              Text(_daysLabel(days),
-                  style: GoogleFonts.inter(
-                      fontSize: 13, color: AppColors.textLight)),
-          ],
-        ),
-      );
-
-  static String _daysLabel(int d) {
-    final u = d % 10, t = d % 100;
-    if (d == 1) return 'dzień do ślubu';
-    if (u >= 2 && u <= 4 && (t < 10 || t >= 20)) return 'dni do ślubu';
-    return 'dni do ślubu';
-  }
 }
 
 /// Wspólna dekoracja pól tekstowych w trybie gościa.

@@ -321,9 +321,39 @@ const List<HelpCategory> _ownerHelp = [
             'i przywrócić — wielokrotnie.',
       ),
       HelpTopic(
-        'Dodawanie osób',
-        'Ustawienia → „Osoby i dostęp". Osobę dodasz po adresie e-mail (musi '
-            'mieć konto) albo kodem zaproszenia, który jej przekażesz.',
+        'Jak dodać planera lub współorganizatora — krok po kroku',
+        'Ustawienia → „Osoby i dostęp" → „Dodaj osobę". Wybierz rolę '
+            '(Współorganizator albo Planer), a przy planerze ustaw datę '
+            'ważności dostępu. Potem masz dwie drogi: podać adres e-mail osoby '
+            '(musi już mieć konto w aplikacji) albo wygenerować kod '
+            'zaproszenia i przekazać go dowolnym kanałem. Zaproszenie dodaje '
+            'osobę tylko do TEGO wesela — przy kilku weselach każde wymaga '
+            'osobnego zaproszenia.',
+      ),
+      HelpTopic(
+        'Jak działa kod zaproszenia',
+        'Kod jest jednorazowy i przypisany do konkretnego wesela oraz roli. '
+            'Osoba, która go dostanie, zakłada konto (albo loguje się na '
+            'istniejące), a następnie na liście wesel wybiera „Mam kod '
+            'zaproszenia (współorganizator / planer)" i wpisuje go. Po '
+            'wykorzystaniu kod przestaje działać — dla kolejnej osoby '
+            'wygeneruj nowy. To inna ścieżka niż kod dla gości, którym goście '
+            'dołączają do strefy gościa.',
+      ),
+      HelpTopic(
+        'Data ważności dostępu planera',
+        'Datę ustawiasz przy zapraszaniu i zmieniasz później na liście osób. '
+            'Po jej upływie wesele znika z listy planera i traci on dostęp do '
+            'danych — bez usuwania czegokolwiek u Ciebie. Datę można '
+            'przesunąć, a dostęp zablokować i przywrócić wielokrotnie. '
+            'Współorganizator daty ważności nie ma.',
+      ),
+      HelpTopic(
+        'Odbieranie dostępu',
+        'Na liście „Osoby i dostęp" przy każdej osobie znajdziesz blokadę '
+            'i usunięcie. Blokada zostawia osobę na liście (można ją '
+            'odblokować), usunięcie kasuje członkostwo — powrót wymaga nowego '
+            'zaproszenia. Właściciela nie da się usunąć.',
       ),
     ],
   ),

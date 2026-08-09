@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../models/planning_step.dart';
 import 'onboarding_steps.dart';
 
 /// Pełnoekranowa nakładka przewodnika: przyciemnione tło ze „światłem"
@@ -106,7 +107,9 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           padding: const EdgeInsets.all(20),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
-            child: card,
+            // Przewijanie na wypadek niskiego ekranu — dymek kroku
+            // „Od czego zacząć?" niesie dodatkową listę.
+            child: SingleChildScrollView(child: card),
           ),
         ),
       );
@@ -147,6 +150,70 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
         ),
       );
 
+  /// Podgląd kilku pierwszych kroków listy „Od czego zacząć?".
+  ///
+  /// Pokazujemy listę domyślną, a nie zapisany stan wesela — to ilustracja
+  /// w przewodniku, nie panel do odhaczania. Pełną listę użytkownik otwiera
+  /// z Ustawień.
+  Widget _planningPreview() {
+    const shown = 5;
+    final items = PlanningStep.defaults.take(shown).toList();
+    final rest = PlanningStep.defaults.length - items.length;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var i = 0; i < items.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2.5),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.check_box_outline_blank,
+                      size: 15, color: AppColors.accent.withValues(alpha: 0.7)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      items[i].$1,
+                      style: GoogleFonts.inter(
+                          fontSize: 12.5, height: 1.35, color: AppColors.text),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (rest > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 6, left: 23),
+              child: Text('…i jeszcze $rest ${_stepWord(rest)} na liście',
+                  style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontStyle: FontStyle.italic,
+                      color: AppColors.textLight)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// Odmiana słowa „krok" po liczebniku.
+  static String _stepWord(int n) {
+    if (n == 1) return 'krok';
+    final last2 = n % 100;
+    final last = n % 10;
+    if (last2 >= 12 && last2 <= 14) return 'kroków';
+    return (last >= 2 && last <= 4) ? 'kroki' : 'kroków';
+  }
+
   Widget _card(bool last) {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 14),
@@ -175,6 +242,10 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           Text(widget.step.desc,
               style: GoogleFonts.inter(
                   fontSize: 13.5, height: 1.5, color: AppColors.textLight)),
+          // Krok „Od czego zacząć?" nie podświetla żadnego przycisku — panel
+          // jest osobnym ekranem. Zamiast pustego dymka pokazujemy podgląd
+          // pierwszych kroków planowania, żeby było widać, o czym mowa (#18).
+          if (widget.step.planning) _planningPreview(),
           const SizedBox(height: 14),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
@@ -278,8 +349,12 @@ class _SpotlightPainter extends CustomPainter {
 class OnbChoice {
   const OnbChoice(this.mode, this.variant);
 
-  /// `basic` — skrócona forma, `full` — rozszerzona.
+  /// `basic` — skrócona forma, `full` — rozszerzona, `setup` — kreator
+  /// konfiguracji „Poprowadź mnie za rękę" (zamiast zwiedzania).
   final String mode;
+
+  /// Czy zamiast przewodnika uruchomić kreator konfiguracji (#17).
+  bool get isSetupWizard => mode == 'setup';
 
   /// Wariant do uruchomienia. Zwykle zgodny z rolą, ale właściciel i planer
   /// mogą wybrać podgląd przewodnika gościa.
@@ -299,9 +374,11 @@ Future<OnbChoice?> showOnboardingIntro(
   final mode = await _showIntroDialog(context, variant);
   if (mode == null) return null;
   if (mode == 'guest') {
-    // Podgląd strefy gości — pytamy o tempo jeszcze raz, już w wariancie gościa.
+    // Podgląd strefy gości dla organizatora — drugi ekran uprzedza, że gość
+    // ogląda to na zupełnie innym interfejsie (#21).
     if (!context.mounted) return null;
-    final guestMode = await _showIntroDialog(context, OnbVariant.guest);
+    final guestMode =
+        await _showIntroDialog(context, OnbVariant.guest, preview: true);
     if (guestMode == null || guestMode == 'guest') return null;
     return OnbChoice(guestMode, OnbVariant.guest);
   }
@@ -312,12 +389,14 @@ Future<OnbChoice?> showOnboardingIntro(
 ({String title, String desc, String basicSub, String fullSub}) _introTexts(
     OnbVariant v) {
   return switch (v) {
+    // Gość ma JEDEN przewodnik — zawsze całość, bez wyboru tempa (#21).
+    // `basicSub`/`fullSub` nie są dla niego używane.
     OnbVariant.guest => (
         title: 'Przewodnik dla gościa',
         desc: 'Pokażemy Ci, co możesz zrobić na stronie przygotowanej przez '
             'Parę Młodą. Zajmie to chwilę.',
-        basicSub: 'Najważniejsze: RSVP, harmonogram, galeria, gry',
-        fullSub: 'Wszystkie sekcje strefy gości',
+        basicSub: '',
+        fullSub: '',
       ),
     OnbVariant.planner => (
         title: 'Przewodnik dla planera',
@@ -336,9 +415,13 @@ Future<OnbChoice?> showOnboardingIntro(
   };
 }
 
-Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant) {
+/// [preview] — organizator ogląda przewodnik gościa, a nie własny. Dokładamy
+/// wtedy uprzedzenie, że u gościa wygląda to inaczej.
+Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
+    {bool preview = false}) {
   final t = _introTexts(variant);
-  final offerGuestPreview = variant != OnbVariant.guest;
+  final isGuest = variant == OnbVariant.guest;
+  final offerGuestPreview = !isGuest;
   return showDialog<String>(
     context: context,
     barrierDismissible: false,
@@ -368,24 +451,67 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant) {
                 style: GoogleFonts.inter(
                     fontSize: 13.5, height: 1.5, color: AppColors.textLight),
               ),
+              // Podgląd dla organizatora: uprzedzenie o innym interfejsie.
+              if (preview) ...[
+                const SizedBox(height: 14),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFCD9A6)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline,
+                          size: 18, color: Color(0xFFB45309)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'To podgląd dla Ciebie. Goście oglądają swoją strefę '
+                          'na osobnej stronie o zupełnie innym wyglądzie — tutaj '
+                          'pokazujemy wyłącznie treść ich przewodnika.',
+                          style: GoogleFonts.inter(
+                              fontSize: 12,
+                              height: 1.45,
+                              color: const Color(0xFF7C4A03)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 18),
-              _introBtn(
-                context,
-                icon: Icons.flag_outlined,
-                title: 'Skrócony',
-                subtitle: t.basicSub,
-                value: 'basic',
-                filled: false,
-              ),
-              const SizedBox(height: 10),
-              _introBtn(
-                context,
-                icon: Icons.explore_outlined,
-                title: 'Rozszerzony',
-                subtitle: t.fullSub,
-                value: 'full',
-                filled: true,
-              ),
+              // Gość ma jeden przewodnik — całość, bez wyboru tempa (#21).
+              if (isGuest)
+                _introBtn(
+                  context,
+                  icon: Icons.explore_outlined,
+                  title: preview ? 'Zobacz przewodnik gościa' : 'Rozpocznij',
+                  subtitle: 'Wszystkie sekcje strefy gości',
+                  value: 'full',
+                  filled: true,
+                )
+              else ...[
+                _introBtn(
+                  context,
+                  icon: Icons.flag_outlined,
+                  title: 'Skrócony',
+                  subtitle: t.basicSub,
+                  value: 'basic',
+                  filled: false,
+                ),
+                const SizedBox(height: 10),
+                _introBtn(
+                  context,
+                  icon: Icons.explore_outlined,
+                  title: 'Rozszerzony',
+                  subtitle: t.fullSub,
+                  value: 'full',
+                  filled: true,
+                ),
+              ],
               if (offerGuestPreview) ...[
                 const SizedBox(height: 10),
                 _introBtn(
@@ -394,6 +520,17 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant) {
                   title: 'Zobacz przewodnik gościa',
                   subtitle: 'Sprawdź, co widzą Wasi goście',
                   value: 'guest',
+                  filled: false,
+                ),
+                const SizedBox(height: 10),
+                // Kreator konfiguracji (#17) — inne pytanie niż przewodnik:
+                // nie „gdzie co jest", tylko „co wpisać". Gość go nie ma.
+                _introBtn(
+                  context,
+                  icon: Icons.checklist_rtl,
+                  title: 'Poprowadź mnie za rękę',
+                  subtitle: 'Krok po kroku przez uzupełnianie danych wesela',
+                  value: 'setup',
                   filled: false,
                 ),
               ],

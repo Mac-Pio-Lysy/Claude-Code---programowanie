@@ -27,6 +27,7 @@ import 'guests/guests_section_screen.dart';
 import 'lock/security_setup.dart';
 import 'music/music_screen.dart';
 import 'planning/planning_guide_screen.dart';
+import 'setup/setup_wizard_screen.dart';
 import 'room/room_plan_screen.dart';
 import 'rsvp/rsvp_all_screen.dart';
 import 'rsvp/rsvp_screen.dart';
@@ -153,6 +154,14 @@ class _MainNavigationState extends State<MainNavigation> {
       if (mounted) await _maybeOfferLockSetup();
       return;
     }
+    if (choice.isSetupWizard) {
+      // Kreator zamiast zwiedzania — przewodnik zaliczamy, żeby nie wracał
+      // przy każdym uruchomieniu.
+      await _onboarding.markDone(_variant);
+      if (mounted) await _openSetupWizard();
+      if (mounted) await _maybeOfferLockSetup();
+      return;
+    }
     _startTour(choice, offersLock: true);
   }
 
@@ -160,7 +169,34 @@ class _MainNavigationState extends State<MainNavigation> {
   Future<void> _promptAndStartTour() async {
     final choice = await showOnboardingIntro(context, variant: _variant);
     if (choice == null || !mounted) return;
+    if (choice.isSetupWizard) {
+      await _openSetupWizard();
+      return;
+    }
     _startTour(choice, offersLock: false);
+  }
+
+  /// Otwiera kreator „Poprowadź mnie za rękę" i realizuje wybrane „Przejdź".
+  ///
+  /// Kreator zamyka się przy przejściu — powrót do niego jest ręczny
+  /// (Ustawienia albo ekran powitalny przewodnika).
+  Future<void> _openSetupWizard() async {
+    // Świeży odczyt zamiast trzymania danych w polu — kreator ma pokazać stan
+    // z tej chwili, a wywołujemy go rzadko (z Ustawień albo ekranu przewodnika).
+    final raw = await widget.firestore.readData();
+    if (!mounted) return;
+    final data = raw == null ? null : WeddingData.fromMap(raw);
+
+    final jump = await SetupWizardScreen.open(context, data);
+    if (jump == null || !mounted) return;
+    _select(jump.section);
+    // Podzakładkę przełączamy tą samą magistralą co przewodnik — bez nowej
+    // infrastruktury nawigacji.
+    if (jump.subTab != null && tabbedSections.contains(jump.section)) {
+      OnboardingTabBus.requestTab(jump.section, jump.subTab!);
+    } else {
+      OnboardingTabBus.clear();
+    }
   }
 
   void _startTour(OnbChoice choice, {required bool offersLock}) {
@@ -841,6 +877,7 @@ class _MainNavigationState extends State<MainNavigation> {
           currentUserId: _uid,
           onSignOut: _handleSignOut,
           onStartTour: _promptAndStartTour,
+          onOpenSetupWizard: _openSetupWizard,
           onOpenHelp: () => HelpScreen.open(context, _variant),
           onOpenPlanning: () => Navigator.of(context).push(
             MaterialPageRoute(
