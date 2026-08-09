@@ -61,6 +61,16 @@ class Guest {
   /// Imię jeszcze nieznane — rekord istnieje (liczy się do cateringu i ma
   /// miejsce przy stole), ale dane osobowe czekają na uzupełnienie.
   bool get namePending => raw['namePending'] == true;
+
+  /// Czy ten gość jest dzieckiem (zgłoszenie #6).
+  ///
+  /// Flaga, a NIE kategoria: dziecko kuzynki jest jednocześnie „Rodziną"
+  /// i dzieckiem. Kategoria zmusiłaby do wyboru jednego i wywróciła filtry.
+  /// Ortogonalna do `category`, `invitedBy` i powiązania towarzyszącego —
+  /// tak samo jak [namePending] czy [companionOfId].
+  ///
+  /// Brak pola = dorosły, czyli zachowanie sprzed wprowadzenia flagi.
+  bool get isChild => raw['isChild'] == true;
   bool get needsAccommodation => raw['needsAccommodation'] == true;
   String get menuChoice => (raw['menuChoice'] as String?)?.trim() ?? '';
 
@@ -143,13 +153,18 @@ class GuestOptions {
     'Inne',
   ];
 
+  /// Domyślna opcja menu dla dzieci — podpowiadana po oznaczeniu gościa jako
+  /// dziecko. Para może ją usunąć z konfiguracji, dlatego podpowiedź działa
+  /// tylko wtedy, gdy ta pozycja jest na aktualnej liście menu.
+  static const String childMenuOption = 'Dla dziecka';
+
   /// Domyślne opcje menu/diety (DEFAULT_APP_CONFIG.menuOptions w script.js).
   static const List<String> defaultMenuOptions = [
     'Danie mięsne',
     'Danie rybne',
     'Wegetariańskie',
     'Wegańskie',
-    'Dla dziecka',
+    childMenuOption,
   ];
 
   /// Etykieta „kto zaprosił" — wyliczana z typu uroczystości.

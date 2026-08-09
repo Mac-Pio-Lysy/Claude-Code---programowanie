@@ -84,6 +84,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Typ uroczystości — steruje etykietami pary w całej aplikacji.
   CoupleType _coupleType = CoupleType.mixed;
 
+  /// Czy na weselu będą dzieci (`budgetData.withChildren`).
+  bool _withChildren = false;
+
   /// Nazwiska do weryfikacji gościa (nigdzie nie wyświetlane).
   late final TextEditingController _surnames;
 
@@ -145,6 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _coupleType = CoupleType.fromRaw(cfg['coupleType']);
     _surnames = TextEditingController(
         text: (cfg['verificationSurnames'] as String?) ?? '');
+    _withChildren = bd['withChildren'] == true;
     _loadJoinCode(raw);
     _loadGuestToken(raw);
   }
@@ -226,6 +230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       witnessCount: int.tryParse(_witnessCount.text.trim()) ?? 2,
       coupleType: _coupleType,
       verificationSurnames: _surnames.text.trim(),
+      withChildren: _withChildren,
     ));
     // Odśwież publiczny indeks kodu + mirror gościa (data/nazwisko/harmonogram).
     try {
@@ -1057,6 +1062,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
+          // Dzieci na weselu — ta sama flaga co w Budżet → Sala, tutaj tylko
+          // wystawiona w widocznym miejscu. Ceny menu dziecięcego zostają
+          // w Budżecie, żeby nie rozdzielać szczegółów cenowych na dwa ekrany.
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            activeThumbColor: AppColors.accent,
+            title: Text('Dzieci na weselu',
+                style: GoogleFonts.inter(
+                    fontSize: 13, fontWeight: FontWeight.w600)),
+            subtitle: Text(
+              _withChildren
+                  ? 'Możesz oznaczać gości jako dzieci, dodać stół dla dzieci '
+                      'i osobne menu. Ceny ustawisz w Budżet → Sala.'
+                  : 'Włącz, jeśli na weselu będą dzieci.',
+              style:
+                  GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+            value: _withChildren,
+            onChanged: (v) => setState(() => _withChildren = v),
+          ),
+          const SizedBox(height: 8),
           _field('Słownik menu (po jednym w linii)', _menu, maxLines: 4),
           _field('Kategorie wydatków (po jednym w linii)', _expenseCats,
               maxLines: 4),

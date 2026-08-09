@@ -47,6 +47,12 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
   bool _hasCompanion = false;
   bool _needsAccommodation = false;
 
+  /// Czy gość jest dzieckiem (#6).
+  bool _isChild = false;
+
+  /// Czy osoba towarzysząca jest dzieckiem — gość przychodzi z dzieckiem.
+  bool _companionIsChild = false;
+
   /// Typ relacji osoby towarzyszącej (#3).
   String _companionRelation = CompanionRelation.unknown;
 
@@ -81,6 +87,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
     _menuChoice = g?.menuChoice ?? '';
     _hasCompanion = g?.hasCompanion ?? false;
     _needsAccommodation = g?.needsAccommodation ?? false;
+    _isChild = g?.isChild ?? false;
 
     // Rozbij istniejące „imię nazwisko" osoby towarzyszącej na dwa pola.
     final comp = g?.companionName ?? '';
@@ -100,6 +107,17 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
     _companionFirst.dispose();
     _companionLast.dispose();
     super.dispose();
+  }
+
+  /// Po oznaczeniu gościa jako dziecko podpowiada menu dziecięce.
+  ///
+  /// Tylko gdy menu nie jest jeszcze wybrane (nie nadpisujemy decyzji pary)
+  /// i gdy taka pozycja w ogóle istnieje w konfiguracji — listę menu można
+  /// dowolnie zmienić w Ustawieniach.
+  void _suggestChildMenu(List<String> menus) {
+    if (_menuChoice.isNotEmpty) return;
+    if (!menus.contains(GuestOptions.childMenuOption)) return;
+    _menuChoice = GuestOptions.childMenuOption;
   }
 
   void _submit() {
@@ -124,6 +142,8 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
       companionRelation: _companionRelation,
       companionNamePending: _companionNamePending,
       companionCategory: _companionCategory,
+      isChild: _isChild,
+      companionIsChild: _isCouple ? false : _companionIsChild,
     );
     Navigator.of(context).pop(draft);
   }
@@ -304,6 +324,26 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                             onChanged: (v) => setState(() => _witness = v),
                           ),
                         ),
+                        // Dziecko: flaga, nie kategoria — gość zostaje np.
+                        // w „Rodzinie" i jednocześnie liczy się jako dziecko.
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          activeThumbColor: AppColors.accent,
+                          title: Text('🧒 To dziecko',
+                              style: GoogleFonts.inter(fontSize: 14)),
+                          subtitle: Text(
+                            'Dzieci są wyłączane z przeliczeń alkoholu i mogą '
+                            'mieć osobne menu.',
+                            style: GoogleFonts.inter(
+                                fontSize: 11.5, color: AppColors.textLight),
+                          ),
+                          value: _isChild,
+                          onChanged: (v) => setState(() {
+                            _isChild = v;
+                            if (v) _suggestChildMenu(menus);
+                          }),
+                        ),
+                        const SizedBox(height: 4),
                         _field(
                           label: 'Dieta / menu',
                           child: DropdownButtonFormField<String>(
@@ -443,6 +483,21 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                                       (v == null || v.isEmpty) ? null : v),
                             ),
                           ),
+                          // Częsty przypadek: gość przychodzi z własnym
+                          // dzieckiem. Flaga trafia na tworzony rekord
+                          // towarzyszącej — dlatego tylko przy dodawaniu;
+                          // przy edycji rekord już istnieje i oznacza się go
+                          // wprost, na jego własnym formularzu.
+                          if (!_isEdit)
+                            SwitchListTile.adaptive(
+                              contentPadding: EdgeInsets.zero,
+                              activeThumbColor: AppColors.accent,
+                              title: Text('🧒 Osoba towarzysząca to dziecko',
+                                  style: GoogleFonts.inter(fontSize: 13)),
+                              value: _companionIsChild,
+                              onChanged: (v) =>
+                                  setState(() => _companionIsChild = v),
+                            ),
                           if (!_isEdit)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),

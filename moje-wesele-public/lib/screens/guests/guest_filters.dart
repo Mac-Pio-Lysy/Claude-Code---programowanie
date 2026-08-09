@@ -6,7 +6,7 @@ import '../../models/couple.dart';
 import '../../models/guest.dart';
 
 /// Szybki filtr listy gości (jeden aktywny na raz).
-enum GuestQuick { all, assigned, unassigned, groom, bride, witnesses }
+enum GuestQuick { all, assigned, unassigned, groom, bride, witnesses, children }
 
 /// Stan filtrów gości — WSPÓLNY dla podzakładek „Lista" i „Kartoteka",
 /// dzięki czemu obie mają dokładnie te same opcje filtrowania/sortowania.
@@ -52,6 +52,8 @@ class GuestFilter {
         if (g.invitedBy != 'bride') return false;
       case GuestQuick.witnesses:
         if (g.witness == null) return false;
+      case GuestQuick.children:
+        if (!g.isChild) return false;
       case GuestQuick.all:
         break;
     }
@@ -104,6 +106,10 @@ class GuestFilterControls extends StatelessWidget {
               () => onChanged(filter.copyWith(quick: GuestQuick.bride))),
           _chip('🤝 Świadkowie', filter.quick == GuestQuick.witnesses,
               () => onChanged(filter.copyWith(quick: GuestQuick.witnesses))),
+          // Widoczny zawsze — tak samo jak „Świadkowie", który przy braku
+          // wyznaczonych też daje pustą listę.
+          _chip('🧒 Dzieci', filter.quick == GuestQuick.children,
+              () => onChanged(filter.copyWith(quick: GuestQuick.children))),
         ]),
         const SizedBox(height: 8),
         _row([

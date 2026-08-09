@@ -19,6 +19,7 @@ class AppConfigDraft {
     this.witnessCount = 2,
     this.coupleType = CoupleType.mixed,
     this.verificationSurnames = '',
+    this.withChildren = false,
   });
 
   final String eventName;
@@ -45,6 +46,13 @@ class AppConfigDraft {
   /// dołączania pyta gościa o NAZWISKO. Bez tego pola prawidłowe dane były
   /// odrzucane (zgłoszenie #23).
   final String verificationSurnames;
+
+  /// Czy na weselu będą dzieci (`budgetData.withChildren`).
+  ///
+  /// Trzymane w `budgetData`, a nie w `appConfig`, bo tego pola używają już
+  /// kalkulacje sali i napojów. Konfiguracja tylko je udostępnia w drugim
+  /// miejscu — szczegóły cenowe zostają w Budżet → Sala.
+  final bool withChildren;
 }
 
 /// Operacje na konfiguracji aplikacji (`appConfig`, `weddingDate`,
@@ -78,6 +86,9 @@ class ConfigService {
           d.person1.isEmpty ? 'Osoba 1' : d.person1,
           d.person2.isEmpty ? 'Osoba 2' : d.person2,
         ],
+        // Głębokie scalanie — reszta `budgetData` (ceny, menu dziecięce,
+        // tryb liczenia dzieci) zostaje nietknięta.
+        'withChildren': d.withChildren,
       },
     }, SetOptions(merge: true));
   }

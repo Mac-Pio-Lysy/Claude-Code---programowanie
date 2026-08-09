@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/beverage.dart';
+import '../models/children.dart';
 import 'firestore_service.dart';
 
 /// Dane wydatku z formularza dodawania/edycji.
@@ -101,6 +102,17 @@ class BudgetService {
 
   Future<void> setChildrenCount(num value) =>
       _mergeBudget({'childrenCount': value});
+
+  /// Przełącza liczenie dzieci: `auto` (z listy gości) ↔ `manual` (z pola).
+  ///
+  /// Przy przejściu na tryb ręczny zapisujemy aktualnie wyliczoną liczbę jako
+  /// punkt startowy — inaczej pole pokazałoby starą, nieaktualną wartość.
+  Future<void> setChildrenCountAuto(bool auto, {int? currentCount}) =>
+      _mergeBudget({
+        ChildrenSettings.modeKey:
+            auto ? ChildrenSettings.modeAuto : ChildrenSettings.modeManual,
+        if (!auto && currentCount != null) 'childrenCount': currentCount,
+      });
 
   Future<void> setChildMenuSeparate(bool value) =>
       _mergeBudget({'childMenuSeparate': value});

@@ -124,6 +124,7 @@ class GuestSummaryStats {
     required this.notAttending,
     required this.noRsvp,
     required this.total,
+    required this.children,
   });
 
   final Map<String, int> menu;
@@ -141,6 +142,13 @@ class GuestSummaryStats {
   final int noRsvp;
   final int total;
 
+  /// Liczba gości oznaczonych jako dzieci (#6). Źródło trybu „auto" dla
+  /// `budgetData.childrenCount` — patrz krok 2 partii DZIECI.
+  final int children;
+
+  /// Dorośli = wszyscy poza dziećmi.
+  int get adults => total - children;
+
   factory GuestSummaryStats.from(
     List<Guest> guests,
     List<dynamic> vehicles,
@@ -151,8 +159,11 @@ class GuestSummaryStats {
     final diet = <String, int>{};
     var noMenu = 0, transOwn = 0, transOrg = 0, transNone = 0;
     var accomNeeds = 0, accomAssigned = 0, att = 0, notAtt = 0, noRsvp = 0;
+    var children = 0;
 
     for (final g in guests) {
+      if (g.isChild) children++;
+
       final m = g.menuChoice.trim();
       if (m.isNotEmpty) {
         menu[m] = (menu[m] ?? 0) + 1;
@@ -201,6 +212,7 @@ class GuestSummaryStats {
       notAttending: notAtt,
       noRsvp: noRsvp,
       total: guests.length,
+      children: children,
     );
   }
 }

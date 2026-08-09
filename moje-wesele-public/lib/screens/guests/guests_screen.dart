@@ -470,6 +470,8 @@ class _GuestCardState extends State<_GuestCard> {
       if (g.witness == 'witness_bride')
         _Badge('● ${GuestOptions.witnessLabel('witness_bride')}',
             const Color(0xFFFDF2F8), const Color(0xFFDB2777)),
+      if (g.isChild)
+        _Badge('🧒 Dziecko', const Color(0xFFECFEFF), const Color(0xFF0E7490)),
       if (g.needsAccommodation)
         _Badge('🏨 Nocleg', const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
       // Stary „+1" bez własnego rekordu (dane sprzed powiązań).

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/children.dart';
 import '../models/couple.dart';
 import '../models/guest_visibility.dart';
 import '../models/wedding_summary.dart';
@@ -141,6 +142,8 @@ class WeddingService {
     CoupleType coupleType = CoupleType.mixed,
     String person1 = '',
     String person2 = '',
+    bool withChildren = false,
+    int childrenCount = 0,
   }) async {
     final ref = _col.doc(); // auto-generowane, unikalne weddingId
     final weddingId = ref.id;
@@ -157,6 +160,8 @@ class WeddingService {
       coupleType: coupleType,
       person1: person1,
       person2: person2,
+      withChildren: withChildren,
+      childrenCount: childrenCount,
     ));
 
     await _memberships.create(
@@ -752,6 +757,8 @@ class WeddingService {
     CoupleType coupleType = CoupleType.mixed,
     String person1 = '',
     String person2 = '',
+    bool withChildren = false,
+    int childrenCount = 0,
   }) {
     // Imiona podane wprost są pewniejsze niż rozbijanie „Ania i Piotr" po
     // separatorze; bez nich zostaje dotychczasowa ścieżka.
@@ -790,6 +797,12 @@ class WeddingService {
       'budgetData': {
         'coupleNames': coupleNames,
         'total': 0,
+        // Dzieci (#8): flaga, opcjonalna liczba i tryb liczenia — decyduje
+        // o nich [ChildrenSettings.initialBudgetFields].
+        ...ChildrenSettings.initialBudgetFields(
+          withChildren: withChildren,
+          childrenCount: childrenCount,
+        ),
       },
       'guests': couple,
       'nextGuestId': couple.length + 1,

@@ -34,6 +34,8 @@ class GuestDraft {
     this.companionRelation,
     this.companionNamePending = false,
     this.companionCategory,
+    this.isChild = false,
+    this.companionIsChild = false,
   });
 
   final String firstName;
@@ -57,6 +59,13 @@ class GuestDraft {
   /// Kategoria osoby towarzyszącej. `null` = dziedzicz po zapraszającym
   /// (z podpowiedzią wg typu relacji).
   final String? companionCategory;
+
+  /// Czy gość jest dzieckiem (#6).
+  final bool isChild;
+
+  /// Czy osoba towarzysząca jest dzieckiem — częsty przypadek: gość przychodzi
+  /// z własnym dzieckiem.
+  final bool companionIsChild;
 
   /// Czy osoba towarzysząca ma podane dane osobowe.
   bool get hasNamedCompanion =>
@@ -104,6 +113,7 @@ class GuestService {
         'hasCompanion': false,
         'needsAccommodation': draft.needsAccommodation,
         'menuChoice': draft.menuChoice,
+        'isChild': draft.isChild,
       });
     guests.add(main);
 
@@ -167,6 +177,7 @@ class GuestService {
         'companionOfId': inviterId,
         'relationType': draft.companionRelation ?? CompanionRelation.unknown,
         'namePending': pending,
+        'isChild': draft.companionIsChild,
       });
   }
 
@@ -390,6 +401,7 @@ class GuestService {
       'witness': draft.witness,
       'menuChoice': draft.menuChoice,
       'needsAccommodation': draft.needsAccommodation,
+      'isChild': draft.isChild,
       // Gdy istnieje powiązany rekord, flaga „+1 bez rekordu" musi zostać
       // wyłączona — inaczej catering policzyłby tę samą osobę dwa razy.
       // Pola `companionOfId` / `relationType` / `namePending` NIE są tu ruszane:
@@ -541,6 +553,7 @@ class GuestService {
         'dietOther': '',
         'hasCompanion': false,
         'companionName': '',
+        'isChild': false,
         'needsAccommodation': false,
         'vehicleId': null,
         'ownTransport': false,

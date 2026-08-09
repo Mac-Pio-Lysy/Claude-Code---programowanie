@@ -92,6 +92,13 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
           (GuestOptions.witnessLabel('witness_bride'), witnessBride),
           ('Wyznaczeni łącznie', witnessGroom + witnessBride),
         ]),
+        // Karta pojawia się dopiero, gdy ktoś jest oznaczony jako dziecko —
+        // wesela bez dzieci nie oglądają pustej rubryki z zerami.
+        if (s.children > 0)
+          _aggCard('🧒 Dzieci', [
+            ('Dzieci', s.children),
+            ('Dorośli', s.adults),
+          ]),
         _aggCard('🍽 Menu (co je)', [
           for (final e in menuItems) (e.key, e.value),
           if (s.noMenu > 0) ('Bez wyboru menu', s.noMenu),
@@ -201,7 +208,10 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
           rows: [
             for (final g in rows)
               DataRow(cells: [
-                DataCell(Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName)),
+                // Dziecko oznaczamy ikoną przy nazwisku zamiast dokładać
+                // kolumnę — tabela i tak jest szeroka.
+                DataCell(Text('${g.isChild ? '🧒 ' : ''}'
+                    '${g.fullName.isEmpty ? '(bez imienia)' : g.fullName}')),
                 DataCell(Text(GuestSummary.rsvpLabel(
                     GuestSummary.rsvpStatus(g.id, rsvp)))),
                 DataCell(Text(GuestSummary.companion(g, _guests))),

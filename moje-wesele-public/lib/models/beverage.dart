@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'children.dart';
 import 'wedding_data.dart';
 
 /// Rodzaj napojów — wspólna logika dla Alkoholu i Napojów bezalkoholowych.
@@ -101,9 +102,10 @@ class BeverageSummary {
 
     // Wesele z dziećmi: dzieci są WYŁĄCZONE z przeliczeń alkoholu
     // (alkohol nie dla dzieci). Napojów bezalkoholowych to nie dotyczy.
-    final withChildren = budget['withChildren'] == true;
-    final childrenCount =
-        withChildren ? max(0, _d(budget['childrenCount']).round()) : 0;
+    //
+    // Liczba pochodzi z [ChildrenSettings] — w trybie „auto" z listy gości,
+    // w ręcznym z pola w Budżecie. Sama logika przeliczeń bez zmian.
+    final childrenCount = ChildrenSettings.from(budget, guests).count;
     final baseGuests = kind == BeverageKind.alcohol
         ? max(0, guests.length - childrenCount)
         : guests.length;

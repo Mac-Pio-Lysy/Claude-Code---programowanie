@@ -88,14 +88,52 @@ class SalaTab extends StatelessWidget {
           ),
           if (s.withChildren) ...[
             const SizedBox(height: 8),
-            BudgetNumberField(
-              key: const ValueKey('childrenCount'),
-              label: 'Liczba dzieci',
-              suffix: 'dzieci',
-              integer: true,
-              initial: s.childrenCount.toDouble(),
-              onSaved: service.setChildrenCount,
+            // Tryb liczenia dzieci: z listy gości albo ręcznie. Rozwiązuje
+            // rozjazd — wcześniej liczba żyła osobno od listy gości.
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              activeThumbColor: AppColors.accent,
+              title: Text('Licz dzieci z listy gości',
+                  style: GoogleFonts.inter(fontSize: 13)),
+              subtitle: Text(
+                s.children.auto
+                    ? 'Liczba bierze się z gości oznaczonych jako dziecko '
+                        '(Goście → „🧒 To dziecko").'
+                    : 'Wpisujesz liczbę ręcznie. Włącz, jeśli dzieci są na '
+                        'liście gości.',
+                style:
+                    GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+              ),
+              value: s.children.auto,
+              onChanged: (v) => service.setChildrenCountAuto(v,
+                  currentCount: s.childrenCount),
             ),
+            const SizedBox(height: 8),
+            if (s.children.auto)
+              _infoRow('Liczba dzieci (z listy gości)',
+                  '${s.children.fromGuests}')
+            else
+              BudgetNumberField(
+                key: const ValueKey('childrenCount'),
+                label: 'Liczba dzieci',
+                suffix: 'dzieci',
+                integer: true,
+                initial: s.childrenCount.toDouble(),
+                onSaved: service.setChildrenCount,
+              ),
+            // W trybie ręcznym ostrzegamy o rozjeździe z listą gości — to
+            // najczęstsze źródło błędnej kalkulacji cateringu.
+            if (s.children.manualMismatch)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  'Na liście gości oznaczono ${s.children.fromGuests} '
+                  '${_childWord(s.children.fromGuests)}, a tu wpisano '
+                  '${s.childrenCount}. Sprawdź, która liczba jest właściwa.',
+                  style: GoogleFonts.inter(
+                      fontSize: 11, color: const Color(0xFFB45309)),
+                ),
+              ),
             const SizedBox(height: 8),
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -530,6 +568,10 @@ class SalaTab extends StatelessWidget {
       tooltip: 'Dodaj',
     );
   }
+
+  /// Odmiana rzeczownika „dziecko" — jedyne miejsce, gdzie liczba dzieci
+  /// trafia do zdania.
+  static String _childWord(int n) => n == 1 ? 'dziecko' : 'dzieci';
 
   Widget _subHeader(String text, VoidCallback onAdd) {
     return Padding(

@@ -89,6 +89,7 @@ class TableVisual extends StatelessWidget {
     final shape = (table['shape'] as String?) ?? 'round';
     final isRound = shape == 'round';
     final isHonor = table['isHonorTable'] == true;
+    final isChild = table['isChildTable'] == true;
     final seatsData = (table['seatsData'] as List?) ?? const [];
     final seatCount = seatsData.length;
     final name = (table['name'] as String?) ?? 'Stół';
@@ -101,7 +102,7 @@ class TableVisual extends StatelessWidget {
       child: Stack(
         children: [
           // Blat stołu
-          _tableBody(isRound, isHonor, name),
+          _tableBody(isRound, isHonor, isChild, name),
           // Miejsca
           for (var i = 0; i < layout.seats.length; i++)
             Positioned(
@@ -114,13 +115,17 @@ class TableVisual extends StatelessWidget {
     );
   }
 
-  Widget _tableBody(bool isRound, bool isHonor, String name) {
+  Widget _tableBody(bool isRound, bool isHonor, bool isChild, String name) {
+    // Kolory te same co na planie sali (`room_canvas`) — stół dziecięcy ma
+    // wyglądać tak samo w obu widokach.
     final gradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: isHonor
           ? const [Color(0xFFB45309), Color(0xFFF59E0B)]
-          : const [AppColors.accent, AppColors.accent2],
+          : isChild
+              ? const [Color(0xFF0EA5A5), Color(0xFF34D399)]
+              : const [AppColors.accent, AppColors.accent2],
     );
 
     if (isRound) {
@@ -133,7 +138,7 @@ class TableVisual extends StatelessWidget {
           alignment: Alignment.center,
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(shape: BoxShape.circle, gradient: gradient),
-          child: _bodyLabel(name, isHonor),
+          child: _bodyLabel(name, isHonor, isChild),
         ),
       );
     }
@@ -149,14 +154,16 @@ class TableVisual extends StatelessWidget {
           gradient: gradient,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: _bodyLabel(name, isHonor),
+        child: _bodyLabel(name, isHonor, isChild),
       ),
     );
   }
 
-  Widget _bodyLabel(String name, bool isHonor) {
+  Widget _bodyLabel(String name, bool isHonor, bool isChild) {
     return Text(
-      '${isHonor ? '★ ' : ''}$name',
+      // Ten sam wzorzec co w `room_canvas`: honorowy ma pierwszeństwo, oba
+      // typy i tak wykluczają się przy dodawaniu stołu.
+      '${isHonor ? '★ ' : isChild ? '🧒 ' : ''}$name',
       textAlign: TextAlign.center,
       maxLines: 3,
       overflow: TextOverflow.ellipsis,

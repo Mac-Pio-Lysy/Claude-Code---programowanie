@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
@@ -14,6 +15,8 @@ class NewWeddingDraft {
     this.coupleType = CoupleType.mixed,
     this.person1 = '',
     this.person2 = '',
+    this.withChildren = false,
+    this.childrenCount = 0,
   });
 
   /// Nazwa wesela (`appConfig.eventName`).
@@ -31,6 +34,13 @@ class NewWeddingDraft {
   /// Imiona Pary Młodej. Opcjonalne: puste = nie zakładamy rekordów gości.
   final String person1;
   final String person2;
+
+  /// Czy na weselu będą dzieci (`budgetData.withChildren`).
+  final bool withChildren;
+
+  /// Orientacyjna liczba dzieci. 0 = nie podano — wtedy wesele liczy dzieci
+  /// z listy gości (tryb `auto`).
+  final int childrenCount;
 }
 
 /// Otwiera arkusz tworzenia wesela. Zwraca [NewWeddingDraft] lub `null`
@@ -60,8 +70,10 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
   final _personsCtrl = TextEditingController();
   final _person1Ctrl = TextEditingController();
   final _person2Ctrl = TextEditingController();
+  final _childrenCtrl = TextEditingController();
   DateTime? _date;
   CoupleType _coupleType = CoupleType.mixed;
+  bool _withChildren = false;
 
   @override
   void dispose() {
@@ -69,6 +81,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
     _personsCtrl.dispose();
     _person1Ctrl.dispose();
     _person2Ctrl.dispose();
+    _childrenCtrl.dispose();
     super.dispose();
   }
 
@@ -115,6 +128,10 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
         coupleType: _coupleType,
         person1: person1,
         person2: person2,
+        withChildren: _withChildren,
+        childrenCount: _withChildren
+            ? (int.tryParse(_childrenCtrl.text.trim()) ?? 0)
+            : 0,
       ),
     );
   }
@@ -270,6 +287,47 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                // Dzieci na weselu (#8). Trafia do `budgetData.withChildren` —
+                // tych samych pól używa Budżet → Sala, więc nic nie dublujemy.
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  activeThumbColor: AppColors.accent,
+                  title: Text('Będą dzieci na weselu',
+                      style: GoogleFonts.inter(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  subtitle: Text(
+                    'Możesz to zmienić później w Ustawieniach → Konfiguracja. '
+                    'Ceny menu dziecięcego ustawisz w Budżecie.',
+                    style: GoogleFonts.inter(
+                        fontSize: 12, height: 1.4, color: AppColors.textLight),
+                  ),
+                  value: _withChildren,
+                  onChanged: (v) => setState(() => _withChildren = v),
+                ),
+                if (_withChildren) ...[
+                  const SizedBox(height: 8),
+                  _label('Ile dzieci (orientacyjnie, opcjonalnie)'),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _childrenCtrl,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: _decoration('np. 8'),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _childrenCtrl.text.trim().isEmpty
+                        ? 'Zostaw puste, a liczba dzieci będzie liczona z '
+                            'listy gości — wystarczy oznaczać ich jako dzieci.'
+                        : 'Podana liczba będzie użyta w wyliczeniach. Gdy '
+                            'wpiszesz dzieci na listę gości, przełącz '
+                            'liczenie na automatyczne w Budżecie.',
+                    style: GoogleFonts.inter(
+                        fontSize: 12, height: 1.4, color: AppColors.textLight),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 Row(
                   children: [

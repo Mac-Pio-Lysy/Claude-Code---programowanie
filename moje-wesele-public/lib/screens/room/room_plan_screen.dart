@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
+import '../../models/children.dart';
 import '../../models/guest.dart';
 import '../../models/room_plan.dart';
 import '../../models/wedding_data.dart';
@@ -152,7 +153,23 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
 
   Future<void> _assignGuest(int tableId, int guestId) async {
     final ok = await widget.tableSvc.assignGuestToTable(tableId, guestId);
-    if (!ok) _toast('Stół jest pełny!');
+    if (!ok) {
+      _toast('Stół jest pełny!');
+      return;
+    }
+    // Miękka podpowiedź (dorosły przy stole dzieci itp.) — po zapisie,
+    // bo przypisania nie blokujemy.
+    final tables = _tables;
+    final table = tables.where((t) => (t['id'] as num?)?.toInt() == tableId);
+    final guest = _guests.where((g) => g.id == guestId);
+    if (table.isEmpty || guest.isEmpty) return;
+
+    final hint = ChildrenSettings.seatingHint(
+      guestIsChild: guest.first.isChild,
+      tableIsChildTable: table.first['isChildTable'] == true,
+      childTableExists: ChildrenSettings.hasChildTable(tables),
+    );
+    if (hint != null) _toast(hint);
   }
 
   @override

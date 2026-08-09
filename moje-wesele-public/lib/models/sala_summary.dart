@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'children.dart';
 import 'wedding_data.dart';
 
 /// Pozycja obsługi (kelnerzy, fotograf, DJ…) — `staffTables` (współdzielone
@@ -52,6 +53,7 @@ class SalaSummary {
     // ── Wesele z dziećmi ──
     required this.withChildren,
     required this.childrenCount,
+    required this.children,
     required this.childBilledCount,
     required this.childMenuSeparate,
     required this.childMenuPricePerPerson,
@@ -124,6 +126,10 @@ class SalaSummary {
   /// Liczba dzieci (do przeliczeń: wyłączane z alkoholu, opcjonalnie osobne menu).
   final int childrenCount;
 
+  /// Ustawienia liczenia dzieci (tryb auto/ręczny + liczba z listy gości).
+  /// UI Budżetu pokazuje na tej podstawie pole edytowalne albo podgląd.
+  final ChildrenSettings children;
+
   /// Dzieci faktycznie liczone do sali (min z liczby dzieci i gości liczonych).
   final double childBilledCount;
 
@@ -166,9 +172,12 @@ class SalaSummary {
         (assigned + (includeUnassigned ? unassigned : 0)).toDouble();
 
     // ── Wesele z dziećmi ──
-    final withChildren = bd['withChildren'] == true;
-    final childrenCount =
-        withChildren ? max(0, _d(bd['childrenCount']).round()) : 0;
+    // Liczba dzieci z [ChildrenSettings]: tryb „auto" bierze ją z listy gości
+    // (flaga `isChild`), ręczny — z pola w Budżecie. Poniższe przeliczenia
+    // pozostają bez zmian, dostają tylko inne źródło liczby.
+    final children = ChildrenSettings.from(bd, guests);
+    final withChildren = children.enabled;
+    final childrenCount = children.count;
     final childMenuSeparate = withChildren && bd['childMenuSeparate'] == true;
     final childMenuPPP = _d(bd['childMenuPricePerPerson']);
     // Dzieci faktycznie liczone (nie więcej niż liczonych gości).
@@ -265,6 +274,7 @@ class SalaSummary {
       cateringSeparateTotal: cateringSeparateTotal,
       withChildren: withChildren,
       childrenCount: childrenCount,
+      children: children,
       childBilledCount: childBilled,
       childMenuSeparate: childMenuSeparate,
       childMenuPricePerPerson: childMenuPPP,
@@ -303,6 +313,7 @@ class SalaSummary {
     cateringSeparateTotal: 0,
     withChildren: false,
     childrenCount: 0,
+    children: ChildrenSettings.empty,
     childBilledCount: 0,
     childMenuSeparate: false,
     childMenuPricePerPerson: 0,

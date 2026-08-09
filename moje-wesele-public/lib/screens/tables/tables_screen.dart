@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
+import '../../models/children.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
@@ -44,13 +45,19 @@ class _TablesScreenState extends State<TablesScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Czy wesele jest „z dziećmi" — odblokowuje stół dziecięcy w formularzu.
+  bool get _withChildren {
+    final bd = widget.data?.raw['budgetData'];
+    return bd is Map && bd['withChildren'] == true;
+  }
+
   Future<void> _addTable() async {
     final draft = await showModalBottomSheet<TableDraft>(
       context: context,
       constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const AddTableSheet(),
+      builder: (_) => AddTableSheet(allowChildTable: _withChildren),
     );
     if (draft == null) return;
     try {
@@ -97,10 +104,30 @@ class _TablesScreenState extends State<TablesScreen> {
   Future<void> _assign(int tableId, int guestId) async {
     try {
       final ok = await widget.service.assignGuestToTable(tableId, guestId);
-      if (!ok) _toast('Stół jest pełny!');
+      if (!ok) {
+        _toast('Stół jest pełny!');
+        return;
+      }
+      final hint = _seatingHint(tableId, guestId);
+      if (hint != null) _toast(hint);
     } catch (e) {
       _toast('Błąd zapisu: $e');
     }
+  }
+
+  /// Miękka podpowiedź po posadzeniu gościa (dorosły przy stole dzieci itp.).
+  /// Pokazywana PO udanym zapisie — nie blokuje przypisania.
+  String? _seatingHint(int tableId, int guestId) {
+    final tables = _tables;
+    final table = tables.where((t) => (t['id'] as num?)?.toInt() == tableId);
+    final guest = _guests.where((g) => g.id == guestId);
+    if (table.isEmpty || guest.isEmpty) return null;
+
+    return ChildrenSettings.seatingHint(
+      guestIsChild: guest.first.isChild,
+      tableIsChildTable: table.first['isChildTable'] == true,
+      childTableExists: ChildrenSettings.hasChildTable(tables),
+    );
   }
 
   Future<void> _unassign(int guestId) async {
