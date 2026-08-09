@@ -61,7 +61,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyA0kfE7gcFs-9JxRcmhmLZVD-fv8GHLp7s',
-    appId: '1:221816723659:android:2a536586604e43758de34e',
+    appId: '1:221816723659:android:8376d7fc038d6db08de34e',
     messagingSenderId: '221816723659',
     projectId: 'wedding-planner-pub',
     storageBucket: 'wedding-planner-pub.firebasestorage.app',

@@ -1,4 +1,4 @@
-package com.ceremonia.moje_wesele
+package com.ceremonia.mojewesele.pub
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

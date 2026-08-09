@@ -40,6 +40,50 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:221816723659:android:8376d7fc038d6db08de34e",
+        "android_client_info": {
+          "package_name": "com.ceremonia.mojewesele.pub"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "221816723659-omiaauv5mcdf4ldm5hhgbg95qg7lpolo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ceremonia.mojewesele.pub",
+            "certificate_hash": "f01687787efcd0583b51c2f62ccf713327cc4dd9"
+          }
+        },
+        {
+          "client_id": "221816723659-n11bpn1iurom23mmt8eukl4dlbl0b4u2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0kfE7gcFs-9JxRcmhmLZVD-fv8GHLp7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "221816723659-n11bpn1iurom23mmt8eukl4dlbl0b4u2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "221816723659-a7l89j7clgr2df7b8810adv75a7atrdo.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ceremonia.mojeWesele"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

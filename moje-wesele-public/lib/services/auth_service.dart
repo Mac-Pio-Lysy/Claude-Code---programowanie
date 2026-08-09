@@ -15,8 +15,15 @@ class AuthService {
   /// Web OAuth client ID (client_type 3 z google-services.json).
   /// Wymagany przez google_sign_in na Androidzie, aby idToken miał odbiorcę
   /// (audience) akceptowanego przez Firebase Auth.
+  ///
+  /// ⚠️ MUSI pochodzić z TEGO SAMEGO projektu Firebase co aplikacja Android.
+  /// Prefiks przed myślnikiem to numer projektu — tu `221816723659`, czyli
+  /// `wedding-planner-pub`. Wartość z innego projektu daje na Androidzie błąd
+  /// „Android clients and Web clients (server client ID) must be in the same
+  /// project" (kod 28444/10), a logowanie na webie działa dalej, bo tam
+  /// `signInWithPopup` w ogóle tej stałej nie używa.
   static const String _serverClientId =
-      '719030954518-02u0vbbfp1tee4cevpm87bg98nt42l7g.apps.googleusercontent.com';
+      '221816723659-n11bpn1iurom23mmt8eukl4dlbl0b4u2.apps.googleusercontent.com';
 
   /// Jednorazowa inicjalizacja google_sign_in (tylko platformy natywne).
   Future<void>? _googleInit;
