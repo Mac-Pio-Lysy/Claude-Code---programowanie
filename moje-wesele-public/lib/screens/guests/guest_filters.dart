@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../models/couple.dart';
 import '../../models/guest.dart';
 
 /// Szybki filtr listy gości (jeden aktywny na raz).
@@ -93,9 +94,13 @@ class GuestFilterControls extends StatelessWidget {
               () => onChanged(filter.copyWith(quick: GuestQuick.assigned))),
           _chip('Nieprzypisani', filter.quick == GuestQuick.unassigned,
               () => onChanged(filter.copyWith(quick: GuestQuick.unassigned))),
-          _chip('Od Pana Młodego', filter.quick == GuestQuick.groom,
+          // „Od kogo" — etykiety z typu uroczystości. Przy parze jednopłciowej
+          // rozróżniają je imiona, więc chip pokazuje np. „Od: 👰 Ania".
+          _chip(CoupleLabels.current.invitedByFilterLabel('groom'),
+              filter.quick == GuestQuick.groom,
               () => onChanged(filter.copyWith(quick: GuestQuick.groom))),
-          _chip('Od Panny Młodej', filter.quick == GuestQuick.bride,
+          _chip(CoupleLabels.current.invitedByFilterLabel('bride'),
+              filter.quick == GuestQuick.bride,
               () => onChanged(filter.copyWith(quick: GuestQuick.bride))),
           _chip('🤝 Świadkowie', filter.quick == GuestQuick.witnesses,
               () => onChanged(filter.copyWith(quick: GuestQuick.witnesses))),

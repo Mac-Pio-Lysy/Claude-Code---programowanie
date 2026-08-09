@@ -1,3 +1,5 @@
+import 'couple.dart';
+
 /// Model gościa — cienka nakładka na surową mapę z Firestore.
 ///
 /// Przechowuje pełną mapę [raw], dzięki czemu edycja zachowuje WSZYSTKIE pola
@@ -130,7 +132,9 @@ class GuestOptions {
 
   /// Kategorie gościa (w kolejności z `<select id="guestCategory">`).
   static const List<String> categories = [
-    'Państwo Młodzi',
+    // Wartość zapisywana w bazie; etykietę do wyświetlenia daje
+    // `CoupleLabels.current.coupleCategoryLabel`.
+    CoupleLabels.coupleCategoryValue,
     'Świadkowie',
     'Rodzice',
     'Rodzina',
@@ -148,11 +152,12 @@ class GuestOptions {
     'Dla dziecka',
   ];
 
-  static String invitedByLabel(String? value) => switch (value) {
-        'groom' => '🤵 Pan Młody',
-        'bride' => '👰 Panna Młoda',
-        _ => '—',
-      };
+  /// Etykieta „kto zaprosił" — wyliczana z typu uroczystości.
+  ///
+  /// Wartości `'groom'` / `'bride'` w bazie zostają bez zmian; zmienia się
+  /// wyłącznie tekst pokazywany użytkownikowi (patrz [CoupleLabels]).
+  static String invitedByLabel(String? value) =>
+      CoupleLabels.current.invitedBy(value);
 
   static String genderLabel(String? value) => switch (value) {
         'K' => '♀ Kobieta',
@@ -161,11 +166,8 @@ class GuestOptions {
         _ => '—',
       };
 
-  static String witnessLabel(String? value) => switch (value) {
-        'witness_groom' => 'Świadek',
-        'witness_bride' => 'Świadkowa',
-        _ => 'Brak roli',
-      };
+  static String witnessLabel(String? value) =>
+      CoupleLabels.current.witness(value);
 
   /// Etykieta diety (zgodna z `dietLabel` w zrodlo-web/script.js).
   static String dietLabel(String diet, String dietOther) => switch (diet) {

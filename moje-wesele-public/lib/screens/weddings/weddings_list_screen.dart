@@ -78,6 +78,9 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
         name: draft.name,
         persons: draft.persons,
         date: draft.date,
+        coupleType: draft.coupleType,
+        person1: draft.person1,
+        person2: draft.person2,
       );
     } catch (e) {
       if (!mounted) return;

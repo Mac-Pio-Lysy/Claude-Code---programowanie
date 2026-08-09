@@ -3,10 +3,18 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
+import '../../models/couple.dart';
 
 /// Dane wprowadzone przy tworzeniu nowego wesela.
 class NewWeddingDraft {
-  NewWeddingDraft({required this.name, required this.persons, this.date});
+  NewWeddingDraft({
+    required this.name,
+    required this.persons,
+    this.date,
+    this.coupleType = CoupleType.mixed,
+    this.person1 = '',
+    this.person2 = '',
+  });
 
   /// Nazwa wesela (`appConfig.eventName`).
   final String name;
@@ -16,6 +24,13 @@ class NewWeddingDraft {
 
   /// Data ślubu w formacie "YYYY-MM-DD" lub `null` (do uzupełnienia później).
   final String? date;
+
+  /// Typ uroczystości — decyduje o etykietach pary i płci zakładanych rekordów.
+  final CoupleType coupleType;
+
+  /// Imiona Pary Młodej. Opcjonalne: puste = nie zakładamy rekordów gości.
+  final String person1;
+  final String person2;
 }
 
 /// Otwiera arkusz tworzenia wesela. Zwraca [NewWeddingDraft] lub `null`
@@ -43,14 +58,23 @@ class _CreateWeddingSheet extends StatefulWidget {
 class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
   final _nameCtrl = TextEditingController();
   final _personsCtrl = TextEditingController();
+  final _person1Ctrl = TextEditingController();
+  final _person2Ctrl = TextEditingController();
   DateTime? _date;
+  CoupleType _coupleType = CoupleType.mixed;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _personsCtrl.dispose();
+    _person1Ctrl.dispose();
+    _person2Ctrl.dispose();
     super.dispose();
   }
+
+  /// Etykiety pól imion biorą się z typu uroczystości — te same, które potem
+  /// widać w całej aplikacji.
+  CoupleLabels get _labels => CoupleLabels(type: _coupleType);
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -68,7 +92,16 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
 
   void _submit() {
     final name = _nameCtrl.text.trim();
-    final persons = _personsCtrl.text.trim();
+    final person1 = _person1Ctrl.text.trim();
+    final person2 = _person2Ctrl.text.trim();
+
+    // „Osoby" UZUPEŁNIAMY z imion tylko wtedy, gdy pole zostało puste — nigdy
+    // nie nadpisujemy tego, co para wpisała sama. Ta wartość idzie do
+    // `displayNames`, którego używa weryfikacja gościa i publiczny mirror.
+    final typed = _personsCtrl.text.trim();
+    final persons =
+        typed.isNotEmpty ? typed : CoupleLabels.joinNames(person1, person2);
+
     final date = _date == null
         ? null
         : '${_date!.year.toString().padLeft(4, '0')}-'
@@ -79,6 +112,9 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
         name: name.isEmpty ? 'Nasze Wesele' : name,
         persons: persons,
         date: date,
+        coupleType: _coupleType,
+        person1: person1,
+        person2: person2,
       ),
     );
   }
@@ -134,12 +170,70 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                   decoration: _decoration('np. Nasze Wesele'),
                 ),
                 const SizedBox(height: 16),
+                _label('Typ uroczystości'),
+                const SizedBox(height: 6),
+                DropdownButtonFormField<CoupleType>(
+                  initialValue: _coupleType,
+                  isExpanded: true,
+                  decoration: _decoration(''),
+                  items: [
+                    for (final t in CoupleType.values)
+                      DropdownMenuItem(value: t, child: Text(t.label)),
+                  ],
+                  onChanged: (v) =>
+                      setState(() => _coupleType = v ?? CoupleType.mixed),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${_coupleType.hint}. Możesz to zmienić później '
+                  'w Ustawieniach → Konfiguracja.',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppColors.textLight,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _label('Imiona Pary Młodej (opcjonalnie)'),
+                const SizedBox(height: 6),
+                Text(
+                  'Podane imiona od razu trafią na listę gości jako '
+                  '„${_labels.coupleCategoryLabel}". Puste pola pomiń — '
+                  'dodasz je kiedy indziej.',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppColors.textLight,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _personField(_labels.person1, _person1Ctrl),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _personField(_labels.person2, _person2Ctrl),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 _label('Osoby'),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _personsCtrl,
                   textCapitalization: TextCapitalization.words,
-                  decoration: _decoration('np. Ania i Piotr'),
+                  decoration: _decoration(
+                    CoupleLabels.joinNames(
+                      _person1Ctrl.text,
+                      _person2Ctrl.text,
+                    ).isEmpty
+                        ? 'np. Ania i Piotr'
+                        : CoupleLabels.joinNames(
+                            _person1Ctrl.text, _person2Ctrl.text),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 _label('Data ślubu (opcjonalnie)'),
@@ -214,6 +308,31 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
       ),
     );
   }
+
+  /// Pole imienia jednej z osób. `onChanged` odświeża podpowiedź w „Osoby",
+  /// która składa się z obu imion.
+  Widget _personField(String label, TextEditingController controller) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textLight,
+            ),
+          ),
+          const SizedBox(height: 4),
+          TextField(
+            controller: controller,
+            textCapitalization: TextCapitalization.words,
+            decoration: _decoration('Imię'),
+            onChanged: (_) => setState(() {}),
+          ),
+        ],
+      );
 
   Widget _label(String text) => Text(
         text,

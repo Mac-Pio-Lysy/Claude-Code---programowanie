@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../models/couple.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../models/wheel.dart';
@@ -28,7 +29,7 @@ class WheelScreen extends StatelessWidget {
     for (final e in data?.guests ?? const []) {
       if (e is! Map) continue;
       final g = Guest(Map<String, dynamic>.from(e));
-      if (g.category == 'Państwo Młodzi') continue;
+      if (g.category == CoupleLabels.coupleCategoryValue) continue;
       final n = g.fullName.trim();
       if (n.isNotEmpty) out.add(n);
     }
@@ -131,7 +132,7 @@ class WheelScreen extends StatelessWidget {
             child: Text(
               'Losowanie spośród gości z listy. W puli: $count '
               '${_plural(count, "gość", "gości", "gości")} '
-              '(Państwo Młodzi pominięci).',
+              '(${CoupleLabels.current.coupleCategoryLabel} pominięci).',
               style: GoogleFonts.inter(
                   fontSize: 13, height: 1.4, color: AppColors.text),
             ),

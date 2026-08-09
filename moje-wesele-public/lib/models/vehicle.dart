@@ -1,14 +1,19 @@
+import 'couple.dart';
+
 /// Typy pojazdów (VEHICLE_TYPES) — podpowiedzi; pole „typ" jest wolnym tekstem,
 /// więc można wpisać własną nazwę (np. „Pojazd Kuby", „Bus wynajęty").
-const List<String> kVehicleTypes = [
-  'Auto wynajęte',
-  'Auto własne',
-  'Auto rodziców Pana Młodego',
-  'Auto rodziców Panny Młodej',
-  'Bus',
-  'Taxi/Uber',
-  'Inne',
-];
+///
+/// Getter, a nie stała, bo pozycje „auto rodziców" zależą od typu uroczystości
+/// (patrz [CoupleLabels]).
+List<String> get kVehicleTypes => [
+      'Auto wynajęte',
+      'Auto własne',
+      CoupleLabels.current.withPerson('Auto rodziców', 2),
+      CoupleLabels.current.withPerson('Auto rodziców', 1),
+      'Bus',
+      'Taxi/Uber',
+      'Inne',
+    ];
 
 /// Pojazd transportu — nakładka na surową mapę.
 class Vehicle {

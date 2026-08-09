@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_colors.dart';
+import '../../models/couple.dart';
 import '../../models/honeymoon_summary.dart';
 import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
@@ -396,11 +397,13 @@ class _InstallmentRow extends StatelessWidget {
   final HoneymoonInstallment inst;
   final BudgetService service;
 
-  static const _paidByLabels = {
-    'groom': 'Pan Młody',
-    'bride': 'Panna Młoda',
-    'both': 'Oboje',
-  };
+  /// Kto płaci ratę. Klucze zapisywane w bazie zostają, etykiety wyliczamy
+  /// z typu uroczystości (patrz [CoupleLabels]).
+  static Map<String, String> get _paidByLabels => {
+        'groom': CoupleLabels.current.person2,
+        'bride': CoupleLabels.current.person1,
+        'both': 'Oboje',
+      };
 
   int get _id => inst.id ?? 0;
 

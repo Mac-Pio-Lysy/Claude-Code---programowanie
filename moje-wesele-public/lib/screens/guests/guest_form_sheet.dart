@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../models/couple.dart';
 import '../../models/guest.dart';
 import '../../services/guest_service.dart';
 
@@ -10,13 +11,22 @@ import '../../services/guest_service.dart';
 /// Zwraca [GuestDraft] przez `Navigator.pop`, gdy użytkownik zapisze formularz,
 /// albo `null` po anulowaniu.
 class GuestFormSheet extends StatefulWidget {
-  const GuestFormSheet({super.key, this.existing, required this.menuOptions});
+  const GuestFormSheet({
+    super.key,
+    this.existing,
+    required this.menuOptions,
+    this.coupleTaken = 0,
+  });
 
   /// Edytowany gość (null = dodawanie nowego).
   final Guest? existing;
 
   /// Opcje menu/diety z konfiguracji.
   final List<String> menuOptions;
+
+  /// Ile miejsc w kategorii Pary Młodej jest już zajętych (bez edytowanego
+  /// gościa). Przy komplecie kategoria jest niedostępna w liście (#13).
+  final int coupleTaken;
 
   @override
   State<GuestFormSheet> createState() => _GuestFormSheetState();
@@ -48,6 +58,14 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
   String? _companionCategory;
 
   bool get _isEdit => widget.existing != null;
+
+  /// Czy ten gość należy do Pary Młodej — wtedy nie ma osoby towarzyszącej
+  /// (#12), bo drugą połowę pary dodaje się jako osobny wpis.
+  bool get _isCouple => _category == CoupleLabels.coupleCategoryValue;
+
+  /// Czy kategoria Pary Młodej jest jeszcze wolna (#13).
+  bool get _coupleSlotFree =>
+      widget.coupleTaken < CoupleLabels.maxCouple;
 
   @override
   void initState() {
@@ -94,7 +112,8 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
       gender: _gender,
       witness: _witness,
       menuChoice: _menuChoice,
-      hasCompanion: _hasCompanion,
+      // Para Młoda nigdy nie wychodzi z formularza z „+1" (#12).
+      hasCompanion: _isCouple ? false : _hasCompanion,
       // Przy „imię do potwierdzenia" nie przekazujemy danych osobowych —
       // serwis nada wtedy nazwę zastępczą.
       companionFirstName:
@@ -187,10 +206,19 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           child: DropdownButtonFormField<String?>(
                             initialValue: _invitedBy,
                             decoration: _inputDecoration(null),
-                            items: const [
-                              DropdownMenuItem(value: null, child: Text('— wybierz —')),
-                              DropdownMenuItem(value: 'groom', child: Text('🤵 Pan Młody')),
-                              DropdownMenuItem(value: 'bride', child: Text('👰 Panna Młoda')),
+                            items: [
+                              const DropdownMenuItem(
+                                  value: null, child: Text('— wybierz —')),
+                              // Kolejność „bride" przed „groom" bez znaczenia;
+                              // etykiety idą z typu uroczystości.
+                              DropdownMenuItem(
+                                  value: 'groom',
+                                  child: Text(
+                                      GuestOptions.invitedByLabel('groom'))),
+                              DropdownMenuItem(
+                                  value: 'bride',
+                                  child: Text(
+                                      GuestOptions.invitedByLabel('bride'))),
                             ],
                             onChanged: (v) => setState(() => _invitedBy = v),
                           ),
@@ -202,12 +230,45 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                             decoration: _inputDecoration(null),
                             items: [
                               for (final c in GuestOptions.categories)
-                                DropdownMenuItem(value: c, child: Text(c)),
+                                DropdownMenuItem(
+                                  value: c,
+                                  // Komplet Pary Młodej blokuje kategorię, ale
+                                  // gość, który już do niej należy, musi móc
+                                  // zostać zapisany bez zmiany kategorii.
+                                  enabled: c !=
+                                          CoupleLabels.coupleCategoryValue ||
+                                      _coupleSlotFree ||
+                                      _isCouple,
+                                  child: Text(
+                                    c == CoupleLabels.coupleCategoryValue
+                                        ? CoupleLabels
+                                            .current.coupleCategoryLabel
+                                        : c,
+                                  ),
+                                ),
                             ],
-                            onChanged: (v) =>
-                                setState(() => _category = v ?? _category),
+                            onChanged: (v) => setState(() {
+                              _category = v ?? _category;
+                              // Para Młoda nie ma osoby towarzyszącej —
+                              // gasimy przełącznik, żeby zapis nie odbił się
+                              // o walidację w serwisie.
+                              if (_isCouple) _hasCompanion = false;
+                            }),
                           ),
                         ),
+                        if (_category == CoupleLabels.coupleCategoryValue &&
+                            !_coupleSlotFree &&
+                            !_isEdit)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              'Para Młoda to najwyżej '
+                              '${CoupleLabels.maxCouple} osoby — komplet już '
+                              'jest na liście.',
+                              style: GoogleFonts.inter(
+                                  fontSize: 11.5, color: AppColors.textLight),
+                            ),
+                          ),
                         _field(
                           label: 'Płeć',
                           child: DropdownButtonFormField<String>(
@@ -226,12 +287,19 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           child: DropdownButtonFormField<String?>(
                             initialValue: _witness,
                             decoration: _inputDecoration(null),
-                            items: const [
-                              DropdownMenuItem(value: null, child: Text('Brak roli')),
+                            items: [
+                              const DropdownMenuItem(
+                                  value: null, child: Text('Brak roli')),
                               DropdownMenuItem(
-                                  value: 'witness_groom', child: Text('Świadek')),
+                                  value: 'witness_groom',
+                                  child: Text(
+                                      GuestOptions.witnessLabel(
+                                          'witness_groom'))),
                               DropdownMenuItem(
-                                  value: 'witness_bride', child: Text('Świadkowa')),
+                                  value: 'witness_bride',
+                                  child: Text(
+                                      GuestOptions.witnessLabel(
+                                          'witness_bride'))),
                             ],
                             onChanged: (v) => setState(() => _witness = v),
                           ),
@@ -251,15 +319,34 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        // Para Młoda nie ma „+1" (#12) — przełącznik zostaje
+                        // widoczny, ale nieaktywny, z wyjaśnieniem dlaczego.
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
                           title: Text('👥 Z osobą towarzyszącą?',
-                              style: GoogleFonts.inter(fontSize: 14)),
-                          value: _hasCompanion,
-                          onChanged: (v) => setState(() => _hasCompanion = v),
+                              style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: _isCouple
+                                      ? AppColors.textLight
+                                      : AppColors.text)),
+                          subtitle: _isCouple
+                              ? Text(
+                                  'Para Młoda nie ma osoby towarzyszącej — '
+                                  'drugą osobę dodaj jako osobny wpis '
+                                  'w kategorii '
+                                  '„${CoupleLabels.current.coupleCategoryLabel}".',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 11.5,
+                                      color: AppColors.textLight),
+                                )
+                              : null,
+                          value: _isCouple ? false : _hasCompanion,
+                          onChanged: _isCouple
+                              ? null
+                              : (v) => setState(() => _hasCompanion = v),
                         ),
-                        if (_hasCompanion) ...[
+                        if (_hasCompanion && !_isCouple) ...[
                           // ── Typ relacji (#3) ──
                           _field(
                             label: 'Typ relacji',
@@ -348,7 +435,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                                   child: Text('Jak zapraszający ($_category)'),
                                 ),
                                 for (final c in GuestOptions.categories)
-                                  if (c != 'Państwo Młodzi')
+                                  if (c != CoupleLabels.coupleCategoryValue)
                                     DropdownMenuItem(value: c, child: Text(c)),
                               ],
                               onChanged: (v) => setState(() =>

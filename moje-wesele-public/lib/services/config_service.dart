@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/couple.dart';
 import 'firestore_service.dart';
 
 /// Dane konfiguracji z formularza Ustawień.
@@ -16,6 +17,8 @@ class AppConfigDraft {
     required this.menuOptions,
     required this.expenseCategories,
     this.witnessCount = 2,
+    this.coupleType = CoupleType.mixed,
+    this.verificationSurnames = '',
   });
 
   final String eventName;
@@ -31,6 +34,17 @@ class AppConfigDraft {
 
   /// Docelowa liczba świadków (domyślnie 2; można ustawić więcej).
   final int witnessCount;
+
+  /// Typ uroczystości — decyduje o etykietach pary w całej aplikacji.
+  final CoupleType coupleType;
+
+  /// Nazwisko / nazwiska Pary Młodej — używane WYŁĄCZNIE do weryfikacji
+  /// gościa przy dołączaniu kodem. Nigdzie nie jest wyświetlane.
+  ///
+  /// Osobne pole, bo „Osoby" zawierają IMIONA („Ania i Piotr"), a ekran
+  /// dołączania pyta gościa o NAZWISKO. Bez tego pola prawidłowe dane były
+  /// odrzucane (zgłoszenie #23).
+  final String verificationSurnames;
 }
 
 /// Operacje na konfiguracji aplikacji (`appConfig`, `weddingDate`,
@@ -54,6 +68,8 @@ class ConfigService {
         'menuOptions': d.menuOptions,
         'expenseCategories': d.expenseCategories,
         'witnessCount': d.witnessCount < 1 ? 2 : d.witnessCount,
+        'coupleType': d.coupleType.name,
+        'verificationSurnames': d.verificationSurnames.trim(),
       },
       'weddingDate': d.weddingDate.isEmpty ? null : d.weddingDate,
       'weddingTime': d.weddingTime.isEmpty ? '16:00' : d.weddingTime,

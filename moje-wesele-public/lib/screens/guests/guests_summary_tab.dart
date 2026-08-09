@@ -88,8 +88,8 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
       runSpacing: 12,
       children: [
         _aggCard('🤝 Świadkowie (cel: $witnessTarget)', [
-          ('Świadek', witnessGroom),
-          ('Świadkowa', witnessBride),
+          (GuestOptions.witnessLabel('witness_groom'), witnessGroom),
+          (GuestOptions.witnessLabel('witness_bride'), witnessBride),
           ('Wyznaczeni łącznie', witnessGroom + witnessBride),
         ]),
         _aggCard('🍽 Menu (co je)', [

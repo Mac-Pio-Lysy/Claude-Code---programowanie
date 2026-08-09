@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
+import '../../models/couple.dart';
 import '../../models/guest.dart';
 import '../../models/rsvp_entry.dart';
 import '../../models/wedding_data.dart';
@@ -57,12 +58,12 @@ class _RsvpScreenState extends State<RsvpScreen> {
         entries.where((e) => e.guestId != null && e.isNotAttending).length;
     final noReply = guests
         .where((g) =>
-            g.category != 'Państwo Młodzi' &&
+            g.category != CoupleLabels.coupleCategoryValue &&
             !statusByGuest.containsKey(g.id))
         .length;
 
     final listGuests =
-        guests.where((g) => g.category != 'Państwo Młodzi').toList();
+        guests.where((g) => g.category != CoupleLabels.coupleCategoryValue).toList();
     final filteredGuests = listGuests.where((g) {
       final st = statusByGuest[g.id];
       switch (_filter) {

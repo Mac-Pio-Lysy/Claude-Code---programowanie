@@ -1,3 +1,5 @@
+import 'couple.dart';
+
 /// Odczytany stan wesela z dokumentu `weddingPlanner/main`.
 ///
 /// Struktura odpowiada obiektowi zapisywanemu przez aplikację webową
@@ -71,6 +73,11 @@ class WeddingData {
   }
 
   factory WeddingData.fromMap(Map<String, dynamic> map) {
+    // Odświeżenie globalnych etykiet Pary Młodej. Tędy przechodzi KAŻDY odczyt
+    // wesela (strumień i jednorazowy), więc etykiety nie mogą się rozjechać z
+    // danymi — a widoki sięgają po nie przez `CoupleLabels.current`.
+    CoupleLabels.apply(map);
+
     final appConfig = map['appConfig'];
     final eventName = (appConfig is Map) ? appConfig['eventName'] as String? : null;
     final displayNames =

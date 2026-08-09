@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'couple.dart';
+
 /// Status zadania (kolumny Kanban).
 class TaskStatus {
   const TaskStatus(this.id, this.label, this.color, this.icon);
@@ -24,14 +26,21 @@ class TaskStatus {
 
 /// Osoba odpowiedzialna (organizatorzy).
 class TaskPerson {
-  const TaskPerson(this.id, this.label, this.color);
+  const TaskPerson(this.id, this.color);
   final String id;
-  final String label;
   final Color color;
 
-  static const groom = TaskPerson('groom', 'Pan Młody', Color(0xFF3B82F6));
-  static const bride = TaskPerson('bride', 'Panna Młoda', Color(0xFFEC4899));
-  static const both = TaskPerson('both', 'Oboje', Color(0xFF6B7280));
+  /// Etykieta wyliczana z typu uroczystości. Identyfikatory `'groom'`/`'bride'`
+  /// zostają w bazie bez zmian — patrz [CoupleLabels].
+  String get label => switch (id) {
+        'bride' => CoupleLabels.current.person1,
+        'groom' => CoupleLabels.current.person2,
+        _ => 'Oboje',
+      };
+
+  static const groom = TaskPerson('groom', Color(0xFF3B82F6));
+  static const bride = TaskPerson('bride', Color(0xFFEC4899));
+  static const both = TaskPerson('both', Color(0xFF6B7280));
 
   static const List<TaskPerson> all = [groom, bride, both];
 

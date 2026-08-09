@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../models/couple.dart';
 import '../../models/budget_summary.dart';
 import '../../models/guest.dart';
 import '../../models/guest_summary.dart';
@@ -422,7 +423,7 @@ class AnalyticsScreen extends StatelessWidget {
         : const [];
     var att = 0, not = 0, none = 0;
     for (final g in guests) {
-      if (g.category == 'Państwo Młodzi') continue;
+      if (g.category == CoupleLabels.coupleCategoryValue) continue;
       final st = GuestSummary.rsvpStatus(g.id, rsvp);
       if (st == 'attending') {
         att++;
@@ -545,7 +546,7 @@ class AnalyticsScreen extends StatelessWidget {
   Widget _dietPie(List<Guest> guests) {
     final map = <String, int>{};
     for (final g in guests) {
-      if (g.category == 'Państwo Młodzi') continue;
+      if (g.category == CoupleLabels.coupleCategoryValue) continue;
       final label = GuestOptions.dietLabel(g.diet, g.dietOther);
       map[label] = (map[label] ?? 0) + 1;
     }

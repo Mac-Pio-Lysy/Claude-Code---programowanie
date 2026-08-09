@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/couple.dart';
 import '../models/guest_visibility.dart';
 import '../models/wedding_summary.dart';
 import '../utils/warsaw_time.dart';
+import 'guest_service.dart';
 import 'membership_service.dart';
 import 'user_service.dart';
 
@@ -136,6 +138,9 @@ class WeddingService {
     required String name,
     required String persons,
     String? date,
+    CoupleType coupleType = CoupleType.mixed,
+    String person1 = '',
+    String person2 = '',
   }) async {
     final ref = _col.doc(); // auto-generowane, unikalne weddingId
     final weddingId = ref.id;
@@ -149,6 +154,9 @@ class WeddingService {
       date: date,
       joinCode: joinCode,
       guestToken: guestToken,
+      coupleType: coupleType,
+      person1: person1,
+      person2: person2,
     ));
 
     await _memberships.create(
@@ -523,6 +531,9 @@ class WeddingService {
           (cfg is Map ? cfg['displayNames'] as String? : null)?.trim() ?? '',
       eventName:
           (cfg is Map ? cfg['eventName'] as String? : null)?.trim() ?? '',
+      surnames:
+          (cfg is Map ? cfg['verificationSurnames'] as String? : null)?.trim() ??
+              '',
     );
     return code;
   }
@@ -534,12 +545,16 @@ class WeddingService {
     required String? weddingDate,
     required String displayNames,
     required String eventName,
+    String surnames = '',
   }) =>
       _db.collection(weddingCodesCollection).doc(code).set({
         'weddingId': weddingId,
         'weddingDate': weddingDate,
         'displayNames': displayNames,
         'eventName': eventName,
+        // Nazwiska do weryfikacji gościa. Bez nich gość wpisujący nazwisko był
+        // odrzucany, bo `displayNames` zawiera IMIONA (zgłoszenie #23).
+        'surnames': surnames,
       }, SetOptions(merge: true));
 
   /// Dołącza użytkownika jako GOŚĆ po potrójnej weryfikacji: kod + data ślubu
@@ -578,7 +593,8 @@ class WeddingService {
       // 2) Nazwisko/nazwa Państwa Młodych.
       final display = (idx['displayNames'] as String?) ?? '';
       final event = (idx['eventName'] as String?) ?? '';
-      if (!_surnameMatches(surname, display, event)) {
+      final surnames = (idx['surnames'] as String?) ?? '';
+      if (!_surnameMatches(surname, display, event, surnames)) {
         return const JoinResult(JoinOutcome.invalid);
       }
 
@@ -733,8 +749,28 @@ class WeddingService {
     required String joinCode,
     required String guestToken,
     String? date,
+    CoupleType coupleType = CoupleType.mixed,
+    String person1 = '',
+    String person2 = '',
   }) {
-    final coupleNames = _splitPersons(persons);
+    // Imiona podane wprost są pewniejsze niż rozbijanie „Ania i Piotr" po
+    // separatorze; bez nich zostaje dotychczasowa ścieżka.
+    final coupleNames = (person1.trim().isEmpty && person2.trim().isEmpty)
+        ? _splitPersons(persons)
+        : [
+            person1.trim().isEmpty ? 'Osoba 1' : person1.trim(),
+            person2.trim().isEmpty ? 'Osoba 2' : person2.trim(),
+          ];
+
+    // Rekordy gości dla Pary Młodej (#9). Puste imiona = pusta lista, więc
+    // wesele zakładane bez nich wygląda dokładnie jak przed zmianą.
+    final couple = GuestService.buildCoupleRecords(
+      startId: 1,
+      type: coupleType,
+      person1: person1,
+      person2: person2,
+    );
+
     return {
       'ownerId': ownerId,
       'joinCode': joinCode,
@@ -747,6 +783,7 @@ class WeddingService {
         'menuOptions': <String>[],
         'expenseCategories': <String>[],
         'witnessCount': 2,
+        'coupleType': coupleType.name,
       },
       'weddingDate': (date != null && date.isNotEmpty) ? date : null,
       'weddingTime': '16:00',
@@ -754,7 +791,8 @@ class WeddingService {
         'coupleNames': coupleNames,
         'total': 0,
       },
-      'guests': <dynamic>[],
+      'guests': couple,
+      'nextGuestId': couple.length + 1,
       'tables': <dynamic>[],
       'tasks': <dynamic>[],
       'vendors': <dynamic>[],
@@ -829,12 +867,17 @@ class WeddingService {
     return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
   }
 
-  /// Czy podane nazwisko/nazwa pasuje do danych Państwa Młodych (po normalizacji
-  /// pojawia się w `displayNames` lub `eventName`).
-  bool _surnameMatches(String input, String displayNames, String eventName) {
+  /// Czy podany przez gościa tekst pasuje do wesela.
+  ///
+  /// Sprawdzamy trzy źródła, bo para może wpisać dane na różne sposoby:
+  /// dedykowane pole nazwisk (najpewniejsze), „Osoby" (zwykle imiona) oraz
+  /// nazwę wydarzenia. Dzięki temu działa zarówno „Kowalscy", jak i „Ania".
+  bool _surnameMatches(String input, String displayNames, String eventName,
+      [String surnames = '']) {
     final needle = _normalize(input);
     if (needle.length < 2) return false;
-    final hay = '${_normalize(displayNames)} ${_normalize(eventName)}';
+    final hay = '${_normalize(surnames)} ${_normalize(displayNames)} '
+        '${_normalize(eventName)}';
     return hay.contains(needle);
   }
 

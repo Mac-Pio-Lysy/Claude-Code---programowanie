@@ -2,8 +2,20 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/couple.dart';
 import '../models/guest.dart' show CompanionRelation;
 import 'firestore_service.dart';
+
+/// Błąd reguły biznesowej listy gości — komunikat jest gotowy do pokazania
+/// użytkownikowi (UI wyświetla go w SnackBarze).
+class GuestRuleException implements Exception {
+  const GuestRuleException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}
 
 /// Dane z formularza dodawania/edycji gościa.
 class GuestDraft {
@@ -65,10 +77,18 @@ class GuestService {
   final FirestoreService _firestore;
 
   /// Dodaje gościa (i opcjonalnie osobę towarzyszącą jako osobnego gościa).
+  ///
+  /// Rzuca [GuestRuleException], gdy wpis łamie reguły Pary Młodej.
   Future<void> addGuest(GuestDraft draft) async {
     final data = await _firestore.readData() ?? <String, dynamic>{};
     final guests = _mapList(data['guests']);
     var nextId = _nextGuestId(data, guests);
+
+    checkCoupleRules(
+      guests,
+      category: draft.category,
+      hasCompanion: draft.hasCompanion,
+    );
 
     final mainId = nextId++;
     final main = _baseGuest(mainId)
@@ -131,7 +151,9 @@ class GuestService {
     // zapraszającego. Osoba towarzysząca nigdy nie jest „Państwem Młodymi".
     final category = draft.companionCategory ??
         CompanionRelation.suggestedCategory(draft.companionRelation) ??
-        (inviterCategory == 'Państwo Młodzi' ? 'Znajomi' : inviterCategory);
+        (inviterCategory == CoupleLabels.coupleCategoryValue
+            ? 'Znajomi'
+            : inviterCategory);
 
     return _baseGuest(id)
       ..addAll({
@@ -139,12 +161,96 @@ class GuestService {
             ? CompanionRelation.placeholderFirstName
             : draft.companionFirstName,
         'lastName': pending ? inviterLastName : draft.companionLastName,
-        'category': category == 'Państwo Młodzi' ? 'Znajomi' : category,
+        'category':
+            category == CoupleLabels.coupleCategoryValue ? 'Znajomi' : category,
         'invitedBy': inviterInvitedBy,
         'companionOfId': inviterId,
         'relationType': draft.companionRelation ?? CompanionRelation.unknown,
         'namePending': pending,
       });
+  }
+
+  // ── Para Młoda ────────────────────────────────────────────────────────────
+
+  /// Ilu gości ma kategorię Pary Młodej. [exceptId] pomija jeden rekord —
+  /// przy edycji gość nie może blokować sam siebie.
+  static int coupleCount(List<Map<String, dynamic>> guests, {int? exceptId}) =>
+      guests
+          .where((g) =>
+              g['category'] == CoupleLabels.coupleCategoryValue &&
+              (exceptId == null || (g['id'] as num?)?.toInt() != exceptId))
+          .length;
+
+  /// Sprawdza reguły Pary Młodej przed zapisem. Rzuca [GuestRuleException]
+  /// z gotowym komunikatem.
+  ///
+  /// Dwie reguły, obie wynikające ze zgłoszeń:
+  ///  • najwyżej dwie osoby w tej kategorii (#13),
+  ///  • Para Młoda nie ma osoby towarzyszącej — jest nią dla siebie (#12).
+  ///
+  /// Walidacja siedzi w serwisie, a nie tylko w UI, bo przez `updateGuest`
+  /// można zmienić kategorię istniejącego gościa z pominięciem formularza
+  /// dodawania.
+  static void checkCoupleRules(
+    List<Map<String, dynamic>> guests, {
+    required String category,
+    required bool hasCompanion,
+    int? exceptId,
+  }) {
+    if (category != CoupleLabels.coupleCategoryValue) return;
+
+    if (coupleCount(guests, exceptId: exceptId) >= CoupleLabels.maxCouple) {
+      throw GuestRuleException(
+        'W kategorii „${CoupleLabels.current.coupleCategoryLabel}" mogą być '
+        'najwyżej ${CoupleLabels.maxCouple} osoby. Zmień kategorię tego gościa '
+        'albo popraw istniejący wpis Pary Młodej.',
+      );
+    }
+    if (hasCompanion) {
+      throw const GuestRuleException(
+        'Para Młoda nie ma osoby towarzyszącej — obie osoby dodaj jako osobne '
+        'wpisy Pary Młodej.',
+      );
+    }
+  }
+
+  /// Rekordy Pary Młodej zakładane razem z weselem (zgłoszenie #9).
+  ///
+  /// Puste imię = brak rekordu, więc wesele bez podanych imion powstaje
+  /// dokładnie jak dotąd. Wpis „Ania Kowalska" rozdzielamy na imię i nazwisko
+  /// po pierwszej spacji — samo „Ania" zostawia nazwisko puste.
+  ///
+  /// CZYSTA (bez zapisu), żeby dało się ją przetestować bez atrapy Firestore'a.
+  static List<Map<String, dynamic>> buildCoupleRecords({
+    required int startId,
+    required CoupleType type,
+    required String person1,
+    required String person2,
+  }) {
+    final records = <Map<String, dynamic>>[];
+    var id = startId;
+
+    for (final (index, raw) in [person1, person2].indexed) {
+      final name = raw.trim();
+      if (name.isEmpty) continue;
+
+      final space = name.indexOf(' ');
+      final first = space == -1 ? name : name.substring(0, space).trim();
+      final last = space == -1 ? '' : name.substring(space + 1).trim();
+
+      records.add(_baseGuest(id++)
+        ..addAll({
+          'firstName': first,
+          'lastName': last,
+          'category': CoupleLabels.coupleCategoryValue,
+          'gender': type.genderFor(index + 1),
+          // Para Młoda nikogo nie „zaprasza" — to gospodarze wesela.
+          'invitedBy': null,
+          'witness': null,
+          'hasCompanion': false,
+        }));
+    }
+    return records;
   }
 
   /// Osoby towarzyszące powiązane z danym gościem.
@@ -187,6 +293,14 @@ class GuestService {
     if (companionsOf(guests, guestId).isNotEmpty) return;
 
     final inviter = guests[idx];
+    // Ta sama reguła co przy dodawaniu: Para Młoda nie dostaje towarzyszącej,
+    // nawet ścieżką naprawy starych danych (#12).
+    checkCoupleRules(
+      guests,
+      category: (inviter['category'] as String?) ?? '',
+      hasCompanion: true,
+      exceptId: guestId,
+    );
     var nextId = _nextGuestId(data, guests);
 
     // Gdy nie podano imienia, korzystamy z zapisanego wcześniej `companionName`.
@@ -244,6 +358,16 @@ class GuestService {
 
     // Czy ten gość ma już POWIĄZANY rekord osoby towarzyszącej.
     final linked = companionsOf(guests, id).isNotEmpty;
+
+    // Reguły Pary Młodej obowiązują też przy edycji — kategorię można tu
+    // zmienić z pominięciem formularza dodawania. Istniejący rekord osoby
+    // towarzyszącej liczy się tak samo jak zaznaczony „+1".
+    checkCoupleRules(
+      guests,
+      category: draft.category,
+      hasCompanion: draft.hasCompanion || linked,
+      exceptId: id,
+    );
 
     // Gdy edytujemy rekord osoby towarzyszącej „do potwierdzenia" i podano
     // prawdziwe imię — flaga gaśnie. Bez tego wpis zostawałby oznaczony jako

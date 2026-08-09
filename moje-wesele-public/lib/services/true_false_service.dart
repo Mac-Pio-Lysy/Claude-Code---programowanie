@@ -34,7 +34,8 @@ class TrueFalseService {
       explanation: 'Pierwsza randka była w kawiarni.'
     ),
     (
-      text: 'Pan Młody oświadczył się za granicą',
+      // Bez rodzaju gramatycznego — to samo zdanie pasuje do każdej pary.
+      text: 'Oświadczyny odbyły się za granicą',
       isTrue: true,
       explanation: 'Oświadczyny odbyły się podczas wspólnego wyjazdu.'
     ),

@@ -9,6 +9,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
 import '../../layout/responsive.dart';
+import '../../models/couple.dart';
 import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
@@ -80,6 +81,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _weddingDate = '';
   String _weddingTime = '16:00';
 
+  /// Typ uroczystości — steruje etykietami pary w całej aplikacji.
+  CoupleType _coupleType = CoupleType.mixed;
+
+  /// Nazwiska do weryfikacji gościa (nigdzie nie wyświetlane).
+  late final TextEditingController _surnames;
+
   /// Kod dołączenia dla gości (z `weddings/{id}.joinCode`). Null = jeszcze
   /// wczytywany/generowany.
   String? _joinCode;
@@ -135,6 +142,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextEditingController(text: reserveNum == 0 ? '' : formatPln(reserveNum));
     _weddingDate = (raw['weddingDate'] as String?) ?? '';
     _weddingTime = (raw['weddingTime'] as String?) ?? '16:00';
+    _coupleType = CoupleType.fromRaw(cfg['coupleType']);
+    _surnames = TextEditingController(
+        text: (cfg['verificationSurnames'] as String?) ?? '');
     _loadJoinCode(raw);
     _loadGuestToken(raw);
   }
@@ -184,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     for (final c in [
       _eventName, _displayNames, _ceremony, _reception,
       _person1, _person2, _menu, _expenseCats, _witnessCount,
-      _plannedBudget, _reserve,
+      _plannedBudget, _reserve, _surnames,
     ]) {
       c.dispose();
     }
@@ -214,6 +224,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       menuOptions: _lines(_menu),
       expenseCategories: _lines(_expenseCats),
       witnessCount: int.tryParse(_witnessCount.text.trim()) ?? 2,
+      coupleType: _coupleType,
+      verificationSurnames: _surnames.text.trim(),
     ));
     // Odśwież publiczny indeks kodu + mirror gościa (data/nazwisko/harmonogram).
     try {
@@ -959,8 +971,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: const Color(0xFFC0392B)),
               ),
             ),
+          // ── Typ uroczystości — steruje etykietami pary w całej aplikacji ──
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Text('Typ uroczystości',
+                style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.text)),
+          ),
+          DropdownButtonFormField<CoupleType>(
+            initialValue: _coupleType,
+            isExpanded: true,
+            decoration: const InputDecoration(isDense: true),
+            items: [
+              for (final t in CoupleType.values)
+                DropdownMenuItem(value: t, child: Text(t.label)),
+            ],
+            onChanged: (v) =>
+                setState(() => _coupleType = v ?? CoupleType.mixed),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 12),
+            child: Text(
+              '${_coupleType.hint}. Możesz to zmienić w każdej chwili — '
+              'zmieniają się tylko etykiety, dane gości zostają nietknięte.',
+              style: GoogleFonts.inter(
+                  fontSize: 11.5, color: AppColors.textLight),
+            ),
+          ),
           _field('Nazwa wydarzenia', _eventName),
           _field('Osoby', _displayNames),
+          // Nazwiska służą WYŁĄCZNIE weryfikacji gościa przy dołączaniu kodem —
+          // nigdzie ich nie pokazujemy. Bez tego pola gość wpisujący nazwisko
+          // był odrzucany, bo „Osoby" zawierają imiona (zgłoszenie #23).
+          _field('Nazwisko / nazwiska Pary Młodej', _surnames),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, left: 2),
+            child: Text(
+              'Używane tylko do weryfikacji gościa przy dołączaniu kodem — '
+              'nie jest nigdzie wyświetlane. Jeśli nazwiska są różne, wpisz '
+              'oba (np. „Kowalska Nowak").',
+              style: GoogleFonts.inter(
+                  fontSize: 11.5, color: AppColors.textLight),
+            ),
+          ),
           Row(
             children: [
               Expanded(

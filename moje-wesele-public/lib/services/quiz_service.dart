@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/couple.dart';
 import '../models/quiz.dart';
 import 'firestore_service.dart';
 import 'legacy_scope.dart';
@@ -23,14 +24,17 @@ class QuizService {
   static const String resultsCollection = 'quizResults';
 
   /// Przykładowe pytania na start (gdy organizator nie ma jeszcze własnych).
-  static const List<({String q, List<String> a, int correct})> examples = [
+  ///
+  /// Getter, a nie stała, bo pytania odwołujące się do konkretnej osoby biorą
+  /// jej etykietę z typu uroczystości (patrz [CoupleLabels]).
+  static List<({String q, List<String> a, int correct})> get examples => [
     (
       q: 'Gdzie się poznaliśmy?',
       a: ['W pracy', 'Na studiach', 'Przez znajomych', 'W wakacje'],
       correct: 0
     ),
     (
-      q: 'Ulubiony film Pana Młodego?',
+      q: '${CoupleLabels.current.withPerson('Ulubiony film', 2)}?',
       a: ['Incepcja', 'Gladiator', 'Forrest Gump', 'Skazani na Shawshank'],
       correct: 3
     ),
@@ -41,7 +45,10 @@ class QuizService {
     ),
     (
       q: 'Kto się pierwszy oświadczył?',
-      a: ['Pan Młody', 'Panna Młoda'],
+      a: [
+        CoupleLabels.current.personPlain(2),
+        CoupleLabels.current.personPlain(1),
+      ],
       correct: 0
     ),
   ];

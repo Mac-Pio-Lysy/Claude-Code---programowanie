@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'couple.dart';
+
 /// Momenty imprezy (MUSIC_MOMENTS w zrodlo-web/script.js) — luźna kategoria
 /// utworu (do filtrów). NIE mylić z „utworami specjalnymi" (kluczowe momenty).
 const List<String> kMusicMoments = [
@@ -31,7 +33,7 @@ String specialMomentIcon(String label) {
     case 'Pierwszy utwór':
       return '🎵';
     case 'Wejście Pary Młodej':
-      return '👰';
+      return CoupleLabels.current.coupleEmoji;
     case 'Tort':
       return '🎂';
     case 'Oczepiny':

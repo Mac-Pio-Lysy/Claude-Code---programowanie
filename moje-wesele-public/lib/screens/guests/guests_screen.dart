@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
+import '../../models/couple.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
@@ -61,14 +62,26 @@ class _GuestsScreenState extends State<GuestsScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Ile osób ma już kategorię Pary Młodej (bez gościa właśnie edytowanego).
+  int _coupleTaken({Guest? except}) => GuestService.coupleCount(
+        [
+          for (final e in widget.data?.guests ?? const [])
+            if (e is Map) Map<String, dynamic>.from(e),
+        ],
+        exceptId: except?.id,
+      );
+
   Future<GuestDraft?> _showForm({Guest? existing}) {
     return showModalBottomSheet<GuestDraft>(
       context: context,
       constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) =>
-          GuestFormSheet(existing: existing, menuOptions: _menuOptions),
+      builder: (_) => GuestFormSheet(
+        existing: existing,
+        menuOptions: _menuOptions,
+        coupleTaken: _coupleTaken(except: existing),
+      ),
     );
   }
 
@@ -78,6 +91,10 @@ class _GuestsScreenState extends State<GuestsScreen> {
     try {
       await widget.service.addGuest(draft);
       _toast('Dodano gościa: ${draft.firstName}');
+    } on GuestRuleException catch (e) {
+      // Złamana reguła listy gości ma gotowy komunikat — pokazujemy go wprost,
+      // bez „Błąd zapisu", bo to nie awaria tylko świadoma blokada.
+      _toast(e.message);
     } catch (e) {
       _toast('Błąd zapisu: $e');
     }
@@ -89,6 +106,8 @@ class _GuestsScreenState extends State<GuestsScreen> {
     try {
       await widget.service.updateGuest(guest.id!, draft);
       _toast('Zapisano zmiany');
+    } on GuestRuleException catch (e) {
+      _toast(e.message);
     } catch (e) {
       _toast('Błąd zapisu: $e');
     }
@@ -426,20 +445,31 @@ class _GuestCardState extends State<_GuestCard> {
   List<Widget> _badges(Guest g) {
     return [
       if (g.category.isNotEmpty)
-        _Badge(g.category, const Color(0xFFEEF3FF), AppColors.accent),
+        _Badge(
+            // Kategoria Pary Młodej ma etykietę zależną od typu uroczystości;
+            // pozostałe kategorie wyświetlamy dosłownie.
+            g.category == CoupleLabels.coupleCategoryValue
+                ? CoupleLabels.current.coupleCategoryLabel
+                : g.category,
+            const Color(0xFFEEF3FF),
+            AppColors.accent),
       if (widget.tableName != null)
         _Badge('✓ ${widget.tableName}', const Color(0xFFECFDF5),
             const Color(0xFF059669))
       else
         _Badge('Bez stołu', const Color(0xFFFFF7ED), const Color(0xFFB45309)),
       if (g.invitedBy == 'groom')
-        _Badge('🤵 Pan Młody', const Color(0xFFEFF6FF), const Color(0xFF1D4ED8)),
+        _Badge(GuestOptions.invitedByLabel('groom'), const Color(0xFFEFF6FF),
+            const Color(0xFF1D4ED8)),
       if (g.invitedBy == 'bride')
-        _Badge('👰 Panna Młoda', const Color(0xFFFDF2F8), const Color(0xFFDB2777)),
+        _Badge(GuestOptions.invitedByLabel('bride'), const Color(0xFFFDF2F8),
+            const Color(0xFFDB2777)),
       if (g.witness == 'witness_groom')
-        _Badge('● Świadek', const Color(0xFFEFF6FF), const Color(0xFF1D4ED8)),
+        _Badge('● ${GuestOptions.witnessLabel('witness_groom')}',
+            const Color(0xFFEFF6FF), const Color(0xFF1D4ED8)),
       if (g.witness == 'witness_bride')
-        _Badge('● Świadkowa', const Color(0xFFFDF2F8), const Color(0xFFDB2777)),
+        _Badge('● ${GuestOptions.witnessLabel('witness_bride')}',
+            const Color(0xFFFDF2F8), const Color(0xFFDB2777)),
       if (g.needsAccommodation)
         _Badge('🏨 Nocleg', const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
       // Stary „+1" bez własnego rekordu (dane sprzed powiązań).
