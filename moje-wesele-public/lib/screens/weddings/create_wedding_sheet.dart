@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 
 /// Dane wprowadzone przy tworzeniu nowego wesela.
 class NewWeddingDraft {
@@ -22,6 +23,7 @@ class NewWeddingDraft {
 Future<NewWeddingDraft?> showCreateWeddingSheet(BuildContext context) {
   return showModalBottomSheet<NewWeddingDraft>(
     context: context,
+    constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
     isScrollControlled: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(

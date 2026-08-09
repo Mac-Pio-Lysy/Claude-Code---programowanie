@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/vehicle.dart';
 import '../../models/wedding_data.dart';
@@ -53,6 +54,7 @@ class _TransportScreenState extends State<TransportScreen> {
   Future<void> _addVehicle() async {
     final draft = await showModalBottomSheet<VehicleDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const VehicleFormSheet(),
@@ -65,6 +67,7 @@ class _TransportScreenState extends State<TransportScreen> {
   Future<void> _editVehicle(Vehicle v) async {
     final draft = await showModalBottomSheet<VehicleDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => VehicleFormSheet(existing: v),
@@ -81,6 +84,7 @@ class _TransportScreenState extends State<TransportScreen> {
     }
     final id = await showModalBottomSheet<int>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(

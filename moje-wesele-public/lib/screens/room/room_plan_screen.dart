@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/room_plan.dart';
 import '../../models/wedding_data.dart';
@@ -113,6 +114,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
     final withChildren = bd is Map && bd['withChildren'] == true;
     final draft = await showModalBottomSheet<TableDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => AddTableSheet(allowChildTable: withChildren),
@@ -125,6 +127,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
   Future<void> _addElement() async {
     final draft = await showModalBottomSheet<_ElementDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const _AddElementSheet(),
@@ -490,6 +493,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
     final id = (t['id'] as num?)?.toInt() ?? 0;
     await showModalBottomSheet<void>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -514,6 +518,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
     final id = (e['id'] as num?)?.toInt() ?? 0;
     await showModalBottomSheet<void>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -652,6 +657,7 @@ class _TableSheet extends StatelessWidget {
   Future<void> _pickGuest(BuildContext context, List<Guest> options) async {
     final gid = await showModalBottomSheet<int>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       showDragHandle: true,
       builder: (context) => ListView(

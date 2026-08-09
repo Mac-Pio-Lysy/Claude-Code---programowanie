@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../config/public_urls.dart';
 import '../../models/quiz.dart';
 import '../../models/wedding_data.dart';
@@ -306,6 +307,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _openQuestionForm({QuizQuestion? existing}) async {
     final draft = await showModalBottomSheet<_QuestionDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _QuestionFormSheet(existing: existing),

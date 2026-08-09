@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
@@ -63,6 +64,7 @@ class _GuestsScreenState extends State<GuestsScreen> {
   Future<GuestDraft?> _showForm({Guest? existing}) {
     return showModalBottomSheet<GuestDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) =>

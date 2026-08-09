@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../layout/responsive.dart';
 import '../models/dash_widget.dart';
 import '../models/gallery_item.dart';
 import '../models/wedding_data.dart';
@@ -162,7 +163,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final cols = w >= 900 ? 4 : (w >= 600 ? 3 : 2);
+        // Kolumny z jednego miejsca (respektuje „Wymuś telefon/tablet"),
+        // ale nigdy więcej, niż zmieści się w dostępnej szerokości kafelka.
+        final cols = gridColumns(context, phone: 2, tablet: 3, wide: 4)
+            .clamp(2, w >= 900 ? 4 : (w >= 600 ? 3 : 2));
         const gap = 14.0;
         final tileWidth = (w - gap * (cols - 1)) / cols;
         return Wrap(

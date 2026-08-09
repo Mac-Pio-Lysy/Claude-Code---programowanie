@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
@@ -46,6 +47,7 @@ class _TablesScreenState extends State<TablesScreen> {
   Future<void> _addTable() async {
     final draft = await showModalBottomSheet<TableDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const AddTableSheet(),
@@ -117,6 +119,7 @@ class _TablesScreenState extends State<TablesScreen> {
 
     final guestId = await showModalBottomSheet<int>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
@@ -133,6 +136,7 @@ class _TablesScreenState extends State<TablesScreen> {
   Future<void> _onSeatTap(Guest guest) async {
     final action = await showModalBottomSheet<String>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

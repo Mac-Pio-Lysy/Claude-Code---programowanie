@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/membership.dart';
 import '../../services/membership_service.dart';
 import '../../services/wedding_service.dart';
@@ -43,6 +44,7 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
   Future<void> _addPerson() async {
     final req = await showModalBottomSheet<_AddRequest>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(

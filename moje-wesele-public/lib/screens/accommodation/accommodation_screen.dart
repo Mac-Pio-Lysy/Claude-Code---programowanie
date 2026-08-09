@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/hotel.dart';
 import '../../models/wedding_data.dart';
@@ -41,6 +42,7 @@ class AccommodationScreen extends StatelessWidget {
   Future<void> _addHotel(BuildContext context) async {
     final draft = await showModalBottomSheet<HotelDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const HotelFormSheet(),
@@ -53,6 +55,7 @@ class AccommodationScreen extends StatelessWidget {
   Future<void> _editHotel(BuildContext context, Hotel hotel) async {
     final draft = await showModalBottomSheet<HotelDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => HotelFormSheet(existing: hotel),

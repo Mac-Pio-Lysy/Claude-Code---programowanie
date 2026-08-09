@@ -8,6 +8,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
+import '../../layout/responsive.dart';
 import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
@@ -241,6 +242,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             children: [
               _syncCard(),
+              const SizedBox(height: 12),
+              _displayModeCard(),
               const SizedBox(height: 12),
               _helpCard(),
               const SizedBox(height: 12),
@@ -505,6 +508,92 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) setState(() => _legacyBusy = false);
     }
   }
+
+  /// Wybór układu: automatyczny (wg szerokości ekranu) albo wymuszony.
+  ///
+  /// Zapis jest lokalny i per użytkownik — to preferencja urządzenia, a nie
+  /// dana wesela, więc nie ma powodu trzymać jej w chmurze.
+  Widget _displayModeCard() {
+    return _card(
+      'Tryb wyświetlania',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Domyślnie układ dobiera się do szerokości ekranu. Możesz go '
+            'wymusić — przyda się na małym tablecie albo gdy wolisz układ '
+            'telefonowy na dużym ekranie.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          ValueListenableBuilder<DisplayMode>(
+            valueListenable: DisplayModeController.mode,
+            builder: (context, current, _) => Column(
+              children: [
+                for (final m in DisplayMode.values)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => DisplayModeController.set(_dmUid, m),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: current == m
+                              ? AppColors.accent.withValues(alpha: 0.08)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: current == m
+                                ? AppColors.accent
+                                : const Color(0xFFDCE4F2),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              current == m
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              size: 20,
+                              color: current == m
+                                  ? AppColors.accent
+                                  : AppColors.textLight,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(m.label,
+                                      style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.text)),
+                                  Text(m.hint,
+                                      style: GoogleFonts.inter(
+                                          fontSize: 11.5,
+                                          color: AppColors.textLight)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Identyfikator do zapisu preferencji układu (ten sam, którego panel używa
+  /// do konfiguracji nawigacji).
+  String get _dmUid => widget.currentUserId;
 
   Widget _guestInteractionsCard() {
     final token = _guestToken;
@@ -1162,6 +1251,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     await showModalBottomSheet<void>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

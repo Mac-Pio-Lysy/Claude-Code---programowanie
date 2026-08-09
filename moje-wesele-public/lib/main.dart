@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 import 'firebase_options.dart';
+import 'layout/responsive.dart';
 import 'screens/guest_web/guest_web_app.dart';
 import 'widgets/auth_gate.dart';
 
@@ -51,7 +52,13 @@ class MojeWeseleApp extends StatelessWidget {
       theme: base.copyWith(
         textTheme: GoogleFonts.interTextTheme(base.textTheme),
       ),
-      home: const AuthGate(),
+      // Nasłuch trybu wyświetlania w korzeniu drzewa: zmiana w Ustawieniach
+      // („Automatyczny / Wymuś telefon / Wymuś tablet") przebudowuje CAŁĄ
+      // aplikację od razu, bez wychodzenia z ekranu.
+      home: ValueListenableBuilder<DisplayMode>(
+        valueListenable: DisplayModeController.mode,
+        builder: (context, _, _) => const AuthGate(),
+      ),
     );
   }
 }

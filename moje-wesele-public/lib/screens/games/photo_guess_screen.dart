@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../config/public_urls.dart';
 import '../../models/photo_guess.dart';
 import '../../models/wedding_data.dart';
@@ -348,6 +349,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
   Future<void> _openForm({PhotoQuestion? existing}) async {
     final draft = await showModalBottomSheet<_PGDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _PhotoFormSheet(existing: existing),

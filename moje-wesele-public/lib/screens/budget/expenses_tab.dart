@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/expense.dart';
 import '../../models/gift.dart';
 import '../../models/wedding_data.dart';
@@ -92,6 +93,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
   Future<void> _addExpense() async {
     final draft = await showModalBottomSheet<ExpenseDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ExpenseFormSheet(
@@ -123,6 +125,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
   Future<void> _editExpense(Expense expense) async {
     final draft = await showModalBottomSheet<ExpenseDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => ExpenseFormSheet(

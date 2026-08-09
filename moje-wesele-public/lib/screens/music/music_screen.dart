@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../config/public_urls.dart';
 import '../../models/song.dart';
 import '../../models/wedding_data.dart';
@@ -1174,6 +1175,7 @@ class _MusicScreenState extends State<MusicScreen> {
     }
     final format = await showModalBottomSheet<String>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/vendor.dart';
 import '../../models/wedding_data.dart';
 import '../../navigation/app_sections.dart';
@@ -78,6 +79,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
   Future<void> _add() async {
     final draft = await showModalBottomSheet<VendorDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const VendorFormSheet(),
@@ -90,6 +92,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
   Future<void> _edit(Vendor vendor) async {
     final draft = await showModalBottomSheet<VendorDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => VendorFormSheet(existing: vendor),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/room_plan.dart';
 import '../../models/wedding_data.dart';
@@ -169,6 +170,7 @@ class _RoomFullscreenScreenState extends State<RoomFullscreenScreen> {
     final unassigned = guests.where((g) => !g.isAssigned).toList();
     final gid = await showModalBottomSheet<int>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       showDragHandle: true,
       builder: (context) => SafeArea(

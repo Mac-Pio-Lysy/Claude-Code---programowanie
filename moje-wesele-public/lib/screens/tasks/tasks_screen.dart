@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/task.dart';
 import '../../models/vendor.dart' show kVendorBudgetCategories;
 import '../../models/wedding_data.dart';
@@ -32,7 +33,6 @@ class TasksScreen extends StatefulWidget {
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  static const double _tabletBreakpoint = 720;
 
   String _person = 'all';
   String _statusFilter = 'all';
@@ -76,6 +76,7 @@ class _TasksScreenState extends State<TasksScreen> {
   Future<void> _add() async {
     final draft = await showModalBottomSheet<TaskDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => TaskFormSheet(data: widget.data),
@@ -88,6 +89,7 @@ class _TasksScreenState extends State<TasksScreen> {
   Future<void> _edit(Task task) async {
     final draft = await showModalBottomSheet<TaskDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => TaskFormSheet(existing: task, data: widget.data),
@@ -256,7 +258,7 @@ class _TasksScreenState extends State<TasksScreen> {
     final doneCount = all.where((t) => t.statusId == 'done').length;
     final pct = all.isEmpty ? 0 : (doneCount / all.length * 100).round();
     final filtered = _filteredSorted();
-    final isTablet = MediaQuery.sizeOf(context).width >= _tabletBreakpoint;
+    final isTablet = isTabletLayout(context);
 
     final visibleColumns = _statusFilter == 'all'
         ? TaskStatus.columns

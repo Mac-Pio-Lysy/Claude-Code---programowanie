@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../config/public_urls.dart';
 import '../../models/true_false.dart';
 import '../../models/wedding_data.dart';
@@ -303,6 +304,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
   Future<void> _openForm({TFStatement? existing}) async {
     final draft = await showModalBottomSheet<_TFDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _StatementFormSheet(existing: existing),

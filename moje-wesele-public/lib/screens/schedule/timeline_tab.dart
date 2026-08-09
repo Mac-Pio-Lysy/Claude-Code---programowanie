@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/schedule_event.dart';
 import '../../models/wedding_data.dart';
 import '../../services/schedule_service.dart';
@@ -33,6 +34,7 @@ class TimelineTab extends StatelessWidget {
   Future<void> _add(BuildContext context) async {
     final draft = await showModalBottomSheet<ScheduleEventDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const EventFormSheet(),
@@ -45,6 +47,7 @@ class TimelineTab extends StatelessWidget {
   Future<void> _edit(BuildContext context, ScheduleEvent event) async {
     final draft = await showModalBottomSheet<ScheduleEventDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => EventFormSheet(existing: event),

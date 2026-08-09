@@ -7,6 +7,7 @@ import '../app_flags.dart';
 import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
 import '../help/help_screen.dart';
+import '../layout/responsive.dart';
 import '../onboarding/onboarding_overlay.dart';
 import '../onboarding/onboarding_steps.dart';
 import '../services/app_lock_service.dart';
@@ -80,8 +81,6 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  static const double _tabletBreakpoint = 720;
-
   // TRYB TESTOWY - przywrócić logowanie przed wydaniem
   // Identyfikator używany do per-użytkownikowej konfiguracji (pasek nawigacji,
   // onboarding). Gdy brak zalogowanego użytkownika (bypassLogin), używamy
@@ -127,6 +126,8 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _navConfig = NavConfigService(uid: _uid);
     _onboarding = OnboardingService(uid: _uid);
+    // Preferencja układu jest per użytkownik — wczytujemy ją, gdy znamy uid.
+    DisplayModeController.load(_uid);
     _dataStream = widget.firestore.watchWeddingData();
     _navConfig.load().then((bar) {
       if (mounted) setState(() => _bar = bar);
@@ -219,7 +220,7 @@ class _MainNavigationState extends State<MainNavigation> {
     if (!step.nav) return null;
     final s = step.section;
     if (s == AppSection.settings) return _rectOfKey(_logoKey);
-    final isTablet = MediaQuery.sizeOf(context).width >= _tabletBreakpoint;
+    final isTablet = isTabletLayout(context);
     if (isTablet) {
       // Dashboard jest przypięty osobno na górze szyny.
       if (s == AppSection.dashboard) return _rectOfKey(_dashRailKey);
@@ -419,6 +420,7 @@ class _MainNavigationState extends State<MainNavigation> {
   Future<void> _openMore() async {
     final selected = await showModalBottomSheet<_MoreResult>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
@@ -459,7 +461,7 @@ class _MainNavigationState extends State<MainNavigation> {
       builder: (context, snapshot) {
         final data = snapshot.data;
         final loading = snapshot.connectionState == ConnectionState.waiting;
-        final isTablet = MediaQuery.sizeOf(context).width >= _tabletBreakpoint;
+        final isTablet = isTabletLayout(context);
 
         final scaffold = Scaffold(
           backgroundColor: AppColors.bgGradient.last,
@@ -478,9 +480,14 @@ class _MainNavigationState extends State<MainNavigation> {
               top: false,
               child: isTablet
                   ? _buildTabletLayout(data, loading)
-                  : KeyedSubtree(
-                      key: _bodyKey,
-                      child: _screenFor(_current, data, loading),
+                  : ContentWidth(
+                      // Na wąskim ekranie ogranicznik nic nie robi; chroni
+                      // układ przy „Wymuś telefon" na dużym ekranie, gdzie
+                      // karty rozciągałyby się przez cały tablet.
+                      child: KeyedSubtree(
+                        key: _bodyKey,
+                        child: _screenFor(_current, data, loading),
+                      ),
                     ),
             ),
           ),
@@ -638,9 +645,14 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
         ),
         Expanded(
-          child: KeyedSubtree(
-            key: _bodyKey,
-            child: _screenFor(_current, data, loading),
+          // Na bardzo szerokim ekranie treść nie rozjeżdża się na całą
+          // szerokość — wiersze tekstu i formularze pozostają czytelne,
+          // a kolumna jest wyśrodkowana obok szyny.
+          child: ContentWidth(
+            child: KeyedSubtree(
+              key: _bodyKey,
+              child: _screenFor(_current, data, loading),
+            ),
           ),
         ),
       ],
@@ -977,6 +989,7 @@ class _BarEditSheetState extends State<_BarEditSheet> {
     final options = [current, ..._available];
     final picked = await showModalBottomSheet<AppSection>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

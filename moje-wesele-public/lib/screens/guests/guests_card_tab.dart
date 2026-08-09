@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/guest_service.dart';
@@ -44,6 +45,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
   Future<void> _addGuest() async {
     final draft = await showModalBottomSheet<GuestDraft>(
       context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => GuestFormSheet(menuOptions: _menuOptions),
@@ -158,7 +160,8 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
   Widget _gridView(List<Guest> guests, List<String> menus) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cols = constraints.maxWidth >= 720 ? 3 : 2;
+        final cols = gridColumns(context, phone: 2, tablet: 3, wide: 4)
+            .clamp(2, constraints.maxWidth >= 720 ? 4 : 2);
         return GridView.count(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
           crossAxisCount: cols,
