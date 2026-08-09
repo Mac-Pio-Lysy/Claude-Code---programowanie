@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app_colors.dart';
+import '../../help/help_screen.dart';
 import '../../models/guest_visibility.dart';
+import '../../onboarding/onboarding_steps.dart' show OnbVariant;
 import '../../services/cloudinary_service.dart';
 import '../../services/deezer_service.dart';
 import '../../services/guest_identity.dart';
@@ -36,15 +38,22 @@ class GuestWebApp extends StatelessWidget {
       title: 'Wesele — strefa gości',
       debugShowCheckedModeBanner: false,
       theme: base.copyWith(textTheme: GoogleFonts.interTextTheme(base.textTheme)),
-      home: GuestWebHome(token: token),
+      home: GuestWebHome(token: token, showHelp: true),
     );
   }
 }
 
 class GuestWebHome extends StatefulWidget {
-  const GuestWebHome({super.key, required this.token});
+  const GuestWebHome({super.key, required this.token, this.showHelp = false});
 
   final String token;
+
+  /// Czy pokazać własny przycisk „Pomoc".
+  ///
+  /// `true` dla gościa wchodzącego z linku/QR (nie ma wtedy paska aplikacji),
+  /// `false` gdy stronę osadza [GuestHomeScreen] — tam pomoc jest już w pasku
+  /// i drugi przycisk byłby zbędny.
+  final bool showHelp;
 
   @override
   State<GuestWebHome> createState() => _GuestWebHomeState();
@@ -218,6 +227,16 @@ class _GuestWebHomeState extends State<GuestWebHome> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       children: [
+        if (widget.showHelp)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () => HelpScreen.open(context, OnbVariant.guest),
+              icon: const Icon(Icons.help_outline, size: 18),
+              label: const Text('Pomoc'),
+              style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+            ),
+          ),
         _header(eventName, persons, space),
         const SizedBox(height: 18),
         if (cards.isEmpty)

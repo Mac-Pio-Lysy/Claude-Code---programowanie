@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../help/help_screen.dart';
 import '../../onboarding/onboarding_overlay.dart';
 import '../../onboarding/onboarding_steps.dart';
 import '../../services/onboarding_service.dart';
@@ -234,6 +235,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
         ],
       ),
       actions: [
+        IconButton(
+          tooltip: 'Pomoc',
+          icon: const Icon(Icons.help_outline, color: AppColors.accent),
+          onPressed: () => HelpScreen.open(context, OnbVariant.guest),
+        ),
         Padding(
           padding: const EdgeInsets.only(right: 4),
           child: Center(child: _guestChip()),

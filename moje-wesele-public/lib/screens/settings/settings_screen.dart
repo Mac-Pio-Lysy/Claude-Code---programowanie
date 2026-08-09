@@ -30,6 +30,7 @@ class SettingsScreen extends StatefulWidget {
     required this.onSignOut,
     required this.onStartTour,
     required this.onOpenPlanning,
+    required this.onOpenHelp,
     this.isOwner = true,
     this.currentUserId = '',
   }) : config = ConfigService(firestore: firestore);
@@ -51,6 +52,10 @@ class SettingsScreen extends StatefulWidget {
 
   /// Otwiera listę „Od czego zacząć?".
   final VoidCallback onOpenPlanning;
+
+  /// Otwiera ekran Pomocy w wariancie zgodnym z rolą (panel zna rolę, Ustawienia
+  /// nie — dlatego przychodzi tu jako wywołanie zwrotne, tak jak przewodnik).
+  final VoidCallback onOpenHelp;
   final ConfigService config;
 
   @override
@@ -319,6 +324,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: widget.onStartTour,
               icon: const Text('🧭', style: TextStyle(fontSize: 16)),
               label: const Text('Uruchom przewodnik'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: widget.onOpenHelp,
+              icon: const Icon(Icons.help_outline, size: 18),
+              label: const Text('Pomoc — opisy funkcji'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),

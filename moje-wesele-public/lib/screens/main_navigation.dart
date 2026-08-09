@@ -6,6 +6,7 @@ import '../app_colors.dart';
 import '../app_flags.dart';
 import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
+import '../help/help_screen.dart';
 import '../onboarding/onboarding_overlay.dart';
 import '../onboarding/onboarding_steps.dart';
 import '../services/app_lock_service.dart';
@@ -529,6 +530,19 @@ class _MainNavigationState extends State<MainNavigation> {
                 ),
               ),
             ),
+            // Pomoc — po lewej stronie nagłówka, symetrycznie do menu konta.
+            Positioned(
+              left: 8,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: IconButton(
+                  tooltip: 'Pomoc',
+                  icon: const Icon(Icons.help_outline, color: AppColors.accent),
+                  onPressed: () => HelpScreen.open(context, _variant),
+                ),
+              ),
+            ),
             Positioned(
               right: 8,
               top: 0,
@@ -815,6 +829,7 @@ class _MainNavigationState extends State<MainNavigation> {
           currentUserId: _uid,
           onSignOut: _handleSignOut,
           onStartTour: _promptAndStartTour,
+          onOpenHelp: () => HelpScreen.open(context, _variant),
           onOpenPlanning: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => PlanningGuideScreen(
