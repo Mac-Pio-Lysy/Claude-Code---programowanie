@@ -14,6 +14,7 @@ class OnbStep {
     this.basic = false,
     this.planning = false,
     this.nav = false,
+    this.navigate = true,
   });
 
   final AppSection section;
@@ -27,7 +28,38 @@ class OnbStep {
   /// Dla podzakładek / podsekcji pokazujemy wyśrodkowany dymek (treść już
   /// widoczna pod nakładką).
   final bool nav;
+
+  /// Czy przewodnik ma przełączyć widok na [section].
+  ///
+  /// `false` w wariancie GOŚCIA: opisujemy wtedy sekcje strefy gości, których
+  /// w panelu organizatora nie ma (albo wyglądają zupełnie inaczej), więc
+  /// skakanie po panelu tylko myliłoby oglądającego. Krok pokazuje sam dymek.
+  final bool navigate;
 }
+
+/// Wariant przewodnika — dobierany do roli zalogowanego użytkownika.
+enum OnbVariant {
+  /// Para Młoda i współorganizator — pełny panel.
+  owner,
+
+  /// Planer weselny — pełny panel, ale opisy w kontekście obsługi klientów.
+  planner,
+
+  /// Gość — wyłącznie strefa gości (RSVP, galeria, muzyka, gry, pamiątki).
+  guest,
+}
+
+/// Wariant przewodnika dla roli z członkostwa (`owner`/`planner`/
+/// `collaborator`/`guest`). Współorganizator dostaje wariant właściciela —
+/// widzi ten sam panel.
+OnbVariant variantForRole(String? role) => switch (role) {
+      'guest' => OnbVariant.guest,
+      'planner' => OnbVariant.planner,
+      _ => OnbVariant.owner,
+    };
+
+/// Klucz wariantu do zapisu stanu ukończenia (per użytkownik i per wariant).
+String variantKey(OnbVariant v) => v.name;
 
 /// Magistrala żądań przełączenia podzakładki w trakcie przewodnika.
 /// Ekrany zakładkowe nasłuchują i animują swój [TabController]/DefaultTabController.
@@ -141,15 +173,215 @@ const Set<AppSection> tabbedSections = {
 const List<(String, String)> _settingsSubs = [
   ('Ustawienia · Status synchronizacji',
       'Sprawdź, czy dane są zsynchronizowane z chmurą (Firestore).'),
+  ('Ustawienia · Widoczność dla gości',
+      'Decydujesz, które sekcje widzą goście i od kiedy do kiedy. Np. RSVP '
+          'włącz od razu, a galerię dopiero w dniu wesela.'),
+  ('Ustawienia · Kod dołączenia dla gości',
+      'Sześcioznakowy kod, którym gość dołącza do wesela na własnym koncie. '
+          'Weryfikacja jest potrójna: kod, data ślubu i nazwisko.'),
+  ('Ustawienia · Link i QR dla gości',
+      'Link i kod QR do strefy gości — działa bez logowania i bez instalowania '
+          'aplikacji. To go drukujesz na zaproszeniach albo kładziesz na stołach.'),
+  ('Ustawienia · Interakcje gości',
+      'Wszystko, co przysłali goście: RSVP, wpisy księgi, rady, zdjęcia, '
+          'propozycje muzyki i wyniki gier. Tu też moderujesz — kasujesz '
+          'nieodpowiednie wpisy jednym kliknięciem.'),
+  ('Ustawienia · Osoby i dostęp',
+      'Dodawaj współorganizatorów i planera, nadawaj datę ważności, blokuj '
+          'i przywracaj dostęp. Tylko właściciel wesela może tu cokolwiek '
+          'zmienić — to zabezpieczenie, nie ograniczenie.'),
   ('Ustawienia · Konfiguracja',
       'Nazwa imprezy, data, miejsca, podział kosztów i słowniki.'),
-  ('Ustawienia · Dostęp',
-      'Lista autoryzowanych adresów e-mail z dostępem do aplikacji.'),
   ('Ustawienia · Logowanie',
       'Biometria, PIN/wzór i status zabezpieczeń urządzenia.'),
   ('Ustawienia · Programistyczne',
       'Eksport/import danych i kopie zapasowe.'),
 ];
+
+// ── Wariant PLANERA: nadpisania opisów (kontekst „to oferujesz klientom") ──
+// Tam, gdzie planer widzi to samo co Para Młoda, ale znaczenie jest inne:
+// pracuje na weselu KLIENTA, często ma ich kilka naraz, a dostęp bywa czasowy.
+const Map<AppSection, String> _plannerDesc = {
+  AppSection.dashboard:
+      'Pulpit wesela KLIENTA — licznik dni, postępy i statystyki. Każde wesele '
+          'w Twoim koncie ma własny pulpit; przełączasz je w „Zmień wesele".',
+  AppSection.guests:
+      'Lista gości klienta wraz z potwierdzeniami i preferencjami. To dane '
+          'osobowe Waszych klientów — traktuj je poufnie.',
+  AppSection.budget:
+      'Budżet wesela klienta. Tu najczęściej pokazujesz Parze, na co idą '
+          'pieniądze i gdzie są oszczędności — podzakładki obok.',
+  AppSection.room:
+      'Plan sali do ustalenia z klientem i salą. Wydrukowany układ stołów to '
+          'jeden z najczęściej zamawianych elementów Twojej usługi.',
+  AppSection.schedule:
+      'Harmonogram dnia — Twój najważniejszy dokument roboczy. To on trafia do '
+          'obsługi, fotografa i zespołu muzycznego.',
+  AppSection.tasks:
+      'Zadania z przypisaniem osób. Możesz tu rozdzielić obowiązki między '
+          'siebie, Parę i podwykonawców.',
+  AppSection.vendors:
+      'Baza usługodawców z umowami i ratami. Prowadząc kilka wesel, budujesz '
+          'tu swoją prywatną bazę sprawdzonych kontaktów.',
+  AppSection.analytics:
+      'Wykresy i statystyki — gotowy materiał na podsumowanie postępów dla '
+          'klienta.',
+  AppSection.settings:
+      'Konfiguracja wesela, dostęp osób i widoczność sekcji dla gości. '
+          'Pamiętaj: właścicielem wesela pozostaje Para Młoda — to ona nadaje '
+          'i odbiera dostępy. Przewodnik wznowisz z menu pod logo.',
+};
+
+// ── Wariant PLANERA: kroki, których nie ma w wariancie właściciela ────────
+List<OnbStep> _plannerExtraSteps() => const [
+      OnbStep(
+        section: AppSection.dashboard,
+        title: 'Wiele wesel na jednym koncie',
+        desc:
+            'Jako planer możesz prowadzić dowolnie wiele wesel. Przełączasz je '
+            'w menu pod logo → „Zmień wesele". Dane każdego wesela są w pełni '
+            'oddzielone — klient A nigdy nie zobaczy wesela klienta B.',
+        basic: true,
+      ),
+      OnbStep(
+        section: AppSection.dashboard,
+        title: 'Twój dostęp może mieć datę ważności',
+        desc:
+            'Para Młoda nadaje planerowi dostęp, może ustawić mu datę ważności '
+            'i w każdej chwili go zablokować lub przywrócić. Po wygaśnięciu '
+            'wesele znika z Twojej listy — to normalne, nie awaria.',
+        basic: true,
+      ),
+      OnbStep(
+        section: AppSection.settings,
+        title: 'Przekazanie wesela Parze Młodej',
+        desc:
+            'Konto Pary Młodej jest nadrzędne: tylko ona dodaje osoby i wystawia '
+            'zaproszenia. Gdy kończysz współpracę, to Para przejmuje pełną '
+            'kontrolę — nic nie trzeba przenosić ani eksportować.',
+      ),
+    ];
+
+// ── Wariant GOŚCIA ────────────────────────────────────────────────────────
+// Gość nie ma panelu organizatora ani szyny nawigacji, więc kroki są
+// wyśrodkowanymi dymkami (`nav: false`, `navigate: false`). Ten sam zestaw
+// służy podglądowi „Zobacz przewodnik gościa" dla właściciela i planera.
+List<OnbStep> _buildGuestSteps() => const [
+      OnbStep(
+        section: AppSection.rsvp,
+        title: 'Witaj w strefie gości',
+        desc:
+            'To Twoje miejsce na weselu Pary Młodej. Znajdziesz tu wszystko, '
+            'czego potrzebujesz jako gość — bez zakładania konta i bez '
+            'instalowania czegokolwiek.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.rsvp,
+        title: 'Potwierdzenie obecności (RSVP)',
+        desc:
+            'Daj znać, czy będziesz i z iloma osobami. Podaj dietę lub alergie, '
+            'jeśli je masz. Wystarczy jedno potwierdzenie — gdy plany się '
+            'zmienią, wróć tutaj i popraw odpowiedź.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.schedule,
+        title: 'Harmonogram dnia',
+        desc:
+            'Godzina po godzinie: ceremonia, przyjęcie, tort, pierwszy taniec. '
+            'Zobaczysz też licznik dni do wesela.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.gallery,
+        title: 'Galeria — dodaj swoje zdjęcia',
+        desc:
+            'Wrzuć zdjęcia prosto z telefonu i oglądaj te dodane przez innych '
+            'gości. Para Młoda dostaje w ten sposób ujęcia, których nie ma '
+            'żaden fotograf.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.music,
+        title: 'Muzyka — zaproponuj utwór',
+        desc:
+            'Wyszukaj piosenkę i wyślij propozycję do Pary Młodej. Propozycje '
+            'trafiają tylko do nich — nie ma publicznej listy ani głosowania.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.games,
+        title: 'Ślubne gry',
+        desc:
+            'Quiz o Parze Młodej, Prawda/Fałsz, Zgadnij zdjęcie, foto-wyzwania '
+            'i Ślubne Bingo. Wyniki widzi tylko Para Młoda — nie ma publicznego '
+            'rankingu, więc graj dla zabawy.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.games,
+        title: 'Gry — jak to działa',
+        desc:
+            'Quiz, Prawda/Fałsz i Zgadnij zdjęcie liczą wynik od razu na Twoim '
+            'telefonie. Możesz podejść ponownie — nowy wynik zastąpi poprzedni. '
+            'W foto-wyzwaniach wysyłasz po jednym zdjęciu do każdego zadania.',
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.keepsakes,
+        title: 'Ślubne pamiątki',
+        desc:
+            'Zostaw ślad po sobie: wpis w księdze gości, rada dla Pary Młodej, '
+            'wiadomość do kapsuły czasu i pinezka na mapie gości.',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.keepsakes,
+        title: 'Księga gości i rady',
+        desc:
+            'Wpisów możesz zostawić kilka — życzenia, wspomnienie, dobra rada. '
+            'Widzą je inni goście, więc to trochę jak wspólna kronika.',
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.keepsakes,
+        title: 'Kapsuła czasu i mapa gości',
+        desc:
+            'Kapsuła to prywatna wiadomość — przeczyta ją wyłącznie Para Młoda. '
+            'Na mapie zaznaczasz, skąd przyjeżdżasz; jedna pinezka na gościa, '
+            'można ją poprawić.',
+        nav: false,
+        navigate: false,
+      ),
+      OnbStep(
+        section: AppSection.rsvp,
+        title: 'To wszystko!',
+        desc:
+            'Sekcje pojawiają się i znikają zgodnie z tym, co udostępniła Para '
+            'Młoda — jeśli czegoś nie widzisz, być może będzie dostępne bliżej '
+            'wesela. Bawcie się dobrze!',
+        basic: true,
+        nav: false,
+        navigate: false,
+      ),
+    ];
 
 /// Buduje pełną, uporządkowaną listę kroków przewodnika.
 ///
@@ -157,9 +389,18 @@ const List<(String, String)> _settingsSubs = [
 /// automatycznie trafią do przewodnika (z etykietą i ogólnym opisem, gdy brak
 /// dedykowanego tekstu). Po Dashboardzie pokazujemy „Od czego zacząć?",
 /// po Galerii krok o kodach QR, a Ustawienia (z podsekcjami) są na końcu.
-List<OnbStep> buildOnboardingSteps() {
+List<OnbStep> buildOnboardingSteps({OnbVariant variant = OnbVariant.owner}) {
+  // Gość ma zupełnie inną aplikację — własny, krótki zestaw kroków.
+  if (variant == OnbVariant.guest) return _buildGuestSteps();
+
+  final planner = variant == OnbVariant.planner;
+
+  // Planer widzi te same sekcje, ale opis stawia je w kontekście obsługi
+  // klienta. Gdy nie ma nadpisania — używamy opisu wspólnego.
   String descFor(AppSection s) =>
-      _sectionDesc[s] ?? 'Sekcja „${s.label}" w aplikacji.';
+      (planner ? _plannerDesc[s] : null) ??
+      _sectionDesc[s] ??
+      'Sekcja „${s.label}" w aplikacji.';
 
   final steps = <OnbStep>[
     OnbStep(
@@ -178,6 +419,12 @@ List<OnbStep> buildOnboardingSteps() {
       basic: true,
     ),
   ];
+
+  // Planer: kontekst „wiele wesel / dostęp czasowy" od razu po pulpicie.
+  if (planner) {
+    steps.addAll(_plannerExtraSteps()
+        .where((s) => s.section == AppSection.dashboard));
+  }
 
   for (final s in AppSection.values) {
     if (s == AppSection.dashboard || s == AppSection.settings) continue;
@@ -214,6 +461,12 @@ List<OnbStep> buildOnboardingSteps() {
   for (final sub in _settingsSubs) {
     steps.add(OnbStep(
         section: AppSection.settings, title: sub.$1, desc: sub.$2));
+  }
+
+  // Planer: domknięcie tematu przekazania wesela Parze Młodej.
+  if (planner) {
+    steps.addAll(
+        _plannerExtraSteps().where((s) => s.section == AppSection.settings));
   }
 
   return steps;

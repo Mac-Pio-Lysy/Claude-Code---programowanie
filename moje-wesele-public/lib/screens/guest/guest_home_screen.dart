@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../onboarding/onboarding_overlay.dart';
+import '../../onboarding/onboarding_steps.dart';
+import '../../services/onboarding_service.dart';
 import '../../services/wedding_service.dart';
 import '../guest_web/guest_web_app.dart';
 
@@ -50,6 +53,62 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   late final Stream<Map<String, dynamic>?> _guestView =
       _weddings.watchGuestView(widget.weddingId);
 
+  // ── Przewodnik gościa ──
+  late final OnboardingService _onboarding =
+      OnboardingService(uid: widget.user?.uid ?? 'gosc');
+  List<OnbStep>? _tourSteps;
+  int _tourIndex = 0;
+  bool get _tourActive => _tourSteps != null;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _firstRunTour());
+  }
+
+  /// Przy pierwszym wejściu gościa proponujemy przewodnik. Stan zapisujemy
+  /// pod wariantem `guest`, więc przewodnik panelu (gdyby ten sam użytkownik
+  /// prowadził własne wesele) pozostaje nietknięty.
+  Future<void> _firstRunTour() async {
+    if (await _onboarding.isDone(OnbVariant.guest)) return;
+    if (!mounted) return;
+    await _promptAndStartTour(markSkipAsDone: true);
+  }
+
+  Future<void> _promptAndStartTour({bool markSkipAsDone = false}) async {
+    final choice =
+        await showOnboardingIntro(context, variant: OnbVariant.guest);
+    if (choice == null) {
+      if (markSkipAsDone) await _onboarding.markDone(OnbVariant.guest);
+      return;
+    }
+    final all = buildOnboardingSteps(variant: choice.variant);
+    final steps = choice.isBasic ? all.where((s) => s.basic).toList() : all;
+    if (steps.isEmpty || !mounted) return;
+    setState(() {
+      _tourSteps = steps;
+      _tourIndex = 0;
+    });
+  }
+
+  void _tourNext() {
+    if (_tourIndex >= _tourSteps!.length - 1) {
+      _finishTour();
+      return;
+    }
+    setState(() => _tourIndex++);
+  }
+
+  void _tourPrev() {
+    if (_tourIndex <= 0) return;
+    setState(() => _tourIndex--);
+  }
+
+  Future<void> _finishTour() async {
+    setState(() => _tourSteps = null);
+    await _onboarding.markDone(OnbVariant.guest);
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Map<String, dynamic>?>(
@@ -60,7 +119,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
         final persons = (data?['displayNames'] as String?)?.trim();
         final token = (data?['guestToken'] as String?)?.trim();
 
-        return Scaffold(
+        final scaffold = Scaffold(
           backgroundColor: AppColors.bgGradient.last,
           appBar: _appBar(
             eventName?.isNotEmpty == true ? eventName! : 'Wesele',
@@ -81,6 +140,26 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
               ),
             _ => GuestWebHome(token: token),
           },
+        );
+
+        if (!_tourActive) return scaffold;
+        // Kroki gościa są wyśrodkowanymi dymkami (bez spotlightu), więc
+        // `resolve` zawsze zwraca null — nakładka sama wyśrodkuje treść.
+        return Stack(
+          children: [
+            scaffold,
+            Positioned.fill(
+              child: OnboardingOverlay(
+                step: _tourSteps![_tourIndex],
+                index: _tourIndex,
+                total: _tourSteps!.length,
+                resolve: (_) => null,
+                onPrev: _tourPrev,
+                onNext: _tourNext,
+                onSkip: _finishTour,
+              ),
+            ),
+          ],
         );
       },
     );
@@ -164,6 +243,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           onSelected: (v) {
+            if (v == 'tour') _promptAndStartTour();
             if (v == 'switch') widget.onSwitchWedding();
             if (v == 'logout') widget.onSignOut();
           },
@@ -177,6 +257,16 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
               ),
             ),
             const PopupMenuDivider(),
+            PopupMenuItem(
+              value: 'tour',
+              child: Row(
+                children: [
+                  const Text('🧭', style: TextStyle(fontSize: 16)),
+                  const SizedBox(width: 10),
+                  Text('Przewodnik', style: GoogleFonts.inter(fontSize: 14)),
+                ],
+              ),
+            ),
             PopupMenuItem(
               value: 'switch',
               child: Row(

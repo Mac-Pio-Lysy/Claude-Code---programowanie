@@ -96,6 +96,10 @@ class _MainNavigationState extends State<MainNavigation> {
   List<OnbStep>? _tourSteps;
   int _tourIndex = 0;
   bool _tourOffersLock = false;
+
+  /// Wariant aktualnie odtwarzanego przewodnika — bywa inny niż rola, gdy
+  /// właściciel lub planer ogląda podgląd strefy gości.
+  OnbVariant _tourVariant = OnbVariant.owner;
   bool get _tourActive => _tourSteps != null;
 
   // Klucze celów spotlightu w nawigacji.
@@ -132,43 +136,50 @@ class _MainNavigationState extends State<MainNavigation> {
   void _select(AppSection section) => setState(() => _current = section);
 
   // ── Pierwsze uruchomienie: przewodnik → propozycja biometrii ──
+  /// Wariant przewodnika wynikający z roli w tym weselu.
+  OnbVariant get _variant => variantForRole(widget.role);
+
   Future<void> _firstRunFlow() async {
-    if (await _onboarding.isDone()) {
+    if (await _onboarding.isDone(_variant)) {
       if (mounted) await _maybeOfferLockSetup();
       return;
     }
     if (!mounted) return;
-    final mode = await showOnboardingIntro(context);
-    if (mode == null) {
-      await _onboarding.markDone();
+    final choice = await showOnboardingIntro(context, variant: _variant);
+    if (choice == null) {
+      await _onboarding.markDone(_variant);
       if (mounted) await _maybeOfferLockSetup();
       return;
     }
-    _startTour(mode, offersLock: true);
+    _startTour(choice, offersLock: true);
   }
 
   /// Uruchamia przewodnik z wybranego trybu z Ustawień (z ekranem wyboru tempa).
   Future<void> _promptAndStartTour() async {
-    final mode = await showOnboardingIntro(context);
-    if (mode == null || !mounted) return;
-    _startTour(mode, offersLock: false);
+    final choice = await showOnboardingIntro(context, variant: _variant);
+    if (choice == null || !mounted) return;
+    _startTour(choice, offersLock: false);
   }
 
-  void _startTour(String mode, {required bool offersLock}) {
-    final all = buildOnboardingSteps();
-    final steps = mode == 'basic' ? all.where((s) => s.basic).toList() : all;
+  void _startTour(OnbChoice choice, {required bool offersLock}) {
+    final all = buildOnboardingSteps(variant: choice.variant);
+    final steps = choice.isBasic ? all.where((s) => s.basic).toList() : all;
     if (steps.isEmpty) return;
     setState(() {
       _tourSteps = steps;
       _tourIndex = 0;
       _tourOffersLock = offersLock;
+      // Podgląd przewodnika gościa nie zalicza przewodnika własnej roli.
+      _tourVariant = choice.variant;
     });
     _applyTourStep();
   }
 
   void _applyTourStep() {
     final step = _tourSteps![_tourIndex];
-    _select(step.section);
+    // Kroki wariantu gościa nie przełączają panelu — opisują strefę gości,
+    // której w panelu organizatora nie ma.
+    if (step.navigate) _select(step.section);
     if (step.subTab != null && tabbedSections.contains(step.section)) {
       OnboardingTabBus.requestTab(step.section, step.subTab!);
     } else {
@@ -193,9 +204,12 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Future<void> _finishTour() async {
     final offers = _tourOffersLock;
+    final variant = _tourVariant;
     setState(() => _tourSteps = null);
     OnboardingTabBus.clear();
-    await _onboarding.markDone();
+    // Zaliczamy TEN wariant, który był odtwarzany. Dzięki temu obejrzenie
+    // podglądu gościa nie „odhacza" przewodnika własnej roli i odwrotnie.
+    await _onboarding.markDone(variant);
     if (offers && mounted) await _maybeOfferLockSetup();
   }
 

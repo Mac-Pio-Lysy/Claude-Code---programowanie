@@ -274,7 +274,71 @@ class _SpotlightPainter extends CustomPainter {
 
 /// Ekran powitalny przewodnika — wybór tempa (Podstawy / Pełny).
 /// Zwraca `'basic'`, `'full'` lub `null` (gdy pominięto).
-Future<String?> showOnboardingIntro(BuildContext context) {
+/// Wybór dokonany na ekranie powitalnym przewodnika.
+class OnbChoice {
+  const OnbChoice(this.mode, this.variant);
+
+  /// `basic` — skrócona forma, `full` — rozszerzona.
+  final String mode;
+
+  /// Wariant do uruchomienia. Zwykle zgodny z rolą, ale właściciel i planer
+  /// mogą wybrać podgląd przewodnika gościa.
+  final OnbVariant variant;
+
+  bool get isBasic => mode == 'basic';
+}
+
+/// Ekran powitalny przewodnika: wybór tempa (skrócony / rozszerzony), a dla
+/// właściciela i planera dodatkowo podgląd przewodnika gościa.
+///
+/// Zwraca `null`, gdy użytkownik pominął przewodnik.
+Future<OnbChoice?> showOnboardingIntro(
+  BuildContext context, {
+  OnbVariant variant = OnbVariant.owner,
+}) async {
+  final mode = await _showIntroDialog(context, variant);
+  if (mode == null) return null;
+  if (mode == 'guest') {
+    // Podgląd strefy gości — pytamy o tempo jeszcze raz, już w wariancie gościa.
+    if (!context.mounted) return null;
+    final guestMode = await _showIntroDialog(context, OnbVariant.guest);
+    if (guestMode == null || guestMode == 'guest') return null;
+    return OnbChoice(guestMode, OnbVariant.guest);
+  }
+  return OnbChoice(mode, variant);
+}
+
+/// Teksty ekranu powitalnego zależne od wariantu.
+({String title, String desc, String basicSub, String fullSub}) _introTexts(
+    OnbVariant v) {
+  return switch (v) {
+    OnbVariant.guest => (
+        title: 'Przewodnik dla gościa',
+        desc: 'Pokażemy Ci, co możesz zrobić na stronie przygotowanej przez '
+            'Parę Młodą. Zajmie to chwilę.',
+        basicSub: 'Najważniejsze: RSVP, harmonogram, galeria, gry',
+        fullSub: 'Wszystkie sekcje strefy gości',
+      ),
+    OnbVariant.planner => (
+        title: 'Przewodnik dla planera',
+        desc: 'Pokażemy Ci panel wesela klienta i to, czym różni się praca '
+            'planera od konta Pary Młodej. Wznowisz go z Ustawień.',
+        basicSub: 'Główne sekcje panelu i zasady pracy planera',
+        fullSub: 'Wszystkie sekcje, podzakładki i ustawienia',
+      ),
+    OnbVariant.owner => (
+        title: 'Przewodnik po aplikacji',
+        desc: 'Pokażemy Ci najważniejsze miejsca w aplikacji. Wybierz tempo — '
+            'przewodnik wznowisz w każdej chwili z Ustawień (pod logo).',
+        basicSub: 'Tylko główne sekcje — szybki przegląd',
+        fullSub: 'Wszystkie sekcje i podzakładki',
+      ),
+  };
+}
+
+Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant) {
+  final t = _introTexts(variant);
+  final offerGuestPreview = variant != OnbVariant.guest;
   return showDialog<String>(
     context: context,
     barrierDismissible: false,
@@ -288,9 +352,10 @@ Future<String?> showOnboardingIntro(BuildContext context) {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('🧭', style: TextStyle(fontSize: 40)),
+              Text(variant == OnbVariant.guest ? '💍' : '🧭',
+                  style: const TextStyle(fontSize: 40)),
               const SizedBox(height: 10),
-              Text('Przewodnik po aplikacji',
+              Text(t.title,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 23,
@@ -298,8 +363,7 @@ Future<String?> showOnboardingIntro(BuildContext context) {
                       color: AppColors.text)),
               const SizedBox(height: 8),
               Text(
-                'Pokażemy Ci najważniejsze miejsca w aplikacji. Wybierz tempo — '
-                'przewodnik wznowisz w każdej chwili z Ustawień (pod logo).',
+                t.desc,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                     fontSize: 13.5, height: 1.5, color: AppColors.textLight),
@@ -308,8 +372,8 @@ Future<String?> showOnboardingIntro(BuildContext context) {
               _introBtn(
                 context,
                 icon: Icons.flag_outlined,
-                title: 'Podstawy',
-                subtitle: 'Tylko główne sekcje — szybki przegląd',
+                title: 'Skrócony',
+                subtitle: t.basicSub,
                 value: 'basic',
                 filled: false,
               ),
@@ -317,11 +381,22 @@ Future<String?> showOnboardingIntro(BuildContext context) {
               _introBtn(
                 context,
                 icon: Icons.explore_outlined,
-                title: 'Pełny przewodnik',
-                subtitle: 'Wszystkie sekcje i podzakładki',
+                title: 'Rozszerzony',
+                subtitle: t.fullSub,
                 value: 'full',
                 filled: true,
               ),
+              if (offerGuestPreview) ...[
+                const SizedBox(height: 10),
+                _introBtn(
+                  context,
+                  icon: Icons.groups_outlined,
+                  title: 'Zobacz przewodnik gościa',
+                  subtitle: 'Sprawdź, co widzą Wasi goście',
+                  value: 'guest',
+                  filled: false,
+                ),
+              ],
               const SizedBox(height: 10),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(null),
