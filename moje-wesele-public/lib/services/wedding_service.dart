@@ -6,6 +6,7 @@ import '../models/children.dart';
 import '../models/couple.dart';
 import '../models/guest_visibility.dart';
 import '../models/wedding_summary.dart';
+import '../models/wedding_tier.dart';
 import '../utils/warsaw_time.dart';
 import 'guest_service.dart';
 import 'membership_service.dart';
@@ -782,6 +783,10 @@ class WeddingService {
       'ownerId': ownerId,
       'joinCode': joinCode,
       'guestToken': guestToken,
+      // Poziom konta — każde nowe wesele startuje jako darmowe. Pole zakładamy
+      // od razu, żeby uruchomienie monetyzacji nie wymagało migracji danych
+      // (patrz `PremiumAccess` i opisana tam zasada grandfatheringu).
+      ...PremiumAccess.initialFields(),
       'appConfig': {
         'eventName': name.trim().isEmpty ? 'Nasze Wesele' : name.trim(),
         'displayNames': persons.trim(),
