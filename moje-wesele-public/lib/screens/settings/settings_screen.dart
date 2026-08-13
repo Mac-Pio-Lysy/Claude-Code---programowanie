@@ -19,6 +19,7 @@ import '../../services/wedding_service.dart';
 import '../../utils/format.dart';
 import 'guest_interactions_screen.dart';
 import 'guest_visibility_screen.dart';
+import 'notification_settings_screen.dart';
 import 'people_access_screen.dart';
 import 'security_settings_screen.dart';
 
@@ -283,6 +284,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _legacyMigrationCard(),
                 const SizedBox(height: 12),
               ],
+              _notificationsCard(),
+              const SizedBox(height: 12),
               _loginCard(),
               const SizedBox(height: 12),
               _configCard(),
@@ -1177,6 +1180,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               icon: const Icon(Icons.visibility_outlined, size: 18),
               label: const Text('Ustaw widoczność sekcji'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ustawienia przyszłych powiadomień push. Dzwoneczek w aplikacji działa
+  /// niezależnie — mówi o tym sam ekran.
+  Widget _notificationsCard() {
+    return _card(
+      'Powiadomienia',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Wybierz, o czym chcesz wiedzieć na telefonie. Dzwoneczek '
+            'w aplikacji działa zawsze, niezależnie od tych ustawień.',
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      NotificationSettingsScreen(uid: widget.currentUserId),
+                ),
+              ),
+              icon: const Icon(Icons.notifications_none, size: 18),
+              label: const Text('Ustawienia powiadomień'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),

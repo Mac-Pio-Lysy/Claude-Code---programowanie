@@ -2,7 +2,40 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/app_notification.dart';
 import '../models/notification_snapshot.dart';
+import '../models/push_topic.dart';
 import '../models/wedding_data.dart';
+
+/// Preferencje przyszłych powiadomień PUSH — per użytkownik, wspólne dla
+/// wszystkich jego wesel.
+///
+/// Zapis lokalny (`SharedPreferences`). W etapie 2, przy podłączaniu push,
+/// przeniesiemy je do Firestore — Cloud Function musi je czytać po stronie
+/// serwera. Wtedy i tak dotykamy reguł, więc migracja pójdzie razem z tym.
+class PushPrefsService {
+  PushPrefsService({required this.uid});
+
+  final String uid;
+
+  String get _key => 'push_topics_$uid';
+
+  /// Brak zapisu = wszystkie tematy włączone (patrz [PushPrefs.allOn]).
+  Future<PushPrefs> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    return PushPrefs.fromKeys(prefs.getStringList(_key));
+  }
+
+  Future<void> save(PushPrefs value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_key, value.toKeys());
+  }
+
+  /// Przełącza pojedynczy temat i zwraca zapisany stan.
+  Future<PushPrefs> toggle(PushTopic topic, bool on) async {
+    final next = (await load()).withTopic(topic, on);
+    await save(next);
+    return next;
+  }
+}
 
 /// Centrum powiadomień (etap 1a) — trwałość odcisku i stanu przeczytania.
 ///
@@ -77,6 +110,68 @@ class NotificationService {
       now: now,
     );
     await saveSnapshot(diff.snapshot);
+
+    if (diff.notifications.isEmpty) return const [];
+    final read = await loadReadIds();
+    return [
+      for (final n in diff.notifications)
+        if (!read.contains(n.id)) n,
+    ];
+  }
+}
+
+/// Powiadomienia STREFY GOŚCIA — wyłącznie zmiany w harmonogramie.
+///
+/// Klucz zapisu opiera się na TOKENIE, a nie na `uid`: gość wchodzący
+/// z linku lub kodu QR nie ma konta, a mimo to jego „przeczytane" ma przetrwać
+/// odświeżenie strony. Token jednoznacznie wskazuje wesele, więc dwa różne
+/// wesela na jednym urządzeniu nie mieszają się ze sobą.
+class GuestNotificationService {
+  GuestNotificationService({required this.token});
+
+  final String token;
+
+  String get _snapshotKey => 'guest_notif_seen_$token';
+  String get _readKey => 'guest_notif_read_$token';
+
+  Future<NotificationSnapshot> loadSnapshot() async {
+    final prefs = await SharedPreferences.getInstance();
+    return NotificationSnapshot.fromStringList(
+        prefs.getStringList(_snapshotKey));
+  }
+
+  Future<Set<String>> loadReadIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return (prefs.getStringList(_readKey) ?? const []).toSet();
+  }
+
+  Future<void> markRead(Iterable<String> ids) async {
+    if (ids.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final current = (prefs.getStringList(_readKey) ?? const <String>[]).toList()
+      ..addAll(ids);
+    final unique = current.toSet().toList();
+    final trimmed = unique.length <= NotificationService.maxReadIds
+        ? unique
+        : unique.sublist(unique.length - NotificationService.maxReadIds);
+    await prefs.setStringList(_readKey, trimmed);
+  }
+
+  /// Pełny cykl dla gościa: porównaj harmonogram z mirrora i zapisz odcisk.
+  ///
+  /// Pierwsze wejście zapisuje odcisk po cichu — gość otwierający stronę po
+  /// raz pierwszy nie może dostać powiadomienia o każdym punkcie programu.
+  Future<List<AppNotification>> refresh(dynamic scheduleEvents,
+      {DateTime? now}) async {
+    final previous = await loadSnapshot();
+    final diff = NotificationDetector.detectGuest(
+      previous: previous,
+      scheduleEvents: scheduleEvents,
+      now: now,
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_snapshotKey, diff.snapshot.toStringList());
 
     if (diff.notifications.isEmpty) return const [];
     final read = await loadReadIds();

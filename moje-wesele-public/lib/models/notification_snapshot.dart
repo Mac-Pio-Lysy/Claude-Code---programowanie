@@ -54,16 +54,23 @@ class NotificationSnapshot {
 
     // Harmonogram — godzina i nazwa, bo ich zmiana jest istotna dla wszystkich.
     for (final s in data.scheduleEvents) {
-      final id = _idOf(s);
-      if (id == null) continue;
-      final map = s as Map;
-      final h = (map['hour'] as num?)?.toInt() ?? 0;
-      final m = (map['minute'] as num?)?.toInt() ?? 0;
-      final name = (map['name'] as String?)?.trim() ?? '';
-      marks.add('sched:$id:${_hhmm(h, m)}|$name');
+      final mark = scheduleMark(s);
+      if (mark != null) marks.add(mark);
     }
 
     return NotificationSnapshot(marks);
+  }
+
+  /// Znacznik punktu harmonogramu — wspólny dla panelu organizatora i strefy
+  /// gościa, żeby obie ścieżki wykrywały dokładnie te same zmiany.
+  static String? scheduleMark(dynamic e) {
+    final id = _idOf(e);
+    if (id == null) return null;
+    final map = e as Map;
+    final h = (map['hour'] as num?)?.toInt() ?? 0;
+    final m = (map['minute'] as num?)?.toInt() ?? 0;
+    final name = (map['name'] as String?)?.trim() ?? '';
+    return 'sched:$id:${_hhmm(h, m)}|$name';
   }
 
   static int? _idOf(dynamic e) =>
@@ -215,6 +222,65 @@ class NotificationDetector {
     if (g == null) return 'Gość';
     final full = g.fullName.trim();
     return full.isEmpty ? 'Gość bez imienia' : full;
+  }
+
+  /// Ten sam mechanizm dla STREFY GOŚCIA, ale wąski: wyłącznie harmonogram.
+  ///
+  /// Gość widzi tylko publiczny mirror (`guestSpaces/{token}`), więc pracujemy
+  /// na jego `scheduleEvents`, a nie na dokumencie wesela. Żaden inny rodzaj
+  /// powiadomień do gościa nie trafia — to celowe zawężenie, nie filtr na
+  /// pełnej liście, żeby przez pomyłkę nic mu nie wyciekło.
+  static NotificationSnapshot guestSnapshot(dynamic scheduleEvents) {
+    final marks = <String>{};
+    if (scheduleEvents is List) {
+      for (final e in scheduleEvents) {
+        final mark = NotificationSnapshot.scheduleMark(e);
+        if (mark != null) marks.add(mark);
+      }
+    }
+    return NotificationSnapshot(marks);
+  }
+
+  /// Wykrywanie zmian harmonogramu dla gościa.
+  ///
+  /// ⚠️ Jak u organizatora: pusty [previous] = pierwsze uruchomienie, więc
+  /// zapisujemy odcisk BEZ powiadomień.
+  static NotificationDiff detectGuest({
+    required NotificationSnapshot previous,
+    required dynamic scheduleEvents,
+    DateTime? now,
+  }) {
+    final current = guestSnapshot(scheduleEvents);
+    if (previous.isEmpty) {
+      return NotificationDiff(notifications: const [], snapshot: current);
+    }
+
+    final at = now ?? DateTime.now();
+    final fresh = current.marks.difference(previous.marks);
+    final out = <AppNotification>[];
+
+    for (final mark in fresh) {
+      final id = int.tryParse(mark.split(':').elementAtOrNull(1) ?? '');
+      if (id == null) continue;
+      final e = _findById(scheduleEvents, id);
+      if (e == null) continue;
+
+      final h = (e['hour'] as num?)?.toInt() ?? 0;
+      final m = (e['minute'] as num?)?.toInt() ?? 0;
+      final name = (e['name'] as String?)?.trim() ?? '';
+      final label = name.isEmpty ? 'punkt programu' : name;
+
+      out.add(AppNotification(
+        id: mark,
+        kind: NotifKind.schedule,
+        text: 'Zmieniono w harmonogramie: $label '
+            '${NotificationSnapshot._hhmm(h, m)}',
+        at: at,
+      ));
+    }
+
+    out.sort((a, b) => a.id.compareTo(b.id));
+    return NotificationDiff(notifications: out, snapshot: current);
   }
 
   static Map<dynamic, dynamic>? _findById(dynamic list, int id) {

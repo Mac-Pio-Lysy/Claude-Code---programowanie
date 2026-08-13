@@ -5,7 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app_colors.dart';
+import '../../models/notification_snapshot.dart';
 import '../../models/wedding_countdown.dart';
+import '../../services/notification_service.dart';
+import '../../widgets/notification_bell.dart';
 import '../../widgets/wedding_countdown_card.dart';
 import '../../help/help_screen.dart';
 import '../../models/guest_visibility.dart';
@@ -73,10 +76,48 @@ class _GuestWebHomeState extends State<GuestWebHome> {
   /// Trwa ustalanie tożsamości (blokuje przycisk „Spróbuj ponownie").
   bool _identityBusy = false;
 
+  // ── Powiadomienia gościa (etap 1d) — WYŁĄCZNIE harmonogram ──
+  late final GuestNotificationService _notifications =
+      GuestNotificationService(token: widget.token);
+  final NotificationInbox _inbox = NotificationInbox();
+
+  /// Ostatnio sprawdzony harmonogram — zabezpiecza przed ponownym liczeniem
+  /// przy każdej przebudowie (np. po dotknięciu dowolnego przycisku).
+  String? _lastScheduleFingerprint;
+
   @override
   void initState() {
     super.initState();
     _ensureIdentity();
+    _restoreReadNotifications();
+  }
+
+  Future<void> _restoreReadNotifications() async {
+    _inbox.restoreRead(await _notifications.loadReadIds());
+  }
+
+  /// Sprawdza zmiany w harmonogramie po każdym snapshotcie z mirrora.
+  ///
+  /// Wołane z `build`, dlatego pilnujemy dwóch rzeczy: liczymy tylko przy
+  /// faktycznej zmianie treści oraz odkładamy `setState` poza fazę budowania.
+  void _checkScheduleNotifications(dynamic scheduleEvents) {
+    final fingerprint =
+        NotificationDetector.guestSnapshot(scheduleEvents).toStringList().join();
+    if (fingerprint == _lastScheduleFingerprint) return;
+    _lastScheduleFingerprint = fingerprint;
+
+    _notifications.refresh(scheduleEvents).then((fresh) {
+      if (!mounted || fresh.isEmpty) return;
+      setState(() => _inbox.add(fresh));
+    });
+  }
+
+  Future<void> _openNotifications() async {
+    await NotificationCenter.open(context, _inbox);
+    // Gość nie ma dokąd „przejść" — strefa gości to jeden ekran, więc wynik
+    // przejścia ignorujemy i zapisujemy tylko stan przeczytania.
+    await _notifications.markRead(_inbox.readIds);
+    if (mounted) setState(() {});
   }
 
   /// Zakłada w tle anonimowe konto gościa (albo używa istniejącej sesji).
@@ -123,6 +164,8 @@ class _GuestWebHomeState extends State<GuestWebHome> {
                     }
                     final space = snapshot.data;
                     if (space == null) return _invalid();
+                    // Zmiany harmonogramu → dzwoneczek gościa (etap 1d).
+                    _checkScheduleNotifications(space['scheduleEvents']);
                     return _content(space);
                   },
                 ),
@@ -229,16 +272,24 @@ class _GuestWebHomeState extends State<GuestWebHome> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       children: [
-        if (widget.showHelp)
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () => HelpScreen.open(context, OnbVariant.guest),
-              icon: const Icon(Icons.help_outline, size: 18),
-              label: const Text('Pomoc'),
-              style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+        // Pasek narzędzi gościa: dzwoneczek zawsze, Pomoc tylko przy wejściu
+        // z linku/QR (gość zalogowany ma ją w pasku aplikacji).
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (widget.showHelp)
+              TextButton.icon(
+                onPressed: () => HelpScreen.open(context, OnbVariant.guest),
+                icon: const Icon(Icons.help_outline, size: 18),
+                label: const Text('Pomoc'),
+                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+              ),
+            NotificationBell(
+              inbox: _inbox,
+              onOpen: _openNotifications,
             ),
-          ),
+          ],
+        ),
         _header(eventName, persons, space),
         const SizedBox(height: 14),
         // Licznik do wesela (#24) — data i godzina z konfiguracji wesela,

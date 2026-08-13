@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,8 +15,10 @@ import '../onboarding/onboarding_steps.dart';
 import '../services/app_lock_service.dart';
 import '../services/firestore_service.dart';
 import '../services/nav_config_service.dart';
+import '../services/notification_service.dart';
 import '../services/onboarding_service.dart';
 import '../widgets/floating_bottom_nav.dart';
+import '../widgets/notification_bell.dart';
 import 'accommodation/accommodation_screen.dart';
 import 'analytics/analytics_screen.dart';
 import 'budget/budget_screen.dart';
@@ -117,6 +121,17 @@ class _MainNavigationState extends State<MainNavigation> {
   /// przebudowa nie powodowała ponownej subskrypcji i migotania „ładowanie".
   late final Stream<WeddingData?> _dataStream;
 
+  // ── Powiadomienia (dzwoneczek) ──
+  late final NotificationService _notifications;
+  final NotificationInbox _inbox = NotificationInbox();
+
+  /// Osobna subskrypcja danych wesela — wyłącznie do wykrywania zmian.
+  ///
+  /// Nie korzystamy z [_dataStream], bo ten jest konsumowany przez
+  /// `StreamBuilder` w `build`. Firestore i tak trzyma jeden nasłuch na
+  /// dokument, więc druga subskrypcja nie generuje dodatkowych odczytów.
+  StreamSubscription<WeddingData?>? _notifSub;
+
   /// Stały klucz ciała ekranu. Dzięki niemu State bieżącej sekcji (indeks
   /// zakładki, filtry, scroll) przeżywa zmianę layoutu telefon↔tablet przy
   /// obrocie — element jest przenoszony, a nie budowany od zera.
@@ -133,7 +148,50 @@ class _MainNavigationState extends State<MainNavigation> {
     _navConfig.load().then((bar) {
       if (mounted) setState(() => _bar = bar);
     });
+    // Serwis tworzymy synchronicznie — dzwoneczek jest klikalny od pierwszej
+    // klatki, a `_openNotifications` musi mieć go gotowego.
+    _notifications =
+        NotificationService(uid: _uid, weddingId: widget.weddingId);
+    _initNotifications();
     WidgetsBinding.instance.addPostFrameCallback((_) => _firstRunFlow());
+  }
+
+  /// Wczytuje stan przeczytania i uruchamia wykrywanie zmian.
+  ///
+  /// Pierwszy snapshot po instalacji zapisuje odcisk PO CICHU — dzwoneczek nie
+  /// zapełnia się historią całego wesela (patrz `NotificationDetector`).
+  Future<void> _initNotifications() async {
+    _inbox.restoreRead(await _notifications.loadReadIds());
+
+    _notifSub = widget.firestore.watchWeddingData().listen((data) async {
+      final fresh = await _notifications.refresh(data);
+      if (!mounted || fresh.isEmpty) return;
+      setState(() => _inbox.add(fresh));
+    });
+  }
+
+  /// Otwiera centrum powiadomień i realizuje wybrane przejście.
+  Future<void> _openNotifications() async {
+    final jump = await NotificationCenter.open(context, _inbox);
+    // Stan przeczytania zapisujemy zawsze — także gdy użytkownik tylko
+    // przejrzał listę i zamknął panel bez przechodzenia do sekcji.
+    await _notifications.markRead(_inbox.readIds);
+    if (!mounted) return;
+    setState(() {});
+    if (jump == null) return;
+
+    _select(jump.section);
+    if (jump.subTab != null && tabbedSections.contains(jump.section)) {
+      OnboardingTabBus.requestTab(jump.section, jump.subTab!);
+    } else {
+      OnboardingTabBus.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    _notifSub?.cancel();
+    super.dispose();
   }
 
   void _select(AppSection section) => setState(() => _current = section);
@@ -583,6 +641,19 @@ class _MainNavigationState extends State<MainNavigation> {
                   tooltip: 'Pomoc',
                   icon: const Icon(Icons.help_outline, color: AppColors.accent),
                   onPressed: () => HelpScreen.open(context, _variant),
+                ),
+              ),
+            ),
+            // Dzwoneczek PRZED menu konta — `_logoKey` (cel spotlightu
+            // przewodnika dla Ustawień) zostaje na swoim miejscu nietknięty.
+            Positioned(
+              right: 52,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: NotificationBell(
+                  inbox: _inbox,
+                  onOpen: _openNotifications,
                 ),
               ),
             ),
