@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../services/wedding_service.dart';
 import 'qr_scan_screen.dart';
+import '../../utils/app_format.dart';
 
 /// Ekran „Dołącz do wesela" — gość podaje kod, datę i nazwisko Państwa Młodych.
 /// Po pomyślnej potrójnej weryfikacji zostaje dodany jako GOŚĆ.
@@ -327,13 +328,8 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       );
 
-  static String _dateLabel(DateTime date) {
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
+  static String _dateLabel(DateTime date) =>
+      AppFormat.dateLong(date);
 }
 
 /// Zamienia wpisywany tekst na WIELKIE litery (kod wesela).

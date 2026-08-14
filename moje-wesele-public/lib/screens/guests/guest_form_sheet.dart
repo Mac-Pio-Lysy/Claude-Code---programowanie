@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/couple.dart';
 import '../../models/guest.dart';
 import '../../services/guest_service.dart';
@@ -150,6 +151,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final menus = widget.menuOptions.isNotEmpty
         ? widget.menuOptions
         : GuestOptions.defaultMenuOptions;
@@ -185,7 +187,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _isEdit ? 'Edytuj gościa' : 'Dodaj gościa',
+                      _isEdit ? t.guests_formEditTitle : t.guests_formAddTitle,
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -203,32 +205,32 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           20, 8, 20, 20 + MediaQuery.paddingOf(context).bottom),
                       children: [
                         _field(
-                          label: 'Imię *',
+                          label: t.guests_formFirstName,
                           child: TextFormField(
                             controller: _firstName,
                             textCapitalization: TextCapitalization.words,
-                            decoration: _inputDecoration('np. Anna'),
+                            decoration: _inputDecoration(t.guests_formFirstNameHint),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Podaj imię gościa'
+                                ? t.guests_formFirstNameRequired
                                 : null,
                           ),
                         ),
                         _field(
-                          label: 'Nazwisko',
+                          label: t.guests_formLastName,
                           child: TextFormField(
                             controller: _lastName,
                             textCapitalization: TextCapitalization.words,
-                            decoration: _inputDecoration('np. Kowalska'),
+                            decoration: _inputDecoration(t.guests_formLastNameHint),
                           ),
                         ),
                         _field(
-                          label: 'Zaproszony przez',
+                          label: t.guests_formInvitedBy,
                           child: DropdownButtonFormField<String?>(
                             initialValue: _invitedBy,
                             decoration: _inputDecoration(null),
                             items: [
-                              const DropdownMenuItem(
-                                  value: null, child: Text('— wybierz —')),
+                              DropdownMenuItem(
+                                  value: null, child: Text(t.guests_formChoose)),
                               // Kolejność „bride" przed „groom" bez znaczenia;
                               // etykiety idą z typu uroczystości.
                               DropdownMenuItem(
@@ -244,7 +246,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           ),
                         ),
                         _field(
-                          label: 'Kategoria',
+                          label: t.guests_formCategory,
                           child: DropdownButtonFormField<String>(
                             initialValue: _category,
                             decoration: _inputDecoration(null),
@@ -259,12 +261,8 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                                           CoupleLabels.coupleCategoryValue ||
                                       _coupleSlotFree ||
                                       _isCouple,
-                                  child: Text(
-                                    c == CoupleLabels.coupleCategoryValue
-                                        ? CoupleLabels
-                                            .current.coupleCategoryLabel
-                                        : c,
-                                  ),
+                                  // Wartość zostaje polska, etykieta tłumaczona.
+                                  child: Text(GuestOptions.categoryLabel(c)),
                                 ),
                             ],
                             onChanged: (v) => setState(() {
@@ -282,15 +280,13 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Text(
-                              'Para Młoda to najwyżej '
-                              '${CoupleLabels.maxCouple} osoby — komplet już '
-                              'jest na liście.',
+                              t.guests_formCoupleLimit(CoupleLabels.maxCouple),
                               style: GoogleFonts.inter(
                                   fontSize: 11.5, color: AppColors.textLight),
                             ),
                           ),
                         _field(
-                          label: 'Płeć',
+                          label: t.guests_formGender,
                           child: DropdownButtonFormField<String>(
                             initialValue: _gender,
                             decoration: _inputDecoration(null),
@@ -303,13 +299,13 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           ),
                         ),
                         _field(
-                          label: 'Rola',
+                          label: t.guests_formRole,
                           child: DropdownButtonFormField<String?>(
                             initialValue: _witness,
                             decoration: _inputDecoration(null),
                             items: [
-                              const DropdownMenuItem(
-                                  value: null, child: Text('Brak roli')),
+                              DropdownMenuItem(
+                                  value: null, child: Text(t.guests_formNoRole)),
                               DropdownMenuItem(
                                   value: 'witness_groom',
                                   child: Text(
@@ -329,11 +325,10 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
-                          title: Text('🧒 To dziecko',
+                          title: Text(t.guests_formIsChild,
                               style: GoogleFonts.inter(fontSize: 14)),
                           subtitle: Text(
-                            'Dzieci są wyłączane z przeliczeń alkoholu i mogą '
-                            'mieć osobne menu.',
+                            t.guests_formIsChildHint,
                             style: GoogleFonts.inter(
                                 fontSize: 11.5, color: AppColors.textLight),
                           ),
@@ -345,15 +340,18 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                         ),
                         const SizedBox(height: 4),
                         _field(
-                          label: 'Dieta / menu',
+                          label: t.guests_formDiet,
                           child: DropdownButtonFormField<String>(
                             initialValue:
                                 menus.contains(_menuChoice) ? _menuChoice : '',
                             decoration: _inputDecoration(null),
                             items: [
-                              const DropdownMenuItem(value: '', child: Text('— brak —')),
+                              DropdownMenuItem(
+                                  value: '', child: Text(t.guests_formNoMenu)),
                               for (final m in menus)
-                                DropdownMenuItem(value: m, child: Text(m)),
+                                DropdownMenuItem(
+                                    value: m,
+                                    child: Text(GuestOptions.menuLabel(m))),
                             ],
                             onChanged: (v) => setState(() => _menuChoice = v ?? ''),
                           ),
@@ -364,7 +362,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
-                          title: Text('👥 Z osobą towarzyszącą?',
+                          title: Text(t.guests_companionSwitch,
                               style: GoogleFonts.inter(
                                   fontSize: 14,
                                   color: _isCouple
@@ -372,10 +370,8 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                                       : AppColors.text)),
                           subtitle: _isCouple
                               ? Text(
-                                  'Para Młoda nie ma osoby towarzyszącej — '
-                                  'drugą osobę dodaj jako osobny wpis '
-                                  'w kategorii '
-                                  '„${CoupleLabels.current.coupleCategoryLabel}".',
+                                  t.guests_companionForCouple(
+                                      CoupleLabels.current.coupleCategoryLabel),
                                   style: GoogleFonts.inter(
                                       fontSize: 11.5,
                                       color: AppColors.textLight),
@@ -389,7 +385,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                         if (_hasCompanion && !_isCouple) ...[
                           // ── Typ relacji (#3) ──
                           _field(
-                            label: 'Typ relacji',
+                            label: t.guests_companionRelation,
                             child: Wrap(
                               spacing: 8,
                               children: [
@@ -431,12 +427,10 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           SwitchListTile.adaptive(
                             contentPadding: EdgeInsets.zero,
                             activeThumbColor: AppColors.accent,
-                            title: Text('Imienia jeszcze nie znam',
+                            title: Text(t.guests_companionNameUnknown,
                                 style: GoogleFonts.inter(fontSize: 14)),
                             subtitle: Text(
-                              'Zapiszemy „Osoba towarzysząca" — dane uzupełnisz '
-                              'później. Osoba i tak liczy się do listy gości '
-                              'i do cateringu.',
+                              t.guests_companionNameUnknownHint,
                               style: GoogleFonts.inter(
                                   fontSize: 11, color: AppColors.textLight),
                             ),
@@ -446,15 +440,15 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           ),
                           if (!_companionNamePending) ...[
                             _field(
-                              label: 'Imię os. towarzyszącej',
+                              label: t.guests_companionFirstName,
                               child: TextFormField(
                                 controller: _companionFirst,
                                 textCapitalization: TextCapitalization.words,
-                                decoration: _inputDecoration('Imię'),
+                                decoration: _inputDecoration(t.guests_companionFirstNameHint),
                               ),
                             ),
                             _field(
-                              label: 'Nazwisko os. towarzyszącej',
+                              label: t.guests_companionLastName,
                               child: TextFormField(
                                 controller: _companionLast,
                                 textCapitalization: TextCapitalization.words,
@@ -464,7 +458,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           ],
                           // ── Kategoria osoby towarzyszącej ──
                           _field(
-                            label: 'Kategoria os. towarzyszącej',
+                            label: t.guests_companionCategory,
                             child: DropdownButtonFormField<String>(
                               initialValue: _companionCategory ?? '',
                               isExpanded: true,
@@ -472,11 +466,15 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                               items: [
                                 DropdownMenuItem(
                                   value: '',
-                                  child: Text('Jak zapraszający ($_category)'),
+                                  child: Text(t.guests_companionInherit(
+                                      GuestOptions.categoryLabel(_category))),
                                 ),
                                 for (final c in GuestOptions.categories)
                                   if (c != CoupleLabels.coupleCategoryValue)
-                                    DropdownMenuItem(value: c, child: Text(c)),
+                                    DropdownMenuItem(
+                                        value: c,
+                                        child:
+                                            Text(GuestOptions.categoryLabel(c))),
                               ],
                               onChanged: (v) => setState(() =>
                                   _companionCategory =
@@ -492,7 +490,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                             SwitchListTile.adaptive(
                               contentPadding: EdgeInsets.zero,
                               activeThumbColor: AppColors.accent,
-                              title: Text('🧒 Osoba towarzysząca to dziecko',
+                              title: Text(t.guests_companionIsChild,
                                   style: GoogleFonts.inter(fontSize: 13)),
                               value: _companionIsChild,
                               onChanged: (v) =>
@@ -502,9 +500,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
-                                'Osoba towarzysząca zostanie dodana jako osobny '
-                                'gość powiązany z tą osobą — dzięki temu wiadomo, '
-                                'kto z kim przychodzi.',
+                                t.guests_companionInfo,
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   color: AppColors.textLight,
@@ -515,7 +511,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
-                          title: Text('🏨 Potrzebuje noclegu',
+                          title: Text(t.guests_formAccommodation,
                               style: GoogleFonts.inter(fontSize: 14)),
                           value: _needsAccommodation,
                           onChanged: (v) =>
@@ -535,7 +531,7 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: const Text('Anuluj'),
+                                child: Text(t.common_cancel),
                               ),
                             ),
                             const SizedBox(width: 12),

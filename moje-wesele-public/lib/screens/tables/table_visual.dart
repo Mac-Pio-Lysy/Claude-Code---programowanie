@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/guest.dart';
+import '../../l10n/app_text.dart';
 
 /// Pozycje miejsc wokół stołu (odwzorowane z `getSeatPositions()` w wersji web).
 class _SeatLayout {
@@ -92,7 +93,7 @@ class TableVisual extends StatelessWidget {
     final isChild = table['isChildTable'] == true;
     final seatsData = (table['seatsData'] as List?) ?? const [];
     final seatCount = seatsData.length;
-    final name = (table['name'] as String?) ?? 'Stół';
+    final name = (table['name'] as String?) ?? AppText.t.tables_defaultName;
 
     final layout = _computeSeats(shape, seatCount, isHonor);
 

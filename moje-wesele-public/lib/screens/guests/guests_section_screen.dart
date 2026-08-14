@@ -10,6 +10,7 @@ import '../../services/guest_service.dart';
 import 'guests_card_tab.dart';
 import 'guests_screen.dart';
 import 'guests_summary_tab.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Sekcja „Goście" z podzakładkami: Lista, Kartoteka, Podsumowanie.
 class GuestsSectionScreen extends StatelessWidget {
@@ -37,7 +38,7 @@ class GuestsSectionScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Goście',
+                Text(AppLocalizations.of(context).guests_title,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,

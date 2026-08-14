@@ -7,6 +7,7 @@ import '../../services/user_service.dart';
 import '../../services/wedding_service.dart';
 import 'create_wedding_sheet.dart';
 import 'join_wedding_screen.dart';
+import '../../utils/app_format.dart';
 
 /// Ekran „Twoje wesela" — pokazywany po wejściu do aplikacji, przed panelem.
 ///
@@ -682,10 +683,6 @@ class _WeddingCard extends StatelessWidget {
 
   static String _dateLabel(DateTime? date) {
     if (date == null) return 'Data do ustalenia';
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+    return AppFormat.dateLong(date);
   }
 }

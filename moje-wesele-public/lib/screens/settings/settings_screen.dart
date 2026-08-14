@@ -9,13 +9,17 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
 import '../../layout/responsive.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/locale_controller.dart';
 import '../../models/couple.dart';
+import '../../models/currency.dart';
 import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/legacy_migration_service.dart';
 import '../../services/wedding_service.dart';
+import '../../utils/app_format.dart';
 import '../../utils/format.dart';
 import 'guest_interactions_screen.dart';
 import 'guest_visibility_screen.dart';
@@ -92,6 +96,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// Czy na weselu będą dzieci (`budgetData.withChildren`).
   bool _withChildren = false;
 
+  /// Waluta budżetu (`appConfig.currency`) — sam symbol, bez przeliczania.
+  Currency _currency = Currency.fallback;
+
   /// Nazwiska do weryfikacji gościa (nigdzie nie wyświetlane).
   late final TextEditingController _surnames;
 
@@ -154,6 +161,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _surnames = TextEditingController(
         text: (cfg['verificationSurnames'] as String?) ?? '');
     _withChildren = bd['withChildren'] == true;
+    _currency = Currency.fromRaw(cfg['currency']);
     _loadJoinCode(raw);
     _loadGuestToken(raw);
   }
@@ -284,6 +292,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _legacyMigrationCard(),
                 const SizedBox(height: 12),
               ],
+              _languageCard(),
+              const SizedBox(height: 12),
               _notificationsCard(),
               const SizedBox(height: 12),
               _loginCard(),
@@ -378,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: OutlinedButton.icon(
               onPressed: widget.onOpenPlanning,
               icon: const Text('📋', style: TextStyle(fontSize: 16)),
-              label: const Text('Od czego zacząć?'),
+              label: Text(AppLocalizations.of(context).settings_planningButton),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -392,7 +402,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: OutlinedButton.icon(
               onPressed: widget.onOpenSetupWizard,
               icon: const Text('🤝', style: TextStyle(fontSize: 16)),
-              label: const Text('Poprowadź mnie za rękę'),
+              label: Text(AppLocalizations.of(context).settings_setupWizardButton),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -545,6 +555,118 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } finally {
       if (mounted) setState(() => _legacyBusy = false);
     }
+  }
+
+  /// Język interfejsu i waluta budżetu.
+  ///
+  /// Język jest preferencją UŻYTKOWNIKA (lokalnie, per konto), waluta —
+  /// ustawieniem WESELA (w chmurze, wspólne dla wszystkich organizatorów).
+  /// Dlatego zapisują się w różne miejsca, mimo że stoją na jednej karcie.
+  Widget _languageCard() {
+    final t = AppLocalizations.of(context);
+    return _card(
+      t.settings_languageCard,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(t.settings_language,
+              style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.text)),
+          const SizedBox(height: 2),
+          Text(t.settings_languageHint,
+              style: GoogleFonts.inter(
+                  fontSize: 11.5, color: AppColors.textLight)),
+          const SizedBox(height: 8),
+          ValueListenableBuilder<Locale?>(
+            valueListenable: LocaleController.locale,
+            builder: (context, current, _) => Column(
+              children: [
+                _languageOption(t.settings_languageSystem, null, current),
+                for (final locale in LocaleController.supported)
+                  _languageOption(
+                      _languageName(t, locale.languageCode), locale, current),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(t.settings_currency,
+              style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.text)),
+          const SizedBox(height: 2),
+          Text(t.settings_currencyHint,
+              style: GoogleFonts.inter(
+                  fontSize: 11.5, height: 1.4, color: AppColors.textLight)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<Currency>(
+            initialValue: _currency,
+            isExpanded: true,
+            decoration: const InputDecoration(isDense: true),
+            items: [
+              for (final c in Currency.values)
+                DropdownMenuItem(
+                  value: c,
+                  child: Text('${c.symbol}  ${c.label} (${c.code})'),
+                ),
+            ],
+            onChanged: (c) async {
+              if (c == null) return;
+              setState(() => _currency = c);
+              await widget.config.saveCurrency(c);
+              _toast('Waluta: ${c.code}');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Nazwa języka na liście — tłumaczona, więc po angielsku widać „Polish".
+  String _languageName(AppLocalizations t, String code) => switch (code) {
+        'pl' => t.language_pl,
+        'en' => t.language_en,
+        _ => code.toUpperCase(),
+      };
+
+  Widget _languageOption(String label, Locale? value, Locale? current) {
+    final selected = current?.languageCode == value?.languageCode;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => LocaleController.set(_dmUid, value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.accent.withValues(alpha: 0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? AppColors.accent : const Color(0xFFDCE4F2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                size: 18,
+                color: selected ? AppColors.accent : AppColors.textLight,
+              ),
+              const SizedBox(width: 10),
+              Text(label,
+                  style: GoogleFonts.inter(
+                      fontSize: 13.5,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      color: AppColors.text)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   /// Wybór układu: automatyczny (wg szerokości ekranu) albo wymuszony.
@@ -825,17 +947,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Data ślubu w formie czytelnej dla gościa („12 czerwca 2027").
-  String get _weddingDateLabel {
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(_weddingDate);
-    if (m == null) return '';
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    final month = int.parse(m.group(2)!);
-    if (month < 1 || month > 12) return _weddingDate;
-    return '${int.parse(m.group(3)!)} ${months[month - 1]} ${m.group(1)}';
-  }
+  ///
+  /// Nazwy miesięcy idą z `intl`, więc po przełączeniu języka zaproszenie
+  /// dla gościa też jest w tym języku.
+  String get _weddingDateLabel =>
+      AppFormat.dateLongFromIso(_weddingDate) ?? '';
 
   /// Gotowy tekst zaproszenia do wysłania gościom.
   String _inviteText(String code) {

@@ -10,6 +10,8 @@ import '../../services/firestore_service.dart';
 import '../../services/table_service.dart';
 import 'add_table_sheet.dart';
 import 'table_visual.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Plan stołów" — graficzne stoły, statystyki i przypisywanie gości
 /// (drag & drop z long-press lub wybór z listy).
@@ -52,6 +54,7 @@ class _TablesScreenState extends State<TablesScreen> {
   }
 
   Future<void> _addTable() async {
+    final t = AppLocalizations.of(context);
     final draft = await showModalBottomSheet<TableDraft>(
       context: context,
       constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
@@ -62,32 +65,31 @@ class _TablesScreenState extends State<TablesScreen> {
     if (draft == null) return;
     try {
       await widget.service.addTable(draft);
-      _toast('Dodano stół');
+      _toast(t.tables_addedToast);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(t.common_saveErrorToast('$e'));
     }
   }
 
   Future<void> _deleteTable(Map<String, dynamic> table) async {
+    final t = AppLocalizations.of(context);
     final id = (table['id'] as num?)?.toInt();
     if (id == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć stół?'),
-        content: Text(
-          'Czy na pewno usunąć stół „${table['name'] ?? ''}"? '
-          'Przypisani goście wrócą do nieprzypisanych.',
-        ),
+        title: Text(t.tables_deleteTitle),
+        content: Text(t.tables_deleteBodyNamed(
+            (table['name'] as String?) ?? t.tables_defaultName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(t.common_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(t.common_delete),
           ),
         ],
       ),
@@ -95,23 +97,24 @@ class _TablesScreenState extends State<TablesScreen> {
     if (confirmed != true) return;
     try {
       await widget.service.deleteTable(id);
-      _toast('Stół usunięty');
+      _toast(t.tables_deletedToast);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(t.common_deleteErrorToast('$e'));
     }
   }
 
   Future<void> _assign(int tableId, int guestId) async {
+    final t = AppLocalizations.of(context);
     try {
       final ok = await widget.service.assignGuestToTable(tableId, guestId);
       if (!ok) {
-        _toast('Stół jest pełny!');
+        _toast(t.tables_full);
         return;
       }
       final hint = _seatingHint(tableId, guestId);
       if (hint != null) _toast(hint);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(t.common_saveErrorToast('$e'));
     }
   }
 
@@ -131,10 +134,11 @@ class _TablesScreenState extends State<TablesScreen> {
   }
 
   Future<void> _unassign(int guestId) async {
+    final t = AppLocalizations.of(context);
     try {
       await widget.service.unassignGuest(guestId);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(t.common_saveErrorToast('$e'));
     }
   }
 
@@ -153,7 +157,7 @@ class _TablesScreenState extends State<TablesScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) => _GuestPickerSheet(
-        title: 'Przypisz do: ${table['name'] ?? ''}',
+        title: '${AppText.t.tables_assignGuestAction}: ${(table['name'] as String?) ?? AppText.t.tables_defaultName}',
         guests: unassigned,
       ),
     );
@@ -182,7 +186,7 @@ class _TablesScreenState extends State<TablesScreen> {
             ListTile(
               leading: const Icon(Icons.event_seat_outlined,
                   color: Color(0xFFC0392B)),
-              title: const Text('Usuń ze stołu'),
+              title: Text(AppText.t.tables_removeFromTable),
               onTap: () => Navigator.of(context).pop('unassign'),
             ),
             const SizedBox(height: 8),
@@ -197,6 +201,7 @@ class _TablesScreenState extends State<TablesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final guests = _guests;
     final tables = _tables;
     final guestById = {for (final g in guests) if (g.id != null) g.id!: g};
@@ -213,7 +218,7 @@ class _TablesScreenState extends State<TablesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Plan stołów',
+            AppText.t.tables_title,
             style: GoogleFonts.playfairDisplay(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -243,7 +248,7 @@ class _TablesScreenState extends State<TablesScreen> {
             child: ElevatedButton.icon(
               onPressed: _addTable,
               icon: const Icon(Icons.add, size: 18),
-              label: const Text('Dodaj stół'),
+              label: Text(t.tables_addButton),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
@@ -290,11 +295,15 @@ class _TablesScreenState extends State<TablesScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _statChip('Goście', '$total', AppColors.accent),
-          _statChip('Przypisani', '$assigned', const Color(0xFF059669)),
-          _statChip('Nieprzypisani', '$unassigned', const Color(0xFFB45309)),
-          _statChip('Stoły', '$tables', const Color(0xFF7C3AED)),
-          _statChip('Wolne miejsca', '$freeSeats', const Color(0xFF0891B2)),
+          _statChip(AppText.t.tables_statGuests, '$total', AppColors.accent),
+          _statChip(AppText.t.guests_filterAssigned, '$assigned',
+              const Color(0xFF059669)),
+          _statChip(AppText.t.guests_filterUnassigned, '$unassigned',
+              const Color(0xFFB45309)),
+          _statChip(AppText.t.tables_statTables, '$tables',
+              const Color(0xFF7C3AED)),
+          _statChip(AppText.t.tables_statFree, '$freeSeats',
+              const Color(0xFF0891B2)),
         ],
       ),
     );
@@ -330,6 +339,7 @@ class _TablesScreenState extends State<TablesScreen> {
   }
 
   Widget _unassignedPool(List<Guest> unassigned) {
+    final t = AppText.t;
     return DragTarget<int>(
       onWillAcceptWithDetails: (_) => true,
       onAcceptWithDetails: (details) => _unassign(details.data),
@@ -350,7 +360,7 @@ class _TablesScreenState extends State<TablesScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Nieprzypisani goście (${unassigned.length})',
+                t.tables_unassignedHeader(unassigned.length),
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -359,14 +369,14 @@ class _TablesScreenState extends State<TablesScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Przeciągnij (przytrzymaj) gościa na stół lub użyj „Przypisz".',
+                t.tables_dragHint,
                 style:
                     GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
               ),
               const SizedBox(height: 10),
               if (unassigned.isEmpty)
                 Text(
-                  '🎉 Wszyscy goście mają miejsce!',
+                  t.tables_allSeatedCheer,
                   style: GoogleFonts.inter(
                       fontSize: 13, color: const Color(0xFF059669)),
                 )
@@ -470,14 +480,14 @@ class _TablesScreenState extends State<TablesScreen> {
                   ),
                   const Spacer(),
                   IconButton(
-                    tooltip: 'Przypisz gościa',
+                    tooltip: AppText.t.tables_assignGuestAction,
                     onPressed: isFull ? null : () => _openAssignPicker(table),
                     icon: const Icon(Icons.person_add_alt_1, size: 20),
                     color: AppColors.accent,
                     visualDensity: VisualDensity.compact,
                   ),
                   IconButton(
-                    tooltip: 'Usuń stół',
+                    tooltip: AppText.t.tables_deleteTable,
                     onPressed: () => _deleteTable(table),
                     icon: const Icon(Icons.delete_outline, size: 20),
                     color: const Color(0xFFC0392B),
@@ -501,7 +511,7 @@ class _TablesScreenState extends State<TablesScreen> {
               size: 48, color: AppColors.accent2),
           const SizedBox(height: 12),
           Text(
-            'Brak stołów. Dodaj pierwszy stół przyciskiem powyżej.',
+            AppText.t.tables_emptyStateHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
           ),
@@ -602,7 +612,7 @@ class _GuestPickerSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                'Wszyscy goście są już przypisani.',
+                AppText.t.guests_allSeated,
                 style:
                     GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
               ),

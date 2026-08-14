@@ -13,6 +13,7 @@ import '../../services/table_service.dart';
 import '../tables/add_table_sheet.dart';
 import 'room_canvas.dart';
 import 'room_fullscreen.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Plan sali" — pełny wizualny edytor (podgląd + tryb edycji).
 class RoomPlanScreen extends StatefulWidget {
@@ -122,7 +123,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
     );
     if (draft == null) return;
     await widget.tableSvc.addTable(draft);
-    _toast('Dodano stół');
+    _toast(AppText.t.tables_addedToast);
   }
 
   Future<void> _addElement() async {
@@ -135,7 +136,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
     );
     if (draft == null) return;
     await widget.room.addElement(name: draft.name, wM: draft.wM, lM: draft.lM);
-    _toast('Dodano element: ${draft.name}');
+    _toast(AppText.t.roomplan_addedElement(draft.name));
   }
 
   Future<void> _onTableTap(Map<String, dynamic> t) async {
@@ -154,7 +155,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
   Future<void> _assignGuest(int tableId, int guestId) async {
     final ok = await widget.tableSvc.assignGuestToTable(tableId, guestId);
     if (!ok) {
-      _toast('Stół jest pełny!');
+      _toast(AppText.t.tables_full);
       return;
     }
     // Miękka podpowiedź (dorosły przy stole dzieci itp.) — po zapisie,
@@ -192,7 +193,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Text('Plan sali',
+                child: Text(AppText.t.roomplan_title,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
@@ -202,7 +203,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
                 onPressed: () => setState(() => _editMode = !_editMode),
                 icon: Icon(_editMode ? Icons.check : Icons.edit_outlined,
                     size: 18),
-                label: Text(_editMode ? 'Gotowe' : 'Edytuj plan'),
+                label: Text(_editMode ? AppText.t.common_done : AppText.t.roomplan_editPlan),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
                   side: const BorderSide(color: AppColors.accent),
@@ -268,10 +269,11 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          _stat('Goście', '$total', AppColors.accent),
-          _stat('Przypisani', '$assigned', const Color(0xFF059669)),
-          _stat('Nieprzypisani', '$unassigned', const Color(0xFFB45309)),
-          _stat('Stoły', '$tables', const Color(0xFF7C3AED)),
+          _stat(AppText.t.tables_statGuests, '$total', AppColors.accent),
+          _stat(AppText.t.guests_filterAssigned, '$assigned', const Color(0xFF059669)),
+          _stat(AppText.t.guests_filterUnassigned, '$unassigned',
+              const Color(0xFFB45309)),
+          _stat(AppText.t.tables_statTables, '$tables', const Color(0xFF7C3AED)),
           _stat('Wolne miejsca', '$free', const Color(0xFF0891B2)),
         ],
       ),
@@ -304,14 +306,14 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
       child: Row(
         children: [
-          _toolBtn(Icons.remove, 'Oddal', () => _zoomBy(1 / RoomGeometry.zoomStep)),
-          _toolBtn(Icons.fit_screen, 'Dopasuj', _fit),
-          _toolBtn(Icons.add, 'Przybliż', () => _zoomBy(RoomGeometry.zoomStep)),
+          _toolBtn(Icons.remove, AppText.t.roomplan_zoomOut, () => _zoomBy(1 / RoomGeometry.zoomStep)),
+          _toolBtn(Icons.fit_screen, AppText.t.roomplan_fit, _fit),
+          _toolBtn(Icons.add, AppText.t.roomplan_zoomIn, () => _zoomBy(RoomGeometry.zoomStep)),
           const Spacer(),
           _toolBtn(_gridOn ? Icons.grid_on : Icons.grid_off, 'Siatka',
               () => setState(() => _gridOn = !_gridOn),
               active: _gridOn),
-          _toolBtn(Icons.fullscreen, 'Pełny ekran', _openFullscreen),
+          _toolBtn(Icons.fullscreen, AppText.t.roomplan_fullscreen, _openFullscreen),
         ],
       ),
     );
@@ -360,11 +362,12 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
           const SizedBox(height: 6),
           Row(
             children: [
-              _metaStepper('Szerokość', geo.widthM, 'widthM'),
+              _metaStepper(AppText.t.roomplan_widthShort, geo.widthM, 'widthM'),
               const SizedBox(width: 8),
-              _metaStepper('Długość', geo.lengthM, 'lengthM'),
+              _metaStepper(AppText.t.roomplan_lengthShort, geo.lengthM, 'lengthM'),
               const SizedBox(width: 8),
-              _metaStepper('Śr. stołu', geo.tableDiameterM, 'tableDiameterM'),
+              _metaStepper(AppText.t.roomplan_tableDiameterShort, geo.tableDiameterM,
+                  'tableDiameterM'),
             ],
           ),
           const Divider(height: 18),
@@ -374,7 +377,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _addTable,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj stół'),
+                  label: Text(AppText.t.tables_addButton),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -396,8 +399,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
             ],
           ),
           const SizedBox(height: 4),
-          Text('Przytrzymaj i przeciągnij stół/element, aby go przesunąć. '
-              'Dotknij stołu, aby przypisać gości lub zmienić rozmiar.',
+          Text(AppText.t.roomplan_hint,
               style: GoogleFonts.inter(
                   fontSize: 11, color: AppColors.textLight)),
         ],
@@ -460,7 +462,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nieprzypisani (${unassigned.length}) — przeciągnij na stół',
+          Text(AppText.t.roomplan_unassignedDrag(unassigned.length),
               style: GoogleFonts.inter(
                   fontSize: 11, fontWeight: FontWeight.w600,
                   color: AppColors.textLight)),
@@ -498,7 +500,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFDCE4F2)),
       ),
-      child: Text(g.fullName.isEmpty ? 'Gość' : g.fullName,
+      child: Text(g.fullName.isEmpty ? AppText.t.roomplan_guest : g.fullName,
           style: GoogleFonts.inter(
               fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent)),
     );
@@ -649,7 +651,7 @@ class _TableSheetState extends State<_TableSheet> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(SnackBar(
-          content: Text('Dodano do stołu: $name'),
+          content: Text(AppText.t.roomplan_addedToTable(name)),
           duration: const Duration(seconds: 2),
         ));
     }
@@ -692,12 +694,12 @@ class _TableSheetState extends State<_TableSheet> {
               style: GoogleFonts.playfairDisplay(
                   fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          Text('Goście przy stole',
+          Text(AppText.t.roomplan_guestsAtTable,
               style: GoogleFonts.inter(
                   fontSize: 13, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           if (seated.isEmpty)
-            Text('Brak przypisanych gości.',
+            Text(AppText.t.roomplan_noGuestsAtTable,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight))
           else
@@ -717,7 +719,7 @@ class _TableSheetState extends State<_TableSheet> {
             OutlinedButton.icon(
               onPressed: () => _pickGuest(context, unassigned),
               icon: const Icon(Icons.person_add_alt_1, size: 18),
-              label: const Text('Przypisz gościa'),
+              label: Text(AppText.t.tables_assignGuestAction),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -725,24 +727,24 @@ class _TableSheetState extends State<_TableSheet> {
             ),
           if (widget.editMode) ...[
             const Divider(height: 24),
-            Text('Rozmiar stołu',
+            Text(AppText.t.roomplan_tableSize,
                 style: GoogleFonts.inter(
                     fontSize: 13, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             if (shape == 'round')
               _RoomDimRow(
-                label: 'Średnica (m)',
+                label: AppText.t.roomplan_diameterMeters,
                 value: _dim('diamM'),
                 onChanged: (v) => _resize(diamM: v),
               )
             else ...[
               _RoomDimRow(
-                label: 'Szerokość (m)',
+                label: AppText.t.roomplan_widthMeters,
                 value: _dim('rectWM'),
                 onChanged: (v) => _resize(rectWM: v),
               ),
               _RoomDimRow(
-                label: 'Długość (m)',
+                label: AppText.t.roomplan_lengthMeters,
                 value: _dim('rectLM'),
                 onChanged: (v) => _resize(rectLM: v),
               ),
@@ -755,7 +757,7 @@ class _TableSheetState extends State<_TableSheet> {
             OutlinedButton.icon(
               onPressed: widget.onDelete,
               icon: const Icon(Icons.delete_outline, size: 18),
-              label: const Text('Usuń stół'),
+              label: Text(AppText.t.tables_deleteTable),
               style: OutlinedButton.styleFrom(
                 foregroundColor: const Color(0xFFC0392B),
                 side: const BorderSide(color: Color(0xFFE9A8A8)),
@@ -778,7 +780,7 @@ class _TableSheetState extends State<_TableSheet> {
         children: [
           for (final g in options)
             ListTile(
-              title: Text(g.fullName.isEmpty ? 'Gość' : g.fullName),
+              title: Text(g.fullName.isEmpty ? AppText.t.roomplan_guest : g.fullName),
               onTap: () => Navigator.of(context).pop(g.id),
             ),
         ],
@@ -787,7 +789,7 @@ class _TableSheetState extends State<_TableSheet> {
     if (gid == null) return;
     final picked = options.firstWhere((g) => g.id == gid,
         orElse: () => options.isNotEmpty ? options.first : throw StateError('brak'));
-    final name = picked.fullName.isEmpty ? 'Gość' : picked.fullName;
+    final name = picked.fullName.isEmpty ? AppText.t.roomplan_guest : picked.fullName;
     await _assign(gid, name);
   }
 }
@@ -858,12 +860,12 @@ class _ElementSheet extends StatelessWidget {
                     fontSize: 20, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
             _RoomDimRow(
-              label: 'Szerokość (m)',
+              label: AppText.t.roomplan_widthMeters,
               value: (element['wM'] as num?)?.toDouble() ?? 0,
               onChanged: (v) => onResize(wM: v),
             ),
             _RoomDimRow(
-              label: 'Długość (m)',
+              label: AppText.t.roomplan_lengthMeters,
               value: (element['lM'] as num?)?.toDouble() ?? 0,
               onChanged: (v) => onResize(lM: v),
             ),
@@ -874,7 +876,7 @@ class _ElementSheet extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onRotate,
                     icon: const Icon(Icons.rotate_90_degrees_cw, size: 18),
-                    label: const Text('Obróć 90°'),
+                    label: Text(AppText.t.roomplan_rotate90),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.accent,
                       side: const BorderSide(color: AppColors.accent),
@@ -886,7 +888,7 @@ class _ElementSheet extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onDelete,
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('Usuń'),
+                    label: Text(AppText.t.common_delete),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFC0392B),
                       side: const BorderSide(color: Color(0xFFE9A8A8)),
@@ -971,11 +973,11 @@ class _AddElementSheetState extends State<_AddElementSheet> {
                 ],
                 const SizedBox(height: 12),
                 _RoomDimRow(
-                    label: 'Szerokość (m)',
+                    label: AppText.t.roomplan_widthMeters,
                     value: _w,
                     onChanged: (v) => setState(() => _w = v.toDouble())),
                 _RoomDimRow(
-                    label: 'Długość (m)',
+                    label: AppText.t.roomplan_lengthMeters,
                     value: _l,
                     onChanged: (v) => setState(() => _l = v.toDouble())),
                 const SizedBox(height: 12),

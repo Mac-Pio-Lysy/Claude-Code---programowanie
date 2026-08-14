@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/guest.dart';
 import '../../models/guest_summary.dart';
 import '../../models/wedding_data.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Podsumowanie" — zbiorcza tabela gości + agregaty.
 class GuestsSummaryTab extends StatefulWidget {
@@ -51,7 +52,7 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
         const SizedBox(height: 16),
         TextField(
           decoration: InputDecoration(
-            hintText: '🔍 Szukaj po nazwisku…',
+            hintText: '🔍 ${AppText.t.common_search}',
             isDense: true,
             filled: true,
             fillColor: Colors.white,
@@ -65,7 +66,7 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
           onChanged: (v) => setState(() => _search = v),
         ),
         const SizedBox(height: 8),
-        Text('Wyświetlono ${rows.length} z ${guests.length} gości',
+        Text(AppText.t.guests_shownOf(rows.length, guests.length),
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight)),
         const SizedBox(height: 8),
         _table(rows, vehicles, hotels, tables, rsvp),
@@ -74,6 +75,7 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
   }
 
   Widget _aggregates(GuestSummaryStats s) {
+    final t = AppText.t;
     final menuItems = s.menu.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
     final dietItems = s.diet.entries.toList()
@@ -87,38 +89,38 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
       spacing: 12,
       runSpacing: 12,
       children: [
-        _aggCard('🤝 Świadkowie (cel: $witnessTarget)', [
+        _aggCard(t.guests_summaryWitnesses(witnessTarget), [
           (GuestOptions.witnessLabel('witness_groom'), witnessGroom),
           (GuestOptions.witnessLabel('witness_bride'), witnessBride),
-          ('Wyznaczeni łącznie', witnessGroom + witnessBride),
+          (t.guests_summaryWitnessesTotal, witnessGroom + witnessBride),
         ]),
         // Karta pojawia się dopiero, gdy ktoś jest oznaczony jako dziecko —
         // wesela bez dzieci nie oglądają pustej rubryki z zerami.
         if (s.children > 0)
-          _aggCard('🧒 Dzieci', [
-            ('Dzieci', s.children),
-            ('Dorośli', s.adults),
+          _aggCard(t.guests_summaryChildren, [
+            (t.guests_summaryChildrenLabel, s.children),
+            (t.guests_summaryAdults, s.adults),
           ]),
-        _aggCard('🍽 Menu (co je)', [
-          for (final e in menuItems) (e.key, e.value),
-          if (s.noMenu > 0) ('Bez wyboru menu', s.noMenu),
+        _aggCard(t.guests_summaryMenu, [
+          for (final e in menuItems) (GuestOptions.menuLabel(e.key), e.value),
+          if (s.noMenu > 0) (t.guests_summaryNoMenu, s.noMenu),
         ]),
-        _aggCard('🥗 Diety', [
+        _aggCard(t.guests_summaryDiets, [
           for (final e in dietItems) (e.key, e.value),
         ]),
-        _aggCard('🚌 Transport', [
-          ('Własny', s.transOwn),
-          ('Zorganizowany', s.transOrg),
-          ('Bez transportu', s.transNone),
+        _aggCard(t.guests_summaryTransport, [
+          (t.guests_summaryTransportOwn, s.transOwn),
+          (t.guests_summaryTransportOrganized, s.transOrg),
+          (t.guests_summaryTransportNone, s.transNone),
         ]),
-        _aggCard('🏨 Nocleg', [
-          ('Potrzebuje', s.accomNeeds),
-          ('Przypisani do hotelu', s.accomAssigned),
+        _aggCard(t.guests_summaryAccommodation, [
+          (t.guests_summaryAccommodationNeeds, s.accomNeeds),
+          (t.guests_summaryAccommodationAssigned, s.accomAssigned),
         ]),
-        _aggCard('✉ Potwierdzenia', [
-          ('Przyjdzie', s.attending),
-          ('Nie przyjdzie', s.notAttending),
-          ('Brak odpowiedzi', s.noRsvp),
+        _aggCard(t.guests_summaryRsvp, [
+          (t.guests_rsvpAttending, s.attending),
+          (t.guests_rsvpNotAttending, s.notAttending),
+          (t.guests_rsvpNoAnswer, s.noRsvp),
         ]),
       ],
     );
@@ -150,7 +152,7 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
                   color: AppColors.text)),
           const SizedBox(height: 8),
           if (items.isEmpty)
-            Text('Brak danych',
+            Text(AppText.t.common_none,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight))
           else
@@ -164,7 +166,7 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
                           style: GoogleFonts.inter(
                               fontSize: 12, color: AppColors.textLight)),
                     ),
-                    Text('$n×',
+                    Text(AppText.t.guests_menuTimes(n),
                         style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -195,15 +197,15 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
               color: AppColors.text),
           dataTextStyle:
               GoogleFonts.inter(fontSize: 12, color: AppColors.text),
-          columns: const [
-            DataColumn(label: Text('Imię i nazwisko')),
-            DataColumn(label: Text('Status')),
-            DataColumn(label: Text('Z kim')),
-            DataColumn(label: Text('Menu')),
-            DataColumn(label: Text('Dieta / alergie')),
-            DataColumn(label: Text('Transport')),
-            DataColumn(label: Text('Nocleg')),
-            DataColumn(label: Text('Stolik')),
+          columns: [
+            DataColumn(label: Text(AppText.t.guests_cardFullName)),
+            DataColumn(label: Text(AppText.t.guests_cardStatus)),
+            DataColumn(label: Text(AppText.t.guests_cardWith)),
+            DataColumn(label: Text(AppText.t.guests_cardMenu)),
+            DataColumn(label: Text(AppText.t.guests_cardDietAllergies)),
+            DataColumn(label: Text(AppText.t.guests_summaryTransport)),
+            DataColumn(label: Text(AppText.t.guests_summaryAccommodation)),
+            DataColumn(label: Text(AppText.t.guests_cardTable)),
           ],
           rows: [
             for (final g in rows)
@@ -211,11 +213,13 @@ class _GuestsSummaryTabState extends State<GuestsSummaryTab> {
                 // Dziecko oznaczamy ikoną przy nazwisku zamiast dokładać
                 // kolumnę — tabela i tak jest szeroka.
                 DataCell(Text('${g.isChild ? '🧒 ' : ''}'
-                    '${g.fullName.isEmpty ? '(bez imienia)' : g.fullName}')),
+                    '${g.fullName.isEmpty ? AppText.t.guests_noName : g.fullName}')),
                 DataCell(Text(GuestSummary.rsvpLabel(
                     GuestSummary.rsvpStatus(g.id, rsvp)))),
                 DataCell(Text(GuestSummary.companion(g, _guests))),
-                DataCell(Text(g.menuChoice.isEmpty ? '—' : g.menuChoice)),
+                DataCell(Text(g.menuChoice.isEmpty
+                    ? AppText.t.common_none
+                    : GuestOptions.menuLabel(g.menuChoice))),
                 DataCell(Text(GuestSummary.dietAllergies(g))),
                 DataCell(Text(GuestSummary.transport(g, vehicles).$3)),
                 DataCell(Text(GuestSummary.accommodation(g, hotels).$2)),

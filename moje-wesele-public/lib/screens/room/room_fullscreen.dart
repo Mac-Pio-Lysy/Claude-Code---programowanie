@@ -10,6 +10,7 @@ import '../../services/firestore_service.dart';
 import '../../services/room_service.dart';
 import '../../services/table_service.dart';
 import 'room_canvas.dart';
+import '../../l10n/app_text.dart';
 
 /// Pełnoekranowy widok planu sali — zoom/pan, przeciąganie i przypisywanie.
 class RoomFullscreenScreen extends StatefulWidget {
@@ -184,9 +185,9 @@ class _RoomFullscreenScreenState extends State<RoomFullscreenScreen> {
                       fontSize: 16, fontWeight: FontWeight.w700)),
             ),
             if (unassigned.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Wszyscy goście są przypisani.'),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(AppText.t.roomplan_allSeated),
               )
             else
               Flexible(
@@ -195,7 +196,7 @@ class _RoomFullscreenScreenState extends State<RoomFullscreenScreen> {
                   children: [
                     for (final g in unassigned)
                       ListTile(
-                        title: Text(g.fullName.isEmpty ? 'Gość' : g.fullName),
+                        title: Text(g.fullName.isEmpty ? AppText.t.roomplan_guest : g.fullName),
                         onTap: () => Navigator.of(context).pop(g.id),
                       ),
                   ],

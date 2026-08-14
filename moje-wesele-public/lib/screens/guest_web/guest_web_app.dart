@@ -18,6 +18,7 @@ import '../../services/deezer_service.dart';
 import '../../services/guest_identity.dart';
 import '../../services/guest_space_service.dart';
 import '../../utils/warsaw_time.dart';
+import '../../utils/app_format.dart';
 
 part 'guest_web_sections.dart';
 
@@ -553,16 +554,8 @@ class _GuestWebHomeState extends State<GuestWebHome> {
     ));
   }
 
-  static String? _dateLabel(String? date) {
-    if (date == null || date.isEmpty) return null;
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(date);
-    if (m == null) return date;
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '${int.parse(m.group(3)!)} ${months[int.parse(m.group(2)!) - 1]} ${m.group(1)}';
-  }
+  static String? _dateLabel(String? date) =>
+      AppFormat.dateLongFromIso(date);
 }
 
 /// Ramka sekcji gościa (pasek + powrót).

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/couple.dart';
+import '../models/currency.dart';
 import 'firestore_service.dart';
 
 /// Dane konfiguracji z formularza Ustawień.
@@ -105,6 +106,18 @@ class ConfigService {
           'total': plannedBudget < 0 ? 0 : plannedBudget,
           'reserve': reserve < 0 ? 0 : reserve,
         },
+      }, SetOptions(merge: true));
+
+  /// Zapisuje walutę budżetu (`appConfig.currency`).
+  ///
+  /// Osobno od [saveConfig], bo waluta jest ustawieniem wesela zmienianym
+  /// z karty „Język i region", a nie z formularza konfiguracji. Głębokie
+  /// scalanie — reszta `appConfig` zostaje nietknięta.
+  ///
+  /// ⚠️ Zmiana waluty NIE przelicza kwot — to wyłącznie symbol przy liczbach
+  /// (patrz [Currency]).
+  Future<void> saveCurrency(Currency currency) => _firestore.mainDoc.set({
+        'appConfig': {'currency': currency.code},
       }, SetOptions(merge: true));
 
   /// Pełny dokument danych (do eksportu).

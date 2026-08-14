@@ -1,3 +1,4 @@
+import '../l10n/app_text.dart';
 import 'couple.dart';
 
 /// Model gościa — cienka nakładka na surową mapę z Firestore.
@@ -117,11 +118,12 @@ class CompanionRelation {
 
   static const List<String> all = [partner, family, unknown];
 
+  /// Etykieta typu relacji. Wartości (`'partner'`…) zostają w bazie.
   static String label(String? value) => switch (value) {
-        partner => 'Para',
-        family => 'Rodzina',
-        unknown => 'Nieznana',
-        _ => '—',
+        partner => AppText.t.guests_relationPartner,
+        family => AppText.t.guests_relationFamily,
+        unknown => AppText.t.guests_relationUnknown,
+        _ => AppText.t.common_none,
       };
 
   /// Kategoria podpowiadana dla danego typu relacji (`null` = dziedzicz po
@@ -167,6 +169,45 @@ class GuestOptions {
     childMenuOption,
   ];
 
+  /// Etykieta kategorii do WYŚWIETLENIA.
+  ///
+  /// ⚠️ [categories] to wartości ZAPISYWANE w bazie i zostają polskie —
+  /// przetłumaczenie ich zerwałoby dane istniejących wesel i rozjechało je
+  /// z wersją web, która czyta ten sam dokument. Tłumaczy się wyłącznie to,
+  /// co widzi użytkownik. Ten sam wzorzec co `CoupleLabels.coupleCategoryValue`
+  /// kontra `coupleCategoryLabel`.
+  ///
+  /// Nieznana wartość (np. kategoria wpisana w wersji web) wraca bez zmian —
+  /// lepiej pokazać oryginał niż pustkę.
+  static String categoryLabel(String value) {
+    final t = AppText.t;
+    return switch (value) {
+      CoupleLabels.coupleCategoryValue =>
+        CoupleLabels.current.coupleCategoryLabel,
+      'Świadkowie' => t.guests_categoryWitnesses,
+      'Rodzice' => t.guests_categoryParents,
+      'Rodzina' => t.guests_categoryFamily,
+      'Znajomi' => t.guests_categoryFriends,
+      'Praca' => t.guests_categoryWork,
+      'Inne' => t.guests_categoryOther,
+      _ => value,
+    };
+  }
+
+  /// Etykieta opcji menu do WYŚWIETLENIA. Wartości są konfigurowalne przez
+  /// parę, więc tłumaczymy tylko te domyślne — własne wracają bez zmian.
+  static String menuLabel(String value) {
+    final t = AppText.t;
+    return switch (value) {
+      'Danie mięsne' => t.guests_menuMeat,
+      'Danie rybne' => t.guests_menuFish,
+      'Wegetariańskie' => t.guests_menuVegetarian,
+      'Wegańskie' => t.guests_menuVegan,
+      childMenuOption => t.guests_menuChild,
+      _ => value,
+    };
+  }
+
   /// Etykieta „kto zaprosił" — wyliczana z typu uroczystości.
   ///
   /// Wartości `'groom'` / `'bride'` w bazie zostają bez zmian; zmienia się
@@ -175,22 +216,28 @@ class GuestOptions {
       CoupleLabels.current.invitedBy(value);
 
   static String genderLabel(String? value) => switch (value) {
-        'K' => '♀ Kobieta',
-        'M' => '♂ Mężczyzna',
-        'N' => '⚧ Niebinarna',
-        _ => '—',
+        'K' => AppText.t.guests_genderFemale,
+        'M' => AppText.t.guests_genderMale,
+        'N' => AppText.t.guests_genderNonbinary,
+        _ => AppText.t.common_none,
       };
 
   static String witnessLabel(String? value) =>
       CoupleLabels.current.witness(value);
 
   /// Etykieta diety (zgodna z `dietLabel` w zrodlo-web/script.js).
-  static String dietLabel(String diet, String dietOther) => switch (diet) {
-        'standard' => 'Standardowa',
-        'vegetarian' => 'Wegetariańska',
-        'vegan' => 'Wegańska',
-        'glutenfree' => 'Bezglutenowa',
-        'other' => dietOther.isNotEmpty ? dietOther : 'Inne',
-        _ => diet,
-      };
+  ///
+  /// Wartości `'standard'`, `'vegan'`… zostają w bazie; tłumaczy się etykieta.
+  /// `dietOther` to tekst wpisany przez parę — nie tłumaczymy go.
+  static String dietLabel(String diet, String dietOther) {
+    final t = AppText.t;
+    return switch (diet) {
+      'standard' => t.guests_dietStandard,
+      'vegetarian' => t.guests_dietVegetarian,
+      'vegan' => t.guests_dietVegan,
+      'glutenfree' => t.guests_dietGlutenFree,
+      'other' => dietOther.isNotEmpty ? dietOther : t.guests_dietOther,
+      _ => diet,
+    };
+  }
 }

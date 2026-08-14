@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
 import '../../models/couple.dart';
+import '../../utils/app_format.dart';
 
 /// Dane wprowadzone przy tworzeniu nowego wesela.
 class NewWeddingDraft {
@@ -421,11 +422,6 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
         ),
       );
 
-  static String _dateLabel(DateTime date) {
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
+  static String _dateLabel(DateTime date) =>
+      AppFormat.dateLong(date);
 }

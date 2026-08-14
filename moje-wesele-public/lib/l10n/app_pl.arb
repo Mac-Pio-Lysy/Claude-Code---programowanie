@@ -1,0 +1,517 @@
+{
+  "@@locale": "pl",
+  "common_add": "Dodaj",
+  "@common_add": {
+    "description": "Przycisk dodawania nowego elementu (gość, zadanie, wydatek)."
+  },
+  "common_cancel": "Anuluj",
+  "@common_cancel": {
+    "description": "Przycisk zamykający formularz bez zapisu."
+  },
+  "common_save": "Zapisz",
+  "@common_save": {
+    "description": "Przycisk zapisujący formularz."
+  },
+  "common_delete": "Usuń",
+  "@common_delete": {
+    "description": "Przycisk usuwania — zwykle po potwierdzeniu."
+  },
+  "common_edit": "Edytuj",
+  "@common_edit": {
+    "description": "Przycisk przechodzący w tryb edycji."
+  },
+  "common_close": "Zamknij",
+  "common_back": "Wstecz",
+  "common_next": "Dalej",
+  "common_done": "Gotowe",
+  "common_yes": "Tak",
+  "common_no": "Nie",
+  "common_search": "Szukaj",
+  "common_none": "—",
+  "@common_none": {
+    "description": "Wartość pusta w tabelach i na kartach (myślnik)."
+  },
+  "common_savedToast": "Zapisano zmiany",
+  "@common_savedToast": {
+    "description": "Komunikat po udanym zapisie."
+  },
+  "common_saveErrorToast": "Błąd zapisu: {error}",
+  "@common_saveErrorToast": {
+    "description": "Komunikat błędu zapisu; {error} to treść wyjątku.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "brak połączenia"
+      }
+    }
+  },
+  "common_deleteConfirmTitle": "Na pewno usunąć?",
+  "common_guestCount": "{count, plural, =0{Brak gości} =1{1 gość} few{{count} gości} other{{count} gości}}",
+  "@common_guestCount": {
+    "description": "Licznik gości z polską odmianą. ICU plural obsługuje formy 1 / 2-4 / 5+ w każdym języku, bez ręcznych funkcji odmiany.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "23"
+      }
+    }
+  },
+  "settings_title": "Ustawienia",
+  "settings_configCard": "Konfiguracja",
+  "settings_languageCard": "Język i region",
+  "@settings_languageCard": {
+    "description": "Nagłówek karty z wyborem języka i waluty."
+  },
+  "settings_language": "Język aplikacji",
+  "settings_languageHint": "Zmiana działa od razu, bez restartu aplikacji.",
+  "settings_languageSystem": "Jak w systemie",
+  "@settings_languageSystem": {
+    "description": "Opcja wyboru języka: użyj ustawień urządzenia."
+  },
+  "settings_currency": "Waluta",
+  "settings_currencyHint": "Zmienia tylko symbol przy kwotach. Nie przelicza kursów — wpisane kwoty zostają takie same.",
+  "@settings_currencyHint": {
+    "description": "Kluczowe zastrzeżenie: waluta to etykieta, nie przelicznik."
+  },
+  "settings_notificationsCard": "Powiadomienia",
+  "settings_helpButton": "Pomoc",
+  "settings_tourButton": "Uruchom przewodnik",
+  "settings_planningButton": "Od czego zacząć?",
+  "settings_setupWizardButton": "Poprowadź mnie za rękę",
+  "settings_logoutButton": "Wyloguj się",
+  "language_pl": "Polski",
+  "language_en": "Angielski",
+  "@language_en": {
+    "description": "Nazwa języka pokazywana na liście wyboru — w języku interfejsu."
+  },
+  "common_confirm": "Potwierdź",
+  "common_retry": "Spróbuj ponownie",
+  "common_loading": "Wczytywanie…",
+  "common_copy": "Kopiuj",
+  "common_share": "Udostępnij",
+  "common_open": "Otwórz",
+  "common_select": "Wybierz",
+  "common_all": "Wszyscy",
+  "common_optional": "opcjonalnie",
+  "@common_optional": {
+    "description": "Dopisek przy etykiecie pola nieobowiązkowego."
+  },
+  "common_deleteConfirmBody": "Tej operacji nie da się cofnąć.",
+  "common_deletedToast": "Usunięto",
+  "common_deleteErrorToast": "Błąd usuwania: {error}",
+  "@common_deleteErrorToast": {
+    "description": "Komunikat błędu usuwania.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "brak uprawnień"
+      }
+    }
+  },
+  "common_copiedToast": "Skopiowano",
+  "common_offlineToast": "Brak połączenia — zmiany zapiszą się po odzyskaniu sieci.",
+  "validation_required": "To pole jest wymagane",
+  "validation_invalidNumber": "Podaj poprawną liczbę",
+  "validation_invalidEmail": "Podaj poprawny adres e-mail",
+  "validation_tooShort": "Za krótkie — minimum {min} znaki",
+  "@validation_tooShort": {
+    "description": "Walidacja długości; {min} to minimalna liczba znaków.",
+    "placeholders": {
+      "min": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "date_notSet": "Data do ustalenia",
+  "date_pickDate": "Wybierz datę",
+  "date_pickTime": "Wybierz godzinę",
+  "date_today": "Dzisiaj",
+  "date_tomorrow": "Jutro",
+  "guests_categoryWitnesses": "Świadkowie",
+  "guests_categoryParents": "Rodzice",
+  "guests_categoryFamily": "Rodzina",
+  "@guests_categoryFamily": {
+    "description": "ETYKIETA kategorii. Wartosc w bazie zostaje polska - patrz GuestOptions.categoryLabel."
+  },
+  "guests_categoryFriends": "Znajomi",
+  "guests_categoryWork": "Praca",
+  "guests_categoryOther": "Inne",
+  "guests_genderFemale": "♀ Kobieta",
+  "guests_genderMale": "♂ Mężczyzna",
+  "guests_genderNonbinary": "⚧ Niebinarna",
+  "guests_dietStandard": "Standardowa",
+  "guests_dietVegetarian": "Wegetariańska",
+  "guests_dietVegan": "Wegańska",
+  "guests_dietGlutenFree": "Bezglutenowa",
+  "guests_dietOther": "Inne",
+  "guests_menuMeat": "Danie mięsne",
+  "guests_menuFish": "Danie rybne",
+  "guests_menuVegetarian": "Wegetariańskie",
+  "guests_menuVegan": "Wegańskie",
+  "guests_menuChild": "Dla dziecka",
+  "guests_filterAssigned": "Przypisani",
+  "guests_filterUnassigned": "Nieprzypisani",
+  "guests_filterWitnesses": "🤝 Świadkowie",
+  "guests_filterChildren": "🧒 Dzieci",
+  "guests_title": "Goście",
+  "guests_addButton": "Dodaj gościa",
+  "guests_addedToast": "Dodano gościa: {name}",
+  "@guests_addedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_deleteTitle": "Usunąć gościa?",
+  "guests_deleteBody": "Czy na pewno usunąć gościa „{name}”? Zostanie też zwolnione jego miejsce przy stole.",
+  "@guests_deleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_deletedToast": "Usunięto gościa",
+  "guests_noName": "(bez imienia)",
+  "guests_countOf": "{shown} z {total}",
+  "@guests_countOf": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "guests_badgeNoTable": "Bez stołu",
+  "guests_badgeChild": "🧒 Dziecko",
+  "guests_badgeAccommodation": "🏨 Nocleg",
+  "guests_badgeCompanionOf": "👥 z: {name}",
+  "@guests_badgeCompanionOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_companionPlaceholder": "osoba towarzysząca",
+  "guests_formEditTitle": "Edytuj gościa",
+  "guests_formAddTitle": "Dodaj gościa",
+  "guests_formFirstName": "Imię *",
+  "guests_formFirstNameHint": "np. Anna",
+  "guests_formFirstNameRequired": "Podaj imię gościa",
+  "guests_formLastName": "Nazwisko",
+  "guests_formLastNameHint": "np. Kowalska",
+  "guests_formInvitedBy": "Zaproszony przez",
+  "guests_formChoose": "— wybierz —",
+  "guests_formCategory": "Kategoria",
+  "guests_formGender": "Płeć",
+  "guests_formRole": "Rola",
+  "guests_formNoRole": "Brak roli",
+  "guests_formDiet": "Dieta / menu",
+  "guests_formNoMenu": "— brak —",
+  "guests_formIsChild": "🧒 To dziecko",
+  "guests_formIsChildHint": "Dzieci są wyłączane z przeliczeń alkoholu i mogą mieć osobne menu.",
+  "guests_formAccommodation": "🏨 Potrzebuje noclegu",
+  "guests_formCoupleLimit": "Para Młoda to najwyżej {max} osoby — komplet już jest na liście.",
+  "@guests_formCoupleLimit": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "guests_companionSwitch": "👥 Z osobą towarzyszącą?",
+  "guests_companionForCouple": "Para Młoda nie ma osoby towarzyszącej — drugą osobę dodaj jako osobny wpis w kategorii „{category}”.",
+  "@guests_companionForCouple": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_companionRelation": "Typ relacji",
+  "guests_companionNameUnknown": "Imienia jeszcze nie znam",
+  "guests_companionNameUnknownHint": "Zapiszemy „Osoba towarzysząca” — dane uzupełnisz później. Osoba i tak liczy się do listy gości i do cateringu.",
+  "guests_companionFirstName": "Imię os. towarzyszącej",
+  "guests_companionLastName": "Nazwisko os. towarzyszącej",
+  "guests_companionCategory": "Kategoria os. towarzyszącej",
+  "guests_companionInherit": "Jak zapraszający ({category})",
+  "@guests_companionInherit": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_companionIsChild": "🧒 Osoba towarzysząca to dziecko",
+  "guests_companionInfo": "Osoba towarzysząca zostanie dodana jako osobny gość powiązany z tą osobą — dzięki temu wiadomo, kto z kim przychodzi.",
+  "guests_relationPartner": "Para",
+  "guests_relationFamily": "Rodzina",
+  "guests_relationUnknown": "Nieznana",
+  "guests_summaryWitnesses": "🤝 Świadkowie (cel: {target})",
+  "@guests_summaryWitnesses": {
+    "placeholders": {
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "guests_summaryWitnessesTotal": "Wyznaczeni łącznie",
+  "guests_summaryChildren": "🧒 Dzieci",
+  "guests_summaryChildrenLabel": "Dzieci",
+  "guests_summaryAdults": "Dorośli",
+  "guests_summaryMenu": "🍽 Menu (co je)",
+  "guests_summaryNoMenu": "Bez wyboru menu",
+  "guests_summaryDiets": "🥗 Diety",
+  "guests_summaryTransport": "🚌 Transport",
+  "guests_summaryTransportOwn": "Własny",
+  "guests_summaryTransportOrganized": "Zorganizowany",
+  "guests_summaryTransportNone": "Bez transportu",
+  "guests_summaryAccommodation": "🏨 Nocleg",
+  "guests_summaryAccommodationNeeds": "Potrzebuje",
+  "guests_summaryAccommodationAssigned": "Przypisani do hotelu",
+  "guests_summaryRsvp": "✉ Potwierdzenia",
+  "guests_rsvpAttending": "Przyjdzie",
+  "guests_rsvpNotAttending": "Nie przyjdzie",
+  "guests_rsvpNoAnswer": "Brak odpowiedzi",
+  "guests_cardFullName": "Imię i nazwisko",
+  "guests_cardStatus": "Status",
+  "guests_cardWith": "Z kim",
+  "guests_cardMenu": "Menu",
+  "guests_cardDietAllergies": "Dieta / alergie",
+  "guests_cardTable": "Stolik",
+  "guests_emptyFiltered": "Brak gości spełniających kryteria.",
+  "guests_showFilters": "Pokaż filtry",
+  "guests_hideFilters": "Ukryj filtry",
+  "guests_detailInvitedBy": "Zaproszony przez",
+  "guests_allSeated": "Wszyscy goście są już przypisani.",
+  "tables_defaultName": "Stół",
+  "@tables_defaultName": {
+    "description": "Nazwa zastepcza stolu bez nazwy. UWAGA: nowe stoly dostaja nazwe zapisywana w bazie - to tylko etykieta zapasowa przy odczycie."
+  },
+  "tables_title": "Plan stołów",
+  "tables_addButton": "Dodaj stół",
+  "tables_addedToast": "Dodano stół",
+  "tables_addTitle": "Nowy stół",
+  "tables_name": "Nazwa stołu",
+  "tables_nameHint": "np. Stół 1",
+  "tables_shape": "Kształt",
+  "tables_shapeRound": "Okrągły",
+  "tables_shapeRect": "Prostokątny",
+  "tables_seats": "Liczba miejsc",
+  "tables_honorSwitch": "⭐ Stół Pary Młodej (honorowy)",
+  "tables_honorHint": "Używa układu prostokątnego",
+  "tables_childSwitch": "🧒 Stół dla dzieci",
+  "tables_childHint": "Osobny stół dla najmłodszych gości",
+  "tables_deleteTitle": "Usunąć stół?",
+  "tables_deleteBody": "Goście przypisani do tego stołu wrócą na listę nieprzypisanych.",
+  "tables_deletedToast": "Usunięto stół",
+  "tables_full": "Stół jest pełny!",
+  "tables_seatsUsed": "{used}/{total} miejsc",
+  "@tables_seatsUsed": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tables_assignGuest": "Posadź gościa",
+  "tables_unassign": "Zwolnij miejsce",
+  "tables_emptyState": "Nie masz jeszcze stołów. Dodaj pierwszy.",
+  "tables_statTables": "Stoły",
+  "tables_statSeats": "Miejsca",
+  "tables_statFree": "Wolne",
+  "tables_hintAdultAtChildTable": "Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.",
+  "tables_hintChildAtRegularTable": "Dziecko przy zwykłym stole — jest też stół dla dzieci.",
+  "roomplan_title": "Plan sali",
+  "roomplan_editMode": "Tryb edycji",
+  "roomplan_gridOn": "Siatka",
+  "roomplan_fullscreen": "Pełny ekran",
+  "roomplan_addTable": "Dodaj stół",
+  "roomplan_addElement": "Dodaj element",
+  "roomplan_unassignedGuests": "Nieprzypisani goście",
+  "roomplan_roomSize": "Wymiary sali",
+  "roomplan_widthMeters": "Szerokość (m)",
+  "roomplan_lengthMeters": "Długość (m)",
+  "roomplan_savedToast": "Zapisano plan sali",
+  "guests_namePendingBadge": "✎ imię do potwierdzenia",
+  "guests_companionFirstNameHint": "Imię",
+  "guests_badgeSeatedAt": "✓ {table}",
+  "guests_companionOfLine": "↳ towarzyszy: {name}",
+  "@guests_badgeSeatedAt": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "@guests_companionOfLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_emptyAll": "Brak gości.",
+  "guests_shownOf": "Wyświetlono {shown} z {total} gości",
+  "@guests_shownOf": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "guests_unknownGuest": "nieznany gość",
+  "guests_companionPending": "osoba towarzysząca (imię do potwierdzenia)",
+  "guests_comesWith": "👥 przychodzi z: {name}",
+  "@guests_comesWith": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guests_menuTimes": "{count}×",
+  "@guests_menuTimes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tables_seatsShort": "{used}/{total}",
+  "@tables_seatsShort": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tables_guestPickerTitle": "Wybierz gościa",
+  "tables_tapSeatToAssign": "Dotknij miejsca, aby posadzić gościa",
+  "tables_honorBadge": "⭐ Honorowy",
+  "tables_childBadge": "🧒 Dla dzieci",
+  "tables_seatFree": "Wolne",
+  "tables_addFirst": "Dodaj pierwszy stół",
+  "tables_summary": "{tables, plural, =1{1 stół} few{{tables} stoły} other{{tables} stołów}}",
+  "@tables_summary": {
+    "description": "Licznik stolow z odmiana ICU.",
+    "placeholders": {
+      "tables": {
+        "type": "int"
+      }
+    }
+  },
+  "tables_seatsSummary": "{seats, plural, =1{1 miejsce} few{{seats} miejsca} other{{seats} miejsc}}",
+  "@tables_seatsSummary": {
+    "description": "Licznik miejsc z odmiana ICU.",
+    "placeholders": {
+      "seats": {
+        "type": "int"
+      }
+    }
+  },
+  "roomplan_elementTable": "Stół",
+  "roomplan_elementStage": "Scena",
+  "roomplan_elementBar": "Bar",
+  "roomplan_elementDanceFloor": "Parkiet",
+  "roomplan_elementEntrance": "Wejście",
+  "roomplan_elementOther": "Inne",
+  "roomplan_deleteElement": "Usunąć element?",
+  "roomplan_elementName": "Nazwa elementu",
+  "roomplan_staff": "Obsługa",
+  "roomplan_persons": "Liczba osób",
+  "roomplan_includeInCost": "Wliczaj do kosztów",
+  "roomplan_dragHint": "Przytrzymaj i przeciągnij, aby przesunąć",
+  "roomplan_exitFullscreen": "Zamknij pełny ekran",
+  "tables_nameHintOptional": "np. Stół 1 (opcjonalnie)",
+  "tables_shapeRoundIcon": "⚪ Okrągły",
+  "tables_shapeRectIcon": "▭ Prostokątny",
+  "tables_deleteBodyNamed": "Czy na pewno usunąć stół „{name}”? Przypisani goście wrócą do nieprzypisanych.",
+  "@tables_deleteBodyNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tables_removeFromTable": "Usuń ze stołu",
+  "tables_unassignedHeader": "Nieprzypisani goście ({count})",
+  "@tables_unassignedHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tables_dragHint": "Przeciągnij (przytrzymaj) gościa na stół lub użyj „Przypisz”.",
+  "tables_allSeatedCheer": "🎉 Wszyscy goście mają miejsce!",
+  "tables_assignGuestAction": "Przypisz gościa",
+  "tables_deleteTable": "Usuń stół",
+  "tables_emptyStateHint": "Brak stołów. Dodaj pierwszy stół przyciskiem powyżej.",
+  "tables_statGuests": "Goście",
+  "roomplan_zoomIn": "Przybliż",
+  "roomplan_widthShort": "Szerokość",
+  "roomplan_lengthShort": "Długość",
+  "roomplan_tableDiameterShort": "Śr. stołu",
+  "roomplan_hint": "Przytrzymaj i przeciągnij stół/element, aby go przesunąć. Dotknij stołu, aby przypisać gości lub zmienić rozmiar.",
+  "roomplan_unassignedDrag": "Nieprzypisani ({count}) — przeciągnij na stół",
+  "@roomplan_unassignedDrag": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "roomplan_guest": "Gość",
+  "roomplan_addedToTable": "Dodano do stołu: {name}",
+  "@roomplan_addedToTable": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "roomplan_guestsAtTable": "Goście przy stole",
+  "roomplan_noGuestsAtTable": "Brak przypisanych gości.",
+  "roomplan_tableSize": "Rozmiar stołu",
+  "roomplan_diameterMeters": "Średnica (m)",
+  "roomplan_rotate90": "Obróć 90°",
+  "roomplan_allSeated": "Wszyscy goście są przypisani.",
+  "roomplan_roomDims": "{width} m × {length} m",
+  "@roomplan_roomDims": {
+    "placeholders": {
+      "width": {
+        "type": "String"
+      },
+      "length": {
+        "type": "String"
+      }
+    }
+  },
+  "roomplan_zoomOut": "Oddal",
+  "roomplan_fit": "Dopasuj",
+  "roomplan_editPlan": "Edytuj plan",
+  "roomplan_addedElement": "Dodano element: {name}",
+  "@roomplan_addedElement": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "roomplan_elementSize": "Rozmiar elementu"
+}

@@ -8,6 +8,7 @@ import '../../models/membership.dart';
 import '../../services/membership_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/warsaw_time.dart';
+import '../../utils/app_format.dart';
 
 /// Panel „Osoby i dostęp" — widoczny TYLKO dla właściciela (owner).
 ///
@@ -506,16 +507,8 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
         int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
   }
 
-  static String _dateLabel(String? date) {
-    if (date == null) return '—';
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(date);
-    if (m == null) return date;
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '${int.parse(m.group(3)!)} ${months[int.parse(m.group(2)!) - 1]} ${m.group(1)}';
-  }
+  static String _dateLabel(String? date) =>
+      AppFormat.dateLongFromIso(date) ?? '—';
 }
 
 /// Żądanie dodania osoby zebrane z arkusza (przed potwierdzeniem).
@@ -803,11 +796,6 @@ class _AddPersonSheetState extends State<_AddPersonSheet> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       );
 
-  static String _dateLabel(DateTime date) {
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
+  static String _dateLabel(DateTime date) =>
+      AppFormat.dateLong(date);
 }

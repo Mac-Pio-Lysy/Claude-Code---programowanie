@@ -9,6 +9,7 @@ import '../app_flags.dart';
 import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
 import '../help/help_screen.dart';
+import '../l10n/locale_controller.dart';
 import '../layout/responsive.dart';
 import '../onboarding/onboarding_overlay.dart';
 import '../onboarding/onboarding_steps.dart';
@@ -144,6 +145,8 @@ class _MainNavigationState extends State<MainNavigation> {
     _onboarding = OnboardingService(uid: _uid);
     // Preferencja układu jest per użytkownik — wczytujemy ją, gdy znamy uid.
     DisplayModeController.load(_uid);
+    // Język jest preferencją tego samego użytkownika — wczytujemy razem.
+    LocaleController.load(_uid);
     _dataStream = widget.firestore.watchWeddingData();
     _navConfig.load().then((bar) {
       if (mounted) setState(() => _bar = bar);

@@ -1,4 +1,6 @@
+import '../utils/app_format.dart';
 import 'couple.dart';
+import 'currency.dart';
 
 /// Odczytany stan wesela z dokumentu `weddingPlanner/main`.
 ///
@@ -77,6 +79,10 @@ class WeddingData {
     // wesela (strumień i jednorazowy), więc etykiety nie mogą się rozjechać z
     // danymi — a widoki sięgają po nie przez `CoupleLabels.current`.
     CoupleLabels.apply(map);
+
+    // Tą samą drogą podąża waluta budżetu: symbol przy kwotach jest
+    // ustawieniem WESELA, więc zmienia się razem z wczytanym weselem.
+    AppFormat.configure(currency: Currency.ofRaw(map));
 
     final appConfig = map['appConfig'];
     final eventName = (appConfig is Map) ? appConfig['eventName'] as String? : null;

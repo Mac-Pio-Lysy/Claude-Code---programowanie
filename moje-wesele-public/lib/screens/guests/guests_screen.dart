@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
-import '../../models/couple.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/app_text.dart';
 import '../../models/guest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
@@ -49,7 +50,7 @@ class _GuestsScreenState extends State<GuestsScreen> {
     for (final t in widget.data?.tables ?? const []) {
       if (t is Map) {
         final id = (t['id'] as num?)?.toInt();
-        if (id != null) res[id] = (t['name'] as String?) ?? 'Stół';
+        if (id != null) res[id] = (t['name'] as String?) ?? AppText.t.tables_defaultName;
       }
     }
     return res;
@@ -86,51 +87,54 @@ class _GuestsScreenState extends State<GuestsScreen> {
   }
 
   Future<void> _addGuest() async {
+    // Tłumaczenia pobieramy PRZED `await` — po nim `context` może już nie
+    // należeć do zamontowanego widgetu.
+    final t = AppLocalizations.of(context);
     final draft = await _showForm();
     if (draft == null) return;
     try {
       await widget.service.addGuest(draft);
-      _toast('Dodano gościa: ${draft.firstName}');
+      _toast(t.guests_addedToast(draft.firstName));
     } on GuestRuleException catch (e) {
       // Złamana reguła listy gości ma gotowy komunikat — pokazujemy go wprost,
       // bez „Błąd zapisu", bo to nie awaria tylko świadoma blokada.
       _toast(e.message);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(t.common_saveErrorToast('$e'));
     }
   }
 
   Future<void> _editGuest(Guest guest) async {
+    final t = AppLocalizations.of(context);
     final draft = await _showForm(existing: guest);
     if (draft == null || guest.id == null) return;
     try {
       await widget.service.updateGuest(guest.id!, draft);
-      _toast('Zapisano zmiany');
+      _toast(t.common_savedToast);
     } on GuestRuleException catch (e) {
       _toast(e.message);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(t.common_saveErrorToast('$e'));
     }
   }
 
   Future<void> _deleteGuest(Guest guest) async {
+    final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć gościa?'),
-        content: Text(
-          'Czy na pewno usunąć gościa „${guest.fullName}"? '
-          'Zostanie też zwolnione jego miejsce przy stole.',
-        ),
+        title: Text(AppLocalizations.of(context).guests_deleteTitle),
+        content: Text(AppLocalizations.of(context)
+            .guests_deleteBody(guest.fullName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppLocalizations.of(context).common_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppLocalizations.of(context).common_delete),
           ),
         ],
       ),
@@ -138,14 +142,15 @@ class _GuestsScreenState extends State<GuestsScreen> {
     if (confirmed != true || guest.id == null) return;
     try {
       await widget.service.deleteGuest(guest.id!);
-      _toast('Usunięto gościa');
+      _toast(t.guests_deletedToast);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(t.common_deleteErrorToast('$e'));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final guests = [
       for (final e in widget.data?.guests ?? const [])
         if (e is Map) Guest(Map<String, dynamic>.from(e)),
@@ -163,7 +168,7 @@ class _GuestsScreenState extends State<GuestsScreen> {
         children: [
           if (!widget.embedded) ...[
             Text(
-              'Goście',
+              t.guests_title,
               style: GoogleFonts.playfairDisplay(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -186,8 +191,8 @@ class _GuestsScreenState extends State<GuestsScreen> {
               Expanded(
                 child: Text(
                   filtered.length == guests.length
-                      ? '${guests.length} ${_guestWord(guests.length)}'
-                      : '${filtered.length} z ${guests.length} ${_guestWord(guests.length)}',
+                      ? t.common_guestCount(guests.length)
+                      : t.guests_countOf(filtered.length, guests.length),
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: AppColors.textLight,
@@ -199,7 +204,7 @@ class _GuestsScreenState extends State<GuestsScreen> {
               ElevatedButton.icon(
                 onPressed: _addGuest,
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Dodaj gościa'),
+                label: Text(t.guests_addButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -294,7 +299,9 @@ class _GuestsScreenState extends State<GuestsScreen> {
   /// dając więcej miejsca na listę.
   Widget _filtersToggle() {
     return Tooltip(
-      message: _filtersVisible ? 'Ukryj filtry' : 'Pokaż filtry',
+      message: _filtersVisible
+          ? AppLocalizations.of(context).guests_hideFilters
+          : AppLocalizations.of(context).guests_showFilters,
       child: Material(
         color: _filtersVisible ? const Color(0xFFEEF3FF) : Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -334,7 +341,7 @@ class _GuestsScreenState extends State<GuestsScreen> {
           const Icon(Icons.people_outline, size: 48, color: AppColors.accent2),
           const SizedBox(height: 12),
           Text(
-            'Brak gości spełniających kryteria.',
+            AppLocalizations.of(context).guests_emptyFiltered,
             style: GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
           ),
         ],
@@ -342,7 +349,6 @@ class _GuestsScreenState extends State<GuestsScreen> {
     );
   }
 
-  static String _guestWord(int n) => n == 1 ? 'gość' : 'gości';
 }
 
 /// Rozwijana karta gościa.
@@ -448,16 +454,15 @@ class _GuestCardState extends State<_GuestCard> {
         _Badge(
             // Kategoria Pary Młodej ma etykietę zależną od typu uroczystości;
             // pozostałe kategorie wyświetlamy dosłownie.
-            g.category == CoupleLabels.coupleCategoryValue
-                ? CoupleLabels.current.coupleCategoryLabel
-                : g.category,
+            GuestOptions.categoryLabel(g.category),
             const Color(0xFFEEF3FF),
             AppColors.accent),
       if (widget.tableName != null)
-        _Badge('✓ ${widget.tableName}', const Color(0xFFECFDF5),
+        _Badge(AppText.t.guests_badgeSeatedAt(widget.tableName!), const Color(0xFFECFDF5),
             const Color(0xFF059669))
       else
-        _Badge('Bez stołu', const Color(0xFFFFF7ED), const Color(0xFFB45309)),
+        _Badge(AppText.t.guests_badgeNoTable, const Color(0xFFFFF7ED),
+            const Color(0xFFB45309)),
       if (g.invitedBy == 'groom')
         _Badge(GuestOptions.invitedByLabel('groom'), const Color(0xFFEFF6FF),
             const Color(0xFF1D4ED8)),
@@ -471,9 +476,11 @@ class _GuestCardState extends State<_GuestCard> {
         _Badge('● ${GuestOptions.witnessLabel('witness_bride')}',
             const Color(0xFFFDF2F8), const Color(0xFFDB2777)),
       if (g.isChild)
-        _Badge('🧒 Dziecko', const Color(0xFFECFEFF), const Color(0xFF0E7490)),
+        _Badge(AppText.t.guests_badgeChild, const Color(0xFFECFEFF),
+            const Color(0xFF0E7490)),
       if (g.needsAccommodation)
-        _Badge('🏨 Nocleg', const Color(0xFFF5F3FF), const Color(0xFF7C3AED)),
+        _Badge(AppText.t.guests_badgeAccommodation, const Color(0xFFF5F3FF),
+            const Color(0xFF7C3AED)),
       // Stary „+1" bez własnego rekordu (dane sprzed powiązań).
       if (g.hasCompanion)
         _Badge(
@@ -491,7 +498,7 @@ class _GuestCardState extends State<_GuestCard> {
       // Ten gość JEST czyjąś osobą towarzyszącą.
       if (widget.inviter != null)
         _Badge(
-          '↳ towarzyszy: ${widget.inviter!.fullName}',
+          AppText.t.guests_companionOfLine(widget.inviter!.fullName),
           const Color(0xFFEEF3FF),
           AppColors.accent,
         ),
@@ -502,12 +509,13 @@ class _GuestCardState extends State<_GuestCard> {
           const Color(0xFF7C3AED),
         ),
       if (g.namePending)
-        _Badge('✎ imię do potwierdzenia', const Color(0xFFFFF7ED),
+        _Badge(AppText.t.guests_namePendingBadge, const Color(0xFFFFF7ED),
             const Color(0xFFB45309)),
     ];
   }
 
   Widget _details(Guest g) {
+    final t = AppText.t;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -515,10 +523,12 @@ class _GuestCardState extends State<_GuestCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 16),
-          _detailRow('Płeć', GuestOptions.genderLabel(g.gender)),
-          _detailRow('Zaproszony przez', GuestOptions.invitedByLabel(g.invitedBy)),
-          _detailRow('Rola', GuestOptions.witnessLabel(g.witness)),
-          if (g.menuChoice.isNotEmpty) _detailRow('Dieta / menu', g.menuChoice),
+          _detailRow(t.guests_formGender, GuestOptions.genderLabel(g.gender)),
+          _detailRow(t.guests_detailInvitedBy,
+              GuestOptions.invitedByLabel(g.invitedBy)),
+          _detailRow(t.guests_formRole, GuestOptions.witnessLabel(g.witness)),
+          if (g.menuChoice.isNotEmpty)
+            _detailRow(t.guests_formDiet, GuestOptions.menuLabel(g.menuChoice)),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -542,7 +552,7 @@ class _GuestCardState extends State<_GuestCard> {
                 child: OutlinedButton.icon(
                   onPressed: widget.onDelete,
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Usuń'),
+                  label: Text(AppText.t.common_delete),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFC0392B),
                     side: const BorderSide(color: Color(0xFFE9A8A8)),

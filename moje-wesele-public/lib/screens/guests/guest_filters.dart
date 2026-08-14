@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/couple.dart';
 import '../../models/guest.dart';
 
@@ -86,15 +87,16 @@ class GuestFilterControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _row([
-          _chip('Wszyscy', filter.quick == GuestQuick.all,
+          _chip(t.common_all, filter.quick == GuestQuick.all,
               () => onChanged(filter.copyWith(quick: GuestQuick.all))),
-          _chip('Przypisani', filter.quick == GuestQuick.assigned,
+          _chip(t.guests_filterAssigned, filter.quick == GuestQuick.assigned,
               () => onChanged(filter.copyWith(quick: GuestQuick.assigned))),
-          _chip('Nieprzypisani', filter.quick == GuestQuick.unassigned,
+          _chip(t.guests_filterUnassigned, filter.quick == GuestQuick.unassigned,
               () => onChanged(filter.copyWith(quick: GuestQuick.unassigned))),
           // „Od kogo" — etykiety z typu uroczystości. Przy parze jednopłciowej
           // rozróżniają je imiona, więc chip pokazuje np. „Od: 👰 Ania".
@@ -104,24 +106,25 @@ class GuestFilterControls extends StatelessWidget {
           _chip(CoupleLabels.current.invitedByFilterLabel('bride'),
               filter.quick == GuestQuick.bride,
               () => onChanged(filter.copyWith(quick: GuestQuick.bride))),
-          _chip('🤝 Świadkowie', filter.quick == GuestQuick.witnesses,
+          _chip(t.guests_filterWitnesses, filter.quick == GuestQuick.witnesses,
               () => onChanged(filter.copyWith(quick: GuestQuick.witnesses))),
           // Widoczny zawsze — tak samo jak „Świadkowie", który przy braku
           // wyznaczonych też daje pustą listę.
-          _chip('🧒 Dzieci', filter.quick == GuestQuick.children,
+          _chip(t.guests_filterChildren, filter.quick == GuestQuick.children,
               () => onChanged(filter.copyWith(quick: GuestQuick.children))),
         ]),
         const SizedBox(height: 8),
         _row([
-          _chip('Wszyscy', filter.category == null,
+          _chip(t.common_all, filter.category == null,
               () => onChanged(filter.copyWith(clearCategory: true))),
+          // Po lewej WARTOŚĆ z bazy (do porównania), na chipie ETYKIETA.
           for (final c in const ['Rodzina', 'Znajomi', 'Praca', 'Inne'])
-            _chip(c, filter.category == c,
+            _chip(GuestOptions.categoryLabel(c), filter.category == c,
                 () => onChanged(filter.copyWith(category: c))),
         ]),
         const SizedBox(height: 8),
         _row([
-          _chip('🤝 Świadkowie', filter.witnessFirst,
+          _chip(t.guests_filterWitnesses, filter.witnessFirst,
               () => onChanged(filter.copyWith(witnessFirst: !filter.witnessFirst))),
         ]),
       ],

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../services/table_service.dart';
+import '../../l10n/app_localizations.dart';
 
 /// Modalny formularz dodawania stołu. Zwraca [TableDraft] przez `Navigator.pop`.
 class AddTableSheet extends StatefulWidget {
@@ -42,6 +43,7 @@ class _AddTableSheetState extends State<AddTableSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: Container(
@@ -68,7 +70,7 @@ class _AddTableSheetState extends State<AddTableSheet> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Dodaj stół',
+                  t.tables_addTitle,
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -76,19 +78,19 @@ class _AddTableSheetState extends State<AddTableSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _label('Nazwa stołu'),
+                _label(t.tables_name),
                 TextField(
                   controller: _name,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: _decoration('np. Stół 1 (opcjonalnie)'),
+                  decoration: _decoration(t.tables_nameHintOptional),
                 ),
                 const SizedBox(height: 16),
-                _label('Kształt'),
+                _label(t.tables_shape),
                 Row(
                   children: [
-                    _shapeOption('round', '⚪ Okrągły'),
+                    _shapeOption('round', t.tables_shapeRoundIcon),
                     const SizedBox(width: 10),
-                    _shapeOption('rect', '▭ Prostokątny'),
+                    _shapeOption('rect', t.tables_shapeRectIcon),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -118,10 +120,10 @@ class _AddTableSheetState extends State<AddTableSheet> {
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   activeThumbColor: AppColors.accent,
-                  title: Text('⭐ Stół Pary Młodej (honorowy)',
+                  title: Text(t.tables_honorSwitch,
                       style: GoogleFonts.inter(fontSize: 14)),
                   subtitle: _isHonor
-                      ? Text('Używa układu prostokątnego',
+                      ? Text(t.tables_honorHint,
                           style: GoogleFonts.inter(
                               fontSize: 11, color: AppColors.textLight))
                       : null,
@@ -135,10 +137,10 @@ class _AddTableSheetState extends State<AddTableSheet> {
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     activeThumbColor: AppColors.accent,
-                    title: Text('🧒 Stół dla dzieci',
+                    title: Text(t.tables_childSwitch,
                         style: GoogleFonts.inter(fontSize: 14)),
                     subtitle: _isChild
-                        ? Text('Osobny stół dla najmłodszych gości',
+                        ? Text(t.tables_childHint,
                             style: GoogleFonts.inter(
                                 fontSize: 11, color: AppColors.textLight))
                         : null,
@@ -177,7 +179,7 @@ class _AddTableSheetState extends State<AddTableSheet> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Dodaj stół'),
+                        child: Text(t.tables_addButton),
                       ),
                     ),
                   ],

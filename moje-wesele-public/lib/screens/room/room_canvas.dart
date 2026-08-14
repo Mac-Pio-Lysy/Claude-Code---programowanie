@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../models/guest.dart';
 import '../../models/room_plan.dart';
+import '../../l10n/app_text.dart';
 
 /// Interaktywne płótno planu sali: zoom/pan, przeciąganie stołów i elementów,
 /// wykrywanie kolizji, siatka pomocnicza i przypisywanie gości (drag & drop).
@@ -124,7 +125,7 @@ class _RoomCanvasState extends State<RoomCanvas> {
                     color: Colors.white.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text('${geo.widthM} m × ${geo.lengthM} m',
+                  child: Text(AppText.t.roomplan_roomDims('${geo.widthM}', '${geo.lengthM}'),
                       style: GoogleFonts.inter(
                           fontSize: 11, color: AppColors.textLight)),
                 ),
@@ -272,7 +273,7 @@ class _RoomTableVisual extends StatelessWidget {
     final isRound = shape == 'round';
     final honor = table['isHonorTable'] == true;
     final child = table['isChildTable'] == true;
-    final name = (table['name'] as String?) ?? 'Stół';
+    final name = (table['name'] as String?) ?? AppText.t.tables_defaultName;
     final seats = (table['seatsData'] as List?) ?? const [];
     final seatPos = geo.seatPositions(table);
     final occupied = seats.where((e) => e != null).length;

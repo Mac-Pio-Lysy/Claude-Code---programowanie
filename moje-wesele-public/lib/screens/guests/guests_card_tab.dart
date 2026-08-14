@@ -9,6 +9,8 @@ import '../../services/guest_service.dart';
 import '../budget/budget_fields.dart';
 import 'guest_filters.dart';
 import 'guest_form_sheet.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Kartoteka" — rozszerzony widok gości (menu, preferencje,
 /// alergie, notatki) w trybie listy lub siatki 3 kolumn.
@@ -57,6 +59,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
   @override
   Widget build(BuildContext context) {
     final guests = _guests;
+    final t = AppLocalizations.of(context);
     final filtered = filterGuests(guests, _filter);
     final menus = _menuOptions;
 
@@ -69,13 +72,15 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
               Expanded(
                 child: Text(
                     filtered.length == guests.length
-                        ? '${guests.length} gości'
-                        : '${filtered.length} z ${guests.length} gości',
+                        ? t.common_guestCount(guests.length)
+                        : t.guests_countOf(filtered.length, guests.length),
                     style: GoogleFonts.inter(
                         fontSize: 14, color: AppColors.textLight)),
               ),
               IconButton(
-                tooltip: _filtersVisible ? 'Ukryj filtry' : 'Pokaż filtry',
+                tooltip: _filtersVisible
+                    ? t.guests_hideFilters
+                    : t.guests_showFilters,
                 onPressed: () =>
                     setState(() => _filtersVisible = !_filtersVisible),
                 icon: Icon(Icons.filter_list,
@@ -116,8 +121,8 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
               ? Center(
                   child: Text(
                       guests.isEmpty
-                          ? 'Brak gości.'
-                          : 'Brak gości spełniających kryteria.',
+                          ? t.guests_emptyAll
+                          : t.guests_emptyFiltered,
                       style: GoogleFonts.inter(
                           fontSize: 14, color: AppColors.textLight)),
                 )
@@ -139,7 +144,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
               child: ElevatedButton.icon(
                 onPressed: _addGuest,
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj gościa'),
+                label: Text(t.guests_addButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -270,7 +275,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
           ? ''
           : ' (${CompanionRelation.label(g.relationType)})';
       lines.add(_relationChip(
-        '↳ towarzyszy: ${inviter?.fullName ?? 'nieznany gość'}$relation',
+        '${AppText.t.guests_companionOfLine(inviter?.fullName ?? AppText.t.guests_unknownGuest)}$relation',
         AppColors.accent,
       ));
     }
@@ -278,15 +283,16 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
     final own = all.where((x) => x.companionOfId == g.id).toList();
     for (final c in own) {
       lines.add(_relationChip(
-        '👥 przychodzi z: '
-        '${c.namePending ? 'osoba towarzysząca (imię do potwierdzenia)' : c.fullName}',
+        AppText.t.guests_comesWith(c.namePending
+            ? AppText.t.guests_companionPending
+            : c.fullName),
         const Color(0xFF475569),
       ));
     }
 
     if (g.namePending) {
       lines.add(_relationChip(
-          '✎ imię do potwierdzenia', const Color(0xFFB45309)));
+          AppText.t.guests_namePendingBadge, const Color(0xFFB45309)));
     }
 
     return lines.isEmpty

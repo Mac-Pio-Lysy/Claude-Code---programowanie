@@ -1,0 +1,12 @@
+# Konfiguracja gen-l10n — generuje AppLocalizations z plików .arb.
+#
+# Nowy język = nowy plik lib/l10n/app_<kod>.arb + dopisanie Locale do
+# LocaleController. Bez zmian w kodzie ekranów.
+arb-dir: lib/l10n
+template-arb-file: app_pl.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+# Językiem wzorcowym jest polski — brakujące tłumaczenie wraca do polskiego,
+# a nie do angielskiego.
+template-locale: pl
+nullable-getter: false

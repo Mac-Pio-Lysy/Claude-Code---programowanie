@@ -7,6 +7,7 @@ import '../../services/firestore_service.dart';
 import '../../services/guest_visibility_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/warsaw_time.dart';
+import '../../utils/app_format.dart';
 
 /// Panel właściciela: „Widoczność dla gości" — steruje tym, KIEDY każda sekcja
 /// jest widoczna na stronach publicznych dla gości.
@@ -575,17 +576,6 @@ class _SectionCard extends StatelessWidget {
     }
   }
 
-  static String _dateLabel(String? date) {
-    if (date == null) return '—';
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(date);
-    if (m == null) return date;
-    final day = int.parse(m.group(3)!);
-    final month = int.parse(m.group(2)!);
-    final year = m.group(1)!;
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
-    ];
-    return '$day ${months[month - 1]} $year';
-  }
+  static String _dateLabel(String? date) =>
+      AppFormat.dateLongFromIso(date) ?? '—';
 }
