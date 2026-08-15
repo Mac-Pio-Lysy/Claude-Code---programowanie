@@ -14,6 +14,7 @@ import 'budget_summary_tab.dart';
 import 'expenses_tab.dart';
 import 'honeymoon_tab.dart';
 import 'sala_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Budżet" z podzakładkami. „Podsumowanie" zawiera też zbiorczy widok
 /// wszystkich płatności (dawna osobna zakładka „Płatności").
@@ -31,13 +32,14 @@ class BudgetScreen extends StatelessWidget {
   /// Przejście do innej sekcji (np. Dostawcy) — dla linków „Dodano w".
   final void Function(AppSection section)? onOpenSection;
 
-  static const _tabs = [
-    'Podsumowanie',
-    'Sala',
-    'Wydatki',
-    'Alkohol',
-    'Napoje bezalkoholowe',
-    'Podróż poślubna',
+  /// Etykiety zakładek — getter, bo tłumaczenia nie są stałymi kompilacji.
+  static List<String> get _tabs => [
+    AppText.t.budget_tabSummary,
+    AppText.t.budget_tabVenue,
+    AppText.t.budget_tabExpenses,
+    AppText.t.budget_tabAlcohol,
+    AppText.t.budget_tabSoft,
+    AppText.t.budget_tabHoneymoon,
   ];
 
   /// Indeks podzakładki „Podróż poślubna" (dla wiersza referencyjnego w Wydatkach).
@@ -60,7 +62,7 @@ class BudgetScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Budżet',
+                  AppText.t.budget_title,
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,

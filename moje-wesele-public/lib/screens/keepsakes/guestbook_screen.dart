@@ -9,6 +9,7 @@ import '../../services/guestbook_service.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Księga gości" (w sekcji „Ślubne pamiątki").
 ///
@@ -68,9 +69,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
                 GuestPageTab(
                   links: [('💝 Księga gości', PublicPages.ksiega(base))],
                   intro:
-                      'Strona, na której goście zostawią życzenia i wiadomości '
-                      'dla Pary Młodej (z opcjonalnym zdjęciem). Pokaż im kod QR '
-                      'lub wyślij link.',
+                      AppText.t.guestbook_txt1,
                 ),
               ],
             ),
@@ -101,8 +100,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
             _toolbar(entries),
             const SizedBox(height: 14),
             if (entries.isEmpty)
-              _info('Brak wpisów. Udostępnij gościom kod QR z zakładki '
-                  '„Strona dla gości", aby zaczęli się wpisywać.')
+              _info(AppText.t.guestbook_txt2)
             else
               for (final e in entries) _entryCard(e),
           ],
@@ -154,7 +152,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
                 onPressed:
                     entries.isEmpty ? null : () => _exportPdf(entries),
                 icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                label: const Text('Eksport PDF'),
+                label: Text(AppText.t.common_exportPdf),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
                   side: const BorderSide(color: AppColors.accent),
@@ -256,7 +254,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
                 icon: const Icon(Icons.delete_outline, size: 20),
                 color: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Usuń wpis',
+                tooltip: AppText.t.guestbook_deleteEntry,
               ),
             ],
           ),
@@ -330,20 +328,20 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wpis?'),
+        title: Text(AppText.t.guestbook_deleteTitle),
         content: Text(
-            'Czy na pewno usunąć wpis od „${e.name.isEmpty ? 'Gość' : e.name}"? '
-            'Tej operacji nie można cofnąć.'),
+            AppText.t.guestbook_deleteBodyNamed(
+                e.name.isEmpty ? AppText.t.guests_unknownGuest : e.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -351,9 +349,9 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
     if (ok != true) return;
     try {
       await _service.deleteEntry(e.id);
-      _toast('Usunięto wpis');
+      _toast(AppText.t.guestbook_deleted);
     } catch (err) {
-      _toast('Błąd usuwania: $err');
+      _toast(AppText.t.common_deleteErrorToast('$err'));
     }
   }
 
@@ -369,7 +367,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
       );
       await PdfService.preview(bytes, 'ksiega-gosci.pdf');
     } catch (e) {
-      _toast('Błąd generowania PDF: $e');
+      _toast(AppText.t.common_pdfError('$e'));
     }
   }
 

@@ -1,3 +1,5 @@
+import '../l10n/app_text.dart';
+
 /// Status wydatku wyliczony z opłaconej kwoty.
 enum ExpenseStatus { paid, partial, unpaid }
 
@@ -73,8 +75,12 @@ class Expense {
   bool get filterPartial => paid > 0 && !filterPaid;
 
   /// Nazwa wyświetlana: dla „Inne" pokazuje własną nazwę.
-  String get displayName =>
-      category == 'Inne' ? (customName.isNotEmpty ? customName : 'Wydatek') : category;
+  ///
+  /// Porównanie z `'Inne'` zostaje po polsku — to WARTOŚĆ w bazie. Tłumaczy się
+  /// tylko etykieta zwracanej kategorii i nazwa zastępcza.
+  String get displayName => category == 'Inne'
+      ? (customName.isNotEmpty ? customName : AppText.t.budget_expenseFallbackName)
+      : ExpenseCategories.labelFor(category);
 
   String get icon => ExpenseCategories.iconFor(category);
 
@@ -115,6 +121,46 @@ class ExpenseCategories {
   static List<String> get names => icons.keys.toList();
 
   static String iconFor(String name) => icons[name] ?? '📦';
+
+  /// Etykieta kategorii do WYŚWIETLENIA.
+  ///
+  /// ⚠️ Klucze [icons] to WARTOŚCI zapisywane w bazie: w `appConfig
+  /// .expenseCategories` oraz w polu `category` każdego wydatku. Muszą zostać
+  /// polskie — przetłumaczenie zerwałoby dane istniejących wesel i rozjechało
+  /// je z wersją web. Tłumaczy się wyłącznie to, co widzi użytkownik.
+  ///
+  /// Nieznana wartość wraca bez zmian — para może dopisać własną kategorię
+  /// w Ustawieniach i taka nazwa nie ma tłumaczenia.
+  static String labelFor(String name) {
+    final t = AppText.t;
+    return switch (name) {
+      'Sala i catering' => t.budget_catVenueCatering,
+      'Suknia ślubna' => t.budget_catDress,
+      'Garnitur/strój' => t.budget_catSuit,
+      'Obrączki' => t.budget_catRings,
+      'Fotograf' => t.budget_catPhoto,
+      'Kamerzysta/wideo' => t.budget_catVideo,
+      'Kwiaty/dekoracje' => t.budget_catFlowersDecor,
+      'Bukiet ślubny' => t.budget_catBouquet,
+      'Kwiaty dla PM' => t.budget_catFlowersCouple,
+      'Przystrojenie kościoła' => t.budget_catChurchDecor,
+      'Tort weselny' => t.budget_catCake,
+      'Muzyka/DJ/zespół' => t.budget_catMusic,
+      'Zaproszenia' => t.budget_catInvitations,
+      'Uroda' => t.budget_catBeauty,
+      'Makijaż i fryzura' => t.budget_catHairMakeup,
+      'Transport' => t.budget_catTransport,
+      'Dojazd do wesela' => t.budget_catRideReception,
+      'Dojazd do kościoła' => t.budget_catRideChurch,
+      'Upominki dla gości' => t.budget_catGiftsGuests,
+      'Upominki dla rodziców' => t.budget_catGiftsParents,
+      'Upominki dla świadków' => t.budget_catGiftsWitnesses,
+      'Podróż poślubna' => t.budget_catHoneymoon,
+      'Alkohol' => t.budget_catAlcohol,
+      'Inne' => t.budget_catOther,
+      _ => name,
+    };
+  }
 
   /// Lista kategorii z konfiguracji (`appConfig.expenseCategories`) lub domyślna.
   static List<String> resolve(Map<String, dynamic> raw) {

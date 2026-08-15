@@ -180,7 +180,9 @@ class _RoomFullscreenScreenState extends State<RoomFullscreenScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('Przypisz do: ${t['name'] ?? 'Stół'}',
+              child: Text(
+                  AppText.t.tables_assignTo(
+                      (t['name'] as String?) ?? AppText.t.tables_defaultName),
                   style: GoogleFonts.inter(
                       fontSize: 16, fontWeight: FontWeight.w700)),
             ),

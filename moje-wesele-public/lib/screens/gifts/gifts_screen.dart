@@ -13,6 +13,7 @@ import '../../services/firestore_service.dart';
 import '../../services/gift_service.dart';
 import '../../utils/format.dart';
 import '../budget/budget_fields.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Prezenty" — otrzymane, upominki dla gości, propozycje (lista życzeń).
 class GiftsScreen extends StatelessWidget {
@@ -117,7 +118,7 @@ class _ReceivedTab extends StatelessWidget {
               _summaryCard([
                 ('${gifts.length}', 'Prezentów'),
                 (formatPlnZl(totalValue), 'Łączna wartość'),
-                ('$thanked', 'Podziękowano'),
+                ('$thanked', AppText.t.gifts_thanked),
               ]),
               const SizedBox(height: 12),
               for (final g in gifts)
@@ -191,7 +192,7 @@ class _ReceivedTab extends StatelessWidget {
                     onChanged: (v) =>
                         service.updateGift(id, thanked: v ?? false),
                   ),
-                  Text('Podziękowano',
+                  Text(AppText.t.gifts_thanked,
                       style: GoogleFonts.inter(
                           fontSize: 12, color: AppColors.text)),
                 ],
@@ -348,7 +349,7 @@ class _ForGuestsTab extends StatelessWidget {
               ],
             ),
             if (items.isEmpty)
-              Text('Brak upominków.',
+              Text(AppText.t.gifts_empty,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: AppColors.textLight))
             else
@@ -492,7 +493,7 @@ class _ForGuestsTab extends StatelessWidget {
                 borderSide: const BorderSide(color: Color(0xFFDCE4F2)),
               ),
             ),
-            hint: const Text('+ Dodaj osobę…'),
+            hint: Text(AppText.t.gifts_addPerson),
             items: [
               for (final g in guests)
                 DropdownMenuItem(
@@ -531,7 +532,7 @@ class _ProposalsTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             children: [
               Text(
-                'Lista życzeń od Pary Młodej. Zaznaczone propozycje są widoczne dla gości na stronie harmonogramu.',
+                AppText.t.gifts_wishlistHint,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight),
               ),
@@ -598,7 +599,7 @@ class _ProposalsTab extends StatelessWidget {
                   size: 16, color: AppColors.textLight),
               const SizedBox(width: 6),
               Expanded(
-                child: Text('Pokaż gościom na stronie harmonogramu',
+                child: Text(AppText.t.gifts_showToGuests,
                     style: GoogleFonts.inter(
                         fontSize: 12, color: AppColors.text)),
               ),

@@ -10,6 +10,7 @@ import '../../models/wedding_data.dart';
 import '../../services/geocoding_service.dart';
 import '../../services/guest_map_service.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Mapa gości" (w sekcji „Ślubne pamiątki").
 ///
@@ -107,8 +108,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                 GuestPageTab(
                   links: [('🗺️ Mapa gości', PublicPages.mapa(base))],
                   intro:
-                      'Strona, na której goście zaznaczają, skąd przyjeżdżają. '
-                      'Pokaż im kod QR lub wyślij link.',
+                      AppText.t.guestMap_txt1,
                 ),
               ],
             ),
@@ -142,8 +142,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   _statsCard(entries, located),
                   const SizedBox(height: 14),
                   if (entries.isEmpty)
-                    _info('Brak wpisów. Udostępnij gościom kod QR z zakładki '
-                        '„Strona dla gości".')
+                    _info(AppText.t.guestMap_txt2)
                   else
                     for (final e in entries) _entryCard(e),
                 ],
@@ -158,7 +157,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _openForm(),
                     icon: const Icon(Icons.add_location_alt_outlined),
-                    label: const Text('Dodaj gościa ręcznie'),
+                    label: Text(AppText.t.guestMap_addManually),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
                       foregroundColor: Colors.white,
@@ -239,8 +238,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                   color: Colors.white.withValues(alpha: 0.85),
                   padding: const EdgeInsets.all(8),
                   child: Text(
-                    'Brak zlokalizowanych gości. Pinezki pojawią się po '
-                    'wpisach gości lub ręcznym dodaniu z miejscowością.',
+                    AppText.t.guestMap_txt3,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                         fontSize: 11, color: AppColors.textLight),
@@ -316,8 +314,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
           ] else if (_reception == null) ...[
             const Divider(height: 20),
             Text(
-              'Aby policzyć dystans najdalszego gościa, ustaw „Miejsce wesela" '
-              'w Konfiguracji (sekcja Ustawienia).',
+              AppText.t.guestMap_txt4,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
@@ -375,16 +372,16 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                       fontSize: 13, color: AppColors.textLight),
                 ),
                 if (km != null)
-                  Text('${km.round()} km od miejsca wesela',
+                  Text(AppText.t.guestMap_kmFromVenue(km.round()),
                       style: GoogleFonts.inter(
                           fontSize: 11, color: const Color(0xFF059669))),
                 if (!e.hasCoords)
-                  Text('⚠ Niezlokalizowany — uzupełnij miejscowość',
+                  Text(AppText.t.guestMap_notLocated,
                       style: GoogleFonts.inter(
                           fontSize: 11, color: const Color(0xFFB45309))),
                 if (e.greeting.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text('„${e.greeting}"',
+                  Text(AppText.t.advices_quoted(e.greeting),
                       style: GoogleFonts.inter(
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
@@ -405,7 +402,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             icon: const Icon(Icons.delete_outline, size: 18),
             color: const Color(0xFFC0392B),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Usuń',
+            tooltip: AppText.t.common_delete,
           ),
         ],
       ),
@@ -451,7 +448,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             : 'Dodano wpis');
       }
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -459,19 +456,19 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wpis?'),
+        title: Text(AppText.t.guestMap_deleteTitle),
         content: Text(
             'Czy na pewno usunąć „${e.name.isEmpty ? 'Gość' : e.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -479,9 +476,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
     if (ok != true) return;
     try {
       await _service.deleteEntry(e.id);
-      _toast('Usunięto wpis');
+      _toast(AppText.t.guestMap_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -543,23 +540,23 @@ class _EntryFormDialogState extends State<_EntryFormDialog> {
           children: [
             TextField(
               controller: _name,
-              decoration: const InputDecoration(
-                  labelText: 'Imię', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                  labelText: AppText.t.guestMap_name, border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _city,
-              decoration: const InputDecoration(
-                  labelText: 'Miejscowość',
-                  hintText: 'np. Kraków',
+              decoration: InputDecoration(
+                  labelText: AppText.t.guestMap_city,
+                  hintText: AppText.t.guestMap_cityHint,
                   border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _greeting,
               maxLines: 2,
-              decoration: const InputDecoration(
-                  labelText: 'Pozdrowienie (opcjonalnie)',
+              decoration: InputDecoration(
+                  labelText: AppText.t.guestMap_greeting,
                   border: OutlineInputBorder()),
             ),
           ],
@@ -568,7 +565,7 @@ class _EntryFormDialogState extends State<_EntryFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Anuluj'),
+          child: Text(AppText.t.common_cancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
@@ -582,7 +579,7 @@ class _EntryFormDialogState extends State<_EntryFormDialog> {
             Navigator.of(context)
                 .pop(_MapDraft(name, city, _greeting.text.trim()));
           },
-          child: Text(widget.existing != null ? 'Zapisz' : 'Dodaj'),
+          child: Text(widget.existing != null ? AppText.t.common_save : 'Dodaj'),
         ),
       ],
     );

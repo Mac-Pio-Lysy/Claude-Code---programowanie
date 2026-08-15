@@ -74,6 +74,12 @@ class AppFormat {
     return parsed == null ? null : dateLong(parsed);
   }
 
+  /// Data skrócona z zapisu `YYYY-MM-DD`; `null`, gdy zapis nieczytelny.
+  static String? dateShortFromIso(String? iso) {
+    final parsed = parseIso(iso);
+    return parsed == null ? null : dateShort(parsed);
+  }
+
   /// Parsuje `YYYY-MM-DD` (ewentualnie z częścią czasową) na [DateTime].
   static DateTime? parseIso(String? iso) {
     if (iso == null || iso.isEmpty) return null;

@@ -6,6 +6,7 @@ import '../../models/planning_step.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/planning_service.dart';
+import '../../l10n/app_text.dart';
 
 /// Ekran „Od czego zacząć?" — sugerowana kolejność organizacji wesela.
 /// Odhaczalne kroki z paskiem postępu; tryb edycji pozwala dodawać, zmieniać,
@@ -53,7 +54,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
   void _add() {
     final id = _steps.fold<int>(0, (m, s) => s.id > m ? s.id : m) + 1;
     setState(() {
-      _steps.add(PlanningStep(id: id, label: 'Nowy krok'));
+      _steps.add(PlanningStep(id: id, label: AppText.t.plan_newStep));
       _editMode = true;
     });
     _persist();
@@ -68,18 +69,17 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Przywrócić domyślną listę?'),
-        content: const Text(
-            'Lista kroków „Od czego zacząć?" wróci do domyślnej. '
-            'Wprowadzone zmiany zostaną utracone.'),
+        title: Text(AppText.t.plan_resetTitle),
+        content: Text(
+            AppText.t.plan_resetBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-            child: const Text('Przywróć'),
+            child: Text(AppText.t.plan_reset),
           ),
         ],
       ),
@@ -98,7 +98,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.text),
-        title: Text('Od czego zacząć?',
+        title: Text(AppText.t.settings_planningButton,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -107,7 +107,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
           TextButton.icon(
             onPressed: () => setState(() => _editMode = !_editMode),
             icon: Icon(_editMode ? Icons.check : Icons.edit_outlined, size: 18),
-            label: Text(_editMode ? 'Gotowe' : 'Edytuj'),
+            label: Text(_editMode ? AppText.t.common_done : AppText.t.common_edit),
             style: TextButton.styleFrom(foregroundColor: AppColors.accent),
           ),
         ],
@@ -147,13 +147,13 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Sugerowana kolejność planowania wesela',
+          Text(AppText.t.plan_orderTitle,
               style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 4),
-          Text('Odhaczaj ukończone kroki — pasek pokaże postęp.',
+          Text(AppText.t.plan_orderHint,
               style:
                   GoogleFonts.inter(fontSize: 12, color: AppColors.textLight)),
           const SizedBox(height: 12),
@@ -167,7 +167,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text('$_doneCount z ${_steps.length} ukończonych · $pct%',
+          Text(AppText.t.plan_progress(_doneCount, _steps.length, pct),
               style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -253,7 +253,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
                 onPressed: () => _delete(s),
                 icon: const Icon(Icons.close, size: 18),
                 color: const Color(0xFFC0392B),
-                tooltip: 'Usuń krok',
+                tooltip: AppText.t.plan_deleteStep,
               ),
           ],
         ),
@@ -268,7 +268,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
           child: OutlinedButton.icon(
             onPressed: _add,
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Dodaj krok'),
+            label: Text(AppText.t.plan_addStep),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -281,7 +281,7 @@ class _PlanningGuideScreenState extends State<PlanningGuideScreen> {
           child: OutlinedButton.icon(
             onPressed: _reset,
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Przywróć domyślne'),
+            label: Text(AppText.t.plan_resetDefaults),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.textLight,
               side: const BorderSide(color: Color(0xFFD7DEEC)),

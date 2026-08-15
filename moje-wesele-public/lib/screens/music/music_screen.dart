@@ -15,6 +15,7 @@ import '../../widgets/guest_page_tab.dart';
 import '../../widgets/public_link_card.dart';
 import '../budget/budget_fields.dart';
 import 'music_export.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Muzyka" (panel organizatora) — lista utworów, wyszukiwanie Deezer,
 /// filtry, sekcja niedopasowanych oraz eksport/import.
@@ -94,7 +95,7 @@ class _MusicScreenState extends State<MusicScreen> {
     );
     if (result == null) return;
     await widget.service.addSong(title: result.$1, artist: result.$2);
-    _toast('Dodano utwór');
+    _toast(AppText.t.music_added);
   }
 
   bool _matches(Song s) {
@@ -121,14 +122,14 @@ class _MusicScreenState extends State<MusicScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Text('Muzyka',
+                child: Text(AppText.t.music_title,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
               ),
               IconButton(
-                tooltip: 'Kod QR dla gości',
+                tooltip: AppText.t.music_qrForGuests,
                 onPressed: () {
                   final base = PublicPages.baseUrl(widget.data?.raw);
                   showPublicLinkDialog(
@@ -178,7 +179,7 @@ class _MusicScreenState extends State<MusicScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Filtry i sortowanie',
+                    child: Text(AppText.t.common_filtersSort,
                         style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -204,7 +205,7 @@ class _MusicScreenState extends State<MusicScreen> {
               _viewToggle(),
               const SizedBox(height: 12),
               if (unmatched.isNotEmpty) ...[
-                Text('⚠ Niedopasowane / do weryfikacji (${unmatched.length})',
+                Text(AppText.t.music_unmatched(unmatched.length),
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -216,14 +217,14 @@ class _MusicScreenState extends State<MusicScreen> {
                   _grid(unmatched),
                 const SizedBox(height: 12),
               ],
-              Text('Lista utworów (${matched.length})',
+              Text(AppText.t.music_list(matched.length),
                   style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppColors.text)),
               const SizedBox(height: 6),
               if (matched.isEmpty)
-                Text('Brak utworów spełniających kryteria.',
+                Text(AppText.t.music_emptyFiltered,
                     style: GoogleFonts.inter(
                         fontSize: 13, color: AppColors.textLight))
               else if (_columns == 0)
@@ -241,8 +242,7 @@ class _MusicScreenState extends State<MusicScreen> {
                   ),
                 ],
                 intro:
-                    'Strona, na której goście proponują utwory do zagrania. '
-                    'Pokaż im kod QR lub wyślij link.',
+                    AppText.t.music_txt1,
               ),
             ],
           ),
@@ -271,7 +271,7 @@ class _MusicScreenState extends State<MusicScreen> {
                   textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _search(),
                   decoration: InputDecoration(
-                    hintText: 'Szukaj utworu (Deezer)…',
+                    hintText: AppText.t.music_searchDeezer,
                     isDense: true,
                     filled: true,
                     fillColor: const Color(0xFFF8FAFF),
@@ -308,7 +308,7 @@ class _MusicScreenState extends State<MusicScreen> {
           OutlinedButton.icon(
             onPressed: _addManual,
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Dodaj ręcznie'),
+            label: Text(AppText.t.music_addManually),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -328,11 +328,11 @@ class _MusicScreenState extends State<MusicScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_searchError)
-            Text('Nie udało się połączyć z Deezer (sprawdź internet/CORS).',
+            Text(AppText.t.music_deezerError,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: const Color(0xFFC0392B)))
           else if (results.isEmpty)
-            Text('Nie znaleziono w Deezer.',
+            Text(AppText.t.music_deezerEmpty,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight))
           else
@@ -368,7 +368,7 @@ class _MusicScreenState extends State<MusicScreen> {
                           cover: t.cover,
                           preview: t.preview,
                         );
-                        _toast('Dodano: ${t.title}');
+                        _toast(AppText.t.music_addedTitle(t.title));
                       },
                       icon: const Icon(Icons.add_circle, color: AppColors.accent),
                     ),
@@ -382,10 +382,10 @@ class _MusicScreenState extends State<MusicScreen> {
                 onPressed: () async {
                   await widget.service
                       .addSong(title: query, artist: '', unmatched: true);
-                  _toast('Dodano jako niedopasowany');
+                  _toast(AppText.t.music_addedUnmatched);
                 },
                 icon: const Icon(Icons.add, size: 16),
-                label: Text('Dodaj „$query" do weryfikacji'),
+                label: Text(AppText.t.music_addToVerify(query)),
               ),
             ),
         ],
@@ -405,8 +405,8 @@ class _MusicScreenState extends State<MusicScreen> {
                 isExpanded: true,
                 decoration: _miniDec('Moment'),
                 items: [
-                  const DropdownMenuItem(
-                      value: 'all', child: Text('Wszystkie momenty')),
+                  DropdownMenuItem(
+                      value: 'all', child: Text(AppText.t.music_allMoments)),
                   for (final m in kMusicMoments)
                     DropdownMenuItem(value: m, child: Text(m)),
                 ],
@@ -490,7 +490,7 @@ class _MusicScreenState extends State<MusicScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 10),
-          child: Text('Widok:',
+          child: Text(AppText.t.common_view,
               style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -664,7 +664,7 @@ class _MusicScreenState extends State<MusicScreen> {
                     BudgetTextField(
                       key: ValueKey('song-title-$id'),
                       initial: s.title,
-                      hint: 'Tytuł',
+                      hint: AppText.t.music_songTitle,
                       onSaved: (v) => widget.service.updateSong(id, title: v),
                     ),
                     const SizedBox(height: 4),
@@ -829,9 +829,7 @@ class _MusicScreenState extends State<MusicScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić '
-                  'chronologię. Przy każdym momencie dodaj nowy utwór lub przypisz '
-                  'istniejący z listy.',
+                  AppText.t.music_txt2,
                   style: GoogleFonts.inter(
                       fontSize: 13, height: 1.45, color: AppColors.text),
                 ),
@@ -862,7 +860,7 @@ class _MusicScreenState extends State<MusicScreen> {
         OutlinedButton.icon(
           onPressed: _addSpecialMomentLabel,
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Dodaj własny moment'),
+          label: Text(AppText.t.music_addOwnMoment),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.accent,
             side: const BorderSide(color: AppColors.accent),
@@ -911,7 +909,7 @@ class _MusicScreenState extends State<MusicScreen> {
               if (index == null)
                 Padding(
                   padding: const EdgeInsets.only(right: 4),
-                  child: Text('spoza listy',
+                  child: Text(AppText.t.music_outsideList,
                       style: GoogleFonts.inter(
                           fontSize: 10, color: const Color(0xFFB45309))),
                 ),
@@ -920,14 +918,14 @@ class _MusicScreenState extends State<MusicScreen> {
                 icon: const Icon(Icons.delete_outline, size: 18),
                 color: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Usuń moment z listy',
+                tooltip: AppText.t.music_removeMoment,
               ),
             ],
           ),
           if (assigned.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text('Brak utworu — dodaj lub przypisz.',
+              child: Text(AppText.t.music_noSongAssigned,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: AppColors.textLight)),
             )
@@ -940,7 +938,7 @@ class _MusicScreenState extends State<MusicScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _addSongToMoment(label),
                   icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Dodaj nowy'),
+                  label: Text(AppText.t.music_addNew),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -1009,12 +1007,12 @@ class _MusicScreenState extends State<MusicScreen> {
           IconButton(
             onPressed: () async {
               await widget.service.updateSong(id, specialMoment: '');
-              _toast('Usunięto przypisanie');
+              _toast(AppText.t.music_assignmentRemoved);
             },
             icon: const Icon(Icons.link_off, size: 18),
             color: const Color(0xFFC0392B),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Usuń przypisanie',
+            tooltip: AppText.t.music_removeAssignment,
           ),
         ],
       ),
@@ -1026,19 +1024,19 @@ class _MusicScreenState extends State<MusicScreen> {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nowy moment'),
+        title: Text(AppText.t.music_newMoment),
         content: TextField(
           controller: ctrl,
           autofocus: true,
-          decoration: const InputDecoration(
-              labelText: 'Nazwa momentu',
-              hintText: 'np. Poprawiny',
+          decoration: InputDecoration(
+              labelText: AppText.t.music_momentName,
+              hintText: AppText.t.music_momentNameHint,
               border: OutlineInputBorder()),
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(ctrl.text.trim()),
             child: const Text('Dodaj'),
@@ -1049,19 +1047,19 @@ class _MusicScreenState extends State<MusicScreen> {
     if (name == null || name.isEmpty) return;
     final list = [..._specialMoments];
     if (list.contains(name)) {
-      _toast('Taki moment już istnieje');
+      _toast(AppText.t.music_momentExists);
       return;
     }
     list.add(name);
     await widget.service.setSpecialMoments(list);
-    _toast('Dodano moment: $name');
+    _toast(AppText.t.music_momentAdded(name));
   }
 
   Future<void> _deleteSpecialMomentLabel(String label) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć moment z listy?'),
+        title: Text(AppText.t.music_removeMomentTitle),
         content: Text(
             'Moment „$label" zniknie z listy. Przypisane utwory NIE zostaną '
             'usunięte — pokażą się jako „spoza listy", możesz je przypisać '
@@ -1069,12 +1067,12 @@ class _MusicScreenState extends State<MusicScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -1087,13 +1085,13 @@ class _MusicScreenState extends State<MusicScreen> {
   Future<void> _assignExistingToMoment(String label) async {
     final songs = _songs;
     if (songs.isEmpty) {
-      _toast('Brak utworów na liście. Dodaj najpierw utwór.');
+      _toast(AppText.t.music_emptyAddFirst);
       return;
     }
     final picked = await showDialog<int>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Przypisz do: $label'),
+        title: Text(AppText.t.music_assignTo(label)),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView(
@@ -1118,13 +1116,13 @@ class _MusicScreenState extends State<MusicScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
         ],
       ),
     );
     if (picked == null) return;
     await widget.service.updateSong(picked, specialMoment: label);
-    _toast('Przypisano utwór do: $label');
+    _toast(AppText.t.music_assignedTo(label));
   }
 
   Future<void> _addSongToMoment(String label) async {
@@ -1170,7 +1168,7 @@ class _MusicScreenState extends State<MusicScreen> {
   Future<void> _showExport() async {
     final songs = _songs;
     if (songs.isEmpty) {
-      _toast('Brak utworów do eksportu');
+      _toast(AppText.t.music_nothingToExport);
       return;
     }
     final format = await showModalBottomSheet<String>(
@@ -1182,12 +1180,12 @@ class _MusicScreenState extends State<MusicScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.table_chart_outlined),
-              title: const Text('Eksport CSV'),
+              title: Text(AppText.t.music_exportCsv),
               onTap: () => Navigator.of(context).pop('csv'),
             ),
             ListTile(
               leading: const Icon(Icons.description_outlined),
-              title: const Text('Eksport tekstowy'),
+              title: Text(AppText.t.music_exportText),
               onTap: () => Navigator.of(context).pop('txt'),
             ),
           ],
@@ -1202,7 +1200,7 @@ class _MusicScreenState extends State<MusicScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(format == 'csv' ? 'Eksport CSV' : 'Eksport tekstowy'),
+        title: Text(format == 'csv' ? AppText.t.music_exportCsv : AppText.t.music_exportText),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -1214,7 +1212,7 @@ class _MusicScreenState extends State<MusicScreen> {
           TextButton(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: content));
-              _toast('Skopiowano do schowka');
+              _toast(AppText.t.music_copiedToClipboard);
             },
             child: const Text('Kopiuj'),
           ),
@@ -1232,7 +1230,7 @@ class _MusicScreenState extends State<MusicScreen> {
     final imported = await showDialog<List<ParsedSong>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Import utworów'),
+        title: Text(AppText.t.music_import),
         content: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -1246,8 +1244,8 @@ class _MusicScreenState extends State<MusicScreen> {
               TextField(
                 controller: controller,
                 maxLines: 8,
-                decoration: const InputDecoration(
-                  hintText: 'Wklej tutaj…',
+                decoration: InputDecoration(
+                  hintText: AppText.t.music_pasteHere,
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -1257,7 +1255,7 @@ class _MusicScreenState extends State<MusicScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             onPressed: () =>
                 Navigator.of(context).pop(MusicExport.parse(controller.text)),
@@ -1267,7 +1265,7 @@ class _MusicScreenState extends State<MusicScreen> {
       ),
     );
     if (imported == null || imported.isEmpty) {
-      if (imported != null) _toast('Nie rozpoznano utworów');
+      if (imported != null) _toast(AppText.t.music_nothingRecognized);
       return;
     }
     for (final p in imported) {
@@ -1278,7 +1276,7 @@ class _MusicScreenState extends State<MusicScreen> {
         unmatched: true,
       );
     }
-    _toast('Zaimportowano ${imported.length} utworów');
+    _toast(AppText.t.music_imported(imported.length));
   }
 
   InputDecoration _miniDec(String label) => InputDecoration(
@@ -1328,14 +1326,14 @@ class _ManualAddDialogState extends State<_ManualAddDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Dodaj utwór ręcznie'),
+      title: Text(AppText.t.music_addSongManually),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: _title,
-            decoration: const InputDecoration(
-                labelText: 'Tytuł', border: OutlineInputBorder()),
+            decoration: InputDecoration(
+                labelText: AppText.t.music_songTitle, border: OutlineInputBorder()),
           ),
           const SizedBox(height: 10),
           TextField(
@@ -1348,7 +1346,7 @@ class _ManualAddDialogState extends State<_ManualAddDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Anuluj')),
+            child: Text(AppText.t.common_cancel)),
         FilledButton(
           onPressed: () {
             final t = _title.text.trim();
@@ -1426,7 +1424,7 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
     );
     if (!mounted) return;
     Navigator.of(context).pop();
-    _msg('Dodano: ${t.title}');
+    _msg(AppText.t.music_addedTitle(t.title));
   }
 
   Future<void> _addManual() async {
@@ -1444,7 +1442,7 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
     );
     if (!mounted) return;
     Navigator.of(context).pop();
-    _msg('Dodano utwór');
+    _msg(AppText.t.music_added);
   }
 
   @override
@@ -1466,8 +1464,8 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
                       controller: _search,
                       textInputAction: TextInputAction.search,
                       onSubmitted: (_) => _doSearch(),
-                      decoration: const InputDecoration(
-                        hintText: 'Szukaj w Deezer…',
+                      decoration: InputDecoration(
+                        hintText: AppText.t.music_searchInDeezer,
                         isDense: true,
                         border: OutlineInputBorder(),
                       ),
@@ -1493,7 +1491,7 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
               if (_results != null) ...[
                 const SizedBox(height: 8),
                 if (_results!.isEmpty)
-                  Text('Nic nie znaleziono (możesz dodać ręcznie poniżej).',
+                  Text(AppText.t.music_nothingFound,
                       style: GoogleFonts.inter(
                           fontSize: 12, color: AppColors.textLight))
                 else
@@ -1521,14 +1519,14 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
                     ),
               ],
               const Divider(height: 24),
-              Text('…lub dodaj ręcznie',
+              Text(AppText.t.music_orAddManually,
                   style: GoogleFonts.inter(
                       fontSize: 12, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
               TextField(
                 controller: _title,
-                decoration: const InputDecoration(
-                    labelText: 'Tytuł',
+                decoration: InputDecoration(
+                    labelText: AppText.t.music_songTitle,
                     isDense: true,
                     border: OutlineInputBorder()),
               ),
@@ -1547,11 +1545,11 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
       actions: [
         TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Anuluj')),
+            child: Text(AppText.t.common_cancel)),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
           onPressed: _addManual,
-          child: const Text('Dodaj ręcznie'),
+          child: Text(AppText.t.music_addManually),
         ),
       ],
     );

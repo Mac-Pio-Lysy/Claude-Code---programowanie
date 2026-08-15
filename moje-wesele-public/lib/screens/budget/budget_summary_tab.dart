@@ -7,6 +7,8 @@ import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import 'payments_tab.dart';
+import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Podzakładka „Podsumowanie" budżetu (z wbudowanym widokiem wszystkich
 /// płatności — dawniej osobna zakładka „Płatności").
@@ -58,15 +60,15 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
   Future<void> _saveBudget() async {
     final parsed = parsePln(_budgetCtrl.text);
     if (parsed == null) {
-      _toast('Nieprawidłowa kwota');
+      _toast(AppText.t.budget_invalidAmount);
       return;
     }
     _budgetFocus.unfocus();
     try {
       await widget.service.setTotalBudget(parsed);
-      _toast('Zapisano budżet');
+      _toast(AppText.t.budget_savedToast);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -122,7 +124,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Budżet planowany',
+            AppText.t.budget_planned,
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -131,7 +133,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           ),
           const SizedBox(height: 2),
           Text(
-            'Rezerwę ustawisz w Ustawieniach → „Ustawienia budżetu".',
+            AppText.t.budget_reserveHint,
             style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -148,7 +150,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
             ),
             decoration: InputDecoration(
               hintText: '0,00',
-              suffixText: 'zł',
+              suffixText: AppFormat.currency.symbol,
               filled: true,
               fillColor: const Color(0xFFF8FAFF),
               contentPadding:
@@ -180,7 +182,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text('Zapisz budżet'),
+              child: Text(AppText.t.budget_saveButton),
             ),
           ),
         ],
@@ -208,7 +210,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
-                  'opłacono',
+                  AppText.t.budget_paidShort,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: AppColors.textLight,
@@ -233,7 +235,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
               _legend(const Color(0xFF93C5FD),
                   'Rzeczywiste: ${formatPlnZl(s.actualCost)}'),
               _legend(const Color(0xFF059669),
-                  'Opłacono: ${formatPlnZl(s.totalPaid)}'),
+                  AppText.t.budget_paidAmount(formatPlnZl(s.totalPaid))),
               _legend(
                   const Color(0xFFCBD5E1),
                   'Planowany${s.reserve > 0 ? ' + rezerwa' : ''}: '
@@ -272,7 +274,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
       child: Column(
         children: [
           // ── Budżet planowany (+ rezerwa) ──
-          _valueRow('Budżet planowany', formatPlnZl(s.budget),
+          _valueRow(AppText.t.budget_planned, formatPlnZl(s.budget),
               const Color(0xFF1D4ED8)),
           if (s.reserve > 0)
             _valueRow('Rezerwa', formatPlnZl(s.reserve),
@@ -283,13 +285,13 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
                 bold: true),
           const Divider(height: 18),
           // ── Budżet rzeczywisty (faktyczne koszty) ──
-          _valueRow('Budżet rzeczywisty (koszty)', formatPlnZl(s.actualCost),
+          _valueRow(AppText.t.budget_actual, formatPlnZl(s.actualCost),
               const Color(0xFFEA580C)),
           if (s.catering > 0)
             _valueRow('w tym sala', formatPlnZl(s.catering),
                 AppColors.textLight,
                 small: true),
-          _valueRow('w tym opłacono', formatPlnZl(s.totalPaid),
+          _valueRow(AppText.t.budget_ofWhichPaid, formatPlnZl(s.totalPaid),
               const Color(0xFF059669),
               small: true),
           const Divider(height: 18),
@@ -304,7 +306,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
               small: true,
             ),
           _valueRow(
-            'Pozostało z budżetu',
+            AppText.t.budget_remaining,
             '${leftover >= 0 ? '+' : ''}${formatPlnZl(leftover)}',
             leftover >= 0 ? const Color(0xFF059669) : const Color(0xFFC0392B),
             bold: true,

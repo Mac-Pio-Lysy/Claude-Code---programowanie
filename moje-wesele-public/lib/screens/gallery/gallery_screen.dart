@@ -12,6 +12,7 @@ import '../../services/gallery_service.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Galeria & QR" (panel organizatora).
 class GalleryScreen extends StatefulWidget {
@@ -71,7 +72,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Text('Galeria & QR',
+            child: Text(AppText.t.gallery_title,
                 style: GoogleFonts.playfairDisplay(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -103,7 +104,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
                           return _card('Galeria',
-                              Text('Błąd odczytu galerii: ${snapshot.error}',
+                              Text(AppText.t.gallery_readError('${snapshot.error}'),
                                   style: GoogleFonts.inter(
                                       fontSize: 12,
                                       color: const Color(0xFFC0392B))));
@@ -127,9 +128,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     ('🎵 Wybór muzyki', PublicPages.muzyka(baseUrl)),
                   ],
                   intro:
-                      'Strona dla gości: wspólna galeria zdjęć i filmów oraz '
-                      'możliwość zaproponowania muzyki. Pokaż kod QR lub wyślij '
-                      'link.',
+                      AppText.t.gallery_txt1,
                 ),
               ],
             ),
@@ -172,7 +171,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Wykorzystano: ${_fmtSize(totalBytes)} / 25 GB',
+              Text(AppText.t.gallery_usage(_fmtSize(totalBytes)),
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
@@ -194,7 +193,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         Row(
           children: [
             Expanded(
-              child: Text('Filtry i sortowanie',
+              child: Text(AppText.t.common_filtersSort,
                   style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -264,7 +263,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         ),
         const SizedBox(height: 12),
         if (filtered.isEmpty)
-          Text('Brak plików w galerii.',
+          Text(AppText.t.gallery_empty,
               style:
                   GoogleFonts.inter(fontSize: 13, color: AppColors.textLight))
         else
@@ -327,7 +326,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text('▶ film',
+                      child: Text(AppText.t.gallery_video,
                           style: TextStyle(color: Colors.white, fontSize: 10)),
                     ),
                   ),
@@ -336,7 +335,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            child: Text('📷 ${it.uploadedBy}',
+            child: Text(AppText.t.gallery_uploadedBy(it.uploadedBy),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.inter(
@@ -355,7 +354,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
               ),
               Expanded(
                 child: IconButton(
-                  tooltip: 'Usuń',
+                  tooltip: AppText.t.common_delete,
                   onPressed: () => _confirmDelete(it),
                   icon: const Icon(Icons.delete_outline, size: 18),
                   color: const Color(0xFFC0392B),
@@ -378,7 +377,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         children: [
           Row(
             children: [
-              Text('Format:', style: GoogleFonts.inter(fontSize: 13)),
+              Text(AppText.t.gallery_format, style: GoogleFonts.inter(fontSize: 13)),
               const SizedBox(width: 8),
               DropdownButton<String>(
                 value: _pdfFormat,
@@ -425,7 +424,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
         try {
           await onTap();
         } catch (e) {
-          _toast('Błąd PDF: $e');
+          _toast(AppText.t.gallery_pdfError('$e'));
         }
       },
       icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
@@ -446,18 +445,18 @@ class _GalleryScreenState extends State<GalleryScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć plik z galerii?'),
-        content: const Text(
-            'Zniknie z galerii gości. Oryginał pozostaje w Cloudinary.'),
+        title: Text(AppText.t.gallery_deleteTitle),
+        content: Text(
+            AppText.t.gallery_deleteBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -465,9 +464,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
     if (ok == true) {
       try {
         await widget.gallery.delete(it.id);
-        _toast('Usunięto plik');
+        _toast(AppText.t.gallery_deleted);
       } catch (e) {
-        _toast('Błąd usuwania: $e');
+        _toast(AppText.t.common_deleteErrorToast('$e'));
       }
     }
   }

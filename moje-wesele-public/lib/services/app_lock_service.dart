@@ -7,13 +7,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
+import '../l10n/app_text.dart';
 
 /// Rodzaj zabezpieczenia zapasowego (gdy biometria nie zadziała).
 enum BackupType { pin, pattern }
 
 extension BackupTypeMeta on BackupType {
+  /// Wartość zapisywana na urządzeniu — NIGDY tłumaczona.
   String get storageValue => this == BackupType.pin ? 'pin' : 'pattern';
-  String get label => this == BackupType.pin ? 'PIN' : 'wzór';
+
+  /// Etykieta na ekranie — tłumaczona.
+  String get label => this == BackupType.pin
+      ? AppText.t.sec_backupPin
+      : AppText.t.sec_backupPattern;
 }
 
 /// Lokalna (per urządzenie) obsługa blokady aplikacji: biometria + zapasowy
@@ -93,22 +99,21 @@ class AppLockService {
   }
 
   /// Prośba o weryfikację biometryczną. Zwraca true przy sukcesie.
-  Future<bool> authenticateBiometric({
-    String reason = 'Potwierdź tożsamość, aby odblokować aplikację',
-  }) async {
+  /// [reason] domyślnie `null` — treść bierzemy wtedy z tłumaczeń. Nie może być
+  /// wartością domyślną parametru, bo ta musi być stałą kompilacji.
+  Future<bool> authenticateBiometric({String? reason}) async {
     try {
       return await _auth.authenticate(
-        localizedReason: reason,
-        authMessages: const [
+        localizedReason: reason ?? AppText.t.bio_reason,
+        authMessages: [
           AndroidAuthMessages(
-            signInTitle: 'Logowanie biometryczne',
-            biometricHint: 'Zweryfikuj tożsamość',
-            cancelButton: 'Anuluj',
-            biometricNotRecognized: 'Nie rozpoznano — spróbuj ponownie',
-            biometricSuccess: 'Rozpoznano',
-            goToSettingsButton: 'Ustawienia',
-            goToSettingsDescription:
-                'Skonfiguruj biometrię w ustawieniach urządzenia.',
+            signInTitle: AppText.t.bio_signInTitle,
+            biometricHint: AppText.t.bio_hint,
+            cancelButton: AppText.t.common_cancel,
+            biometricNotRecognized: AppText.t.bio_notRecognized,
+            biometricSuccess: AppText.t.bio_success,
+            goToSettingsButton: AppText.t.bio_settings,
+            goToSettingsDescription: AppText.t.bio_settingsHint,
           ),
         ],
         options: const AuthenticationOptions(

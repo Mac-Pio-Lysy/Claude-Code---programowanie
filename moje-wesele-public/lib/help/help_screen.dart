@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../onboarding/onboarding_steps.dart' show OnbVariant;
 import 'help_content.dart';
+import '../l10n/app_text.dart';
 
 /// Ekran „Pomoc" — encyklopedia funkcji do czytania.
 ///
@@ -69,7 +70,7 @@ class _HelpScreenState extends State<HelpScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
         title: Text(
-          _previewingGuest ? 'Pomoc dla gości' : 'Pomoc',
+          _previewingGuest ? AppText.t.help_guestTitle : AppText.t.settings_helpButton,
           style: GoogleFonts.playfairDisplay(
               fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text),
         ),
@@ -77,8 +78,8 @@ class _HelpScreenState extends State<HelpScreen> {
           if (_canPreviewGuest)
             IconButton(
               tooltip: _previewingGuest
-                  ? 'Wróć do swojej pomocy'
-                  : 'Zobacz pomoc dla gości',
+                  ? AppText.t.help_backToOwn
+                  : AppText.t.help_seeGuest,
               icon: Icon(
                 _previewingGuest ? Icons.arrow_back : Icons.groups_outlined,
                 color: AppColors.accent,
@@ -129,7 +130,7 @@ class _HelpScreenState extends State<HelpScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Oglądasz pomoc, którą widzą Wasi goście.',
+                AppText.t.help_guestPreviewNote,
                 style: GoogleFonts.inter(
                     fontSize: 12.5, color: const Color(0xFF7A4E00)),
               ),
@@ -145,7 +146,7 @@ class _HelpScreenState extends State<HelpScreen> {
           onChanged: (v) => setState(() => _query = v),
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
-            hintText: 'Szukaj funkcji, np. „budżet", „QR", „RSVP"',
+            hintText: AppText.t.help_searchHint,
             hintStyle:
                 GoogleFonts.inter(color: AppColors.textLight, fontSize: 14),
             prefixIcon: const Icon(Icons.search, color: AppColors.textLight),
@@ -183,8 +184,7 @@ class _HelpScreenState extends State<HelpScreen> {
           for (final c in _categories) _categoryCard(c),
           const SizedBox(height: 8),
           Text(
-            'Szukasz czegoś innego? Przewodnik pokaże Ci aplikację krok po '
-            'kroku — uruchomisz go z Ustawień.',
+            AppText.t.help_tourHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
@@ -220,7 +220,7 @@ class _HelpScreenState extends State<HelpScreen> {
                   color: AppColors.text),
             ),
             subtitle: Text(
-              '${c.topics.length} ${_topicWord(c.topics.length)}',
+              AppText.t.help_topicCount(c.topics.length),
               style:
                   GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
             ),
@@ -232,13 +232,6 @@ class _HelpScreenState extends State<HelpScreen> {
         ),
       );
 
-  /// Odmiana słowa „hasło" — 1 hasło, 2–4 hasła, 5+ haseł.
-  String _topicWord(int n) {
-    if (n == 1) return 'hasło';
-    final last = n % 10;
-    final teen = n % 100 >= 12 && n % 100 <= 14;
-    return (!teen && last >= 2 && last <= 4) ? 'hasła' : 'haseł';
-  }
 
   Widget _topicTile(HelpTopic t) => Padding(
         padding: const EdgeInsets.only(bottom: 14),
@@ -293,8 +286,7 @@ class _HelpScreenState extends State<HelpScreen> {
                   size: 38, color: AppColors.textLight),
               const SizedBox(height: 12),
               Text(
-                'Nic nie znaleziono dla „${_query.trim()}".\n'
-                'Spróbuj innego słowa — np. „gość", „stół", „płatność".',
+                AppText.t.help_nothingFound(_query.trim()),
                 textAlign: TextAlign.center,
                 style:
                     GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
@@ -310,7 +302,7 @@ class _HelpScreenState extends State<HelpScreen> {
         Padding(
           padding: const EdgeInsets.only(bottom: 10, left: 2),
           child: Text(
-            'Znaleziono ${results.length} ${_topicWord(results.length)}',
+            AppText.t.help_found(results.length),
             style: GoogleFonts.inter(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,

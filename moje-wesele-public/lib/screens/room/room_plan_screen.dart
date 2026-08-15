@@ -356,7 +356,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Wymiary sali (m)',
+          Text(AppText.t.roomplan_roomDimsLabel,
               style: GoogleFonts.inter(
                   fontSize: 13, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
@@ -389,7 +389,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _addElement,
                   icon: const Icon(Icons.add_box_outlined, size: 18),
-                  label: const Text('Dodaj element'),
+                  label: Text(AppText.t.roomplan_addElement),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -750,7 +750,7 @@ class _TableSheetState extends State<_TableSheet> {
               ),
             ],
             const SizedBox(height: 8),
-            Text('0 = rozmiar automatyczny wg liczby miejsc.',
+            Text(AppText.t.roomplan_autoSizeHint,
                 style: GoogleFonts.inter(
                     fontSize: 11, color: AppColors.textLight)),
             const SizedBox(height: 12),
@@ -947,7 +947,7 @@ class _AddElementSheetState extends State<_AddElementSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Dodaj element sali',
+                Text(AppText.t.roomplan_addElementSheet,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 20, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 12),

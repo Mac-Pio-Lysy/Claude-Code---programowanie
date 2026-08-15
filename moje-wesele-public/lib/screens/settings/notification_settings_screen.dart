@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../models/push_topic.dart';
 import '../../services/notification_service.dart';
+import '../../l10n/app_text.dart';
 
 /// Zakładka „Powiadomienia" (sekcja Ustawienia).
 ///
@@ -55,7 +56,7 @@ class _NotificationSettingsScreenState
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.text),
         title: Text(
-          'Powiadomienia',
+          AppText.t.settings_notificationsCard,
           style: GoogleFonts.playfairDisplay(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -82,7 +83,7 @@ class _NotificationSettingsScreenState
                   const SizedBox(height: 12),
                   _bellAlwaysOnCard(),
                   const SizedBox(height: 16),
-                  _sectionLabel('Wyślij mi push, gdy:'),
+                  _sectionLabel(AppText.t.notif_pushWhen),
                   for (final topic in PushTopic.values)
                     _topicTile(topic, prefs.isOn(topic)),
                   if (prefs.allDisabled) ...[
@@ -115,7 +116,7 @@ class _NotificationSettingsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Powiadomienia na telefon — wkrótce',
+                  AppText.t.notif_soonTitle,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -124,10 +125,7 @@ class _NotificationSettingsScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Push jeszcze nie działa — wymaga włączenia powiadomień '
-                  'systemowych i uruchomienia usługi po naszej stronie. '
-                  'Twój wybór zapisujemy już teraz, więc po włączeniu push '
-                  'wszystko zadziała bez ponownego ustawiania.',
+                  AppText.t.notif_soonBody,
                   style: GoogleFonts.inter(
                     fontSize: 12.5,
                     height: 1.45,
@@ -166,7 +164,7 @@ class _NotificationSettingsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Dzwoneczek w aplikacji działa zawsze',
+                  AppText.t.notif_bellTitle,
                   style: GoogleFonts.inter(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w700,
@@ -175,10 +173,7 @@ class _NotificationSettingsScreenState
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Centrum powiadomień w prawym górnym rogu pokazuje zmiany '
-                  'niezależnie od poniższych ustawień. Te przełączniki '
-                  'dotyczą wyłącznie powiadomień wysyłanych na telefon, gdy '
-                  'nie korzystasz z aplikacji.',
+                  AppText.t.notif_bellBody,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     height: 1.45,
@@ -257,9 +252,7 @@ class _NotificationSettingsScreenState
   Widget _allOffHint() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 4),
     child: Text(
-      'Wszystko wyłączone — po uruchomieniu push nie dostaniesz żadnego '
-      'powiadomienia na telefon. Dzwoneczek w aplikacji nadal będzie '
-      'działał.',
+      AppText.t.notif_allOff,
       style: GoogleFonts.inter(
         fontSize: 11.5,
         height: 1.4,

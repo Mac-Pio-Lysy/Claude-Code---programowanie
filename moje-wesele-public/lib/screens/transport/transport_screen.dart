@@ -10,6 +10,7 @@ import '../../services/firestore_service.dart';
 import '../../services/transport_service.dart';
 import '../budget/budget_fields.dart';
 import 'vehicle_form_sheet.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Transport" — pojazdy, przypisania gości, transport własny i wewnętrzny.
 class TransportScreen extends StatefulWidget {
@@ -61,7 +62,7 @@ class _TransportScreenState extends State<TransportScreen> {
     );
     if (draft == null) return;
     await widget.service.addVehicle(draft);
-    _toast('Dodano pojazd');
+    _toast(AppText.t.transport_vehicleAdded);
   }
 
   Future<void> _editVehicle(Vehicle v) async {
@@ -79,7 +80,7 @@ class _TransportScreenState extends State<TransportScreen> {
   Future<void> _pickGuest(String title, List<Guest> options,
       ValueChanged<int> onPick) async {
     if (options.isEmpty) {
-      _toast('Brak dostępnych gości');
+      _toast(AppText.t.transport_noGuestsAvailable);
       return;
     }
     final id = await showModalBottomSheet<int>(
@@ -155,7 +156,7 @@ class _TransportScreenState extends State<TransportScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Transport',
+              Text(AppText.t.transport_title,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -185,7 +186,7 @@ class _TransportScreenState extends State<TransportScreen> {
                       size: 18, color: AppColors.textLight),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text('Pokaż transport własny',
+                    child: Text(AppText.t.transport_showOwn,
                         style: GoogleFonts.inter(
                             fontSize: 13, color: AppColors.text)),
                   ),
@@ -211,7 +212,7 @@ class _TransportScreenState extends State<TransportScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _addVehicle,
                   icon: const Icon(Icons.add),
-                  label: const Text('Dodaj pojazd'),
+                  label: Text(AppText.t.transport_addVehicle),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -314,7 +315,7 @@ class _TransportScreenState extends State<TransportScreen> {
                       : const Color(0xFFEEF3FF),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text('${v.occupied}/${v.seats} miejsc',
+                child: Text(AppText.t.transport_seatsOf(v.occupied, v.seats),
                     style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -380,12 +381,12 @@ class _TransportScreenState extends State<TransportScreen> {
 
   Widget _ownTransportCard(List<Guest> ownGuests, List<Guest> unassigned) {
     return _card(
-      title: '🚶 Transport własny',
+      title: AppText.t.transport_ownHeader,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (ownGuests.isEmpty)
-            Text('Brak gości z własnym dojazdem.',
+            Text(AppText.t.transport_ownEmpty,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight))
           else
@@ -406,7 +407,7 @@ class _TransportScreenState extends State<TransportScreen> {
               (gid) => widget.service.setGuestOwnTransport(gid, true),
             ),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Dodaj gościa'),
+            label: Text(AppText.t.transport_addGuest),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -419,9 +420,9 @@ class _TransportScreenState extends State<TransportScreen> {
 
   Widget _unassignedCard(List<Guest> unassigned) {
     return _card(
-      title: '❓ Bez przydziału (${unassigned.length})',
+      title: AppText.t.transport_unassignedHeader(unassigned.length),
       child: unassigned.isEmpty
-          ? Text('Wszyscy goście mają transport.',
+          ? Text(AppText.t.transport_allAssigned,
               style: GoogleFonts.inter(
                   fontSize: 12, color: const Color(0xFF059669)))
           : Wrap(
@@ -449,7 +450,7 @@ class _TransportScreenState extends State<TransportScreen> {
   Widget _internalCard() {
     final items = _internal;
     return _card(
-      title: '🚕 Transport wewnętrzny',
+      title: AppText.t.transport_internalHeader,
       trailing: IconButton(
         onPressed: () => widget.service.addInternalTransport(),
         icon: const Icon(Icons.add_circle_outline),
@@ -457,7 +458,7 @@ class _TransportScreenState extends State<TransportScreen> {
         tooltip: 'Dodaj',
       ),
       child: items.isEmpty
-          ? Text('Brak. Dodaj Bolt / Taxi / inny.',
+          ? Text(AppText.t.transport_internalEmpty,
               style: GoogleFonts.inter(
                   fontSize: 12, color: AppColors.textLight))
           : Column(
@@ -504,7 +505,7 @@ class _TransportScreenState extends State<TransportScreen> {
                         Row(
                           children: [
                             const SizedBox(width: 4),
-                            Text('Pokaż gościom w harmonogramie',
+                            Text(AppText.t.transport_showInSchedule,
                                 style: GoogleFonts.inter(
                                     fontSize: 11,
                                     color: AppColors.textLight)),

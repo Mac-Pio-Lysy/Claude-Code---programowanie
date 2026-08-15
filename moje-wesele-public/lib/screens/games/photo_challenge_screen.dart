@@ -8,6 +8,7 @@ import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/photo_challenge_service.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Foto-wyzwania" (w sekcji „Ślubne gry").
 ///
@@ -80,9 +81,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
                     ('📷 Foto-wyzwania', PublicPages.fotoWyzwania(base))
                   ],
                   intro:
-                      'Strona, na której goście wykonują wyzwania fotograficzne '
-                      'i przesyłają zdjęcia. Włącz grę w zakładce „Wyzwania", '
-                      'pokaż kod QR lub wyślij link.',
+                      AppText.t.photoChallenge_txt1,
                 ),
               ],
             ),
@@ -119,7 +118,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => _openForm(),
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj wyzwanie'),
+                label: Text(AppText.t.photoChallenge_add),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -150,7 +149,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
         activeThumbColor: AppColors.accent,
         value: _active,
         onChanged: hasTasks ? (v) => widget.service.setActive(v) : null,
-        title: Text('Gra aktywna dla gości',
+        title: Text(AppText.t.games_activeForGuests,
             style:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
         subtitle: Text(
@@ -177,14 +176,14 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
         children: [
           const Text('📷', style: TextStyle(fontSize: 34)),
           const SizedBox(height: 10),
-          Text('Brak wyzwań',
+          Text(AppText.t.photoChallenge_empty,
               style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 6),
           Text(
-            'Dodaj własne wyzwania lub zacznij od gotowych przykładów.',
+            AppText.t.photoChallenge_emptyHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
@@ -192,10 +191,10 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
           OutlinedButton.icon(
             onPressed: () async {
               await widget.service.seedExamples();
-              _toast('Dodano przykładowe wyzwania');
+              _toast(AppText.t.photoChallenge_examplesAdded);
             },
             icon: const Icon(Icons.auto_awesome, size: 18),
-            label: const Text('Dodaj przykładowe'),
+            label: Text(AppText.t.photoChallenge_addExamples),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -249,7 +248,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${index + 1}. ${t.text}',
+                Text(AppText.t.quiz_numbered(index + 1, t.text),
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -262,7 +261,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
                     color: const Color(0xFFEFF6FF),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('⭐ ${t.points} pkt',
+                  child: Text(AppText.t.photoChallenge_points(t.points),
                       style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -283,7 +282,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
             icon: const Icon(Icons.delete_outline, size: 18),
             color: const Color(0xFFC0392B),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Usuń',
+            tooltip: AppText.t.common_delete,
           ),
         ],
       ),
@@ -300,13 +299,13 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
       if (existing?.id != null) {
         await widget.service
             .updateTask(existing!.id!, text: draft.text, points: draft.points);
-        _toast('Zapisano wyzwanie');
+        _toast(AppText.t.photoChallenge_saved);
       } else {
         await widget.service.addTask(draft.text, draft.points);
-        _toast('Dodano wyzwanie');
+        _toast(AppText.t.photoChallenge_added);
       }
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -314,19 +313,19 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wyzwanie?'),
+        title: Text(AppText.t.photoChallenge_deleteTitle),
         content: Text('Czy na pewno usunąć „${t.text}"? Przesłane zdjęcia '
             'pozostaną w galerii.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -334,9 +333,9 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
     if (ok != true || t.id == null) return;
     try {
       await widget.service.deleteTask(t.id!);
-      _toast('Usunięto wyzwanie');
+      _toast(AppText.t.photoChallenge_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -353,8 +352,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
         }
         final subs = snapshot.data ?? const <PhotoChallengeSubmission>[];
         if (subs.isEmpty) {
-          return _info('Brak zdjęć. Gdy goście wykonają wyzwania, pojawią się '
-              'tutaj — pogrupowane po wyzwaniach.');
+          return _info(AppText.t.photoChallenge_txt2);
         }
         final tasks = _tasks;
         final byChallenge = <int, List<PhotoChallengeSubmission>>{};
@@ -514,7 +512,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
                     },
                     icon: const Icon(Icons.delete_outline,
                         size: 16, color: Color(0xFFC0392B)),
-                    label: const Text('Usuń',
+                    label: Text(AppText.t.common_delete,
                         style: TextStyle(color: Color(0xFFC0392B))),
                   ),
                 ],
@@ -536,13 +534,13 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -550,9 +548,9 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
     if (ok != true) return;
     try {
       await widget.service.deleteSubmission(s.id);
-      _toast('Usunięto zdjęcie');
+      _toast(AppText.t.photoChallenge_photoDeleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -583,7 +581,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
           children: [
             _rankSummary(ranking.length, subs.length, taskCount),
             const SizedBox(height: 16),
-            Text('🏆 Ranking gości',
+            Text(AppText.t.games_ranking,
                 style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -735,7 +733,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing != null ? 'Edytuj wyzwanie' : 'Dodaj wyzwanie'),
+      title: Text(widget.existing != null ? 'Edytuj wyzwanie' : AppText.t.photoChallenge_add),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -743,9 +741,9 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
             TextField(
               controller: _text,
               maxLines: 2,
-              decoration: const InputDecoration(
-                  labelText: 'Treść wyzwania',
-                  hintText: 'np. Zrób selfie z Parą Młodą',
+              decoration: InputDecoration(
+                  labelText: AppText.t.photoChallenge_text,
+                  hintText: AppText.t.photoChallenge_textHint,
                   border: OutlineInputBorder()),
             ),
             const SizedBox(height: 12),
@@ -761,7 +759,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Anuluj'),
+          child: Text(AppText.t.common_cancel),
         ),
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
@@ -771,13 +769,13 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()
                 ..showSnackBar(
-                    const SnackBar(content: Text('Wpisz treść wyzwania')));
+                    SnackBar(content: Text(AppText.t.photoChallenge_textRequired)));
               return;
             }
             final points = int.tryParse(_points.text.trim()) ?? 1;
             Navigator.of(context).pop((text: text, points: points));
           },
-          child: Text(widget.existing != null ? 'Zapisz' : 'Dodaj'),
+          child: Text(widget.existing != null ? AppText.t.common_save : 'Dodaj'),
         ),
       ],
     );

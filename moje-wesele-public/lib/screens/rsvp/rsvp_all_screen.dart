@@ -10,6 +10,7 @@ import '../../services/firestore_service.dart';
 import '../../services/pdf_service.dart';
 import '../../services/rsvp_service.dart';
 import '../../widgets/public_link_card.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Wszystkie RSVP" (dostępna pod „Więcej") — pełna lista WSZYSTKICH
 /// wpisów potwierdzeń w jednym miejscu (z formularza i ręcznych), z nazwą
@@ -67,14 +68,14 @@ class RsvpAllScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Wszystkie RSVP',
+                Text(AppText.t.rsvp_allTitle,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
                 const SizedBox(height: 4),
                 Text(
-                  'Lista wszystkich odpowiedzi oraz kody QR i linki dla gości.',
+                  AppText.t.rsvp_allHint,
                   style: GoogleFonts.inter(
                       fontSize: 13, color: AppColors.textLight),
                 ),
@@ -113,9 +114,7 @@ class RsvpAllScreen extends StatelessWidget {
                           border: Border.all(color: const Color(0xFFFCD34D)),
                         ),
                         child: Text(
-                          'Brak wpisów RSVP. Pojawią się tutaj, gdy goście '
-                          'wypełnią formularz /rsvp lub gdy ustawisz status '
-                          'ręcznie w sekcji „Potwierdzenia".',
+                          AppText.t.rsvp_txt1,
                           style: GoogleFonts.inter(
                               fontSize: 13, color: const Color(0xFF92400E)),
                         ),
@@ -168,9 +167,7 @@ class RsvpAllScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Wszystkie kody QR i linki do stron dla gości w jednym '
-                  'miejscu. Każdy kod możesz skopiować, otworzyć albo pobrać/'
-                  'udostępnić (PDF do druku lub wysłania).',
+                  AppText.t.rsvp_txt2,
                   style: GoogleFonts.inter(
                       fontSize: 13, height: 1.45, color: AppColors.text),
                 ),
@@ -204,7 +201,7 @@ class RsvpAllScreen extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('Błąd generowania QR: $e')));
+          ..showSnackBar(SnackBar(content: Text(AppText.t.rsvp_qrError('$e'))));
       }
     }
   }
@@ -321,7 +318,7 @@ class RsvpAllScreen extends StatelessWidget {
           if (e.message.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text('„${e.message}"',
+              child: Text(AppText.t.rsvp_quotedMessage(e.message),
                   style: GoogleFonts.inter(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,
@@ -332,7 +329,7 @@ class RsvpAllScreen extends StatelessWidget {
             child: TextButton.icon(
               onPressed: () => _confirmDelete(context, e),
               icon: const Icon(Icons.delete_outline, size: 16),
-              label: const Text('Usuń wpis'),
+              label: Text(AppText.t.rsvp_deleteEntry),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
@@ -368,17 +365,17 @@ class RsvpAllScreen extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wpis RSVP?'),
-        content: const Text('Tej operacji nie można cofnąć.'),
+        title: Text(AppText.t.rsvp_deleteEntryTitle),
+        content: Text(AppText.t.common_deleteConfirmBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),

@@ -14,6 +14,7 @@ import '../../widgets/added_in_chip.dart';
 import '../../widgets/filter_toggle_button.dart';
 import '../budget/budget_fields.dart';
 import 'vendor_form_sheet.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Dostawcy" — lista z Firestore, powiązanie z budżetem, raty.
 class VendorsScreen extends StatefulWidget {
@@ -86,7 +87,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     );
     if (draft == null) return;
     await widget.service.addVendor(draft);
-    _toast('Dodano dostawcę');
+    _toast(AppText.t.vendors_addedToast);
   }
 
   Future<void> _edit(Vendor vendor) async {
@@ -99,7 +100,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     );
     if (draft == null || vendor.id == null) return;
     await widget.service.updateVendor(vendor.id!, draft);
-    _toast('Zapisano zmiany');
+    _toast(AppText.t.common_savedToast);
   }
 
   Future<void> _delete(Vendor vendor) async {
@@ -107,7 +108,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć dostawcę?'),
+        title: Text(AppText.t.vendors_deleteTitle),
         content: Text(linked
             ? 'Dostawca „${vendor.label}" jest powiązany z wpisem w budżecie. '
                 'Co zrobić z powiązanym wpisem?'
@@ -115,17 +116,17 @@ class _VendorsScreenState extends State<VendorsScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop('cancel'),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           if (linked)
             TextButton(
               onPressed: () => Navigator.of(context).pop('keep'),
-              child: const Text('Usuń, zostaw wpis'),
+              child: Text(AppText.t.vendors_deleteKeepEntry),
             ),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop('all'),
-            child: Text(linked ? 'Usuń oba' : 'Usuń'),
+            child: Text(linked ? 'Usuń oba' : AppText.t.common_delete),
           ),
         ],
       ),
@@ -133,7 +134,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
     if (result == null || result == 'cancel' || vendor.id == null) return;
     await widget.service
         .deleteVendor(vendor.id!, deleteLinkedExpense: result == 'all');
-    _toast('Usunięto dostawcę');
+    _toast(AppText.t.vendors_deletedToast);
   }
 
   @override
@@ -168,7 +169,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Dostawcy',
+                    child: Text(AppText.t.vendors_title,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
@@ -209,7 +210,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
         Expanded(
           child: filtered.isEmpty
               ? Center(
-                  child: Text('Brak dostawców.',
+                  child: Text(AppText.t.vendors_empty,
                       style: GoogleFonts.inter(
                           fontSize: 14, color: AppColors.textLight)),
                 )
@@ -237,7 +238,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
               child: ElevatedButton.icon(
                 onPressed: _add,
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj dostawcę'),
+                label: Text(AppText.t.vendors_addButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -418,7 +419,7 @@ class _VendorCardState extends State<_VendorCard> {
                                   color: AppColors.text),
                             ),
                             if (v.contactName.isNotEmpty)
-                              Text('👤 ${v.contactName}',
+                              Text(AppText.t.vendors_contact(v.contactName),
                                   style: GoogleFonts.inter(
                                       fontSize: 12,
                                       color: AppColors.textLight)),
@@ -468,7 +469,7 @@ class _VendorCardState extends State<_VendorCard> {
           if (v.price > 0)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text('Cena: ${formatPlnZl(v.price)}',
+              child: Text(AppText.t.vendors_price(formatPlnZl(v.price)),
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
             ),
@@ -500,7 +501,7 @@ class _VendorCardState extends State<_VendorCard> {
                 child: OutlinedButton.icon(
                   onPressed: widget.onDelete,
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Usuń'),
+                  label: Text(AppText.t.common_delete),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFC0392B),
                     side: const BorderSide(color: Color(0xFFE9A8A8)),
@@ -528,7 +529,7 @@ class _VendorCardState extends State<_VendorCard> {
           Row(
             children: [
               Expanded(
-                child: Text('💵 Raty / płatności',
+                child: Text(AppText.t.vendors_installments,
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -544,7 +545,7 @@ class _VendorCardState extends State<_VendorCard> {
             ],
           ),
           if (v.installments.isEmpty)
-            Text('Brak rat.',
+            Text(AppText.t.vendors_noInstallments,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight))
           else
@@ -559,7 +560,8 @@ class _VendorCardState extends State<_VendorCard> {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                'Zapłacono: ${formatPlnZl(sums.paid)} · Pozostało: ${formatPlnZl(sums.remaining)} · Suma: ${formatPlnZl(sums.total)}',
+                AppText.t.vendors_paidRemainingTotal(formatPlnZl(sums.paid),
+                    formatPlnZl(sums.remaining), formatPlnZl(sums.total)),
                 style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -703,9 +705,12 @@ class _InstallmentRow extends StatelessWidget {
                   initialValue: inst.isPaid ? 'paid' : 'due',
                   isExpanded: true,
                   decoration: _dec(),
-                  items: const [
-                    DropdownMenuItem(value: 'due', child: Text('Do zapłaty')),
-                    DropdownMenuItem(value: 'paid', child: Text('Zapłacona')),
+                  items: [
+                    // Wartości 'due'/'paid' zostają — to zapis w bazie.
+                    DropdownMenuItem(
+                        value: 'due', child: Text(AppText.t.vendors_toPay)),
+                    DropdownMenuItem(
+                        value: 'paid', child: Text(AppText.t.vendors_paid)),
                   ],
                   onChanged: (v) =>
                       service.updateInstallment(vendorId, _id, status: v),

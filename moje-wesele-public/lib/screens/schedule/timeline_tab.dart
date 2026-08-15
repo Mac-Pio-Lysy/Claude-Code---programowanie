@@ -8,6 +8,7 @@ import '../../models/schedule_event.dart';
 import '../../models/wedding_data.dart';
 import '../../services/schedule_service.dart';
 import 'event_form_sheet.dart';
+import '../../l10n/app_text.dart';
 
 /// Oś czasu dnia ślubu — wydarzenia posortowane po godzinie.
 class TimelineTab extends StatelessWidget {
@@ -61,24 +62,24 @@ class TimelineTab extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wydarzenie?'),
-        content: Text('Czy na pewno usunąć „${event.name}"?'),
+        title: Text(AppText.t.schedule_deleteTitle),
+        content: Text(AppText.t.schedule_deleteBody(event.name)),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
     );
     if (ok != true || event.id == null) return;
     await service.deleteEvent(event.id!);
-    if (context.mounted) _toast(context, 'Usunięto wydarzenie');
+    if (context.mounted) _toast(context, AppText.t.schedule_deletedToast);
   }
 
   @override
@@ -89,7 +90,7 @@ class TimelineTab extends StatelessWidget {
         Expanded(
           child: events.isEmpty
               ? Center(
-                  child: Text('Brak wydarzeń. Dodaj pierwsze poniżej.',
+                  child: Text(AppText.t.schedule_empty,
                       style: GoogleFonts.inter(
                           fontSize: 14, color: AppColors.textLight)),
                 )
@@ -113,7 +114,7 @@ class TimelineTab extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _add(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj wydarzenie'),
+                label: Text(AppText.t.schedule_addEvent),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -290,7 +291,7 @@ class _EventCardState extends State<_EventCard> {
                                   onPressed: () => _openLink(e.locationUrl),
                                   icon:
                                       const Icon(Icons.location_on, size: 16),
-                                  label: const Text('Otwórz lokalizację'),
+                                  label: Text(AppText.t.schedule_openLocation),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.accent,
                                     side: const BorderSide(
@@ -319,7 +320,7 @@ class _EventCardState extends State<_EventCard> {
                                     onPressed: widget.onDelete,
                                     icon: const Icon(Icons.delete_outline,
                                         size: 18),
-                                    label: const Text('Usuń'),
+                                    label: Text(AppText.t.common_delete),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: const Color(0xFFC0392B),
                                       side: const BorderSide(

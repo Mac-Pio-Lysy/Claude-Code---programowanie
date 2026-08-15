@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
+
 /// Ustawienia widoczności sekcji dla GOŚCI (strony publiczne) w czasie.
 ///
 /// Zapisywane przy weselu w `weddings/{id}` pod kluczem `guestVisibility`.
@@ -20,30 +22,53 @@ import 'package:flutter/material.dart';
 /// }
 /// ```
 
-/// Definicja sekcji gościa (klucz w Firestore + etykieta + ikona w panelu).
+/// Definicja sekcji gościa (klucz w Firestore + ikona w panelu).
 class GuestSectionDef {
-  const GuestSectionDef(this.key, this.label, this.icon);
+  const GuestSectionDef(this.key, this.icon);
+
+  /// Klucz zapisywany w `guestVisibility.sections` — STABILNY i angielski.
+  /// Nigdy się nie tłumaczy: czyta go także wersja web.
   final String key;
-  final String label;
+
   final IconData icon;
+
+  /// Etykieta na ekranie — TŁUMACZONA. Rozdzielenie „klucz w bazie" od
+  /// „etykiety na ekranie" jest tu tak samo obowiązkowe jak przy kategoriach
+  /// gości i wydatków; zmiana języka nie rusza zapisanych ustawień.
+  String get label => switch (key) {
+        'rsvp' => AppText.t.guestSection_rsvp,
+        'gallery' => AppText.t.guestSection_gallery,
+        'schedule' => AppText.t.guestSection_schedule,
+        'music' => AppText.t.guestSection_music,
+        'guestbook' => AppText.t.guestSection_guestbook,
+        'advice' => AppText.t.guestSection_advice,
+        'timeCapsule' => AppText.t.guestSection_timeCapsule,
+        'guestMap' => AppText.t.guestSection_guestMap,
+        'quiz' => AppText.t.guestSection_quiz,
+        'trueFalse' => AppText.t.guestSection_trueFalse,
+        'photoGuess' => AppText.t.guestSection_photoGuess,
+        'photoChallenge' => AppText.t.guestSection_photoChallenge,
+        'bingo' => AppText.t.guestSection_bingo,
+        _ => key,
+      };
 }
 
 /// Sekcje dostępne dla gości na stronach publicznych. Klucze są STABILNE —
 /// wersja web używa ich do odczytu ustawień widoczności.
 const List<GuestSectionDef> kGuestSections = [
-  GuestSectionDef('rsvp', 'RSVP (Potwierdzenia)', Icons.how_to_reg_outlined),
-  GuestSectionDef('gallery', 'Galeria', Icons.photo_library_outlined),
-  GuestSectionDef('schedule', 'Harmonogram', Icons.event_outlined),
-  GuestSectionDef('music', 'Muzyka', Icons.music_note_outlined),
-  GuestSectionDef('guestbook', 'Księga gości', Icons.menu_book_outlined),
-  GuestSectionDef('advice', 'Rady', Icons.tips_and_updates_outlined),
-  GuestSectionDef('timeCapsule', 'Kapsuła czasu', Icons.mail_outline),
-  GuestSectionDef('guestMap', 'Mapa gości', Icons.map_outlined),
-  GuestSectionDef('quiz', 'Quiz', Icons.quiz_outlined),
-  GuestSectionDef('trueFalse', 'Prawda/Fałsz', Icons.rule),
-  GuestSectionDef('photoGuess', 'Zgadnij zdjęcie', Icons.image_search),
-  GuestSectionDef('photoChallenge', 'Foto-wyzwania', Icons.photo_camera_outlined),
-  GuestSectionDef('bingo', 'Ślubne Bingo', Icons.grid_view_outlined),
+  GuestSectionDef('rsvp', Icons.how_to_reg_outlined),
+  GuestSectionDef('gallery', Icons.photo_library_outlined),
+  GuestSectionDef('schedule', Icons.event_outlined),
+  GuestSectionDef('music', Icons.music_note_outlined),
+  GuestSectionDef('guestbook', Icons.menu_book_outlined),
+  GuestSectionDef('advice', Icons.tips_and_updates_outlined),
+  GuestSectionDef('timeCapsule', Icons.mail_outline),
+  GuestSectionDef('guestMap', Icons.map_outlined),
+  GuestSectionDef('quiz', Icons.quiz_outlined),
+  GuestSectionDef('trueFalse', Icons.rule),
+  GuestSectionDef('photoGuess', Icons.image_search),
+  GuestSectionDef('photoChallenge', Icons.photo_camera_outlined),
+  GuestSectionDef('bingo', Icons.grid_view_outlined),
 ];
 
 /// Zachowanie, gdy sekcja jest poza zakresem dat lub wyłączona.

@@ -6,6 +6,7 @@ import '../../app_colors.dart';
 import '../../layout/responsive.dart';
 import '../../models/couple.dart';
 import '../../utils/app_format.dart';
+import '../../l10n/app_text.dart';
 
 /// Dane wprowadzone przy tworzeniu nowego wesela.
 class NewWeddingDraft {
@@ -97,9 +98,9 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
       initialDate: _date ?? DateTime(now.year + 1, now.month, now.day),
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 10),
-      helpText: 'Data ślubu',
-      cancelText: 'Anuluj',
-      confirmText: 'Wybierz',
+      helpText: AppText.t.settings_weddingDate,
+      cancelText: AppText.t.common_cancel,
+      confirmText: AppText.t.common_select,
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -118,12 +119,10 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
 
     final date = _date == null
         ? null
-        : '${_date!.year.toString().padLeft(4, '0')}-'
-            '${_date!.month.toString().padLeft(2, '0')}-'
-            '${_date!.day.toString().padLeft(2, '0')}';
+        : '${_date!.year.toString().padLeft(4, '0')}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}';
     Navigator.of(context).pop(
       NewWeddingDraft(
-        name: name.isEmpty ? 'Nasze Wesele' : name,
+        name: name.isEmpty ? AppText.t.cw_defaultName : name,
         persons: persons,
         date: date,
         coupleType: _coupleType,
@@ -162,7 +161,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                 ),
                 const SizedBox(height: 18),
                 Text(
-                  'Nowe wesele',
+                  AppText.t.cw_title,
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -171,8 +170,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Podaj podstawowe informacje — resztę uzupełnisz później '
-                  'w Ustawieniach.',
+                  AppText.t.cw_intro,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     height: 1.4,
@@ -180,15 +178,15 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                _label('Nazwa wesela'),
+                _label(AppText.t.cw_name),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: _decoration('np. Nasze Wesele'),
+                  decoration: _decoration(AppText.t.cw_nameHint),
                 ),
                 const SizedBox(height: 16),
-                _label('Typ uroczystości'),
+                _label(AppText.t.settings_coupleType),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<CoupleType>(
                   initialValue: _coupleType,
@@ -203,8 +201,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '${_coupleType.hint}. Możesz to zmienić później '
-                  'w Ustawieniach → Konfiguracja.',
+                  AppText.t.cw_coupleTypeHint(_coupleType.hint),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     height: 1.4,
@@ -212,12 +209,10 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _label('Imiona Pary Młodej (opcjonalnie)'),
+                _label(AppText.t.cw_names),
                 const SizedBox(height: 6),
                 Text(
-                  'Podane imiona od razu trafią na listę gości jako '
-                  '„${_labels.coupleCategoryLabel}". Puste pola pomiń — '
-                  'dodasz je kiedy indziej.',
+                  AppText.t.cw_namesHint(_labels.coupleCategoryLabel),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     height: 1.4,
@@ -238,7 +233,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _label('Osoby'),
+                _label(AppText.t.settings_persons),
                 const SizedBox(height: 6),
                 TextField(
                   controller: _personsCtrl,
@@ -248,13 +243,13 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                       _person1Ctrl.text,
                       _person2Ctrl.text,
                     ).isEmpty
-                        ? 'np. Ania i Piotr'
+                        ? AppText.t.cw_personsHint
                         : CoupleLabels.joinNames(
                             _person1Ctrl.text, _person2Ctrl.text),
                   ),
                 ),
                 const SizedBox(height: 16),
-                _label('Data ślubu (opcjonalnie)'),
+                _label(AppText.t.cw_dateOptional),
                 const SizedBox(height: 6),
                 InkWell(
                   onTap: _pickDate,
@@ -268,7 +263,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                         const SizedBox(width: 10),
                         Text(
                           _date == null
-                              ? 'Wybierz datę (możesz później)'
+                              ? AppText.t.cw_pickDateLater
                               : _dateLabel(_date!),
                           style: GoogleFonts.inter(
                             fontSize: 14,
@@ -294,12 +289,11 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
                   activeThumbColor: AppColors.accent,
-                  title: Text('Będą dzieci na weselu',
+                  title: Text(AppText.t.cw_children,
                       style: GoogleFonts.inter(
                           fontSize: 14, fontWeight: FontWeight.w600)),
                   subtitle: Text(
-                    'Możesz to zmienić później w Ustawieniach → Konfiguracja. '
-                    'Ceny menu dziecięcego ustawisz w Budżecie.',
+                    AppText.t.cw_childrenHint,
                     style: GoogleFonts.inter(
                         fontSize: 12, height: 1.4, color: AppColors.textLight),
                   ),
@@ -308,23 +302,20 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                 ),
                 if (_withChildren) ...[
                   const SizedBox(height: 8),
-                  _label('Ile dzieci (orientacyjnie, opcjonalnie)'),
+                  _label(AppText.t.cw_childrenCount),
                   const SizedBox(height: 6),
                   TextField(
                     controller: _childrenCtrl,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: _decoration('np. 8'),
+                    decoration: _decoration(AppText.t.cw_childrenCountHint),
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _childrenCtrl.text.trim().isEmpty
-                        ? 'Zostaw puste, a liczba dzieci będzie liczona z '
-                            'listy gości — wystarczy oznaczać ich jako dzieci.'
-                        : 'Podana liczba będzie użyta w wyliczeniach. Gdy '
-                            'wpiszesz dzieci na listę gości, przełącz '
-                            'liczenie na automatyczne w Budżecie.',
+                        ? AppText.t.cw_childrenAuto
+                        : AppText.t.cw_childrenManual,
                     style: GoogleFonts.inter(
                         fontSize: 12, height: 1.4, color: AppColors.textLight),
                   ),
@@ -340,7 +331,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                           side: const BorderSide(color: Color(0xFFD7DEEC)),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        child: const Text('Anuluj'),
+                        child: Text(AppText.t.common_cancel),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -353,7 +344,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         child: Text(
-                          'Utwórz wesele',
+                          AppText.t.cw_create,
                           style: GoogleFonts.inter(fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -387,7 +378,7 @@ class _CreateWeddingSheetState extends State<_CreateWeddingSheet> {
           TextField(
             controller: controller,
             textCapitalization: TextCapitalization.words,
-            decoration: _decoration('Imię'),
+            decoration: _decoration(AppText.t.cw_firstName),
             onChanged: (_) => setState(() {}),
           ),
         ],

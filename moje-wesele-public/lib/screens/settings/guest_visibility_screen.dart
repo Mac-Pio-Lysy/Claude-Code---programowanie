@@ -8,6 +8,7 @@ import '../../services/guest_visibility_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/warsaw_time.dart';
 import '../../utils/app_format.dart';
+import '../../l10n/app_text.dart';
 
 /// Panel właściciela: „Widoczność dla gości" — steruje tym, KIEDY każda sekcja
 /// jest widoczna na stronach publicznych dla gości.
@@ -65,13 +66,13 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(
-            content: Text('Zapisano ustawienia widoczności ✓')));
+        ..showSnackBar(SnackBar(
+            content: Text(AppText.t.vis_saved)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Błąd zapisu: $e')));
+        ..showSnackBar(SnackBar(content: Text(AppText.t.common_saveErrorToast('$e'))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -85,13 +86,11 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
       initialDate: initial,
       firstDate: DateTime(now.year - 1),
       lastDate: DateTime(now.year + 10),
-      cancelText: 'Anuluj',
-      confirmText: 'Wybierz',
+      cancelText: AppText.t.common_cancel,
+      confirmText: AppText.t.common_select,
     );
     if (picked == null) return null;
-    return '${picked.year.toString().padLeft(4, '0')}-'
-        '${picked.month.toString().padLeft(2, '0')}-'
-        '${picked.day.toString().padLeft(2, '0')}';
+    return '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -103,7 +102,7 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
         title: Text(
-          'Widoczność dla gości',
+          AppText.t.vis_title,
           style: GoogleFonts.playfairDisplay(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -132,7 +131,7 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 4, 4, 8),
                 child: Text(
-                  'SEKCJE DLA GOŚCI',
+                  AppText.t.vis_sectionsHeader,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -181,7 +180,7 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
                 )
               : const Icon(Icons.save_outlined),
           label: Text(
-            _saving ? 'Zapisywanie…' : 'Zapisz ustawienia',
+            _saving ? AppText.t.vis_saving : AppText.t.vis_save,
             style: GoogleFonts.inter(fontWeight: FontWeight.w700),
           ),
         ),
@@ -211,9 +210,7 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Ustal, kiedy goście widzą poszczególne sekcje na stronach '
-              'publicznych. Możesz podać datę OD, DO, obie lub żadną. '
-              'Daty liczone są wg czasu polskiego (Europe/Warsaw).',
+              AppText.t.vis_intro,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 height: 1.45,
@@ -257,7 +254,7 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Strona dla gości',
+                  AppText.t.vis_masterTitle,
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -266,8 +263,8 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
                 ),
                 Text(
                   _master
-                      ? 'Włączona — obowiązują ustawienia sekcji poniżej'
-                      : 'Wyłączona — goście nie widzą żadnej sekcji',
+                      ? AppText.t.vis_masterOn
+                      : AppText.t.vis_masterOff,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: AppColors.textLight),
                 ),
@@ -358,7 +355,7 @@ class _SectionCard extends StatelessWidget {
                   Expanded(
                     child: _dateField(
                       context,
-                      label: 'Widoczne od',
+                      label: AppText.t.vis_from,
                       value: value.from,
                       onPick: () async {
                         final d = await onPickDate(value.from);
@@ -371,7 +368,7 @@ class _SectionCard extends StatelessWidget {
                   Expanded(
                     child: _dateField(
                       context,
-                      label: 'Widoczne do',
+                      label: AppText.t.vis_to,
                       value: value.to,
                       onPick: () async {
                         final d = await onPickDate(value.to);
@@ -385,7 +382,7 @@ class _SectionCard extends StatelessWidget {
             ],
             const SizedBox(height: 12),
             Text(
-              'Gdy niedostępne dla gościa:',
+              AppText.t.vis_outOfRange,
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -447,9 +444,9 @@ class _SectionCard extends StatelessWidget {
 
     return Row(
       children: [
-        chip(OutOfRangeMode.message, 'Pokaż komunikat', Icons.info_outline),
+        chip(OutOfRangeMode.message, AppText.t.vis_showMessage, Icons.info_outline),
         const SizedBox(width: 8),
-        chip(OutOfRangeMode.hide, 'Ukryj sekcję', Icons.visibility_off_outlined),
+        chip(OutOfRangeMode.hide, AppText.t.vis_hideSection, Icons.visibility_off_outlined),
       ],
     );
   }
@@ -552,24 +549,24 @@ class _SectionCard extends StatelessWidget {
     const grey = AppColors.textLight;
     switch (state) {
       case VisibilityState.visible:
-        return ('Widoczna dla gości teraz', green, green.withValues(alpha: 0.10));
+        return (AppText.t.vis_stateVisible, green, green.withValues(alpha: 0.10));
       case VisibilityState.beforeStart:
         return (
-          'Będzie widoczna od ${_dateLabel(value.from)}',
+          AppText.t.vis_stateFrom(_dateLabel(value.from)),
           amber,
           amber.withValues(alpha: 0.12)
         );
       case VisibilityState.afterEnd:
         return (
-          'Już niedostępna (do ${_dateLabel(value.to)})',
+          AppText.t.vis_stateTo(_dateLabel(value.to)),
           grey,
           const Color(0xFFEEF2F8)
         );
       case VisibilityState.disabled:
-        return ('Wyłączona dla gości', grey, const Color(0xFFEEF2F8));
+        return (AppText.t.vis_stateOff, grey, const Color(0xFFEEF2F8));
       case VisibilityState.masterOff:
         return (
-          'Cała strona dla gości wyłączona',
+          AppText.t.vis_stateMasterOff,
           grey,
           const Color(0xFFEEF2F8)
         );

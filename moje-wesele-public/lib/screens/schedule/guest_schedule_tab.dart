@@ -7,6 +7,7 @@ import '../../models/schedule_event.dart';
 import '../../models/wedding_data.dart';
 import '../../services/schedule_service.dart';
 import '../../widgets/public_link_card.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Dla gości" — podgląd harmonogramu widzianego przez gości
 /// na stronie /harmonogram oraz sterowanie widocznością wydarzeń.
@@ -35,7 +36,7 @@ class GuestScheduleTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         PublicLinkCard(
-          label: '📅 Harmonogram dnia ślubu',
+          label: AppText.t.schedule_title,
           url: PublicPages.harmonogram(base),
         ),
         const SizedBox(height: 16),
@@ -48,14 +49,14 @@ class GuestScheduleTab extends StatelessWidget {
 
   Widget _previewCard(List<ScheduleEvent> visible) {
     return _card(
-      'Podgląd dla gości (${visible.length})',
+      AppText.t.schedule_guestPreview(visible.length),
       visible.isEmpty
-          ? Text('Żadne wydarzenie nie jest oznaczone jako widoczne dla gości.',
+          ? Text(AppText.t.schedule_noneVisible,
               style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight))
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tak goście widzą harmonogram na stronie /harmonogram:',
+                Text(AppText.t.schedule_guestPreviewHint,
                     style: GoogleFonts.inter(
                         fontSize: 12, color: AppColors.textLight)),
                 const SizedBox(height: 10),
@@ -110,14 +111,14 @@ class GuestScheduleTab extends StatelessWidget {
 
   Widget _visibilityCard(List<ScheduleEvent> events) {
     return _card(
-      'Widoczność wydarzeń',
+      AppText.t.schedule_visibility,
       events.isEmpty
-          ? Text('Brak wydarzeń. Dodaj je w zakładce „Plan dnia".',
+          ? Text(AppText.t.schedule_emptyAddInPlan,
               style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight))
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Zaznacz, które wydarzenia widzą goście.',
+                Text(AppText.t.schedule_visibilityHint,
                     style: GoogleFonts.inter(
                         fontSize: 12, color: AppColors.textLight)),
                 const SizedBox(height: 4),
@@ -132,7 +133,7 @@ class GuestScheduleTab extends StatelessWidget {
                         '${e.timeLabel}  ${e.name.isEmpty ? '(bez nazwy)' : e.name}',
                         style: GoogleFonts.inter(
                             fontSize: 13, fontWeight: FontWeight.w600)),
-                    subtitle: Text(!e.private ? 'Widoczne dla gości' : 'Ukryte',
+                    subtitle: Text(!e.private ? AppText.t.schedule_visibleToGuests : 'Ukryte',
                         style: GoogleFonts.inter(
                             fontSize: 11,
                             color: !e.private

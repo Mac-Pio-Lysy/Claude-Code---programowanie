@@ -9,6 +9,7 @@ import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/true_false_service.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Prawda czy Fałsz" (w sekcji „Ślubne gry").
 ///
@@ -82,9 +83,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                     )
                   ],
                   intro:
-                      'Strona, na której goście zgadują, czy stwierdzenia o '
-                      'Parze Młodej są prawdą czy fałszem. Włącz grę w zakładce '
-                      '„Stwierdzenia", pokaż kod QR lub wyślij link.',
+                      AppText.t.tf_txt1,
                 ),
               ],
             ),
@@ -121,7 +120,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => _openForm(),
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj stwierdzenie'),
+                label: Text(AppText.t.tf_addStatement),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -152,7 +151,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
         activeThumbColor: AppColors.accent,
         value: _active,
         onChanged: hasStatements ? (v) => widget.service.setActive(v) : null,
-        title: Text('Gra aktywna dla gości',
+        title: Text(AppText.t.games_activeForGuests,
             style:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
         subtitle: Text(
@@ -179,14 +178,14 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
         children: [
           const Text('🤔', style: TextStyle(fontSize: 34)),
           const SizedBox(height: 10),
-          Text('Brak stwierdzeń',
+          Text(AppText.t.tf_empty,
               style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 6),
           Text(
-            'Dodaj własne stwierdzenia lub zacznij od gotowych przykładów.',
+            AppText.t.tf_emptyHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
@@ -194,10 +193,10 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
           OutlinedButton.icon(
             onPressed: () async {
               await widget.service.seedExamples();
-              _toast('Dodano przykładowe stwierdzenia');
+              _toast(AppText.t.tf_examplesAdded);
             },
             icon: const Icon(Icons.auto_awesome, size: 18),
-            label: const Text('Dodaj przykładowe'),
+            label: Text(AppText.t.tf_addExamples),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -271,7 +270,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                 icon: const Icon(Icons.delete_outline, size: 18),
                 color: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Usuń',
+                tooltip: AppText.t.common_delete,
               ),
             ],
           ),
@@ -316,14 +315,14 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
             text: draft.text,
             isTrue: draft.isTrue,
             explanation: draft.explanation);
-        _toast('Zapisano stwierdzenie');
+        _toast(AppText.t.tf_saved);
       } else {
         await widget.service
             .addStatement(draft.text, draft.isTrue, draft.explanation);
-        _toast('Dodano stwierdzenie');
+        _toast(AppText.t.tf_added);
       }
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -331,18 +330,18 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć stwierdzenie?'),
+        title: Text(AppText.t.tf_deleteTitle),
         content: Text('Czy na pewno usunąć „${s.text}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -350,9 +349,9 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
     if (ok != true || s.id == null) return;
     try {
       await widget.service.deleteStatement(s.id!);
-      _toast('Usunięto stwierdzenie');
+      _toast(AppText.t.tf_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -374,7 +373,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
           children: [
             _resultsSummary(results, statements.length),
             const SizedBox(height: 16),
-            Text('🏆 Ranking gości',
+            Text(AppText.t.games_ranking,
                 style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -487,7 +486,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('${sorted[i].score}/${sorted[i].total}',
+                child: Text(AppText.t.games_scoreOf(sorted[i].score, sorted[i].total),
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -658,7 +657,7 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                        _isEdit ? 'Edytuj stwierdzenie' : 'Dodaj stwierdzenie',
+                        _isEdit ? 'Edytuj stwierdzenie' : AppText.t.tf_addStatement,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -715,7 +714,7 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: const Text('Anuluj'),
+                              child: Text(AppText.t.common_cancel),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -730,7 +729,7 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: Text(_isEdit ? 'Zapisz' : 'Dodaj'),
+                              child: Text(_isEdit ? AppText.t.common_save : 'Dodaj'),
                             ),
                           ),
                         ],

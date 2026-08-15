@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
 import '../../models/task.dart';
-import '../../models/vendor.dart' show kVendorBudgetCategories;
+import '../../models/vendor.dart'
+    show kVendorBudgetCategories, vendorBudgetCategoryLabel;
 import '../../models/wedding_data.dart';
 import '../../navigation/app_sections.dart';
 import '../../services/firestore_service.dart';
@@ -12,6 +13,8 @@ import '../../services/task_service.dart';
 import '../../utils/format.dart';
 import '../../widgets/filter_toggle_button.dart';
 import 'task_form_sheet.dart';
+import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Sekcja „Zadania" — tablica Kanban (Do zrobienia / W trakcie / Zrobione).
 class TasksScreen extends StatefulWidget {
@@ -83,7 +86,7 @@ class _TasksScreenState extends State<TasksScreen> {
     );
     if (draft == null) return;
     await widget.service.addTask(draft);
-    _toast('Dodano zadanie');
+    _toast(AppText.t.tasks_addedToast);
   }
 
   Future<void> _edit(Task task) async {
@@ -96,31 +99,31 @@ class _TasksScreenState extends State<TasksScreen> {
     );
     if (draft == null || task.id == null) return;
     await widget.service.updateTask(task.id!, draft);
-    _toast('Zapisano zmiany');
+    _toast(AppText.t.common_savedToast);
   }
 
   Future<void> _delete(Task task) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć zadanie?'),
-        content: Text('Czy na pewno usunąć „${task.name}"?'),
+        title: Text(AppText.t.tasks_deleteTitle),
+        content: Text(AppText.t.tasks_deleteBody(task.name)),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
     );
     if (ok != true || task.id == null) return;
     await widget.service.deleteTask(task.id!);
-    _toast('Usunięto zadanie');
+    _toast(AppText.t.tasks_deletedToast);
   }
 
   void _move(Task task, String status) {
@@ -142,19 +145,17 @@ class _TasksScreenState extends State<TasksScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('🎯 Cel osiągnięty'),
-        content: Text(
-            '„${task.goal}" zostało oznaczone jako zrealizowane.\n\n'
-            'Czy utworzyć z tego pozycję w budżecie?'),
+        title: Text(AppText.t.tasks_goalReached),
+        content: Text(AppText.t.tasks_goalReachedBody(task.goal)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Nie teraz'),
+            child: Text(AppText.t.tasks_notNow),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-            child: const Text('Tak, utwórz'),
+            child: Text(AppText.t.tasks_goalCreateYes),
           ),
         ],
       ),
@@ -165,7 +166,7 @@ class _TasksScreenState extends State<TasksScreen> {
     if (details == null || task.id == null) return;
     await widget.service.linkToBudget(task.id!,
         estimatedCost: details.cost, budgetCategory: details.category);
-    _toast('Utworzono pozycję w budżecie');
+    _toast(AppText.t.tasks_budgetItemCreated);
   }
 
   /// Mały dialog z kosztem i kategorią dla nowej pozycji budżetowej.
@@ -178,12 +179,12 @@ class _TasksScreenState extends State<TasksScreen> {
         builder: (context, setState) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('💰 Nowa pozycja w budżecie'),
+          title: Text(AppText.t.tasks_newBudgetItem),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Szacowany koszt (zł)',
+              Text(AppText.t.tasks_estimatedCost(AppFormat.currency.symbol),
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
@@ -191,11 +192,13 @@ class _TasksScreenState extends State<TasksScreen> {
                 controller: costController,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                    isDense: true, hintText: '0', suffixText: 'zł'),
+                decoration: InputDecoration(
+                    isDense: true,
+                    hintText: '0',
+                    suffixText: AppFormat.currency.symbol),
               ),
               const SizedBox(height: 14),
-              Text('Kategoria budżetowa',
+              Text(AppText.t.tasks_budgetCategory,
                   style: GoogleFonts.inter(
                       fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
@@ -205,7 +208,9 @@ class _TasksScreenState extends State<TasksScreen> {
                 decoration: const InputDecoration(isDense: true),
                 items: [
                   for (final c in kVendorBudgetCategories)
-                    DropdownMenuItem(value: c, child: Text(c)),
+                    DropdownMenuItem(
+                        value: c,
+                        child: Text(vendorBudgetCategoryLabel(c))),
                 ],
                 onChanged: (v) => setState(() => category = v ?? 'Sala'),
               ),
@@ -214,7 +219,7 @@ class _TasksScreenState extends State<TasksScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Anuluj'),
+              child: Text(AppText.t.common_cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop((
@@ -222,7 +227,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 category: category,
               )),
               style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-              child: const Text('Utwórz'),
+              child: Text(AppText.t.tasks_create),
             ),
           ],
         ),
@@ -275,7 +280,7 @@ class _TasksScreenState extends State<TasksScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Zadania',
+                    child: Text(AppText.t.tasks_title,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
@@ -289,7 +294,7 @@ class _TasksScreenState extends State<TasksScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              Text('$doneCount/${all.length} ukończonych ($pct%)',
+              Text(AppText.t.tasks_progress(doneCount, all.length, pct),
                   style: GoogleFonts.inter(
                       fontSize: 13, color: AppColors.textLight)),
               const SizedBox(height: 8),
@@ -330,7 +335,7 @@ class _TasksScreenState extends State<TasksScreen> {
               child: ElevatedButton.icon(
                 onPressed: _add,
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj zadanie'),
+                label: Text(AppText.t.tasks_addButton),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -428,11 +433,11 @@ class _TasksScreenState extends State<TasksScreen> {
         ]),
         const SizedBox(height: 8),
         _chipRow([
-          _chip('Wszystkie powiązania', _linkFilter == 'all',
+          _chip(AppText.t.tasks_allLinks, _linkFilter == 'all',
               () => setState(() => _linkFilter = 'all')),
-          _chip('💰 Budżet', _linkFilter == 'budget',
+          _chip(AppText.t.tasks_linkBudget, _linkFilter == 'budget',
               () => setState(() => _linkFilter = 'budget')),
-          _chip('👨‍🍳 Dostawca', _linkFilter == 'vendor',
+          _chip(AppText.t.tasks_linkVendor, _linkFilter == 'vendor',
               () => setState(() => _linkFilter = 'vendor')),
           _chip('🚗 Transport', _linkFilter == 'transport',
               () => setState(() => _linkFilter = 'transport')),
@@ -442,7 +447,7 @@ class _TasksScreenState extends State<TasksScreen> {
               () => setState(() => _linkFilter = 'music')),
           _chip('🎁 Prezent', _linkFilter == 'gift',
               () => setState(() => _linkFilter = 'gift')),
-          _chip('Bez powiązania', _linkFilter == 'none',
+          _chip(AppText.t.tasks_noLink, _linkFilter == 'none',
               () => setState(() => _linkFilter = 'none')),
         ]),
         const SizedBox(height: 8),
@@ -564,7 +569,7 @@ class _TaskColumn extends StatelessWidget {
               Expanded(
                 child: tasks.isEmpty
                     ? Center(
-                        child: Text('Przeciągnij tutaj',
+                        child: Text(AppText.t.tasks_dragHere,
                             style: GoogleFonts.inter(
                                 fontSize: 12, color: AppColors.textLight)),
                       )
@@ -693,7 +698,8 @@ class _TaskCard extends StatelessWidget {
               if (t.goal.isNotEmpty) _goalBadge(t),
               if (t.dueDate.isNotEmpty)
                 _badge(
-                  '${t.isOverdue ? '⚠ ' : '📅 '}${t.dueDate}',
+                  '${t.isOverdue ? '⚠ ' : '📅 '}'
+                  '${AppFormat.dateShortFromIso(t.dueDate) ?? t.dueDate}',
                   t.isOverdue
                       ? const Color(0xFFFEE2E2)
                       : const Color(0xFFF1F5F9),
@@ -702,13 +708,15 @@ class _TaskCard extends StatelessWidget {
                       : AppColors.textLight,
                 ),
               if (t.isBudgetLinked)
-                _linkBadge('💰 ${t.estimatedCost.toStringAsFixed(0)} zł',
+                _linkBadge(
+                    AppText.t.tasks_costWithCurrency(
+                        t.estimatedCost.toStringAsFixed(0), AppFormat.currency.symbol),
                     const Color(0xFFF5F3FF), const Color(0xFF7C3AED),
                     AppSection.budget),
               if (t.vendorId != null)
                 _linkBadge(
                     _withName(
-                        '👨‍🍳 Dostawca',
+                        AppText.t.tasks_linkVendor,
                         _linkName('vendors', t.vendorId, (m) {
                           final c = (m['companyName'] as String?)?.trim();
                           return (c == null || c.isEmpty)
@@ -774,11 +782,13 @@ class _TaskCard extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(value: 'edit', child: Text('✏ Edytuj')),
+        PopupMenuItem(
+            value: 'edit', child: Text(AppText.t.tasks_editAction)),
         for (final s in TaskStatus.columns)
           if (s.id != task.statusId)
             PopupMenuItem(value: 'move:${s.id}', child: Text('→ ${s.label}')),
-        const PopupMenuItem(value: 'delete', child: Text('🗑 Usuń')),
+        PopupMenuItem(
+            value: 'delete', child: Text(AppText.t.tasks_deleteAction)),
       ],
     );
   }

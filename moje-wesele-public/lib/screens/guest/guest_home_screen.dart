@@ -9,6 +9,7 @@ import '../../onboarding/onboarding_steps.dart';
 import '../../services/onboarding_service.dart';
 import '../../services/wedding_service.dart';
 import '../guest_web/guest_web_app.dart';
+import '../../l10n/app_text.dart';
 
 /// Panel GOŚCIA (rola „guest") dla ZALOGOWANEGO użytkownika.
 ///
@@ -123,7 +124,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
         final scaffold = Scaffold(
           backgroundColor: AppColors.bgGradient.last,
           appBar: _appBar(
-            eventName?.isNotEmpty == true ? eventName! : 'Wesele',
+            eventName?.isNotEmpty == true ? eventName! : AppText.t.gh_title,
             persons,
           ),
           body: switch (snapshot.connectionState) {
@@ -131,13 +132,12 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 child: CircularProgressIndicator(color: AppColors.accent),
               ),
             _ when snapshot.hasError => _notReady(
-                'Nie udało się wczytać strefy gości.',
-                'Sprawdź połączenie z internetem i spróbuj ponownie.',
+                AppText.t.gh_loadError,
+                AppText.t.gh_loadErrorHint,
               ),
             _ when token == null || token.isEmpty => _notReady(
-                'Strefa gości nie jest jeszcze gotowa',
-                'Para Młoda jeszcze jej nie przygotowała. Zajrzyj później '
-                    'albo poproś ją o udostępnienie sekcji dla gości.',
+                AppText.t.gh_notReady,
+                AppText.t.gh_notReadyBody,
               ),
             _ => GuestWebHome(token: token),
           },
@@ -236,7 +236,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
       ),
       actions: [
         IconButton(
-          tooltip: 'Pomoc',
+          tooltip: AppText.t.settings_helpButton,
           icon: const Icon(Icons.help_outline, color: AppColors.accent),
           onPressed: () => HelpScreen.open(context, OnbVariant.guest),
         ),
@@ -245,7 +245,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
           child: Center(child: _guestChip()),
         ),
         PopupMenuButton<String>(
-          tooltip: 'Konto',
+          tooltip: AppText.t.gh_account,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           onSelected: (v) {
@@ -257,7 +257,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
             PopupMenuItem(
               enabled: false,
               child: Text(
-                widget.user?.email ?? widget.user?.displayName ?? 'Gość',
+                widget.user?.email ?? widget.user?.displayName ?? AppText.t.role_guest,
                 style:
                     GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
               ),
@@ -269,7 +269,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 children: [
                   const Text('🧭', style: TextStyle(fontSize: 16)),
                   const SizedBox(width: 10),
-                  Text('Przewodnik', style: GoogleFonts.inter(fontSize: 14)),
+                  Text(AppText.t.gh_guide, style: GoogleFonts.inter(fontSize: 14)),
                 ],
               ),
             ),
@@ -279,7 +279,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 children: [
                   const Icon(Icons.swap_horiz, size: 20),
                   const SizedBox(width: 10),
-                  Text('Zmień wesele', style: GoogleFonts.inter(fontSize: 14)),
+                  Text(AppText.t.gh_switchWedding, style: GoogleFonts.inter(fontSize: 14)),
                 ],
               ),
             ),
@@ -289,7 +289,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 children: [
                   const Icon(Icons.logout, size: 20, color: Color(0xFFC0392B)),
                   const SizedBox(width: 10),
-                  Text('Wyloguj',
+                  Text(AppText.t.settings_logoutButton,
                       style: GoogleFonts.inter(
                           fontSize: 14, color: const Color(0xFFC0392B))),
                 ],
@@ -314,7 +314,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
                 size: 14, color: Color(0xFF8A6D26)),
             const SizedBox(width: 4),
             Text(
-              'Gość',
+              AppText.t.role_guest,
               style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,

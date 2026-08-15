@@ -6,6 +6,7 @@ import '../../app_colors.dart';
 import '../../services/wedding_service.dart';
 import 'qr_scan_screen.dart';
 import '../../utils/app_format.dart';
+import '../../l10n/app_text.dart';
 
 /// Ekran „Dołącz do wesela" — gość podaje kod, datę i nazwisko Państwa Młodych.
 /// Po pomyślnej potrójnej weryfikacji zostaje dodany jako GOŚĆ.
@@ -53,9 +54,9 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
       initialDate: _date ?? now,
       firstDate: DateTime(now.year - 2),
       lastDate: DateTime(now.year + 10),
-      helpText: 'Data ślubu',
-      cancelText: 'Anuluj',
-      confirmText: 'Wybierz',
+      helpText: AppText.t.settings_weddingDate,
+      cancelText: AppText.t.common_cancel,
+      confirmText: AppText.t.common_select,
     );
     if (picked != null) setState(() => _date = picked);
   }
@@ -64,7 +65,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
     final code = _codeCtrl.text.trim();
     final surname = _surnameCtrl.text.trim();
     if (code.isEmpty || _date == null || surname.isEmpty) {
-      setState(() => _error = 'Uzupełnij wszystkie pola: kod, datę i nazwisko.');
+      setState(() => _error = AppText.t.jw_fillAll);
       return;
     }
     setState(() {
@@ -72,9 +73,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
       _error = null;
     });
 
-    final dateStr = '${_date!.year.toString().padLeft(4, '0')}-'
-        '${_date!.month.toString().padLeft(2, '0')}-'
-        '${_date!.day.toString().padLeft(2, '0')}';
+    final dateStr = '${_date!.year.toString().padLeft(4, '0')}-${_date!.month.toString().padLeft(2, '0')}-${_date!.day.toString().padLeft(2, '0')}';
 
     final result = await _weddings.joinAsGuest(
       userId: widget.userId,
@@ -90,20 +89,19 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
       case JoinOutcome.success:
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-              content: Text('Dołączono do wesela jako gość ✓')));
+          ..showSnackBar(SnackBar(
+              content: Text(AppText.t.jw_joined)));
         Navigator.of(context).pop(result.weddingId);
       case JoinOutcome.alreadyMember:
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-              content: Text('Już należysz do tego wesela.')));
+          ..showSnackBar(SnackBar(
+              content: Text(AppText.t.jw_alreadyMember)));
         Navigator.of(context).pop(result.weddingId);
       case JoinOutcome.invalid:
-        setState(() => _error = 'Nieprawidłowe dane wesela. Sprawdź kod, '
-            'datę ślubu i nazwisko Państwa Młodych.');
+        setState(() => _error = AppText.t.jw_badData);
       case JoinOutcome.error:
-        setState(() => _error = 'Błąd połączenia. Spróbuj ponownie.');
+        setState(() => _error = AppText.t.jw_connectionError);
     }
   }
 
@@ -116,7 +114,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
         title: Text(
-          'Dołącz do wesela',
+          AppText.t.jw_title,
           style: GoogleFonts.playfairDisplay(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -140,7 +138,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
             children: [
               _infoCard(),
               const SizedBox(height: 18),
-              _label('Kod wesela'),
+              _label(AppText.t.settings_weddingCode),
               const SizedBox(height: 6),
               Row(
                 children: [
@@ -154,7 +152,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                       ],
                       style: GoogleFonts.robotoMono(
                           fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 2),
-                      decoration: _dec('np. ABC234'),
+                      decoration: _dec(AppText.t.jw_codeHint),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -163,7 +161,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _scanQr,
                       icon: const Icon(Icons.qr_code_scanner, size: 20),
-                      label: const Text('Skanuj'),
+                      label: Text(AppText.t.jw_scan),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.accent,
                         side: const BorderSide(color: AppColors.accent),
@@ -173,7 +171,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _label('Data ślubu'),
+              _label(AppText.t.settings_weddingDate),
               const SizedBox(height: 6),
               InkWell(
                 onTap: _pickDate,
@@ -185,7 +183,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                       const Icon(Icons.event, size: 20, color: AppColors.accent),
                       const SizedBox(width: 10),
                       Text(
-                        _date == null ? 'Wybierz datę' : _dateLabel(_date!),
+                        _date == null ? AppText.t.people_pickDate : _dateLabel(_date!),
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color:
@@ -197,12 +195,12 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _label('Nazwisko Państwa Młodych'),
+              _label(AppText.t.settings_coupleSurname),
               const SizedBox(height: 6),
               TextField(
                 controller: _surnameCtrl,
                 textCapitalization: TextCapitalization.words,
-                decoration: _dec('np. Kowalscy / Ania i Piotr'),
+                decoration: _dec(AppText.t.jw_surnameHint),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
@@ -227,7 +225,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                         )
                       : const Icon(Icons.check),
                   label: Text(
-                    _submitting ? 'Sprawdzanie…' : 'Dołącz do wesela',
+                    _submitting ? AppText.t.jw_checking : AppText.t.jw_title,
                     style: GoogleFonts.inter(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -261,9 +259,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Aby potwierdzić, że jesteś zaproszonym gościem, podaj trzy dane '
-              'z zaproszenia: kod wesela, datę ślubu i nazwisko Państwa Młodych. '
-              'Wszystkie muszą się zgadzać.',
+              AppText.t.jw_intro,
               style: GoogleFonts.inter(
                 fontSize: 13,
                 height: 1.45,

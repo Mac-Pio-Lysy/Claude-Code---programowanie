@@ -8,6 +8,7 @@ import '../../models/wedding_data.dart';
 import '../../services/pdf_service.dart';
 import '../../services/time_capsule_service.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Kapsuła czasu" (w sekcji „Ślubne pamiątki").
 ///
@@ -68,9 +69,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                 GuestPageTab(
                   links: [('⏳ Kapsuła czasu', PublicPages.kapsula(base))],
                   intro:
-                      'Strona, na której goście zostawią wiadomości do otwarcia '
-                      'w przyszłości (np. w rocznicę). Pokaż im kod QR lub '
-                      'wyślij link.',
+                      AppText.t.capsule_txt1,
                 ),
               ],
             ),
@@ -103,8 +102,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
             _toolbar(all, sealed, opened),
             const SizedBox(height: 14),
             if (all.isEmpty)
-              _info('Brak wiadomości. Udostępnij gościom kod QR z zakładki '
-                  '„Strona dla gości".')
+              _info(AppText.t.capsule_txt2)
             else
               for (final m in all) _messageCard(m),
           ],
@@ -141,7 +139,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
           const Divider(height: 20),
           Row(
             children: [
-              Text('Sortuj:',
+              Text(AppText.t.common_sortBy,
                   style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -158,7 +156,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                         all.where((m) => !m.isSealed).toList()),
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 color: AppColors.accent,
-                tooltip: 'Eksport otwartych do PDF',
+                tooltip: AppText.t.capsule_exportOpen,
               ),
             ],
           ),
@@ -183,7 +181,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                 ),
                 TextButton(
                   onPressed: _toggleRevealAll,
-                  child: Text(_revealAll ? 'Zapieczętuj' : 'Otwórz wszystko'),
+                  child: Text(_revealAll ? 'Zapieczętuj' : AppText.t.capsule_openAll),
                 ),
               ],
             ),
@@ -266,13 +264,13 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
                 const SizedBox(height: 2),
-                Text('🔒 Zapieczętowane do ${_dateLabel(m.openDateTime)}',
+                Text(AppText.t.capsule_sealedUntil(_dateLabel(m.openDateTime)),
                     style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFB45309))),
                 if (m.hasPhoto)
-                  Text('📷 zawiera zdjęcie',
+                  Text(AppText.t.capsule_hasPhoto,
                       style: GoogleFonts.inter(
                           fontSize: 11, color: AppColors.textLight)),
               ],
@@ -283,7 +281,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
             icon: const Icon(Icons.delete_outline, size: 20),
             color: const Color(0xFFC0392B),
             visualDensity: VisualDensity.compact,
-            tooltip: 'Usuń wiadomość',
+            tooltip: AppText.t.capsule_deleteMessage,
           ),
         ],
       ),
@@ -336,7 +334,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                 icon: const Icon(Icons.delete_outline, size: 20),
                 color: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Usuń wiadomość',
+                tooltip: AppText.t.capsule_deleteMessage,
               ),
             ],
           ),
@@ -411,21 +409,18 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Otworzyć wszystko teraz?'),
-        content: const Text(
-            'Zobaczysz treść także zapieczętowanych wiadomości, zanim nadejdzie '
-            'ich data. To tylko podgląd dla Ciebie — nie zmienia dat otwarcia '
-            'ani tego, co widzą inni. Najwięcej radości daje jednak '
-            'czekanie 💙'),
+        title: Text(AppText.t.capsule_openAllTitle),
+        content: Text(
+            AppText.t.capsule_txt3),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Otwórz wszystko'),
+            child: Text(AppText.t.capsule_openAll),
           ),
         ],
       ),
@@ -437,20 +432,20 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wiadomość?'),
+        title: Text(AppText.t.capsule_deleteTitle),
         content: Text(
-            'Czy na pewno usunąć wiadomość od „${m.name.isEmpty ? 'Gość' : m.name}"? '
-            'Tej operacji nie można cofnąć.'),
+            AppText.t.capsule_deleteBodyNamed(
+                m.name.isEmpty ? AppText.t.guests_unknownGuest : m.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -458,9 +453,9 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
     if (ok != true) return;
     try {
       await _service.deleteMessage(m.id);
-      _toast('Usunięto wiadomość');
+      _toast(AppText.t.capsule_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -476,7 +471,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
       );
       await PdfService.preview(bytes, 'kapsula-czasu.pdf');
     } catch (e) {
-      _toast('Błąd generowania PDF: $e');
+      _toast(AppText.t.common_pdfError('$e'));
     }
   }
 

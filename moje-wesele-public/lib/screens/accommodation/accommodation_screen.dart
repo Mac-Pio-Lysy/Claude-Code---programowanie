@@ -11,6 +11,7 @@ import '../../services/accommodation_service.dart';
 import '../../services/firestore_service.dart';
 import '../../utils/format.dart';
 import 'hotel_form_sheet.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Noclegi" — hotele i przypisania gości potrzebujących noclegu.
 class AccommodationScreen extends StatelessWidget {
@@ -68,18 +69,18 @@ class AccommodationScreen extends StatelessWidget {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć hotel?'),
+        title: Text(AppText.t.accommodation_deleteHotelTitle),
         content: Text('Czy na pewno usunąć „${hotel.name}"? '
             'Przypisania gości do tego hotelu zostaną wyczyszczone.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -106,7 +107,7 @@ class AccommodationScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Noclegi',
+              Text(AppText.t.accommodation_title,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -130,7 +131,7 @@ class AccommodationScreen extends StatelessWidget {
             children: [
               _summary(needs.length, reserved),
               const SizedBox(height: 16),
-              Text('Goście potrzebujący noclegu',
+              Text(AppText.t.accommodation_guestsNeeding,
                   style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -145,7 +146,7 @@ class AccommodationScreen extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Hotele i miejsca noclegowe',
+                    child: Text(AppText.t.accommodation_hotels,
                         style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -166,7 +167,7 @@ class AccommodationScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => _addHotel(context),
                   icon: const Icon(Icons.add),
-                  label: const Text('Dodaj hotel'),
+                  label: Text(AppText.t.accommodation_addHotel),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -269,7 +270,7 @@ class AccommodationScreen extends StatelessWidget {
                   isExpanded: true,
                   decoration: _miniDec(),
                   items: [
-                    const DropdownMenuItem(value: null, child: Text('Brak hotelu')),
+                    DropdownMenuItem(value: null, child: Text(AppText.t.accommodation_noHotel)),
                     for (final h in hotels.where((h) => h.name.isNotEmpty))
                       DropdownMenuItem(value: h.id, child: Text(h.name)),
                   ],
@@ -287,7 +288,7 @@ class AccommodationScreen extends StatelessWidget {
                   isExpanded: true,
                   decoration: _miniDec(),
                   items: [
-                    const DropdownMenuItem(value: '', child: Text('Status…')),
+                    DropdownMenuItem(value: '', child: Text(AppText.t.accommodation_statusHint)),
                     for (final s in AccommodationStatus.all)
                       DropdownMenuItem(value: s.value, child: Text(s.label)),
                   ],
@@ -338,7 +339,7 @@ class AccommodationScreen extends StatelessWidget {
                     color: const Color(0xFFF5F3FF),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('🏰 W kompleksie',
+                  child: Text(AppText.t.accommodation_onSite,
                       style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,

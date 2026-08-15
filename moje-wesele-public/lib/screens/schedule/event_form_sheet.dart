@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../models/schedule_event.dart';
 import '../../services/schedule_service.dart';
+import '../../l10n/app_text.dart';
 
 /// Modalny formularz dodawania / edycji wydarzenia harmonogramu.
 class EventFormSheet extends StatefulWidget {
@@ -164,9 +165,9 @@ class _EventFormSheetState extends State<EventFormSheet> {
                           'Nazwa *',
                           TextFormField(
                             controller: _name,
-                            decoration: _dec(hint: 'np. Ceremonia ślubna'),
+                            decoration: _dec(hint: AppText.t.schedule_eventNameHint),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Podaj nazwę'
+                                ? AppText.t.schedule_nameRequired
                                 : null,
                           ),
                         ),
@@ -175,7 +176,7 @@ class _EventFormSheetState extends State<EventFormSheet> {
                           TextField(
                             controller: _description,
                             maxLines: 2,
-                            decoration: _dec(hint: 'Szczegóły…'),
+                            decoration: _dec(hint: AppText.t.schedule_detailsHint),
                           ),
                         ),
                         _field(
@@ -220,7 +221,7 @@ class _EventFormSheetState extends State<EventFormSheet> {
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
-                          title: Text('🔒 Prywatne (ukryte przed gośćmi)',
+                          title: Text(AppText.t.schedule_private,
                               style: GoogleFonts.inter(fontSize: 14)),
                           value: _private,
                           onChanged: (v) => setState(() => _private = v),
@@ -228,7 +229,7 @@ class _EventFormSheetState extends State<EventFormSheet> {
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
-                          title: Text('👁 Pokaż link gościom',
+                          title: Text(AppText.t.schedule_showLink,
                               style: GoogleFonts.inter(fontSize: 14)),
                           value: _showLinkToGuests,
                           onChanged: (v) =>

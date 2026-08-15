@@ -290,10 +290,17 @@ class _GuestFormSheetState extends State<GuestFormSheet> {
                           child: DropdownButtonFormField<String>(
                             initialValue: _gender,
                             decoration: _inputDecoration(null),
-                            items: const [
-                              DropdownMenuItem(value: 'K', child: Text('♀ Kobieta')),
-                              DropdownMenuItem(value: 'M', child: Text('♂ Mężczyzna')),
-                              DropdownMenuItem(value: 'N', child: Text('⚧ Niebinarna')),
+                            items: [
+                              // Wartości 'K'/'M'/'N' to zapis w bazie.
+                              DropdownMenuItem(
+                                  value: 'K',
+                                  child: Text(GuestOptions.genderLabel('K'))),
+                              DropdownMenuItem(
+                                  value: 'M',
+                                  child: Text(GuestOptions.genderLabel('M'))),
+                              DropdownMenuItem(
+                                  value: 'N',
+                                  child: Text(GuestOptions.genderLabel('N'))),
                             ],
                             onChanged: (v) => setState(() => _gender = v ?? _gender),
                           ),

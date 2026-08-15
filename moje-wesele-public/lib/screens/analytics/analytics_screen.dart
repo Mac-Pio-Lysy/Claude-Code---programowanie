@@ -9,6 +9,7 @@ import '../../models/guest.dart';
 import '../../models/guest_summary.dart';
 import '../../models/wedding_data.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Analityka" — wykresy budżetu i gości (fl_chart).
 class AnalyticsScreen extends StatelessWidget {
@@ -47,7 +48,7 @@ class AnalyticsScreen extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Text('Analityka',
+          child: Text(AppText.t.analytics_title,
               style: GoogleFonts.playfairDisplay(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -80,7 +81,7 @@ class AnalyticsScreen extends StatelessWidget {
               const Icon(Icons.insights_outlined,
                   size: 44, color: AppColors.textLight),
               const SizedBox(height: 14),
-              Text('Brak danych do analizy',
+              Text(AppText.t.analytics_empty,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 20,
@@ -88,8 +89,7 @@ class AnalyticsScreen extends StatelessWidget {
                       color: AppColors.text)),
               const SizedBox(height: 8),
               Text(
-                'Dodaj gości i wydatki, żeby zobaczyć analitykę — potwierdzenia '
-                'obecności, rozkład kosztów, postęp płatności, menu i diety.',
+                AppText.t.analytics_emptyHint,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                     fontSize: 14, height: 1.5, color: AppColors.textLight),
@@ -138,7 +138,7 @@ class AnalyticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Prognoza końcowego budżetu',
+          Text(AppText.t.analytics_budgetForecast,
               style: GoogleFonts.inter(
                   fontSize: 13, color: Colors.white.withValues(alpha: 0.85))),
           const SizedBox(height: 4),
@@ -202,7 +202,7 @@ class AnalyticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Koszt per gość',
+          Text(AppText.t.analytics_costPerGuest,
               style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

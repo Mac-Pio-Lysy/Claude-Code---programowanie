@@ -9,6 +9,8 @@ import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import 'budget_fields.dart';
+import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Podzakładka „Podróż poślubna".
 class HoneymoonTab extends StatelessWidget {
@@ -39,20 +41,20 @@ class HoneymoonTab extends StatelessWidget {
   /// Klasyczny tryb (bez wariantów) — pojedyncza kwota orientacyjna.
   Widget _classicCard(BuildContext context, HoneymoonSummary h) {
     return _card(
-      title: '✈ Podróż poślubna',
+      title: AppText.t.budget_honeymoonTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           BudgetTextField(
             key: const ValueKey('hm-name'),
-            label: 'Nazwa / cel podróży',
+            label: AppText.t.budget_honeymoonName,
             initial: h.name,
             onSaved: (v) => service.updateHoneymoon(name: v),
           ),
           const SizedBox(height: 12),
           BudgetTextField(
             key: const ValueKey('hm-link'),
-            label: 'Link do oferty',
+            label: AppText.t.budget_offerLink,
             hint: 'https://…',
             initial: h.link,
             onSaved: (v) => service.updateHoneymoon(link: v),
@@ -63,7 +65,7 @@ class HoneymoonTab extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => _openLink(context, h.link),
                 icon: const Icon(Icons.open_in_new, size: 18),
-                label: const Text('Otwórz ofertę'),
+                label: Text(AppText.t.budget_openOffer),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
                   side: const BorderSide(color: AppColors.accent),
@@ -73,8 +75,8 @@ class HoneymoonTab extends StatelessWidget {
           const SizedBox(height: 12),
           BudgetNumberField(
             key: const ValueKey('hm-total'),
-            label: 'Kwota orientacyjna',
-            suffix: 'zł',
+            label: AppText.t.budget_roughAmount,
+            suffix: AppFormat.currency.symbol,
             initial: h.totalAmount,
             onSaved: (v) => service.updateHoneymoon(totalAmount: v),
           ),
@@ -82,7 +84,7 @@ class HoneymoonTab extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => service.addHoneymoonOption(),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Dodaj wariant podróży'),
+            label: Text(AppText.t.budget_addVariant),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -91,7 +93,7 @@ class HoneymoonTab extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(
-              'Dodaj kilka propozycji i zaznacz, która wchodzi do budżetu.',
+              AppText.t.budget_variantsHint,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
@@ -106,7 +108,7 @@ class HoneymoonTab extends StatelessWidget {
   Widget _variantsCard(BuildContext context, HoneymoonSummary h) {
     final budgeted = h.budgetedOption;
     return _card(
-      title: '✈ Warianty podróży poślubnej',
+      title: AppText.t.budget_variantsHeader,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -115,10 +117,10 @@ class HoneymoonTab extends StatelessWidget {
             activeThumbColor: AppColors.accent,
             value: h.useHigher,
             onChanged: (v) => service.setHoneymoonUseHigher(v),
-            title: Text('Wlicz droższą wersję do budżetu',
+            title: Text(AppText.t.budget_includeMoreExpensive,
                 style: GoogleFonts.inter(
                     fontSize: 13, fontWeight: FontWeight.w600)),
-            subtitle: Text('Bezpieczne planowanie — liczy najdroższy wariant.',
+            subtitle: Text(AppText.t.budget_includeMoreExpensiveHint,
                 style:
                     GoogleFonts.inter(fontSize: 11, color: AppColors.textLight)),
           ),
@@ -136,7 +138,7 @@ class HoneymoonTab extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => service.addHoneymoonOption(),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Dodaj wariant'),
+            label: Text(AppText.t.budget_addVariantShort),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -157,7 +159,7 @@ class HoneymoonTab extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Do budżetu: ${budgeted != null && budgeted.name.isNotEmpty ? budgeted.name : 'wybrany wariant'} · ${formatPlnZl(budgeted?.amount ?? 0)}',
+                    '${AppText.t.budget_variantBudgeted(budgeted != null && budgeted.name.isNotEmpty ? budgeted.name : AppText.t.budget_variantNone)} · ${formatPlnZl(budgeted?.amount ?? 0)}',
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -174,7 +176,7 @@ class HoneymoonTab extends StatelessWidget {
 
   Widget _paidCard(HoneymoonSummary h) {
     return _card(
-      title: 'Płatności',
+      title: AppText.t.budget_payments,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -183,10 +185,10 @@ class HoneymoonTab extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _sum('Do budżetu', formatPlnZl(h.effective),
+            _sum(AppText.t.budget_toBudget, formatPlnZl(h.effective),
                 const Color(0xFF1D4ED8)),
-            _sum('Zapłacono', formatPlnZl(h.paid), const Color(0xFF059669)),
-            _sum('Pozostało', formatPlnZl(h.remaining),
+            _sum(AppText.t.budget_alreadyPaid, formatPlnZl(h.paid), const Color(0xFF059669)),
+            _sum(AppText.t.budget_left, formatPlnZl(h.remaining),
                 const Color(0xFFEA580C)),
           ],
         ),
@@ -196,17 +198,17 @@ class HoneymoonTab extends StatelessWidget {
 
   Widget _installmentsCard(BuildContext context, HoneymoonSummary h) {
     return _card(
-      title: 'Harmonogram płatności',
+      title: AppText.t.budget_installments,
       trailing: IconButton(
         onPressed: () => service.addHoneymoonInstallment(),
         icon: const Icon(Icons.add_circle_outline),
         color: AppColors.accent,
-        tooltip: 'Dodaj ratę',
+        tooltip: AppText.t.budget_addInstallment,
       ),
       child: h.installments.isEmpty
           ? Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text('Brak rat — dodaj harmonogram płatności.',
+              child: Text(AppText.t.budget_noInstallments,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: AppColors.textLight)),
             )
@@ -231,7 +233,7 @@ class HoneymoonTab extends StatelessWidget {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nie udało się otworzyć linku')),
+        SnackBar(content: Text(AppText.t.budget_linkFailed)),
       );
     }
   }
@@ -359,7 +361,7 @@ class _OptionRow extends StatelessWidget {
             children: [
               Expanded(
                 child: BudgetNumberField(
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   compact: true,
                   initial: option.amount,
                   onSaved: (v) =>
@@ -371,7 +373,7 @@ class _OptionRow extends StatelessWidget {
                   onPressed: onOpen,
                   icon: const Icon(Icons.open_in_new, size: 18),
                   color: AppColors.accent,
-                  tooltip: 'Otwórz ofertę',
+                  tooltip: AppText.t.budget_openOffer,
                 ),
             ],
           ),
@@ -440,7 +442,7 @@ class _InstallmentRow extends StatelessWidget {
             children: [
               Expanded(
                 child: BudgetNumberField(
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   initial: inst.amount,
                   compact: true,
                   onSaved: (v) =>
@@ -497,10 +499,14 @@ class _InstallmentRow extends StatelessWidget {
                   initialValue: inst.status == 'paid' ? 'paid' : 'pending',
                   isExpanded: true,
                   decoration: _dec(),
-                  items: const [
-                    DropdownMenuItem(value: 'paid', child: Text('✓ Zapłacona')),
+                  items: [
+                    // Wartości 'paid'/'pending' zostają — to zapis w bazie.
                     DropdownMenuItem(
-                        value: 'pending', child: Text('○ Do zapłaty')),
+                        value: 'paid',
+                        child: Text(AppText.t.budget_installmentPaid)),
+                    DropdownMenuItem(
+                        value: 'pending',
+                        child: Text(AppText.t.budget_installmentDue)),
                   ],
                   onChanged: (v) => service.updateHoneymoonInstallment(_id,
                       status: v),

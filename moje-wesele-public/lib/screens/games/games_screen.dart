@@ -9,6 +9,7 @@ import 'photo_guess_screen.dart';
 import 'quiz_screen.dart';
 import 'true_false_screen.dart';
 import 'wheel_screen.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Ślubne gry" — zbiorcza zakładka na zabawy dla gości.
 ///
@@ -26,7 +27,7 @@ class GamesScreen extends StatelessWidget {
 
   List<SectionTab> get _games => [
         (
-          label: 'Ślubne Bingo',
+          label: AppText.t.games_bingo,
           view: BingoScreen(
             data: data,
             firestore: firestore,
@@ -34,29 +35,29 @@ class GamesScreen extends StatelessWidget {
           ),
         ),
         (
-          label: 'Quiz o Parze Młodej',
+          label: AppText.t.games_quiz,
           view: QuizScreen(data: data, firestore: firestore),
         ),
         (
-          label: 'Prawda czy Fałsz',
+          label: AppText.t.games_trueFalse,
           view: TrueFalseScreen(data: data, firestore: firestore),
         ),
         (
-          label: 'Zgadnij zdjęcie',
+          label: AppText.t.games_photoGuess,
           view: PhotoGuessScreen(data: data, firestore: firestore),
         ),
         (
-          label: 'Koło fortuny',
+          label: AppText.t.games_wheel,
           view: WheelScreen(data: data, firestore: firestore),
         ),
         (
-          label: 'Foto-wyzwania',
+          label: AppText.t.games_photoChallenge,
           view: PhotoChallengeScreen(data: data, firestore: firestore),
         ),
       ];
 
   @override
   Widget build(BuildContext context) {
-    return TabbedSectionScaffold(title: 'Ślubne gry', tabs: _games);
+    return TabbedSectionScaffold(title: AppText.t.games_title, tabs: _games);
   }
 }

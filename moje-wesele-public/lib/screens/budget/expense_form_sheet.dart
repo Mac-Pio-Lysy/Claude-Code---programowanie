@@ -6,6 +6,7 @@ import '../../models/expense.dart';
 import '../../models/vendor.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_text.dart';
 
 /// Modalny formularz dodawania / edycji wydatku. Zwraca [ExpenseDraft].
 class ExpenseFormSheet extends StatefulWidget {
@@ -208,7 +209,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                             for (final c in widget.categories)
                               DropdownMenuItem(
                                 value: c,
-                                child: Text('${ExpenseCategories.iconFor(c)} $c'),
+                                child: Text('${ExpenseCategories.iconFor(c)} ${ExpenseCategories.labelFor(c)}'),
                               ),
                           ],
                           onChanged: (v) =>
@@ -217,16 +218,16 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                       ),
                       if (_category == 'Inne')
                         _field(
-                          'Własna nazwa',
+                          AppText.t.budget_customName,
                           TextField(
                             controller: _customName,
                             decoration: _dec(hint: 'np. Atrakcje dla dzieci'),
                           ),
                         ),
                       _field('Kwota orientacyjna', _numField(_planned, 'zł')),
-                      _field('Opłacono', _numField(_paid, 'zł')),
+                      _field(AppText.t.budget_paid, _numField(_paid, 'zł')),
                       _field(
-                        'Data płatności',
+                        AppText.t.budget_paymentDate,
                         InkWell(
                           onTap: _pickDate,
                           borderRadius: BorderRadius.circular(10),
@@ -240,7 +241,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                                 Expanded(
                                   child: Text(
                                     _paymentDate.isEmpty
-                                        ? 'Wybierz datę'
+                                        ? AppText.t.date_pickDate
                                         : _paymentDate,
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
@@ -263,7 +264,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                         ),
                       ),
                       Text(
-                        'Podział kosztów',
+                        AppText.t.budget_splitCosts,
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -353,11 +354,11 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
             dense: true,
             value: _isVendor,
             onChanged: (v) => setState(() => _isVendor = v ?? false),
-            title: Text('🏢 To jest dostawca/usługa',
+            title: Text(AppText.t.budget_isVendor,
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),
             subtitle: Text(
-              'Pokaże się też w sekcji Dostawcy jako TEN SAM rekord (kwota się nie dubluje).',
+              AppText.t.budget_isVendorHint,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
@@ -367,7 +368,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
           _field('Nazwa firmy',
               TextField(controller: _vCompany, decoration: _dec(hint: 'np. Studio Foto'))),
           _field('Osoba kontaktowa',
-              TextField(controller: _vContact, decoration: _dec(hint: 'Imię i nazwisko'))),
+              TextField(controller: _vContact, decoration: _dec(hint: AppText.t.budget_vendorName))),
           Row(
             children: [
               Expanded(

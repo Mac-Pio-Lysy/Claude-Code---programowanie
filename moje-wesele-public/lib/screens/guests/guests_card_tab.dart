@@ -225,9 +225,10 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
               isExpanded: true,
               decoration: _dec(),
               items: [
-                const DropdownMenuItem(value: '', child: Text('— brak —')),
+                DropdownMenuItem(value: '', child: Text(AppText.t.guests_formNoMenu)),
                 for (final m in menus)
-                  DropdownMenuItem(value: m, child: Text(m)),
+                  DropdownMenuItem(
+                      value: m, child: Text(GuestOptions.menuLabel(m))),
               ],
               onChanged: (v) =>
                   widget.service.setField(id, 'menuChoice', v ?? ''),

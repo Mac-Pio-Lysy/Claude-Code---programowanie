@@ -11,6 +11,7 @@ import '../models/wedding_data.dart';
 import '../navigation/app_sections.dart';
 import '../services/dash_layout_service.dart';
 import '../services/gallery_service.dart';
+import '../l10n/app_text.dart';
 
 /// Dashboard z konfigurowalnym systemem kafelków (jak w wersji web).
 class DashboardScreen extends StatefulWidget {
@@ -277,7 +278,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Dostępne kafelki',
+          Text(AppText.t.dashboard_availableTiles,
               style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

@@ -14,6 +14,7 @@ import '../../utils/format.dart';
 import '../../widgets/added_in_chip.dart';
 import '../../widgets/filter_toggle_button.dart';
 import 'expense_form_sheet.dart';
+import '../../l10n/app_text.dart';
 
 enum _Status { all, paid, partial, unpaid }
 
@@ -104,9 +105,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
     if (draft == null) return;
     try {
       await widget.service.addExpense(draft);
-      _toast('Dodano wydatek');
+      _toast(AppText.t.budget_expenseAddedShort);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -138,9 +139,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
     if (draft == null || expense.id == null) return;
     try {
       await widget.service.updateExpense(expense.id!, draft);
-      _toast('Zapisano zmiany');
+      _toast(AppText.t.common_savedToast);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -148,18 +149,18 @@ class _ExpensesTabState extends State<ExpensesTab> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć wydatek?'),
-        content: Text('Czy na pewno usunąć „${expense.displayName}"?'),
+        title: Text(AppText.t.budget_expenseDeleteTitle),
+        content: Text(AppText.t.budget_expenseDeleteBody(expense.displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -167,9 +168,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
     if (ok != true || expense.id == null) return;
     try {
       await widget.service.deleteExpense(expense.id!);
-      _toast('Usunięto wydatek');
+      _toast(AppText.t.budget_expenseDeletedToast);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -261,9 +262,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
               _honeymoonRow(),
               ..._giftRows(),
               if (all.isEmpty)
-                _empty('Brak wydatków. Dodaj pierwszy przyciskiem poniżej.')
+                _empty(AppText.t.budget_expensesEmpty)
               else if (filtered.isEmpty)
-                _empty('Brak wydatków spełniających kryteria filtrów.')
+                _empty(AppText.t.budget_expensesEmptyFiltered)
               else
                 for (final e in filtered)
                   Padding(
@@ -298,7 +299,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
               child: ElevatedButton.icon(
                 onPressed: _addExpense,
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj wydatek'),
+                label: Text(AppText.t.budget_addExpense),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -320,9 +321,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
   Future<void> _addQuick(String name) async {
     try {
       await widget.service.addExpenseForCategory(name);
-      _toast('Dodano pozycję: $name');
+      _toast(AppText.t.budget_expenseAddedToast(name));
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -362,13 +363,13 @@ class _ExpensesTabState extends State<ExpensesTab> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('⚡ Szybkie pozycje',
+                    child: Text(AppText.t.budget_quickItems,
                         style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppColors.text)),
                   ),
-                  Text(_quickVisible ? 'zwiń' : 'rozwiń',
+                  Text(_quickVisible ? AppText.t.budget_collapse : AppText.t.budget_expand,
                       style: GoogleFonts.inter(
                           fontSize: 12, color: AppColors.textLight)),
                   AnimatedRotation(
@@ -392,8 +393,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Kliknij, aby dodać gotowy wydatek — listę zmienisz '
-                          'w Konfiguracji.',
+                          AppText.t.budget_expensesQuickAdd,
                           style: GoogleFonts.inter(
                               fontSize: 11, color: AppColors.textLight),
                         ),
@@ -475,7 +475,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
           children: [
             const Icon(Icons.add, size: 16, color: AppColors.accent),
             const SizedBox(width: 6),
-            Text('Własna pozycja',
+            Text(AppText.t.budget_customItem,
                 style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -494,7 +494,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
         Row(
           children: [
             Expanded(
-              child: Text('Filtry i sortowanie',
+              child: Text(AppText.t.budget_filtersSort,
                   style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -552,8 +552,8 @@ class _ExpensesTabState extends State<ExpensesTab> {
         runSpacing: 12,
         children: [
           _summaryItem('Orientacyjnie', orientacyjnie, const Color(0xFF1D4ED8)),
-          _summaryItem('Opłacono', paid, const Color(0xFF059669)),
-          _summaryItem('Pozostało', remaining, const Color(0xFFEA580C)),
+          _summaryItem(AppText.t.budget_paid, paid, const Color(0xFF059669)),
+          _summaryItem(AppText.t.budget_left, remaining, const Color(0xFFEA580C)),
         ],
       ),
     );
@@ -594,11 +594,11 @@ class _ExpensesTabState extends State<ExpensesTab> {
         _chipRow([
           _chip('Wszystkie', _status == _Status.all,
               () => setState(() => _status = _Status.all)),
-          _chip('✓ Opłacone', _status == _Status.paid,
+          _chip(AppText.t.budget_statusPaid, _status == _Status.paid,
               () => setState(() => _status = _Status.paid)),
-          _chip('⚡ Częściowo', _status == _Status.partial,
+          _chip(AppText.t.budget_statusPartial, _status == _Status.partial,
               () => setState(() => _status = _Status.partial)),
-          _chip('✗ Nieopłacone', _status == _Status.unpaid,
+          _chip(AppText.t.budget_statusUnpaid, _status == _Status.unpaid,
               () => setState(() => _status = _Status.unpaid)),
         ]),
         const SizedBox(height: 8),
@@ -622,11 +622,11 @@ class _ExpensesTabState extends State<ExpensesTab> {
             isExpanded: true,
             decoration: _filterDropdownDecoration(),
             items: [
-              const DropdownMenuItem(
-                  value: 'all', child: Text('Wszystkie kategorie')),
+              DropdownMenuItem(
+                  value: 'all', child: Text(AppText.t.budget_allCategories)),
               for (final c in _categories)
                 DropdownMenuItem(
-                    value: c, child: Text('${ExpenseCategories.iconFor(c)} $c')),
+                    value: c, child: Text('${ExpenseCategories.iconFor(c)} ${ExpenseCategories.labelFor(c)}')),
             ],
             onChanged: (v) => setState(() => _categoryFilter = v ?? 'all'),
           ),
@@ -634,10 +634,10 @@ class _ExpensesTabState extends State<ExpensesTab> {
         const SizedBox(height: 8),
         _filterLabel('Sortuj'),
         _chipRow([
-          _sortChip('Ręcznie', null),
+          _sortChip(AppText.t.budget_manual, null),
           _sortChip('Orientacyjnie', 'planned'),
-          _sortChip('Opłacone', 'paid'),
-          _sortChip('Pozostało', 'remaining'),
+          _sortChip(AppText.t.budget_statusPaidShort, 'paid'),
+          _sortChip(AppText.t.budget_left, 'remaining'),
           _sortChip('Data', 'paymentDate'),
           _sortChip('Kategoria', 'category'),
         ]),
@@ -802,7 +802,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
     }
     final name = ((hm['name'] as String?)?.trim().isNotEmpty ?? false)
         ? (hm['name'] as String).trim()
-        : 'Podróż poślubna';
+        : AppText.t.budget_tabHoneymoon;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: _ReferenceCard(
@@ -811,7 +811,7 @@ class _ExpensesTabState extends State<ExpensesTab> {
         effective: effective,
         paid: paid,
         isPredicted: confirmed == 0 && estimated > 0,
-        sectionLabel: 'Podróż poślubna',
+        sectionLabel: AppText.t.budget_tabHoneymoon,
         onOpenSource: () => DefaultTabController.maybeOf(context)
             ?.animateTo(widget.honeymoonTabIndex),
       ),
@@ -877,7 +877,7 @@ class _ReferenceCard extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: AppColors.text)),
-                Text('opł. ${formatPlnZl(paid)}',
+                Text(AppText.t.budget_paidShortPrefix(formatPlnZl(paid)),
                     style: GoogleFonts.inter(
                         fontSize: 11, color: AppColors.textLight)),
               ],
@@ -921,11 +921,11 @@ class _ExpenseCardState extends State<_ExpenseCard> {
 
   ({Color bg, Color fg, String text}) get _badge => switch (widget.expense.status) {
         ExpenseStatus.paid =>
-          (bg: const Color(0xFFECFDF5), fg: const Color(0xFF059669), text: '✓ Opłacone'),
+          (bg: const Color(0xFFECFDF5), fg: const Color(0xFF059669), text: AppText.t.budget_statusPaid),
         ExpenseStatus.partial =>
-          (bg: const Color(0xFFFEF3C7), fg: const Color(0xFFB45309), text: '⚡ Częściowo'),
+          (bg: const Color(0xFFFEF3C7), fg: const Color(0xFFB45309), text: AppText.t.budget_statusPartial),
         ExpenseStatus.unpaid =>
-          (bg: const Color(0xFFFEE2E2), fg: const Color(0xFFC0392B), text: '✗ Nieopłacone'),
+          (bg: const Color(0xFFFEE2E2), fg: const Color(0xFFC0392B), text: AppText.t.budget_statusUnpaid),
       };
 
   @override
@@ -1011,7 +1011,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                         ),
                       ),
                       Text(
-                        'opł. ${formatPlnZl(e.paid)}',
+                        AppText.t.budget_paidShortPrefix(formatPlnZl(e.paid)),
                         style: GoogleFonts.inter(
                             fontSize: 11, color: AppColors.textLight),
                       ),
@@ -1043,11 +1043,11 @@ class _ExpenseCardState extends State<_ExpenseCard> {
         children: [
           const Divider(height: 16),
           _row('Orientacyjnie', formatPlnZl(e.effective)),
-          _row('Opłacono', formatPlnZl(e.paid)),
-          _row('Pozostało', formatPlnZl(e.remaining)),
-          if (e.paymentDate.isNotEmpty) _row('Data płatności', e.paymentDate),
+          _row(AppText.t.budget_paid, formatPlnZl(e.paid)),
+          _row(AppText.t.budget_left, formatPlnZl(e.remaining)),
+          if (e.paymentDate.isNotEmpty) _row(AppText.t.budget_paymentDate, e.paymentDate),
           if (e.splitP1 > 0 || e.splitP2 > 0)
-            _row('Podział',
+            _row(AppText.t.budget_split,
                 '$n1: ${formatPlnZl(e.splitP1)} · $n2: ${formatPlnZl(e.splitP2)}'),
           if (e.note.isNotEmpty) _row('Notatka', e.note),
           const SizedBox(height: 10),
@@ -1072,7 +1072,7 @@ class _ExpenseCardState extends State<_ExpenseCard> {
                 child: OutlinedButton.icon(
                   onPressed: widget.onDelete,
                   icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Usuń'),
+                  label: Text(AppText.t.common_delete),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFC0392B),
                     side: const BorderSide(color: Color(0xFFE9A8A8)),

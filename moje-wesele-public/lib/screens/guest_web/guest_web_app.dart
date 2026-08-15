@@ -11,6 +11,10 @@ import '../../services/notification_service.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/wedding_countdown_card.dart';
 import '../../help/help_screen.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/app_text.dart';
+import '../../l10n/language_picker.dart';
+import '../../l10n/locale_controller.dart';
 import '../../models/guest_visibility.dart';
 import '../../onboarding/onboarding_steps.dart' show OnbVariant;
 import '../../services/cloudinary_service.dart';
@@ -40,11 +44,35 @@ class GuestWebApp extends StatelessWidget {
       ),
       useMaterial3: true,
     );
-    return MaterialApp(
-      title: 'Wesele — strefa gości',
-      debugShowCheckedModeBanner: false,
-      theme: base.copyWith(textTheme: GoogleFonts.interTextTheme(base.textTheme)),
-      home: GuestWebHome(token: token, showHelp: true),
+    // Ten sam układ co w `MojeWeseleApp`: nasłuch języka w KORZENIU, żeby
+    // globus w nagłówku przebudował całą strefę gości od razu.
+    //
+    // ⚠️ NIE dodawać `const` przed GuestWebHome — stała jest kanonizowana,
+    // więc builder zwracałby ten sam obiekt i Flutter pominąłby przebudowę
+    // (błąd #20).
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: LocaleController.locale,
+      builder: (context, locale, _) {
+        AppFormat.configure(
+            locale: locale?.languageCode ??
+                LocaleController.fallback.languageCode);
+        return MaterialApp(
+          // `onGenerateTitle`, a nie `title`: tytuł karty przeglądarki musi
+          // podążać za językiem, a `title` jest stałe.
+          onGenerateTitle: (context) => AppLocalizations.of(context).gw_appTitle,
+          debugShowCheckedModeBanner: false,
+          theme:
+              base.copyWith(textTheme: GoogleFonts.interTextTheme(base.textTheme)),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: locale,
+          localeResolutionCallback: LocaleController.resolve,
+          home: Builder(builder: (context) {
+            AppText.apply(AppLocalizations.of(context));
+            return GuestWebHome(token: token, showHelp: true);
+          }),
+        );
+      },
     );
   }
 }
@@ -153,6 +181,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           child: Column(
             children: [
               if (_identityError != null) _identityBanner(_identityError!),
+              _toolbar(),
               Expanded(
                 child: StreamBuilder<Map<String, dynamic>?>(
                   stream: _service.watchSpace(),
@@ -177,6 +206,33 @@ class _GuestWebHomeState extends State<GuestWebHome> {
       ),
     );
   }
+
+  /// Pasek narzędzi gościa: globus (język), Pomoc i dzwoneczek.
+  ///
+  /// Stoi NAD przewijaną treścią, a nie w niej, bo musi działać także wtedy,
+  /// gdy link jest nieważny albo para wyłączyła stronę — czyli dokładnie
+  /// w sytuacjach, w których gość widzi sam komunikat i nic więcej.
+  ///
+  /// Globus i Pomoc tylko przy wejściu z linku/QR: zalogowany gość ma
+  /// i język (Ustawienia), i pomoc w pasku aplikacji.
+  Widget _toolbar() => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 12, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (widget.showHelp) ...[
+              const GuestLanguageButton(),
+              TextButton.icon(
+                onPressed: () => HelpScreen.open(context, OnbVariant.guest),
+                icon: const Icon(Icons.help_outline, size: 18),
+                label: Text(AppText.t.gw_help),
+                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+              ),
+            ],
+            NotificationBell(inbox: _inbox, onOpen: _openNotifications),
+          ],
+        ),
+      );
 
   /// Pasek ostrzegawczy, gdy nie udało się ustalić tożsamości gościa.
   ///
@@ -213,7 +269,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 minimumSize: const Size(0, 32),
               ),
-              child: Text(_identityBusy ? 'Łączę…' : 'Spróbuj ponownie',
+              child: Text(_identityBusy ? AppText.t.gw_connecting : AppText.t.common_retry,
                   style: GoogleFonts.inter(
                       fontSize: 12, fontWeight: FontWeight.w700)),
             ),
@@ -230,7 +286,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
               const Icon(Icons.link_off, size: 48, color: AppColors.textLight),
               const SizedBox(height: 16),
               Text(
-                'Nieprawidłowy lub nieaktywny link',
+                AppText.t.gw_invalidLink,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.playfairDisplay(
                     fontSize: 20,
@@ -239,7 +295,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Poproś Parę Młodą o aktualny link lub kod QR do strony gości.',
+                AppText.t.gw_invalidLinkBody,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
               ),
@@ -273,24 +329,6 @@ class _GuestWebHomeState extends State<GuestWebHome> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       children: [
-        // Pasek narzędzi gościa: dzwoneczek zawsze, Pomoc tylko przy wejściu
-        // z linku/QR (gość zalogowany ma ją w pasku aplikacji).
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (widget.showHelp)
-              TextButton.icon(
-                onPressed: () => HelpScreen.open(context, OnbVariant.guest),
-                icon: const Icon(Icons.help_outline, size: 18),
-                label: const Text('Pomoc'),
-                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
-              ),
-            NotificationBell(
-              inbox: _inbox,
-              onOpen: _openNotifications,
-            ),
-          ],
-        ),
         _header(eventName, persons, space),
         const SizedBox(height: 14),
         // Licznik do wesela (#24) — data i godzina z konfiguracji wesela,
@@ -325,7 +363,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
               const Text('💍', style: TextStyle(fontSize: 40)),
               const SizedBox(height: 12),
               Text(
-                eventName?.isNotEmpty == true ? eventName! : 'Strefa gości',
+                eventName?.isNotEmpty == true ? eventName! : AppText.t.gw_guestZone,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.playfairDisplay(
                     fontSize: 22,
@@ -334,7 +372,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Strona gości jest chwilowo niedostępna. Zajrzyj później.',
+                AppText.t.gw_unavailable,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
               ),
@@ -365,7 +403,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           const Text('💍', style: TextStyle(fontSize: 30)),
           const SizedBox(height: 8),
           Text(
-            eventName?.isNotEmpty == true ? eventName! : 'Nasze Wesele',
+            eventName?.isNotEmpty == true ? eventName! : AppText.t.gw_ourWedding,
             textAlign: TextAlign.center,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.text),
@@ -400,7 +438,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           border: Border.all(color: const Color(0xFFE2EAF7)),
         ),
         child: Text(
-          'Sekcje dla gości pojawią się tutaj, gdy Para Młoda je udostępni.',
+          AppText.t.gw_emptyInfo,
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
         ),
@@ -410,10 +448,10 @@ class _GuestWebHomeState extends State<GuestWebHome> {
       SectionVisibility sec, Map<String, dynamic> space) {
     final visible = state == VisibilityState.visible;
     final subtitle = switch (state) {
-      VisibilityState.beforeStart => 'Dostępne od ${_dateLabel(sec.from) ?? '—'}',
-      VisibilityState.afterEnd => 'Już niedostępne',
-      VisibilityState.disabled => 'Niedostępne',
-      VisibilityState.masterOff => 'Niedostępne',
+      VisibilityState.beforeStart => AppText.t.gw_availableFrom(_dateLabel(sec.from) ?? AppText.t.common_none),
+      VisibilityState.afterEnd => AppText.t.gw_noLongerAvailable,
+      VisibilityState.disabled => AppText.t.gw_unavailableShort,
+      VisibilityState.masterOff => AppText.t.gw_unavailableShort,
       VisibilityState.visible => null,
     };
     return Opacity(
@@ -477,18 +515,18 @@ class _GuestWebHomeState extends State<GuestWebHome> {
     switch (s.key) {
       case 'guestbook':
         page = _MessageWallPage(
-          hint: 'Twój wpis dla Pary Młodej…',
-          cta: 'Dodaj wpis',
-          emptyText: 'Bądź pierwszy — zostaw wpis!',
+          hint: AppText.t.gw_guestbookHint,
+          cta: AppText.t.gw_guestbookCta,
+          emptyText: AppText.t.gw_guestbookEmpty,
           onSubmit: (name, msg) =>
               _service.addGuestbookEntry(name: name, message: msg),
           stream: _service.watchGuestbook(),
         );
       case 'advice':
         page = _MessageWallPage(
-          hint: 'Twoja rada dla Pary Młodej…',
-          cta: 'Dodaj radę',
-          emptyText: 'Podziel się pierwszą radą!',
+          hint: AppText.t.gw_adviceHint,
+          cta: AppText.t.gw_adviceCta,
+          emptyText: AppText.t.gw_adviceEmpty,
           onSubmit: (name, msg) => _service.addAdvice(name: name, message: msg),
           stream: _service.watchAdvice(),
         );
@@ -543,8 +581,8 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           centerLabel: space['bingoCenterMode'] == 'names'
               ? (((space['displayNames'] as String?)?.trim().isNotEmpty ?? false)
                   ? (space['displayNames'] as String).trim()
-                  : 'GRATIS')
-              : 'GRATIS',
+                  : AppText.t.gw_bingoFree)
+              : AppText.t.gw_bingoFree,
         );
       default:
         page = const _ComingSoon();
@@ -607,7 +645,7 @@ class _ComingSoon extends StatelessWidget {
               const Icon(Icons.hourglass_empty,
                   size: 40, color: AppColors.textLight),
               const SizedBox(height: 12),
-              Text('Ta sekcja będzie dostępna wkrótce',
+              Text(AppText.t.gw_comingSoon,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 15,
@@ -646,7 +684,7 @@ class _ScheduleView extends StatelessWidget {
           ?banner,
           const SizedBox(height: 16),
           Center(
-            child: Text('Harmonogram pojawi się wkrótce.',
+            child: Text(AppText.t.gw_scheduleSoon,
                 style: GoogleFonts.inter(color: AppColors.textLight)),
           ),
         ],
@@ -686,7 +724,7 @@ class _ScheduleView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title.isEmpty ? 'Punkt programu' : title,
+                    Text(title.isEmpty ? AppText.t.gw_scheduleItem : title,
                         style: GoogleFonts.inter(
                             fontSize: 14, fontWeight: FontWeight.w600)),
                     if (desc.isNotEmpty) ...[
@@ -769,16 +807,16 @@ class _MessageWallPageState extends State<_MessageWallPage> {
     final name = _nameCtrl.text.trim();
     final msg = _msgCtrl.text.trim();
     if (name.isEmpty || msg.isEmpty) {
-      _snack('Podaj imię i treść.');
+      _snack(AppText.t.gw_needNameAndMessage);
       return;
     }
     setState(() => _sending = true);
     try {
       await widget.onSubmit(name, msg);
       _msgCtrl.clear();
-      if (mounted) _snack('Dziękujemy ✓');
+      if (mounted) _snack(AppText.t.gw_thanks);
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -800,7 +838,7 @@ class _MessageWallPageState extends State<_MessageWallPage> {
                 controller: _nameCtrl,
                 textCapitalization: TextCapitalization.words,
                 maxLength: 80,
-                decoration: _guestDec('Twoje imię'),
+                decoration: _guestDec(AppText.t.gw_yourName),
               ),
               TextField(
                 controller: _msgCtrl,
@@ -832,7 +870,7 @@ class _MessageWallPageState extends State<_MessageWallPage> {
                 itemCount: entries.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, i) => _entryCard(
-                  (entries[i]['name'] as String?) ?? 'Gość',
+                  (entries[i]['name'] as String?) ?? AppText.t.gw_guest,
                   (entries[i]['message'] as String?) ?? '',
                 ),
               );
@@ -892,7 +930,7 @@ class _SubmitButton extends StatelessWidget {
                   child: CircularProgressIndicator(
                       strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.send),
-          label: Text(sending ? 'Wysyłanie…' : label,
+          label: Text(sending ? AppText.t.gw_sending : label,
               style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
         ),
       );
@@ -949,13 +987,12 @@ class _GuestMapPageState extends State<_GuestMapPage> {
     final name = _nameCtrl.text.trim();
     final city = _cityCtrl.text.trim();
     if (name.isEmpty || city.isEmpty) {
-      _snack('Podaj imię i miasto.');
+      _snack(AppText.t.gw_needNameAndCity);
       return;
     }
     final uid = GuestIdentity.uid;
     if (uid == null) {
-      _snack('Nie udało się przygotować sesji gościa. '
-          'Odśwież stronę i spróbuj ponownie.');
+      _snack(AppText.t.gw_sessionError);
       return;
     }
     setState(() => _sending = true);
@@ -968,10 +1005,10 @@ class _GuestMapPageState extends State<_GuestMapPage> {
       final wasExisting = _existing;
       if (mounted) {
         setState(() => _existing = true);
-        _snack(wasExisting ? 'Zaktualizowano ✓' : 'Dziękujemy ✓');
+        _snack(wasExisting ? AppText.t.gw_updated : AppText.t.gw_thanks);
       }
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -993,21 +1030,21 @@ class _GuestMapPageState extends State<_GuestMapPage> {
                   controller: _nameCtrl,
                   maxLength: 80,
                   textCapitalization: TextCapitalization.words,
-                  decoration: _guestDec('Twoje imię')),
+                  decoration: _guestDec(AppText.t.gw_yourName)),
               TextField(
                   controller: _cityCtrl,
                   maxLength: 80,
                   textCapitalization: TextCapitalization.words,
-                  decoration: _guestDec('Skąd przyjeżdżasz (miasto)')),
+                  decoration: _guestDec(AppText.t.gw_fromWhereCity)),
               TextField(
                   controller: _greetCtrl,
                   maxLength: 300,
                   maxLines: 2,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: _guestDec('Pozdrowienie (opcjonalnie)')),
+                  decoration: _guestDec(AppText.t.gw_greetingOptional)),
               const SizedBox(height: 6),
               _SubmitButton(
-                  label: _existing ? 'Zapisz zmiany' : 'Dodaj na mapę',
+                  label: _existing ? AppText.t.gw_saveChanges : AppText.t.gw_addToMap,
                   sending: _sending,
                   onTap: _send),
             ],
@@ -1021,7 +1058,7 @@ class _GuestMapPageState extends State<_GuestMapPage> {
               final entries = snapshot.data ?? const [];
               if (entries.isEmpty) {
                 return Center(
-                  child: Text('Bądź pierwszy na mapie gości!',
+                  child: Text(AppText.t.gw_mapEmpty,
                       style: GoogleFonts.inter(color: AppColors.textLight)),
                 );
               }
@@ -1031,7 +1068,7 @@ class _GuestMapPageState extends State<_GuestMapPage> {
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final e = entries[i];
-                  final name = (e['name'] as String?) ?? 'Gość';
+                  final name = (e['name'] as String?) ?? AppText.t.gw_guest;
                   final city = (e['city'] as String?) ?? '';
                   final greet = (e['greeting'] as String?) ?? '';
                   return _entryCard(
@@ -1074,7 +1111,7 @@ class _TimeCapsulePageState extends State<_TimeCapsulePage> {
     final name = _nameCtrl.text.trim();
     final msg = _msgCtrl.text.trim();
     if (name.isEmpty || msg.isEmpty) {
-      _snack('Podaj imię i wiadomość.');
+      _snack(AppText.t.gw_needNameAndText);
       return;
     }
     setState(() => _sending = true);
@@ -1082,7 +1119,7 @@ class _TimeCapsulePageState extends State<_TimeCapsulePage> {
       await widget.service.addTimeCapsule(name: name, message: msg);
       if (mounted) setState(() => _sent = true);
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1104,14 +1141,14 @@ class _TimeCapsulePageState extends State<_TimeCapsulePage> {
               const Icon(Icons.mark_email_read_outlined,
                   size: 48, color: AppColors.accent),
               const SizedBox(height: 12),
-              Text('Wiadomość zapieczętowana!',
+              Text(AppText.t.gw_capsuleSealed,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: AppColors.text)),
               const SizedBox(height: 8),
               Text(
-                'Para Młoda otworzy Twoją wiadomość w wybranym czasie. Dziękujemy!',
+                AppText.t.gw_capsuleSealedBody,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
               ),
@@ -1125,8 +1162,7 @@ class _TimeCapsulePageState extends State<_TimeCapsulePage> {
       child: Column(
         children: [
           Text(
-            'Zostaw wiadomość, którą Para Młoda otworzy w przyszłości. '
-            'Inni goście jej nie zobaczą.',
+            AppText.t.gw_capsuleIntro,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 12),
@@ -1134,16 +1170,16 @@ class _TimeCapsulePageState extends State<_TimeCapsulePage> {
               controller: _nameCtrl,
               maxLength: 80,
               textCapitalization: TextCapitalization.words,
-              decoration: _guestDec('Twoje imię')),
+              decoration: _guestDec(AppText.t.gw_yourName)),
           TextField(
               controller: _msgCtrl,
               maxLength: 2000,
               maxLines: 5,
               textCapitalization: TextCapitalization.sentences,
-              decoration: _guestDec('Twoja wiadomość do kapsuły czasu…')),
+              decoration: _guestDec(AppText.t.gw_capsuleHint)),
           const SizedBox(height: 6),
           _SubmitButton(
-              label: 'Zapieczętuj wiadomość', sending: _sending, onTap: _send),
+              label: AppText.t.gw_capsuleSeal, sending: _sending, onTap: _send),
         ],
       ),
     );
@@ -1214,13 +1250,12 @@ class _RsvpPageState extends State<_RsvpPage> {
   Future<void> _send() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Podaj imię i nazwisko.');
+      _snack(AppText.t.gw_needFullName);
       return;
     }
     final uid = GuestIdentity.uid;
     if (uid == null) {
-      _snack('Nie udało się przygotować sesji gościa. '
-          'Odśwież stronę i spróbuj ponownie.');
+      _snack(AppText.t.gw_sessionError);
       return;
     }
     setState(() => _sending = true);
@@ -1240,7 +1275,7 @@ class _RsvpPageState extends State<_RsvpPage> {
         });
       }
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1264,15 +1299,15 @@ class _RsvpPageState extends State<_RsvpPage> {
               const SizedBox(height: 12),
               Text(
                   _attending
-                      ? 'Do zobaczenia na weselu! 🎉'
-                      : 'Dziękujemy za odpowiedź',
+                      ? AppText.t.gw_rsvpSeeYou
+                      : AppText.t.gw_rsvpThanks,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: AppColors.text)),
               const SizedBox(height: 8),
-              Text('Twoje potwierdzenie trafiło do Pary Młodej.',
+              Text(AppText.t.gw_rsvpSent,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 14, color: AppColors.textLight)),
@@ -1280,7 +1315,7 @@ class _RsvpPageState extends State<_RsvpPage> {
               OutlinedButton.icon(
                 onPressed: () => setState(() => _sent = false),
                 icon: const Icon(Icons.edit_outlined, size: 18),
-                label: const Text('Popraw odpowiedź'),
+                label: Text(AppText.t.gw_rsvpEdit),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
                   side: const BorderSide(color: AppColors.accent),
@@ -1310,10 +1345,8 @@ class _RsvpPageState extends State<_RsvpPage> {
             ),
             child: Text(
               _existing
-                  ? 'To Twoje wcześniejsze potwierdzenie. Możesz je poprawić — '
-                      'zapiszemy nową wersję zamiast dodawać kolejną.'
-                  : 'Wystarczy jedno potwierdzenie. Jeśli plany się zmienią, '
-                      'wróć tutaj i popraw odpowiedź.',
+                  ? AppText.t.gw_rsvpExistingHint
+                  : AppText.t.gw_rsvpNewHint,
               style: GoogleFonts.inter(
                   fontSize: 12.5, height: 1.4, color: AppColors.textLight),
             ),
@@ -1322,22 +1355,22 @@ class _RsvpPageState extends State<_RsvpPage> {
               controller: _nameCtrl,
               maxLength: 80,
               textCapitalization: TextCapitalization.words,
-              decoration: _guestDec('Imię i nazwisko')),
+              decoration: _guestDec(AppText.t.gw_fullName)),
           const SizedBox(height: 4),
-          Text('Czy będziesz na weselu?',
+          Text(AppText.t.gw_rsvpQuestion,
               style: GoogleFonts.inter(
                   fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.text)),
           const SizedBox(height: 8),
           Row(
             children: [
-              _choice('Będę', true),
+              _choice(AppText.t.gw_rsvpYes, true),
               const SizedBox(width: 10),
-              _choice('Nie dam rady', false),
+              _choice(AppText.t.gw_rsvpNo, false),
             ],
           ),
           if (_attending) ...[
             const SizedBox(height: 16),
-            Text('Liczba osób towarzyszących',
+            Text(AppText.t.gw_companions,
                 style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1370,7 +1403,7 @@ class _RsvpPageState extends State<_RsvpPage> {
                 maxLength: 200,
                 textCapitalization: TextCapitalization.sentences,
                 decoration:
-                    _guestDec('Dieta / alergie (opcjonalnie)')),
+                    _guestDec(AppText.t.gw_dietOptional)),
           ],
           const SizedBox(height: 8),
           TextField(
@@ -1378,10 +1411,10 @@ class _RsvpPageState extends State<_RsvpPage> {
               maxLength: 500,
               maxLines: 2,
               textCapitalization: TextCapitalization.sentences,
-              decoration: _guestDec('Wiadomość dla Pary Młodej (opcjonalnie)')),
+              decoration: _guestDec(AppText.t.gw_messageOptional)),
           const SizedBox(height: 6),
           _SubmitButton(
-              label: _existing ? 'Zapisz zmiany' : 'Wyślij potwierdzenie',
+              label: _existing ? AppText.t.gw_saveChanges : AppText.t.gw_rsvpSend,
               sending: _sending,
               onTap: _send),
         ],

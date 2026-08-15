@@ -6,6 +6,7 @@ import '../../models/checklist_item.dart';
 import '../../models/wedding_data.dart';
 import '../../services/schedule_service.dart';
 import '../budget/budget_fields.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Checklista" — rzeczy do zrobienia na dzień ślubu,
 /// pogrupowane w kategorie, z paskiem postępu.
@@ -37,13 +38,14 @@ class ChecklistTab extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text('Nowa pozycja — $category',
+        title: Text(AppText.t.checklist_newItem(category),
             style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700)),
         content: TextField(
           controller: ctrl,
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(hintText: 'Co zrobić…'),
+          decoration:
+              InputDecoration(hintText: AppText.t.checklist_addHint),
           onSubmitted: (v) => Navigator.of(ctx).pop(v.trim()),
         ),
         actions: [
@@ -64,7 +66,7 @@ class ChecklistTab extends StatelessWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Dodano: $text')));
+        ..showSnackBar(SnackBar(content: Text(AppText.t.checklist_addedToast(text))));
     }
   }
 
@@ -105,7 +107,7 @@ class ChecklistTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$done/$total ukończonych (${(pct * 100).round()}%)',
+          Text(AppText.t.checklist_progress(done, total, (pct * 100).round()),
               style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -153,7 +155,7 @@ class ChecklistTab extends StatelessWidget {
                   onPressed: () => _addItem(context, category),
                   icon: const Icon(Icons.add_circle_outline),
                   color: AppColors.accent,
-                  tooltip: 'Dodaj pozycję',
+                  tooltip: AppText.t.checklist_addItem,
                   visualDensity: VisualDensity.compact,
                 ),
               ],
@@ -161,7 +163,7 @@ class ChecklistTab extends StatelessWidget {
             if (items.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text('Brak pozycji.',
+                child: Text(AppText.t.checklist_empty,
                     style: GoogleFonts.inter(
                         fontSize: 12, color: AppColors.textLight)),
               )
@@ -202,7 +204,7 @@ class _ChecklistRow extends StatelessWidget {
           Expanded(
             child: BudgetTextField(
               initial: item.text,
-              hint: 'Co zrobić…',
+              hint: AppText.t.checklist_addHint,
               onSaved: (v) => service.updateChecklistItem(_id, text: v),
             ),
           ),

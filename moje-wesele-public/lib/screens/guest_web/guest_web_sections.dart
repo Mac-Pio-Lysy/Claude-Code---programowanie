@@ -18,7 +18,7 @@ Widget _nameField(TextEditingController c) => TextField(
       controller: c,
       maxLength: 80,
       textCapitalization: TextCapitalization.words,
-      decoration: _guestDec('Twoje imię'),
+      decoration: _guestDec(AppText.t.gw_yourName),
     );
 
 /// Komunikat na środku (pusto / sekcja nieaktywna).
@@ -77,7 +77,7 @@ class _GalleryPageState extends State<_GalleryPage> {
   Future<void> _addPhoto(ImageSource source) async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Najpierw podaj swoje imię.');
+      _snack(AppText.t.gw_nameFirst);
       return;
     }
     try {
@@ -94,9 +94,9 @@ class _GalleryPageState extends State<_GalleryPage> {
         caption: _captionCtrl.text.trim(),
       );
       _captionCtrl.clear();
-      if (mounted) _snack('Dziękujemy za zdjęcie ✓');
+      if (mounted) _snack(AppText.t.gw_photoThanks);
     } catch (e) {
-      if (mounted) _snack('Nie udało się dodać zdjęcia: $e');
+      if (mounted) _snack(AppText.t.gw_photoError('$e'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -115,7 +115,7 @@ class _GalleryPageState extends State<_GalleryPage> {
                   controller: _captionCtrl,
                   maxLength: 200,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: _guestDec('Podpis zdjęcia (opcjonalnie)')),
+                  decoration: _guestDec(AppText.t.gw_photoCaption)),
               const SizedBox(height: 6),
               _PhotoButtons(busy: _busy, onPick: _addPhoto),
             ],
@@ -127,12 +127,12 @@ class _GalleryPageState extends State<_GalleryPage> {
             stream: widget.service.watchGallery(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                return _centerInfo('Nie udało się wczytać galerii.',
+                return _centerInfo(AppText.t.gw_galleryError,
                     icon: Icons.cloud_off);
               }
               final items = snapshot.data ?? const [];
               if (items.isEmpty) {
-                return _centerInfo('Bądź pierwszy — dodaj zdjęcie!',
+                return _centerInfo(AppText.t.gw_galleryEmpty,
                     icon: Icons.photo_camera_outlined);
               }
               return GridView.builder(
@@ -156,7 +156,7 @@ class _GalleryPageState extends State<_GalleryPage> {
 
   Widget _photoTile(Map<String, dynamic> item) {
     final url = (item['photoUrl'] as String?) ?? '';
-    final name = (item['name'] as String?) ?? 'Gość';
+    final name = (item['name'] as String?) ?? AppText.t.gw_guest;
     final caption = (item['caption'] as String?) ?? '';
     return GestureDetector(
       onTap: url.isEmpty ? null : () => _openFull(url, name, caption),
@@ -241,7 +241,7 @@ class _PhotoButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (busy) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -252,7 +252,7 @@ class _PhotoButtons extends StatelessWidget {
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: AppColors.accent)),
             SizedBox(width: 10),
-            Text('Wysyłanie zdjęcia…'),
+            Text(AppText.t.gw_photoUploading),
           ],
         ),
       );
@@ -263,7 +263,7 @@ class _PhotoButtons extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: () => onPick(ImageSource.camera),
             icon: const Icon(Icons.photo_camera_outlined, size: 18),
-            label: const Text('Aparat'),
+            label: Text(AppText.t.gw_camera),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -276,7 +276,7 @@ class _PhotoButtons extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () => onPick(ImageSource.gallery),
             icon: const Icon(Icons.photo_library_outlined, size: 18),
-            label: Text(label ?? 'Wybierz zdjęcie'),
+            label: Text(label ?? AppText.t.gw_pickPhoto),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,
@@ -346,7 +346,7 @@ class _MusicPageState extends State<_MusicPage> {
       if (res == null) _manualOnly = true;
     });
     if (res == null) {
-      _snack('Wyszukiwarka niedostępna — wpisz tytuł i wykonawcę ręcznie.');
+      _snack(AppText.t.gw_searchUnavailable);
     }
   }
 
@@ -357,11 +357,11 @@ class _MusicPageState extends State<_MusicPage> {
   }) async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Najpierw podaj swoje imię.');
+      _snack(AppText.t.gw_nameFirst);
       return;
     }
     if (title.isEmpty) {
-      _snack('Podaj tytuł utworu.');
+      _snack(AppText.t.gw_needSongTitle);
       return;
     }
     setState(() => _sending = true);
@@ -374,9 +374,9 @@ class _MusicPageState extends State<_MusicPage> {
         _titleCtrl.clear();
         _artistCtrl.clear();
       });
-      _snack('Propozycja wysłana ✓');
+      _snack(AppText.t.gw_proposalSent);
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -390,8 +390,7 @@ class _MusicPageState extends State<_MusicPage> {
         _nameField(_nameCtrl),
         const SizedBox(height: 4),
         Text(
-          'Zaproponuj utwór, który chcesz usłyszeć na weselu. '
-          'Propozycje trafiają do Pary Młodej.',
+          AppText.t.gw_musicIntro,
           style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
         ),
         const SizedBox(height: 12),
@@ -401,7 +400,7 @@ class _MusicPageState extends State<_MusicPage> {
               Expanded(
                 child: TextField(
                   controller: _searchCtrl,
-                  decoration: _guestDec('Szukaj utworu lub wykonawcy'),
+                  decoration: _guestDec(AppText.t.gw_musicSearch),
                   onSubmitted: (_) => _search(),
                 ),
               ),
@@ -430,35 +429,35 @@ class _MusicPageState extends State<_MusicPage> {
           if (_results != null && _results!.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text('Brak wyników — spróbuj innej frazy.',
+              child: Text(AppText.t.gw_noResults,
                   style: GoogleFonts.inter(color: AppColors.textLight)),
             ),
           const SizedBox(height: 8),
           const Divider(),
         ],
         const SizedBox(height: 8),
-        Text('Dodaj ręcznie',
+        Text(AppText.t.gw_addManually,
             style: GoogleFonts.inter(
                 fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.text)),
         const SizedBox(height: 8),
         TextField(
             controller: _titleCtrl,
             maxLength: 200,
-            decoration: _guestDec('Tytuł utworu')),
+            decoration: _guestDec(AppText.t.gw_songTitle)),
         TextField(
             controller: _artistCtrl,
             maxLength: 200,
-            decoration: _guestDec('Wykonawca (opcjonalnie)')),
+            decoration: _guestDec(AppText.t.gw_artistOptional)),
         const SizedBox(height: 6),
         _SubmitButton(
-          label: 'Wyślij propozycję',
+          label: AppText.t.gw_sendProposal,
           sending: _sending,
           onTap: () => _send(
               title: _titleCtrl.text.trim(), artist: _artistCtrl.text.trim()),
         ),
         if (_sent.isNotEmpty) ...[
           const SizedBox(height: 20),
-          Text('Twoje propozycje',
+          Text(AppText.t.gw_yourProposals,
               style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -590,17 +589,16 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
   Future<void> _finish() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Najpierw podaj swoje imię.');
+      _snack(AppText.t.gw_nameFirst);
       return;
     }
     if (_picked.length < widget.questions.length) {
-      _snack('Odpowiedz na wszystkie pytania.');
+      _snack(AppText.t.gw_answerAllQuestions);
       return;
     }
     final uid = GuestIdentity.uid;
     if (uid == null) {
-      _snack('Nie udało się przygotować sesji gościa. '
-          'Odśwież stronę i spróbuj ponownie.');
+      _snack(AppText.t.gw_sessionError);
       return;
     }
     var score = 0;
@@ -626,7 +624,7 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
         _earlier = false;
       });
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać wyniku: $e');
+      if (mounted) _snack(AppText.t.gw_scoreError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -635,11 +633,11 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
   @override
   Widget build(BuildContext context) {
     if (!widget.active) {
-      return _centerInfo('Ta gra nie jest w tej chwili aktywna.',
+      return _centerInfo(AppText.t.gw_gameInactive,
           icon: Icons.pause_circle_outline);
     }
     if (widget.questions.isEmpty) {
-      return _centerInfo('Pytania pojawią się wkrótce.',
+      return _centerInfo(AppText.t.gw_questionsSoon,
           icon: Icons.hourglass_empty);
     }
     if (_done) {
@@ -664,10 +662,10 @@ class _ChoiceGamePageState extends State<_ChoiceGamePage> {
           _questionCard(widget.questions[i], i),
         const SizedBox(height: 8),
         _SubmitButton(
-            label: 'Zakończ i wyślij wynik', sending: _sending, onTap: _finish),
+            label: AppText.t.gw_finishAndSend, sending: _sending, onTap: _finish),
         const SizedBox(height: 8),
         Text(
-          'Wynik zobaczy Para Młoda. Nie ma publicznego rankingu.',
+          AppText.t.gw_scorePrivate,
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
         ),
@@ -830,17 +828,16 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
   Future<void> _finish() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Najpierw podaj swoje imię.');
+      _snack(AppText.t.gw_nameFirst);
       return;
     }
     if (_picked.length < widget.statements.length) {
-      _snack('Odpowiedz na wszystkie stwierdzenia.');
+      _snack(AppText.t.gw_answerAllStatements);
       return;
     }
     final uid = GuestIdentity.uid;
     if (uid == null) {
-      _snack('Nie udało się przygotować sesji gościa. '
-          'Odśwież stronę i spróbuj ponownie.');
+      _snack(AppText.t.gw_sessionError);
       return;
     }
     var score = 0;
@@ -865,7 +862,7 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
         _earlier = false;
       });
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać wyniku: $e');
+      if (mounted) _snack(AppText.t.gw_scoreError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -874,11 +871,11 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
   @override
   Widget build(BuildContext context) {
     if (!widget.active) {
-      return _centerInfo('Ta gra nie jest w tej chwili aktywna.',
+      return _centerInfo(AppText.t.gw_gameInactive,
           icon: Icons.pause_circle_outline);
     }
     if (widget.statements.isEmpty) {
-      return _centerInfo('Stwierdzenia pojawią się wkrótce.',
+      return _centerInfo(AppText.t.gw_statementsSoon,
           icon: Icons.hourglass_empty);
     }
     if (_done) {
@@ -903,10 +900,10 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
           _statementCard(widget.statements[i], i),
         const SizedBox(height: 8),
         _SubmitButton(
-            label: 'Zakończ i wyślij wynik', sending: _sending, onTap: _finish),
+            label: AppText.t.gw_finishAndSend, sending: _sending, onTap: _finish),
         const SizedBox(height: 8),
         Text(
-          'Wynik zobaczy Para Młoda. Nie ma publicznego rankingu.',
+          AppText.t.gw_scorePrivate,
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
         ),
@@ -937,12 +934,12 @@ class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
           Row(
             children: [
               Expanded(
-                child: _tfButton('Prawda', true, chosen == true,
+                child: _tfButton(AppText.t.gw_true, true, chosen == true,
                     () => setState(() => _picked[sid] = true)),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _tfButton('Fałsz', false, chosen == false,
+                child: _tfButton(AppText.t.gw_false, false, chosen == false,
                     () => setState(() => _picked[sid] = false)),
               ),
             ],
@@ -1005,7 +1002,7 @@ class _ResultSummary extends StatelessWidget {
             children: [
               Text(emoji ?? '🎉', style: const TextStyle(fontSize: 44)),
               const SizedBox(height: 12),
-              Text('Twój wynik: $score / $total',
+              Text(AppText.t.gw_yourScore(score, total),
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -1013,9 +1010,8 @@ class _ResultSummary extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                   earlier
-                      ? 'To Twój wcześniejszy wynik. Możesz spróbować ponownie — '
-                          'nowy wynik zastąpi poprzedni.'
-                      : 'Dziękujemy za zabawę! Wynik trafił do Pary Młodej.',
+                      ? AppText.t.gw_scoreEarlier
+                      : AppText.t.gw_scoreThanks,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                       fontSize: 14, color: AppColors.textLight)),
@@ -1024,7 +1020,7 @@ class _ResultSummary extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onReplay,
                   icon: const Icon(Icons.replay, size: 18),
-                  label: const Text('Zagraj ponownie'),
+                  label: Text(AppText.t.gw_playAgain),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -1075,13 +1071,12 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
   Future<void> _send(int challengeId, ImageSource source) async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Najpierw podaj swoje imię.');
+      _snack(AppText.t.gw_nameFirst);
       return;
     }
     final uid = GuestIdentity.uid;
     if (uid == null) {
-      _snack('Nie udało się przygotować sesji gościa. '
-          'Odśwież stronę i spróbuj ponownie.');
+      _snack(AppText.t.gw_sessionError);
       return;
     }
     try {
@@ -1098,9 +1093,9 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
         photoUrl: up.url,
         photoPublicId: up.publicId,
       );
-      if (mounted) _snack('Zdjęcie wysłane ✓');
+      if (mounted) _snack(AppText.t.gw_photoSent);
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _busyTask = null);
     }
@@ -1109,11 +1104,11 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
   @override
   Widget build(BuildContext context) {
     if (!widget.active) {
-      return _centerInfo('Foto-wyzwania nie są w tej chwili aktywne.',
+      return _centerInfo(AppText.t.gw_challengesInactive,
           icon: Icons.pause_circle_outline);
     }
     if (widget.tasks.isEmpty) {
-      return _centerInfo('Wyzwania pojawią się wkrótce.',
+      return _centerInfo(AppText.t.gw_challengesSoon,
           icon: Icons.hourglass_empty);
     }
     return ListView(
@@ -1122,13 +1117,13 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
         _nameField(_nameCtrl),
         const SizedBox(height: 4),
         Text(
-          'Jedno zdjęcie na wyzwanie — kolejne zastąpi poprzednie.',
+          AppText.t.gw_challengeHint,
           style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight),
         ),
         const SizedBox(height: 10),
         for (final t in widget.tasks) _taskCard(t),
         const SizedBox(height: 16),
-        Text('Zdjęcia gości',
+        Text(AppText.t.gw_guestPhotos,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -1138,12 +1133,12 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
           stream: widget.service.watchPhotoChallenges(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return Text('Nie udało się wczytać zdjęć.',
+              return Text(AppText.t.gw_photosError,
                   style: GoogleFonts.inter(color: AppColors.textLight));
             }
             final items = snapshot.data ?? const [];
             if (items.isEmpty) {
-              return Text('Jeszcze nikt nie przesłał zdjęcia — zacznij Ty!',
+              return Text(AppText.t.gw_photosEmpty,
                   style: GoogleFonts.inter(color: AppColors.textLight));
             }
             return GridView.builder(
@@ -1207,7 +1202,7 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
                   color: AppColors.accent.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('$points pkt',
+                child: Text(AppText.t.gw_points(points),
                     style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -1219,7 +1214,7 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
           _PhotoButtons(
             busy: _busyTask == id,
             onPick: (src) => _send(id, src),
-            label: 'Wyślij zdjęcie',
+            label: AppText.t.gw_sendPhoto,
           ),
         ],
       ),
@@ -1301,13 +1296,12 @@ class _BingoPageState extends State<_BingoPage> {
   Future<void> _send() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      _snack('Najpierw podaj swoje imię.');
+      _snack(AppText.t.gw_nameFirst);
       return;
     }
     final uid = GuestIdentity.uid;
     if (uid == null) {
-      _snack('Nie udało się przygotować sesji gościa. '
-          'Odśwież stronę i spróbuj ponownie.');
+      _snack(AppText.t.gw_sessionError);
       return;
     }
     setState(() => _sending = true);
@@ -1321,7 +1315,7 @@ class _BingoPageState extends State<_BingoPage> {
       if (!mounted) return;
       setState(() => _done = true);
     } catch (e) {
-      if (mounted) _snack('Nie udało się wysłać: $e');
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -1330,7 +1324,7 @@ class _BingoPageState extends State<_BingoPage> {
   @override
   Widget build(BuildContext context) {
     if (_board.isEmpty) {
-      return _centerInfo('Plansza bingo pojawi się wkrótce.',
+      return _centerInfo(AppText.t.gw_bingoSoon,
           icon: Icons.hourglass_empty);
     }
     if (_done) {
@@ -1343,8 +1337,7 @@ class _BingoPageState extends State<_BingoPage> {
         _nameField(_nameCtrl),
         const SizedBox(height: 4),
         Text(
-          'Skreślaj pola, gdy zobaczysz je na weselu. Skreślenia są tylko na '
-          'Twoim telefonie — wyślij zgłoszenie, gdy uzbierasz komplet.',
+          AppText.t.gw_bingoIntro,
           style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
         ),
         const SizedBox(height: 12),
@@ -1360,7 +1353,7 @@ class _BingoPageState extends State<_BingoPage> {
           itemBuilder: (context, i) => _cell(i),
         ),
         const SizedBox(height: 12),
-        Text('Skreślone: ${_marked.length} / ${_board.length}',
+        Text(AppText.t.gw_bingoMarked(_marked.length, _board.length),
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
                 fontSize: 13,
@@ -1368,7 +1361,7 @@ class _BingoPageState extends State<_BingoPage> {
                 color: AppColors.text)),
         const SizedBox(height: 8),
         _SubmitButton(
-            label: 'Mam bingo!', sending: _sending, onTap: _send),
+            label: AppText.t.gw_bingoDone, sending: _sending, onTap: _send),
       ],
     );
   }

@@ -7,6 +7,8 @@ import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import 'budget_fields.dart';
+import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Podzakładka napojów — wspólna dla Alkoholu i Napojów bezalkoholowych.
 class BeverageTab extends StatelessWidget {
@@ -49,7 +51,7 @@ class BeverageTab extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: () => service.setBeveragePanelHidden(kind, true),
             icon: const Icon(Icons.delete_outline, size: 18),
-            label: Text('Usuń panel: ${kind.title}'),
+            label: Text(AppText.t.budget_panelRemoveTitle(kind.title)),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFFC0392B),
               side: const BorderSide(color: Color(0xFFE9A8A8)),
@@ -67,13 +69,12 @@ class BeverageTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         _card(
-          title: 'Panel usunięty',
+          title: AppText.t.budget_panelRemovedToast,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Panel „${kind.title}" jest usunięty i NIE jest wliczany do '
-                'budżetu. Pozycje pozostają zapisane — możesz przywrócić panel.',
+                AppText.t.budget_panelRemovedInfo(kind.title),
                 style:
                     GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
               ),
@@ -83,7 +84,7 @@ class BeverageTab extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => service.setBeveragePanelHidden(kind, false),
                   icon: const Icon(Icons.restore),
-                  label: const Text('Przywróć panel'),
+                  label: Text(AppText.t.budget_panelRestore),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -105,12 +106,12 @@ class BeverageTab extends StatelessWidget {
         onPressed: () => service.addBeverage(kind),
         icon: const Icon(Icons.add_circle_outline),
         color: AppColors.accent,
-        tooltip: 'Dodaj pozycję',
+        tooltip: AppText.t.budget_addItem,
       ),
       child: items.isEmpty
           ? Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text('Kliknij +, aby dodać pozycję.',
+              child: Text(AppText.t.budget_addItemHint,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: AppColors.textLight)),
             )
@@ -135,8 +136,8 @@ class BeverageTab extends StatelessWidget {
         children: [
           Row(
             children: [
-              _stat(s.totalBottles.toStringAsFixed(0), 'butelek łącznie'),
-              _stat(formatPlnZl(s.totalCost), 'łączny koszt'),
+              _stat(s.totalBottles.toStringAsFixed(0), AppText.t.budget_bottlesTotal),
+              _stat(formatPlnZl(s.totalCost), AppText.t.budget_costTotal),
             ],
           ),
           const SizedBox(height: 10),
@@ -157,7 +158,7 @@ class BeverageTab extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
             title: Text(
-              'Uwzględniaj gości wirtualnych w przeliczeniu na osobę',
+              AppText.t.budget_includeVirtual,
               style: GoogleFonts.inter(fontSize: 13),
             ),
             value: s.perVirtual,
@@ -171,7 +172,7 @@ class BeverageTab extends StatelessWidget {
   Widget _splitCard(BeverageSummary s) {
     final over = (s.splitP1 + s.splitP2) > s.totalCost + 0.01 && s.totalCost > 0;
     return _card(
-      title: '⚖ Podział kosztów',
+      title: AppText.t.budget_splitHeader,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -181,7 +182,7 @@ class BeverageTab extends StatelessWidget {
                 child: BudgetNumberField(
                   key: ValueKey(kind.splitP1Key),
                   label: s.coupleNames[0],
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   initial: s.splitP1,
                   onSaved: (v) => service.setBeverageSplit(kind, p1: v),
                 ),
@@ -191,7 +192,7 @@ class BeverageTab extends StatelessWidget {
                 child: BudgetNumberField(
                   key: ValueKey(kind.splitP2Key),
                   label: s.coupleNames[1],
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   initial: s.splitP2,
                   onSaved: (v) => service.setBeverageSplit(kind, p2: v),
                 ),
@@ -202,7 +203,7 @@ class BeverageTab extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
-                '⚠ Suma podziału przekracza łączny koszt.',
+                AppText.t.budget_splitExceeds,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: const Color(0xFFC0392B)),
               ),
@@ -345,7 +346,7 @@ class _BeverageRow extends StatelessWidget {
               ),
               Expanded(
                 child: BudgetNumberField(
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   initial: price,
                   compact: true,
                   onSaved: (v) =>

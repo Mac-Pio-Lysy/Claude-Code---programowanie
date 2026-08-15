@@ -11,6 +11,7 @@ import '../../services/firestore_service.dart';
 import '../../services/rsvp_service.dart';
 import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Potwierdzenia" (panel RSVP organizatora).
 class RsvpScreen extends StatefulWidget {
@@ -89,14 +90,14 @@ class _RsvpScreenState extends State<RsvpScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Text('Potwierdzenia',
+                child: Text(AppText.t.rsvp_title,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
               ),
               IconButton(
-                tooltip: 'Wyczyść wszystkie',
+                tooltip: AppText.t.rsvp_clearAll,
                 onPressed: () => _confirmClearAll(context),
                 icon: const Icon(Icons.delete_sweep_outlined,
                     color: Color(0xFFC0392B)),
@@ -135,15 +136,13 @@ class _RsvpScreenState extends State<RsvpScreen> {
                     border: Border.all(color: const Color(0xFFFCD34D)),
                   ),
                   child: Text(
-                    'Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej '
-                    'sekcji) lub link do strony /rsvp, aby zbierać potwierdzenia. '
-                    'Możesz też ręcznie ustawić status każdego gościa poniżej.',
+                    AppText.t.rsvpMain_txt1,
                     style: GoogleFonts.inter(
                         fontSize: 13, color: const Color(0xFF92400E)),
                   ),
                 ),
               if (unmatched.isNotEmpty) ...[
-                Text('Nierozpoznane potwierdzenia (${unmatched.length})',
+                Text(AppText.t.rsvp_unmatched(unmatched.length),
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -156,7 +155,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Goście (${filteredGuests.length})',
+                    child: Text(AppText.t.rsvp_guestsCount(filteredGuests.length),
                         style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -182,7 +181,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
               if (filteredGuests.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text('Brak gości w tej kategorii.',
+                  child: Text(AppText.t.rsvp_noGuestsInCategory,
                       style: GoogleFonts.inter(
                           fontSize: 13, color: AppColors.textLight)),
                 )
@@ -196,8 +195,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
                   ('📋 Potwierdzenia (RSVP)', PublicPages.rsvp(baseUrl)),
                 ],
                 intro:
-                    'Udostępnij gościom stronę potwierdzeń obecności (RSVP). '
-                    'Pokaż kod QR lub wyślij link.',
+                    AppText.t.rsvpMain_txt2,
               ),
             ],
           ),
@@ -354,7 +352,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
               if (status != null)
                 TextButton(
                   onPressed: () => widget.service.clearGuestStatus(gid),
-                  child: const Text('Wyczyść'),
+                  child: Text(AppText.t.rsvp_clear),
                 ),
             ],
           ),
@@ -398,7 +396,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
           if (e.message.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2),
-              child: Text('„${e.message}"',
+              child: Text(AppText.t.rsvp_quotedMessage(e.message),
                   style: GoogleFonts.inter(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,
@@ -416,7 +414,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
                         EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     border: OutlineInputBorder(),
                   ),
-                  hint: const Text('Przypisz do gościa…'),
+                  hint: Text(AppText.t.rsvp_assignToGuest),
                   items: [
                     for (final g in guests)
                       DropdownMenuItem(
@@ -449,17 +447,17 @@ class _RsvpScreenState extends State<RsvpScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Wyczyścić wszystkie potwierdzenia?'),
-        content: const Text('Tej operacji nie można cofnąć.'),
+        title: Text(AppText.t.rsvp_clearAllTitle),
+        content: Text(AppText.t.common_deleteConfirmBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Wyczyść'),
+            child: Text(AppText.t.rsvp_clear),
           ),
         ],
       ),

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../app_colors.dart';
 import '../models/planning_step.dart';
 import 'onboarding_steps.dart';
+import '../l10n/app_text.dart';
 
 /// Pełnoekranowa nakładka przewodnika: przyciemnione tło ze „światłem"
 /// (spotlight) na omawianym elemencie nawigacji oraz dymek z opisem,
@@ -194,7 +195,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           if (rest > 0)
             Padding(
               padding: const EdgeInsets.only(top: 6, left: 23),
-              child: Text('…i jeszcze $rest ${_stepWord(rest)} na liście',
+              child: Text(AppText.t.onb_moreSteps(rest),
                   style: GoogleFonts.inter(
                       fontSize: 11.5,
                       fontStyle: FontStyle.italic,
@@ -205,14 +206,6 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
     );
   }
 
-  /// Odmiana słowa „krok" po liczebniku.
-  static String _stepWord(int n) {
-    if (n == 1) return 'krok';
-    final last2 = n % 100;
-    final last = n % 10;
-    if (last2 >= 12 && last2 <= 14) return 'kroków';
-    return (last >= 2 && last <= 4) ? 'kroki' : 'kroków';
-  }
 
   Widget _card(bool last) {
     return Container(
@@ -233,7 +226,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🧭  ${widget.step.title}',
+          Text(AppText.t.onb_stepHeader(widget.step.title),
               style: GoogleFonts.playfairDisplay(
                   fontSize: 19,
                   fontWeight: FontWeight.w700,
@@ -259,7 +252,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('Krok ${widget.index + 1} z ${widget.total}',
+              Text(AppText.t.onb_stepCounter(widget.index + 1, widget.total),
                   style: GoogleFonts.inter(
                       fontSize: 11.5,
                       fontWeight: FontWeight.w600,
@@ -269,7 +262,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 onPressed: widget.onSkip,
                 style:
                     TextButton.styleFrom(foregroundColor: AppColors.textLight),
-                child: const Text('Pomiń'),
+                child: Text(AppText.t.onb_skip),
               ),
             ],
           ),
@@ -281,7 +274,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                   child: OutlinedButton.icon(
                     onPressed: widget.onPrev,
                     icon: const Icon(Icons.arrow_back, size: 16),
-                    label: const Text('Wstecz'),
+                    label: Text(AppText.t.common_back),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.accent,
                       side: const BorderSide(color: AppColors.accent),
@@ -294,7 +287,7 @@ class _OnboardingOverlayState extends State<OnboardingOverlay>
                 child: FilledButton.icon(
                   onPressed: widget.onNext,
                   icon: Icon(last ? Icons.check : Icons.arrow_forward, size: 16),
-                  label: Text(last ? 'Zakończ' : 'Dalej'),
+                  label: Text(last ? AppText.t.onb_finish : AppText.t.common_next),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     padding: const EdgeInsets.symmetric(vertical: 11),
@@ -392,25 +385,22 @@ Future<OnbChoice?> showOnboardingIntro(
     // Gość ma JEDEN przewodnik — zawsze całość, bez wyboru tempa (#21).
     // `basicSub`/`fullSub` nie są dla niego używane.
     OnbVariant.guest => (
-        title: 'Przewodnik dla gościa',
-        desc: 'Pokażemy Ci, co możesz zrobić na stronie przygotowanej przez '
-            'Parę Młodą. Zajmie to chwilę.',
+        title: AppText.t.onb_guestTitle,
+        desc: AppText.t.onb_guestIntro,
         basicSub: '',
         fullSub: '',
       ),
     OnbVariant.planner => (
-        title: 'Przewodnik dla planera',
-        desc: 'Pokażemy Ci panel wesela klienta i to, czym różni się praca '
-            'planera od konta Pary Młodej. Wznowisz go z Ustawień.',
-        basicSub: 'Główne sekcje panelu i zasady pracy planera',
-        fullSub: 'Wszystkie sekcje, podzakładki i ustawienia',
+        title: AppText.t.onb_plannerTitle,
+        desc: AppText.t.onb_plannerIntro,
+        basicSub: AppText.t.onb_plannerShort,
+        fullSub: AppText.t.onb_plannerFull,
       ),
     OnbVariant.owner => (
-        title: 'Przewodnik po aplikacji',
-        desc: 'Pokażemy Ci najważniejsze miejsca w aplikacji. Wybierz tempo — '
-            'przewodnik wznowisz w każdej chwili z Ustawień (pod logo).',
-        basicSub: 'Tylko główne sekcje — szybki przegląd',
-        fullSub: 'Wszystkie sekcje i podzakładki',
+        title: AppText.t.onb_ownerTitle,
+        desc: AppText.t.onb_ownerIntro,
+        basicSub: AppText.t.onb_ownerShort,
+        fullSub: AppText.t.onb_ownerFull,
       ),
   };
 }
@@ -469,9 +459,7 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'To podgląd dla Ciebie. Goście oglądają swoją strefę '
-                          'na osobnej stronie o zupełnie innym wyglądzie — tutaj '
-                          'pokazujemy wyłącznie treść ich przewodnika.',
+                          AppText.t.onb_guestPreviewNote,
                           style: GoogleFonts.inter(
                               fontSize: 12,
                               height: 1.45,
@@ -488,8 +476,8 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                 _introBtn(
                   context,
                   icon: Icons.explore_outlined,
-                  title: preview ? 'Zobacz przewodnik gościa' : 'Rozpocznij',
-                  subtitle: 'Wszystkie sekcje strefy gości',
+                  title: preview ? AppText.t.onb_guestPreview : AppText.t.onb_start,
+                  subtitle: AppText.t.onb_guestFull,
                   value: 'full',
                   filled: true,
                 )
@@ -497,7 +485,7 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                 _introBtn(
                   context,
                   icon: Icons.flag_outlined,
-                  title: 'Skrócony',
+                  title: AppText.t.onb_short,
                   subtitle: t.basicSub,
                   value: 'basic',
                   filled: false,
@@ -506,7 +494,7 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                 _introBtn(
                   context,
                   icon: Icons.explore_outlined,
-                  title: 'Rozszerzony',
+                  title: AppText.t.onb_full,
                   subtitle: t.fullSub,
                   value: 'full',
                   filled: true,
@@ -517,8 +505,8 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                 _introBtn(
                   context,
                   icon: Icons.groups_outlined,
-                  title: 'Zobacz przewodnik gościa',
-                  subtitle: 'Sprawdź, co widzą Wasi goście',
+                  title: AppText.t.onb_guestPreview,
+                  subtitle: AppText.t.onb_guestPreviewHint,
                   value: 'guest',
                   filled: false,
                 ),
@@ -528,8 +516,8 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                 _introBtn(
                   context,
                   icon: Icons.checklist_rtl,
-                  title: 'Poprowadź mnie za rękę',
-                  subtitle: 'Krok po kroku przez uzupełnianie danych wesela',
+                  title: AppText.t.settings_setupWizardButton,
+                  subtitle: AppText.t.onb_setupWizardHint,
                   value: 'setup',
                   filled: false,
                 ),
@@ -539,7 +527,7 @@ Future<String?> _showIntroDialog(BuildContext context, OnbVariant variant,
                 onPressed: () => Navigator.of(context).pop(null),
                 style:
                     TextButton.styleFrom(foregroundColor: AppColors.textLight),
-                child: const Text('Pomiń przewodnik'),
+                child: Text(AppText.t.onb_skipTour),
               ),
             ],
           ),

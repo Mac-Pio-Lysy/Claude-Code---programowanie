@@ -12,6 +12,7 @@ import '../../widgets/public_link_card.dart';
 import 'checklist_tab.dart';
 import 'guest_schedule_tab.dart';
 import 'timeline_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Harmonogram" — oś czasu dnia ślubu + checklista.
 class ScheduleScreen extends StatelessWidget {
@@ -60,10 +61,10 @@ class ScheduleScreen extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Kod QR dla gości',
+                  tooltip: AppText.t.schedule_qrForGuests,
                   onPressed: () {
                     final base = PublicPages.baseUrl(data?.raw);
-                    showPublicLinkDialog(context, '📅 Harmonogram dnia ślubu',
+                    showPublicLinkDialog(context, AppText.t.schedule_title,
                         PublicPages.harmonogram(base));
                   },
                   icon: const Icon(Icons.qr_code_2, color: AppColors.accent),
@@ -81,10 +82,10 @@ class ScheduleScreen extends StatelessWidget {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-            tabs: const [
-              Tab(text: 'Plan dnia'),
-              Tab(text: 'Checklista'),
-              Tab(text: 'Dla gości'),
+            tabs: [
+              Tab(text: AppText.t.schedule_tabDayPlan),
+              Tab(text: AppText.t.schedule_tabChecklist),
+              Tab(text: AppText.t.schedule_forGuests),
             ],
           ),
           Expanded(

@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/vendor.dart';
 import '../../services/vendor_service.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_text.dart';
 
 /// Modalny formularz dodawania / edycji dostawcy.
 class VendorFormSheet extends StatefulWidget {
@@ -258,11 +259,11 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                         SwitchListTile.adaptive(
                           contentPadding: EdgeInsets.zero,
                           activeThumbColor: AppColors.accent,
-                          title: Text('💰 Powiąż z budżetem',
+                          title: Text(AppText.t.vendors_linkBudget,
                               style: GoogleFonts.inter(
                                   fontSize: 14, fontWeight: FontWeight.w600)),
                           subtitle: Text(
-                            'Tworzy/aktualizuje powiązany wpis w budżecie (referencja).',
+                            AppText.t.vendors_linkBudgetHint,
                             style: GoogleFonts.inter(
                                 fontSize: 11, color: AppColors.textLight),
                           ),

@@ -1,3 +1,9 @@
+import '../l10n/app_text.dart';
+import 'couple.dart';
+
+/// Stan członkostwa niezależny od języka — do kolorowania i porównań.
+enum MembershipStatusKind { active, blocked, pending, expired }
+
 /// Powiązanie użytkownik ↔ wesele (kolekcja `memberships`).
 ///
 /// Jeden użytkownik może mieć dostęp do wielu wesel, a jedno wesele może mieć
@@ -67,21 +73,35 @@ class Membership {
   bool isEffectiveOn(DateTime today) =>
       status == 'active' && !isExpiredOn(today);
 
-  /// Etykieta roli po polsku.
+  /// Etykieta roli na ekranie — TŁUMACZONA. W bazie zostaje [role]
+  /// (`owner`/`planner`/…), więc zmiana języka nie rusza uprawnień.
   String get roleLabel => switch (role) {
-        'owner' => 'Para Młoda',
-        'planner' => 'Planer',
-        'collaborator' => 'Współorganizator',
-        'guest' => 'Gość',
+        // Właściciel opisany jak wszędzie indziej — z uwzględnieniem typu
+        // uroczystości (para jednopłciowa nie zobaczy „Pary Młodej").
+        'owner' => CoupleLabels.current.coupleCategoryLabel,
+        'planner' => AppText.t.role_planner,
+        'collaborator' => AppText.t.role_collaborator,
+        'guest' => AppText.t.role_guest,
         _ => role,
       };
 
-  /// Etykieta statusu po polsku (uwzględnia wygaśnięcie planera).
-  String statusLabelOn(DateTime today) {
-    if (status == 'blocked') return 'Zablokowany';
-    if (status == 'pending') return 'Oczekuje';
-    if (isExpiredOn(today)) return 'Wygasł';
-    return 'Aktywny';
+  /// Etykieta statusu na ekranie (uwzględnia wygaśnięcie planera).
+  ///
+  /// Do KOLOROWANIA i logiki służy [statusKindOn], nie ta etykieta — inaczej
+  /// po przełączeniu języka porównania tekstu przestałyby trafiać.
+  String statusLabelOn(DateTime today) => switch (statusKindOn(today)) {
+        MembershipStatusKind.blocked => AppText.t.status_blocked,
+        MembershipStatusKind.pending => AppText.t.status_pending,
+        MembershipStatusKind.expired => AppText.t.status_expired,
+        MembershipStatusKind.active => AppText.t.status_active,
+      };
+
+  /// Status w formie nadającej się do porównań (niezależnej od języka).
+  MembershipStatusKind statusKindOn(DateTime today) {
+    if (status == 'blocked') return MembershipStatusKind.blocked;
+    if (status == 'pending') return MembershipStatusKind.pending;
+    if (isExpiredOn(today)) return MembershipStatusKind.expired;
+    return MembershipStatusKind.active;
   }
 
   factory Membership.fromMap(String id, Map<String, dynamic> m) => Membership(

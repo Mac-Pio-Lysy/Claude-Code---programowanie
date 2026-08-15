@@ -29,6 +29,10 @@ Future<void> main() async {
   // aplikacja organizatora (logowanie → panel).
   final guestToken = _detectGuestToken();
   if (guestToken != null) {
+    // Gość nie ma konta, więc jego wybór języka wisi pod wspólnym kluczem
+    // `locale_guest`. Wczytujemy PRZED `runApp`, żeby strona nie mrugnęła
+    // najpierw domyślnym językiem.
+    await LocaleController.loadGuest();
     runApp(GuestWebApp(token: guestToken));
     return;
   }

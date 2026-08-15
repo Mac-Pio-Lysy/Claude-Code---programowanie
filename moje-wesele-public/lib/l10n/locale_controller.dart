@@ -32,11 +32,25 @@ class LocaleController {
 
   static String _keyFor(String uid) => 'locale_$uid';
 
+  /// Klucz wyboru języka dla NIEZALOGOWANEGO gościa (wejście z linku/QR).
+  ///
+  /// Gość nie ma konta ani ekranu Ustawień, więc wybór nie może wisieć pod
+  /// `uid`. Jedno wspólne miejsce na urządzenie (`locale_guest`) w tym samym
+  /// magazynie co reszta: `SharedPreferences`, czyli `localStorage` na webie.
+  static const String guestUid = 'guest';
+
   /// Wczytuje zapisany wybór (po zalogowaniu / wejściu w wesele).
   static Future<void> load(String uid) async {
     final prefs = await SharedPreferences.getInstance();
     locale.value = _parse(prefs.getString(_keyFor(uid)));
   }
+
+  /// Wczytuje wybór gościa. Brak zapisu → `null`, czyli język przeglądarki,
+  /// a przy nieobsługiwanym języku [fallback] (polski) — patrz [resolve].
+  static Future<void> loadGuest() => load(guestUid);
+
+  /// Zapisuje wybór gościa (bez `uid`, bo gość nie jest zalogowany).
+  static Future<void> setGuest(Locale? value) => set(guestUid, value);
 
   /// Zapisuje wybór i stosuje go natychmiast.
   ///

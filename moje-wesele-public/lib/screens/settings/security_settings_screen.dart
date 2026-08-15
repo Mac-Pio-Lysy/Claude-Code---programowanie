@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../services/app_lock_service.dart';
 import '../lock/security_setup.dart';
+import '../../l10n/app_text.dart';
 
 /// Zakładka „Logowanie" (sekcja Ustawienia): biometria, zapasowy PIN/wzór
 /// i status zabezpieczeń. Dane trzymane lokalnie na urządzeniu
@@ -59,7 +60,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   Future<void> _enableLock() async {
     final ok =
         await SecuritySetupScreen.start(context, withBiometric: _bioCapable);
-    if (ok) _toast('Zabezpieczenia włączone ✓');
+    if (ok) _toast(AppText.t.sec_enabled);
     await _load();
   }
 
@@ -67,42 +68,41 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Wyłączyć zabezpieczenia?'),
-        content: const Text(
-            'Aplikacja przestanie wymagać odcisku palca / PIN-u przy '
-            'otwieraniu. Zapisany PIN/wzór zostanie usunięty z tego urządzenia.'),
+        title: Text(AppText.t.sec_disableTitle),
+        content: Text(
+            AppText.t.sec_disableBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
-            child: const Text('Wyłącz'),
+            child: Text(AppText.t.sec_disable),
           ),
         ],
       ),
     );
     if (ok != true) return;
     await _lock.clearAll();
-    _toast('Zabezpieczenia wyłączone');
+    _toast(AppText.t.sec_disabled);
     await _load();
   }
 
   Future<void> _toggleBiometric(bool value) async {
     if (value) {
       final ok = await _lock.authenticateBiometric(
-        reason: 'Potwierdź odcisk palca, aby włączyć szybkie logowanie',
+        reason: AppText.t.sec_confirmBiometric,
       );
       if (!ok) {
-        _toast('Nie potwierdzono biometrii');
+        _toast(AppText.t.sec_biometricFailed);
         return;
       }
       await _lock.setBiometricEnabled(true);
-      _toast('Logowanie odciskiem palca włączone');
+      _toast(AppText.t.sec_biometricOn);
     } else {
       await _lock.setBiometricEnabled(false);
-      _toast('Logowanie odciskiem palca wyłączone');
+      _toast(AppText.t.sec_biometricOff);
     }
     await _load();
   }
@@ -113,7 +113,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
       withBiometric: _bioEnabled,
       changeOnly: true,
     );
-    if (ok) _toast('Zmieniono zabezpieczenie zapasowe ✓');
+    if (ok) _toast(AppText.t.sec_backupChanged);
     await _load();
   }
 
@@ -127,7 +127,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
-        title: Text('Logowanie',
+        title: Text(AppText.t.sec_title,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -170,7 +170,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
   Widget _statusCard() {
     final active = _lockEnabled;
     return _card(
-      'Status zabezpieczeń',
+      AppText.t.sec_statusCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -178,8 +178,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             icon: active ? Icons.lock_outline : Icons.lock_open_outlined,
             color: active ? const Color(0xFF059669) : AppColors.textLight,
             text: active
-                ? 'Blokada aplikacji jest aktywna'
-                : 'Blokada aplikacji wyłączona',
+                ? AppText.t.sec_lockOn
+                : AppText.t.sec_lockOff,
           ),
           if (active) ...[
             const SizedBox(height: 8),
@@ -187,8 +187,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               icon: Icons.fingerprint,
               color: _bioEnabled ? AppColors.accent : AppColors.textLight,
               text: _bioEnabled
-                  ? 'Logowanie odciskiem palca: włączone'
-                  : 'Logowanie odciskiem palca: wyłączone',
+                  ? AppText.t.sec_biometricStatusOn
+                  : AppText.t.sec_biometricStatusOff,
             ),
             const SizedBox(height: 8),
             _statusRow(
@@ -197,7 +197,8 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                   : Icons.pin_outlined,
               color: AppColors.accent,
               text:
-                  'Zabezpieczenie zapasowe: ${_backupType?.label ?? 'PIN'}',
+                  AppText.t.sec_backupStatus(
+                      _backupType?.label ?? AppText.t.sec_backupPin),
             ),
           ],
           if (!_bioCapable) ...[
@@ -205,8 +206,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             _statusRow(
               icon: Icons.info_outline,
               color: AppColors.textLight,
-              text: 'To urządzenie nie ma czytnika biometrycznego — '
-                  'dostępny tylko PIN/wzór.',
+              text: AppText.t.sec_noReader,
             ),
           ],
         ],
@@ -234,7 +234,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
   Widget _masterCard() {
     return _card(
-      'Blokada aplikacji',
+      AppText.t.sec_lockCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -245,13 +245,13 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             onChanged: (v) => v ? _enableLock() : _disableLock(),
             title: Text(
               _bioCapable
-                  ? 'Wymagaj odcisku palca lub PIN-u'
-                  : 'Wymagaj PIN-u lub wzoru',
+                  ? AppText.t.sec_requireBiometric
+                  : AppText.t.sec_requirePin,
               style: GoogleFonts.inter(
                   fontSize: 14, fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
-              'Przy kolejnych otwarciach aplikacji.',
+              AppText.t.sec_onNextOpen,
               style:
                   GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
             ),
@@ -263,25 +263,24 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
   Widget _biometricCard() {
     return _card(
-      'Odcisk palca',
+      AppText.t.sec_fingerprint,
       _bioCapable
           ? SwitchListTile(
               contentPadding: EdgeInsets.zero,
               activeThumbColor: AppColors.accent,
               value: _bioEnabled,
               onChanged: _toggleBiometric,
-              title: Text('Szybkie logowanie odciskiem palca',
+              title: Text(AppText.t.sec_fastLogin,
                   style: GoogleFonts.inter(
                       fontSize: 14, fontWeight: FontWeight.w600)),
               subtitle: Text(
-                'PIN/wzór pozostaje jako metoda zapasowa.',
+                AppText.t.sec_pinStaysBackup,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight),
               ),
             )
           : Text(
-              'Brak czytnika biometrycznego na tym urządzeniu. '
-              'Odblokowujesz aplikację PIN-em lub wzorem.',
+              AppText.t.sec_noReaderLong,
               style:
                   GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
             ),
@@ -290,13 +289,13 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
 
   Widget _changeCard() {
     return _card(
-      'Zabezpieczenie zapasowe',
+      AppText.t.sec_backupCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Aktualnie: ${_backupType?.label ?? 'PIN'}. Możesz zmienić bez '
-            'wyłączania całej blokady.',
+            AppText.t.sec_backupCurrent(
+                _backupType?.label ?? AppText.t.sec_backupPin),
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -305,7 +304,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
             child: OutlinedButton.icon(
               onPressed: _changeBackup,
               icon: const Icon(Icons.password_outlined, size: 18),
-              label: const Text('Zmień PIN / wzór'),
+              label: Text(AppText.t.sec_changePin),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),

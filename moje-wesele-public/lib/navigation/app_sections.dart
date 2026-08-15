@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_text.dart';
+
 /// Wszystkie sekcje aplikacji weselnej (odpowiednik zakładek `switchView`
 /// w aplikacji webowej).
 enum AppSection {
@@ -24,26 +26,29 @@ enum AppSection {
 }
 
 /// Etykiety i ikony sekcji oraz podział na nawigację telefonu/tabletu.
+///
+/// Etykieta jest TŁUMACZONA; w bazie (układ paska nawigacji) zapisuje się
+/// `AppSection.name`, czyli angielski identyfikator — i on się nie zmienia.
 extension AppSectionMeta on AppSection {
   String get label => switch (this) {
-        AppSection.dashboard => 'Dashboard',
-        AppSection.guests => 'Goście',
-        AppSection.budget => 'Budżet',
-        AppSection.room => 'Plan sali',
-        AppSection.schedule => 'Harmonogram',
-        AppSection.tasks => 'Zadania',
-        AppSection.vendors => 'Dostawcy',
-        AppSection.transport => 'Transport',
-        AppSection.accommodation => 'Noclegi',
-        AppSection.music => 'Muzyka',
-        AppSection.gifts => 'Prezenty',
-        AppSection.gallery => 'Galeria & QR',
-        AppSection.games => 'Ślubne gry',
-        AppSection.keepsakes => 'Ślubne pamiątki',
-        AppSection.analytics => 'Analityka',
-        AppSection.rsvp => 'Potwierdzenia',
-        AppSection.rsvpAll => 'Wszystkie RSVP',
-        AppSection.settings => 'Ustawienia',
+        AppSection.dashboard => AppText.t.section_dashboard,
+        AppSection.guests => AppText.t.section_guests,
+        AppSection.budget => AppText.t.section_budget,
+        AppSection.room => AppText.t.section_room,
+        AppSection.schedule => AppText.t.section_schedule,
+        AppSection.tasks => AppText.t.section_tasks,
+        AppSection.vendors => AppText.t.section_vendors,
+        AppSection.transport => AppText.t.section_transport,
+        AppSection.accommodation => AppText.t.section_accommodation,
+        AppSection.music => AppText.t.section_music,
+        AppSection.gifts => AppText.t.section_gifts,
+        AppSection.gallery => AppText.t.section_gallery,
+        AppSection.games => AppText.t.section_games,
+        AppSection.keepsakes => AppText.t.section_keepsakes,
+        AppSection.analytics => AppText.t.section_analytics,
+        AppSection.rsvp => AppText.t.section_rsvp,
+        AppSection.rsvpAll => AppText.t.section_rsvpAll,
+        AppSection.settings => AppText.t.section_settings,
       };
 
   IconData get icon => switch (this) {

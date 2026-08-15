@@ -6,6 +6,8 @@ import '../../models/payment_item.dart';
 import '../../models/wedding_data.dart';
 import '../../utils/format.dart';
 import '../../widgets/filter_toggle_button.dart';
+import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Terminy płatności (Sala, Wydatki, Podróż poślubna, raty dostawców) —
 /// przypomnienia o zbliżających się/zaległych terminach oraz filtrowana lista
@@ -47,7 +49,7 @@ class _PaymentsSectionState extends State<PaymentsSection> {
             padding: const EdgeInsets.symmetric(vertical: 30),
             child: Center(
               child: Text(
-                'Brak płatności w tym widoku.',
+                AppText.t.budget_paymentsEmpty,
                 style:
                     GoogleFonts.inter(fontSize: 14, color: AppColors.textLight),
               ),
@@ -63,7 +65,7 @@ class _PaymentsSectionState extends State<PaymentsSection> {
         Row(
           children: [
             Expanded(
-              child: Text('Filtruj płatności',
+              child: Text(AppText.t.budget_paymentsFilter,
                   style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -100,7 +102,7 @@ class _PaymentsSectionState extends State<PaymentsSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '🔔 Przypomnienia o płatnościach',
+            AppText.t.budget_paymentsReminders,
             style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
@@ -140,7 +142,7 @@ class _PaymentsSectionState extends State<PaymentsSection> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      i.overdue ? 'zaległa!' : 'wkrótce',
+                      i.overdue ? AppText.t.budget_overdue : AppText.t.budget_dueSoon,
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -191,7 +193,7 @@ class _PaymentsSectionState extends State<PaymentsSection> {
           chip('🏠 Sala', PaymentSource.sala),
           chip('📋 Wydatki', PaymentSource.expenses),
           chip('🏢 Dostawcy', PaymentSource.vendor),
-          chip('✈️ Podróż', PaymentSource.honeymoon),
+          chip(AppText.t.budget_tripShort, PaymentSource.honeymoon),
         ],
       ),
     );
@@ -208,20 +210,20 @@ class _PaymentCard extends StatelessWidget {
       return (
         bg: const Color(0xFFECFDF5),
         fg: const Color(0xFF059669),
-        text: '✓ Opłacone'
+        text: AppText.t.budget_statusPaid
       );
     }
     if (item.paid > 0) {
       return (
         bg: const Color(0xFFFEF3C7),
         fg: const Color(0xFFB45309),
-        text: '⚡ Częściowo'
+        text: AppText.t.budget_statusPartial
       );
     }
     return (
       bg: const Color(0xFFFEE2E2),
       fg: const Color(0xFFC0392B),
-      text: '✗ Nieopłacone'
+      text: AppText.t.budget_statusUnpaid
     );
   }
 
@@ -292,7 +294,7 @@ class _PaymentCard extends StatelessWidget {
               ),
               if (item.dueDate.isNotEmpty)
                 Text(
-                  '📅 ${item.dueDate}',
+                  '📅 ${AppFormat.dateShortFromIso(item.dueDate) ?? item.dueDate}',
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -305,7 +307,8 @@ class _PaymentCard extends StatelessWidget {
           ),
           const SizedBox(height: 2),
           Text(
-            'Opłacono ${formatPlnZl(item.paid)} · Pozostało ${formatPlnZl(item.remaining)}',
+            AppText.t.budget_paidRemaining(
+            formatPlnZl(item.paid), formatPlnZl(item.remaining)),
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
         ],

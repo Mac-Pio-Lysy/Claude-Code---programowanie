@@ -9,6 +9,7 @@ import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
 import '../../services/quiz_service.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Quiz o Parze Młodej" (w sekcji „Ślubne gry").
 ///
@@ -76,9 +77,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 GuestPageTab(
                   links: [('🧠 Quiz o Parze Młodej', PublicPages.quiz(base))],
                   intro:
-                      'Strona, na której goście odpowiadają na pytania o Parę '
-                      'Młodą i poznają swój wynik. Włącz quiz w zakładce '
-                      '„Pytania", pokaż kod QR lub wyślij link.',
+                      AppText.t.quiz_txt1,
                 ),
               ],
             ),
@@ -115,7 +114,7 @@ class _QuizScreenState extends State<QuizScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => _openQuestionForm(),
                 icon: const Icon(Icons.add),
-                label: const Text('Dodaj pytanie'),
+                label: Text(AppText.t.quiz_addQuestion),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -148,7 +147,7 @@ class _QuizScreenState extends State<QuizScreen> {
         onChanged: hasQuestions
             ? (v) => widget.service.setActive(v)
             : null,
-        title: Text('Quiz aktywny dla gości',
+        title: Text(AppText.t.games_quizActiveForGuests,
             style:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
         subtitle: Text(
@@ -175,14 +174,14 @@ class _QuizScreenState extends State<QuizScreen> {
         children: [
           const Text('🧠', style: TextStyle(fontSize: 34)),
           const SizedBox(height: 10),
-          Text('Brak pytań',
+          Text(AppText.t.quiz_empty,
               style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 6),
           Text(
-            'Dodaj własne pytania lub zacznij od gotowych przykładów.',
+            AppText.t.quiz_emptyHint,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
@@ -190,10 +189,10 @@ class _QuizScreenState extends State<QuizScreen> {
           OutlinedButton.icon(
             onPressed: () async {
               await widget.service.seedExamples();
-              _toast('Dodano przykładowe pytania');
+              _toast(AppText.t.quiz_examplesAdded);
             },
             icon: const Icon(Icons.auto_awesome, size: 18),
-            label: const Text('Dodaj przykładowe pytania'),
+            label: Text(AppText.t.quiz_addExamples),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -247,7 +246,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
               Expanded(
-                child: Text('${index + 1}. ${q.question}',
+                child: Text(AppText.t.quiz_numbered(index + 1, q.question),
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -265,7 +264,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 icon: const Icon(Icons.delete_outline, size: 18),
                 color: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Usuń',
+                tooltip: AppText.t.common_delete,
               ),
             ],
           ),
@@ -319,14 +318,14 @@ class _QuizScreenState extends State<QuizScreen> {
             question: draft.question,
             answers: draft.answers,
             correctIndex: draft.correctIndex);
-        _toast('Zapisano pytanie');
+        _toast(AppText.t.quiz_saved);
       } else {
         await widget.service
             .addQuestion(draft.question, draft.answers, draft.correctIndex);
-        _toast('Dodano pytanie');
+        _toast(AppText.t.quiz_added);
       }
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -334,18 +333,18 @@ class _QuizScreenState extends State<QuizScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć pytanie?'),
-        content: Text('Czy na pewno usunąć „${q.question}"?'),
+        title: Text(AppText.t.quiz_deleteTitle),
+        content: Text(AppText.t.quiz_deleteBody(q.question)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -353,9 +352,9 @@ class _QuizScreenState extends State<QuizScreen> {
     if (ok != true || q.id == null) return;
     try {
       await widget.service.deleteQuestion(q.id!);
-      _toast('Usunięto pytanie');
+      _toast(AppText.t.quiz_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -377,7 +376,7 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             _resultsSummary(results, questions.length),
             const SizedBox(height: 16),
-            Text('🏆 Ranking gości',
+            Text(AppText.t.games_ranking,
                 style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -389,7 +388,7 @@ class _QuizScreenState extends State<QuizScreen> {
               ..._ranking(results),
             if (results.isNotEmpty && questions.isNotEmpty) ...[
               const SizedBox(height: 20),
-              Text('📊 Najtrudniejsze pytania',
+              Text(AppText.t.quiz_hardest,
                   style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -489,7 +488,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('${sorted[i].score}/${sorted[i].total}',
+                child: Text(AppText.t.games_scoreOf(sorted[i].score, sorted[i].total),
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -700,7 +699,7 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(_isEdit ? 'Edytuj pytanie' : 'Dodaj pytanie',
+                    child: Text(_isEdit ? 'Edytuj pytanie' : AppText.t.quiz_addQuestion,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -761,7 +760,7 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                           child: TextButton.icon(
                             onPressed: _addAnswer,
                             icon: const Icon(Icons.add, size: 18),
-                            label: const Text('Dodaj odpowiedź'),
+                            label: Text(AppText.t.games_addAnswer),
                           ),
                         ),
                       const SizedBox(height: 12),
@@ -778,7 +777,7 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: const Text('Anuluj'),
+                              child: Text(AppText.t.common_cancel),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -793,7 +792,7 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: Text(_isEdit ? 'Zapisz' : 'Dodaj'),
+                              child: Text(_isEdit ? AppText.t.common_save : 'Dodaj'),
                             ),
                           ),
                         ],

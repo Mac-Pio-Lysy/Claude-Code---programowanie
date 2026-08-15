@@ -7,6 +7,8 @@ import '../../models/vendor.dart' show kVendorBudgetCategories;
 import '../../models/wedding_data.dart';
 import '../../services/task_service.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Sentinel wartości dropdowna celu, gdy użytkownik chce wpisać własny tekst.
 const _kCustomGoal = '__custom__';
@@ -150,7 +152,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   List<(int, String)> get _musicList => _asChoices('songs', (m) {
         final t = (m['title'] as String?)?.trim() ?? '';
         final a = (m['artist'] as String?)?.trim() ?? '';
-        if (t.isEmpty) return 'Utwór';
+        if (t.isEmpty) return AppText.t.tasks_song;
         return a.isEmpty ? t : '$t — $a';
       });
 
@@ -269,9 +271,9 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                           'Nazwa *',
                           TextFormField(
                             controller: _name,
-                            decoration: _dec(hint: 'np. Zarezerwować salę'),
+                            decoration: _dec(hint: AppText.t.tasks_nameHint),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Podaj nazwę zadania'
+                                ? AppText.t.tasks_nameRequired
                                 : null,
                           ),
                         ),
@@ -282,13 +284,13 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                             isExpanded: true,
                             decoration: _dec(),
                             items: [
-                              const DropdownMenuItem(
-                                  value: '', child: Text('— brak —')),
+                              DropdownMenuItem(
+                                  value: '', child: Text(AppText.t.guests_formNoMenu)),
                               for (final g in TaskGoalPreset.all)
                                 DropdownMenuItem(value: g, child: Text(g)),
-                              const DropdownMenuItem(
+                              DropdownMenuItem(
                                   value: _kCustomGoal,
-                                  child: Text('➕ Inny cel (wpisz własny)')),
+                                  child: Text(AppText.t.tasks_customGoal)),
                             ],
                             onChanged: (v) =>
                                 setState(() => _goalSelection = v ?? ''),
@@ -310,12 +312,12 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                             child: SwitchListTile.adaptive(
                               contentPadding: EdgeInsets.zero,
                               activeThumbColor: AppColors.accent,
-                              title: Text('🎯 Cel osiągnięty',
+                              title: Text(AppText.t.tasks_goalDone,
                                   style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600)),
                               subtitle: Text(
-                                'np. „DJ znaleziony" — zaznacz, gdy cel jest już zrealizowany.',
+                                AppText.t.tasks_goalDoneHint,
                                 style: GoogleFonts.inter(
                                     fontSize: 11, color: AppColors.textLight),
                               ),
@@ -353,7 +355,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                                 size: 18),
                             label: Text(_showMore
                                 ? 'Ukryj dodatkowe opcje'
-                                : 'Pokaż więcej opcji'),
+                                : AppText.t.tasks_showMore),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.accent,
                               padding: EdgeInsets.zero,
@@ -449,17 +451,17 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
             ),
           ),
           _field(
-            'Własna osoba (opcjonalnie)',
+            AppText.t.tasks_customPerson,
             TextField(
               controller: _assignee,
-              decoration: _dec(hint: 'Imię — nadpisuje powyższy wybór'),
+              decoration: _dec(hint: AppText.t.tasks_customPersonHint),
             ),
           ),
           Row(
             children: [
               Expanded(
                 child: _field(
-                  'Data rozpoczęcia',
+                  AppText.t.tasks_startDate,
                   _dateField(_startDate,
                       () => _pickDate(
                           _startDate, (d) => setState(() => _startDate = d)),
@@ -469,7 +471,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               const SizedBox(width: 12),
               Expanded(
                 child: _field(
-                  'Data zakończenia',
+                  AppText.t.tasks_endDate,
                   _dateField(_endDate,
                       () => _pickDate(
                           _endDate, (d) => setState(() => _endDate = d)),
@@ -482,11 +484,11 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
-            title: Text('💰 Powiąż z budżetem',
+            title: Text(AppText.t.tasks_linkBudgetSwitch,
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),
             subtitle: Text(
-              'Tworzy/aktualizuje powiązany wpis w budżecie (referencja).',
+              AppText.t.tasks_linkBudgetHint,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
@@ -495,7 +497,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
           ),
           if (_isBudgetLinked) ...[
             _field(
-              'Szacowany koszt (zł)',
+              AppText.t.tasks_estimatedCost(AppFormat.currency.symbol),
               TextField(
                 controller: _estimatedCost,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -503,7 +505,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               ),
             ),
             _field(
-              'Kategoria budżetowa',
+              AppText.t.tasks_budgetCategory,
               DropdownButtonFormField<String>(
                 initialValue: _budgetCategory,
                 isExpanded: true,
@@ -537,7 +539,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
             child: Row(
               children: [
                 Expanded(
-                  child: Text('🔗 Powiązania',
+                  child: Text(AppText.t.tasks_links,
                       style: GoogleFonts.inter(
                           fontSize: 14, fontWeight: FontWeight.w600)),
                 ),
@@ -548,9 +550,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
           ),
         ),
         Text(
-          'Powiąż zadanie z Dostawcą, Transportem, Noclegiem lub Muzyką. '
-          'Możesz utworzyć nowy element — powstanie jako referencja (ten sam '
-          'rekord widoczny w obu sekcjach), bez duplikowania danych.',
+          AppText.t.tasks_linksHint,
           style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
         ),
         AnimatedSize(
@@ -563,17 +563,17 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _linkDropdown('👨‍🍳 Dostawca', _vendorList, _vendorSel,
-                          '➕ Utwórz nowego dostawcę',
+                      _linkDropdown(AppText.t.tasks_linkVendor, _vendorList, _vendorSel,
+                          AppText.t.tasks_createVendor,
                           (v) => setState(() => _vendorSel = v)),
                       _linkDropdown('🚗 Transport', _transportList,
-                          _transportSel, '➕ Utwórz wpis transportu',
+                          _transportSel, AppText.t.tasks_createTransport,
                           (v) => setState(() => _transportSel = v)),
                       _linkDropdown('🏨 Nocleg', _accommodationList,
-                          _accommodationSel, '➕ Utwórz wpis noclegu',
+                          _accommodationSel, AppText.t.tasks_createAccommodation,
                           (v) => setState(() => _accommodationSel = v)),
                       _linkDropdown('🎵 Muzyka', _musicList, _musicSel,
-                          '➕ Utwórz utwór',
+                          AppText.t.tasks_createSong,
                           (v) => setState(() => _musicSel = v)),
                     ],
                   ),
@@ -593,7 +593,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
         isExpanded: true,
         decoration: _dec(),
         items: [
-          const DropdownMenuItem<int?>(value: null, child: Text('— brak —')),
+          DropdownMenuItem<int?>(value: null, child: Text(AppText.t.guests_formNoMenu)),
           DropdownMenuItem<int?>(value: _kCreateNew, child: Text(createLabel)),
           for (final (id, name) in options)
             DropdownMenuItem<int?>(

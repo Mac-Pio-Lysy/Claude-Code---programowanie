@@ -11,6 +11,7 @@ import '../../services/advice_service.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/filter_toggle_button.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Rady dla Pary Młodej" (w sekcji „Ślubne pamiątki").
 ///
@@ -69,10 +70,9 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
               children: [
                 _advicesTab(),
                 GuestPageTab(
-                  links: [('💌 Rady dla Pary Młodej', PublicPages.rady(base))],
+                  links: [(AppText.t.advices_header, PublicPages.rady(base))],
                   intro:
-                      'Strona, na której goście zostawią rady i złote myśli '
-                      'o małżeństwie. Pokaż im kod QR lub wyślij link.',
+                      AppText.t.advices_txt1,
                 ),
               ],
             ),
@@ -105,7 +105,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
             Row(
               children: [
                 Expanded(
-                  child: Text('Filtruj po kategorii',
+                  child: Text(AppText.t.advices_filterByCategory,
                       style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -130,8 +130,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
             const SizedBox(height: 14),
             if (filtered.isEmpty)
               _info(all.isEmpty
-                  ? 'Brak rad. Udostępnij gościom kod QR z zakładki '
-                      '„Strona dla gości".'
+                  ? AppText.t.advices_txt2
                   : 'Brak rad w tej kategorii.')
             else
               for (final a in filtered) _adviceCard(a),
@@ -180,7 +179,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
                 filtered.isEmpty ? null : () => _startSlideshow(filtered),
             icon: const Icon(Icons.slideshow),
             color: AppColors.accent,
-            tooltip: 'Pokaz slajdów',
+            tooltip: AppText.t.advices_slideshow,
           ),
           OutlinedButton.icon(
             onPressed: filtered.isEmpty ? null : () => _exportPdf(filtered),
@@ -218,7 +217,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
-        label: Text('$label ($count)'),
+        label: Text(AppText.t.advices_labelCount(label, count)),
         selected: selected,
         onSelected: (_) => setState(() => _filter = key),
         showCheckmark: false,
@@ -269,12 +268,12 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
                 icon: const Icon(Icons.delete_outline, size: 20),
                 color: const Color(0xFFC0392B),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Usuń radę',
+                tooltip: AppText.t.advices_delete,
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text('„${a.message}"',
+          Text(AppText.t.advices_quoted(a.message),
               style: GoogleFonts.inter(
                   fontSize: 14,
                   height: 1.5,
@@ -312,19 +311,19 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć radę?'),
+        title: Text(AppText.t.advices_deleteTitle),
         content: Text('Czy na pewno usunąć radę od '
             '„${a.name.isEmpty ? 'Gość' : a.name}"? Tej operacji nie można cofnąć.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -332,9 +331,9 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
     if (ok != true) return;
     try {
       await _service.deleteAdvice(a.id);
-      _toast('Usunięto radę');
+      _toast(AppText.t.advices_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -350,7 +349,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
       );
       await PdfService.preview(bytes, 'rady-dla-pary-mlodej.pdf');
     } catch (e) {
-      _toast('Błąd generowania PDF: $e');
+      _toast(AppText.t.common_pdfError('$e'));
     }
   }
 
@@ -430,7 +429,7 @@ class _AdviceSlideshowPageState extends State<_AdviceSlideshowPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text('💌 Rady dla Pary Młodej',
+                    child: Text(AppText.t.advices_header,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
@@ -468,7 +467,7 @@ class _AdviceSlideshowPageState extends State<_AdviceSlideshowPage> {
                     icon: const Icon(Icons.chevron_left,
                         color: Colors.white, size: 32),
                   ),
-                  Text('${_index + 1} / ${advices.length}',
+                  Text(AppText.t.advices_position(_index + 1, advices.length),
                       style: GoogleFonts.inter(
                           fontSize: 14, color: Colors.white70)),
                   IconButton(
@@ -495,7 +494,7 @@ class _AdviceSlideshowPageState extends State<_AdviceSlideshowPage> {
             children: [
               Text(a.category.emoji, style: const TextStyle(fontSize: 44)),
               const SizedBox(height: 18),
-              Text('„${a.message}"',
+              Text(AppText.t.advices_quoted(a.message),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 28,

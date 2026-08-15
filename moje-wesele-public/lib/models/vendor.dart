@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_text.dart';
 
 /// Status płatności dostawcy (VENDOR_STATUSES w zrodlo-web/script.js).
 class VendorStatus {
@@ -38,6 +39,22 @@ const List<String> kVendorBudgetCategories = [
   'Dekoracje',
   'Inne',
 ];
+
+/// Etykieta kategorii budżetowej dostawcy do WYŚWIETLENIA.
+///
+/// ⚠️ [kVendorBudgetCategories] to WARTOŚCI zapisywane przy dostawcy i przy
+/// powiązanym wydatku — zostają polskie. Tłumaczy się wyłącznie etykietę.
+String vendorBudgetCategoryLabel(String value) {
+  final t = AppText.t;
+  return switch (value) {
+    'Sala' => t.vendors_catVenue,
+    'Strój' => t.vendors_catOutfit,
+    'Dokumenty' => t.vendors_catDocs,
+    'Dekoracje' => t.vendors_catDecor,
+    'Inne' => t.vendors_catOther,
+    _ => value,
+  };
+}
 
 /// Rata płatności dostawcy `{id, label, amount, dueDate, status}`.
 class VendorInstallment {

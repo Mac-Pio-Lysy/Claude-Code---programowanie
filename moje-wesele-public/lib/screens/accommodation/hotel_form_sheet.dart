@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/hotel.dart';
 import '../../services/accommodation_service.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_text.dart';
 
 /// Modalny formularz dodawania / edycji hotelu.
 class HotelFormSheet extends StatefulWidget {
@@ -190,7 +191,7 @@ class _HotelFormSheetState extends State<HotelFormSheet> {
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     activeThumbColor: AppColors.accent,
-                    title: Text('🏰 Hotel w kompleksie wesela',
+                    title: Text(AppText.t.accommodation_onSiteSwitch,
                         style: GoogleFonts.inter(fontSize: 14)),
                     value: _inComplex,
                     onChanged: (v) => setState(() => _inComplex = v),

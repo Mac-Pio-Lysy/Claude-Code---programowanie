@@ -468,7 +468,7 @@ class _TablesScreenState extends State<TablesScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '$occupied/$seats miejsc',
+                      AppText.t.tables_seatsOf(occupied, seats),
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,

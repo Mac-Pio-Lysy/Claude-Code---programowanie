@@ -7,6 +7,7 @@ import 'advices_screen.dart';
 import 'guest_map_screen.dart';
 import 'guestbook_screen.dart';
 import 'time_capsule_screen.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Ślubne pamiątki" — zbiorcza zakładka na pamiątki z wesela.
 ///
@@ -25,25 +26,25 @@ class KeepsakesScreen extends StatelessWidget {
 
   List<SectionTab> get _keepsakes => [
         (
-          label: 'Księga gości',
+          label: AppText.t.keepsakes_guestbook,
           view: GuestbookScreen(data: data),
         ),
         (
-          label: 'Rady dla Pary Młodej',
+          label: AppText.t.keepsakes_advices,
           view: AdvicesScreen(data: data),
         ),
         (
-          label: 'Kapsuła czasu',
+          label: AppText.t.keepsakes_timeCapsule,
           view: TimeCapsuleScreen(data: data),
         ),
         (
-          label: 'Mapa gości',
+          label: AppText.t.keepsakes_guestMap,
           view: GuestMapScreen(data: data),
         ),
       ];
 
   @override
   Widget build(BuildContext context) {
-    return TabbedSectionScaffold(title: 'Ślubne pamiątki', tabs: _keepsakes);
+    return TabbedSectionScaffold(title: AppText.t.keepsakes_title, tabs: _keepsakes);
   }
 }

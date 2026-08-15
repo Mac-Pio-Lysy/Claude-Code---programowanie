@@ -8,6 +8,7 @@ import '../../services/wedding_service.dart';
 import 'create_wedding_sheet.dart';
 import 'join_wedding_screen.dart';
 import '../../utils/app_format.dart';
+import '../../l10n/app_text.dart';
 
 /// Ekran „Twoje wesela" — pokazywany po wejściu do aplikacji, przed panelem.
 ///
@@ -89,7 +90,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Nie udało się utworzyć wesela: $e')));
+        ..showSnackBar(SnackBar(content: Text(AppText.t.wl_createFailed('$e'))));
       return;
     }
     if (!mounted) return;
@@ -164,7 +165,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
               ),
               icon: const Text('➕', style: TextStyle(fontSize: 15)),
               label: Text(
-                'Załóż wesele',
+                AppText.t.wl_create,
                 style: GoogleFonts.inter(
                     fontSize: 15, fontWeight: FontWeight.w700),
               ),
@@ -182,7 +183,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
               ),
               icon: const Text('🔗', style: TextStyle(fontSize: 15)),
               label: Text(
-                'Dołącz do wesela',
+                AppText.t.jw_title,
                 style: GoogleFonts.inter(
                     fontSize: 15, fontWeight: FontWeight.w700),
               ),
@@ -191,7 +192,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
           TextButton.icon(
             onPressed: _claimInvite,
             icon: const Icon(Icons.vpn_key_outlined, size: 16),
-            label: const Text('Mam kod zaproszenia (współorganizator / planer)'),
+            label: Text(AppText.t.wl_haveCodeLong),
             style: TextButton.styleFrom(foregroundColor: AppColors.textLight),
           ),
         ],
@@ -206,7 +207,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: Text('Mam kod zaproszenia',
+        title: Text(AppText.t.wl_haveCode,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 19, fontWeight: FontWeight.w700, color: AppColors.text)),
         content: Column(
@@ -214,8 +215,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Wpisz kod otrzymany od Pary Młodej, aby odebrać dostęp jako '
-              'współorganizator lub planer.',
+              AppText.t.wl_haveCodeBody,
               style:
                   GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
             ),
@@ -225,8 +225,8 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
               textCapitalization: TextCapitalization.characters,
               style: GoogleFonts.robotoMono(
                   fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 2),
-              decoration: const InputDecoration(
-                hintText: 'np. ABC234',
+              decoration: InputDecoration(
+                hintText: AppText.t.jw_codeHint,
                 border: OutlineInputBorder(),
               ),
             ),
@@ -235,13 +235,13 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
             onPressed: () =>
                 Navigator.of(context).pop(codeCtrl.text.trim().toUpperCase()),
-            child: const Text('Odbierz'),
+            child: Text(AppText.t.wl_redeem),
           ),
         ],
       ),
@@ -259,24 +259,24 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
       case ClaimOutcome.success:
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('Dostęp odebrany ✓')));
+          ..showSnackBar(SnackBar(content: Text(AppText.t.wl_redeemed)));
         widget.onOpen(result.weddingId!, result.role ?? 'collaborator');
       case ClaimOutcome.alreadyMember:
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-              const SnackBar(content: Text('Już masz dostęp do tego wesela.')));
+              SnackBar(content: Text(AppText.t.wl_alreadyAccess)));
         widget.onOpen(result.weddingId!, result.role ?? 'collaborator');
       case ClaimOutcome.invalid:
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(
-              content: Text('Nieprawidłowy lub wykorzystany kod zaproszenia.')));
+          ..showSnackBar(SnackBar(
+              content: Text(AppText.t.wl_badCode)));
       case ClaimOutcome.error:
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-              const SnackBar(content: Text('Błąd. Spróbuj ponownie.')));
+              SnackBar(content: Text(AppText.t.wl_error)));
     }
   }
 
@@ -301,16 +301,16 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const AlertDialog(
+      builder: (_) => AlertDialog(
         content: Row(
           children: [
-            SizedBox(
+            const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                     strokeWidth: 2, color: AppColors.accent)),
-            SizedBox(width: 16),
-            Expanded(child: Text('Przygotowuję strefę gości…')),
+            const SizedBox(width: 16),
+            Expanded(child: Text(AppText.t.wl_preparing)),
           ],
         ),
       ),
@@ -325,7 +325,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
         Navigator.of(context).pop(); // zamknij „w toku"
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('Nie udało się: $e')));
+          ..showSnackBar(SnackBar(content: Text(AppText.t.wl_failed('$e'))));
       }
       return;
     }
@@ -342,16 +342,15 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(
           results.isEmpty
-              ? 'Brak wesel do przygotowania'
-              : 'Gotowe: $ok z ${results.length}',
+              ? AppText.t.wl_nothingToPrepare
+              : AppText.t.wl_prepareResult(ok, results.length),
           style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w700),
         ),
         content: SizedBox(
           width: double.maxFinite,
           child: results.isEmpty
               ? Text(
-                  'Nie masz wesel z pełnym dostępem. Wesela, w których jesteś '
-                  'tylko gościem, przygotowuje ich organizator.',
+                  AppText.t.wl_noFullAccess,
                   style: GoogleFonts.inter(
                       fontSize: 13, color: AppColors.textLight),
                 )
@@ -373,7 +372,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                             style: GoogleFonts.inter(
                                 fontSize: 13, fontWeight: FontWeight.w600)),
                         subtitle: Text(
-                          r.ok ? 'gotowe ✓' : 'BŁĄD: ${r.error}',
+                          r.ok ? AppText.t.wl_itemOk : AppText.t.wl_itemError('${r.error}'),
                           style: GoogleFonts.inter(
                             fontSize: 11.5,
                             color: r.ok
@@ -388,7 +387,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Zamknij')),
+              child: Text(AppText.t.common_close)),
         ],
       ),
     );
@@ -404,7 +403,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Twoje wesela',
+                  AppText.t.wl_title,
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 30,
                     fontWeight: FontWeight.w700,
@@ -413,7 +412,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Wybierz wesele lub utwórz nowe',
+                  AppText.t.wl_subtitle,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     color: AppColors.textLight,
@@ -423,26 +422,26 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
             ),
           ),
           PopupMenuButton<String>(
-            tooltip: 'Więcej',
+            tooltip: AppText.t.wl_more,
             icon: const Icon(Icons.more_vert, color: AppColors.textLight),
             onSelected: (v) {
               if (v == 'guestView') _prepareGuestZone();
             },
-            itemBuilder: (_) => const [
+            itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'guestView',
                 child: ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(Icons.groups_outlined, size: 20),
-                  title: Text('Przygotuj strefę gości'),
-                  subtitle: Text('Dla wszystkich Twoich wesel'),
+                  title: Text(AppText.t.wl_prepareGuestZone),
+                  subtitle: Text(AppText.t.wl_prepareForAll),
                 ),
               ),
             ],
           ),
           if (widget.onSignOut != null)
             IconButton(
-              tooltip: 'Wyloguj',
+              tooltip: AppText.t.settings_logoutButton,
               onPressed: widget.onSignOut,
               icon: const Icon(Icons.logout, color: Color(0xFFC0392B)),
             ),
@@ -491,7 +490,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Nie masz jeszcze żadnego wesela',
+                  AppText.t.wl_empty,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.playfairDisplay(
                     fontSize: 22,
@@ -501,8 +500,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Załóż pierwsze wesele, aby rozpocząć organizację. '
-                  'Możesz też dołączyć do wesela, do którego ktoś Cię zaprosi.',
+                  AppText.t.wl_emptyBody,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 14,
@@ -520,7 +518,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                   ),
                   icon: const Text('➕', style: TextStyle(fontSize: 15)),
                   label: Text(
-                    'Załóż pierwsze wesele',
+                    AppText.t.wl_createFirst,
                     style: GoogleFonts.inter(fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -543,7 +541,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
             const Icon(Icons.error_outline, size: 44, color: Color(0xFFC0392B)),
             const SizedBox(height: 16),
             Text(
-              'Nie udało się wczytać wesel',
+              AppText.t.wl_loadError,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 15,
@@ -561,7 +559,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
             OutlinedButton.icon(
               onPressed: _reload,
               icon: const Icon(Icons.refresh),
-              label: const Text('Spróbuj ponownie'),
+              label: Text(AppText.t.common_retry),
             ),
           ],
         ),
@@ -682,7 +680,7 @@ class _WeddingCard extends StatelessWidget {
       );
 
   static String _dateLabel(DateTime? date) {
-    if (date == null) return 'Data do ustalenia';
+    if (date == null) return AppText.t.wl_dateTbd;
     return AppFormat.dateLong(date);
   }
 }

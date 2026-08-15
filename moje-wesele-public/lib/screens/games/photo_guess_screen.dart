@@ -11,6 +11,7 @@ import '../../services/cloudinary_service.dart';
 import '../../services/firestore_service.dart';
 import '../../services/photo_guess_service.dart';
 import '../../widgets/guest_page_tab.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Zgadnij zdjęcie" (w sekcji „Ślubne gry").
 ///
@@ -81,9 +82,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                     ('📸 Zgadnij zdjęcie', PublicPages.zgadnijZdjecie(base))
                   ],
                   intro:
-                      'Strona, na której goście oglądają stare zdjęcia i zgadują '
-                      'odpowiedzi. Włącz grę w zakładce „Zdjęcia", pokaż kod QR '
-                      'lub wyślij link.',
+                      AppText.t.photoGuess_txt1,
                 ),
               ],
             ),
@@ -120,7 +119,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => _openForm(),
                 icon: const Icon(Icons.add_a_photo_outlined),
-                label: const Text('Dodaj zdjęcie z pytaniem'),
+                label: Text(AppText.t.photoGuess_add),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   foregroundColor: Colors.white,
@@ -151,7 +150,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
         activeThumbColor: AppColors.accent,
         value: _active,
         onChanged: hasQuestions ? (v) => widget.service.setActive(v) : null,
-        title: Text('Gra aktywna dla gości',
+        title: Text(AppText.t.games_activeForGuests,
             style:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
         subtitle: Text(
@@ -178,15 +177,14 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
         children: [
           const Text('📸', style: TextStyle(fontSize: 34)),
           const SizedBox(height: 10),
-          Text('Brak zdjęć',
+          Text(AppText.t.photoGuess_empty,
               style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 6),
           Text(
-            'Dodaj stare zdjęcia (np. z dzieciństwa) i pytania, które goście '
-            'będą zgadywać.',
+            AppText.t.photoGuess_txt2,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
@@ -304,7 +302,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                       icon: const Icon(Icons.delete_outline, size: 18),
                       color: const Color(0xFFC0392B),
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Usuń',
+                      tooltip: AppText.t.common_delete,
                     ),
                   ],
                 ),
@@ -363,7 +361,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
             question: draft.question,
             answers: draft.answers,
             correctIndex: draft.correctIndex);
-        _toast('Zapisano zdjęcie');
+        _toast(AppText.t.photoGuess_saved);
       } else {
         await widget.service.addQuestion(
             photoUrl: draft.photoUrl,
@@ -371,10 +369,10 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
             question: draft.question,
             answers: draft.answers,
             correctIndex: draft.correctIndex);
-        _toast('Dodano zdjęcie');
+        _toast(AppText.t.photoGuess_added);
       }
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
@@ -382,18 +380,18 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć zdjęcie?'),
-        content: Text('Czy na pewno usunąć pytanie „${q.question}"?'),
+        title: Text(AppText.t.photoGuess_deleteTitle),
+        content: Text(AppText.t.photoGuess_deleteBody(q.question)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Anuluj'),
+            child: Text(AppText.t.common_cancel),
           ),
           FilledButton(
             style:
                 FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -401,9 +399,9 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
     if (ok != true || q.id == null) return;
     try {
       await widget.service.deleteQuestion(q.id!);
-      _toast('Usunięto zdjęcie');
+      _toast(AppText.t.photoGuess_deleted);
     } catch (e) {
-      _toast('Błąd usuwania: $e');
+      _toast(AppText.t.common_deleteErrorToast('$e'));
     }
   }
 
@@ -425,7 +423,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
           children: [
             _resultsSummary(results, questions.length),
             const SizedBox(height: 16),
-            Text('🏆 Ranking gości',
+            Text(AppText.t.games_ranking,
                 style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -437,7 +435,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
               ..._ranking(results),
             if (results.isNotEmpty && questions.isNotEmpty) ...[
               const SizedBox(height: 20),
-              Text('📊 Najtrudniejsze zdjęcia',
+              Text(AppText.t.photoGuess_hardest,
                   style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -538,7 +536,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('${sorted[i].score}/${sorted[i].total}',
+                child: Text(AppText.t.games_scoreOf(sorted[i].score, sorted[i].total),
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
@@ -869,7 +867,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                           child: TextButton.icon(
                             onPressed: _addAnswer,
                             icon: const Icon(Icons.add, size: 18),
-                            label: const Text('Dodaj odpowiedź'),
+                            label: Text(AppText.t.games_addAnswer),
                           ),
                         ),
                       const SizedBox(height: 12),
@@ -886,7 +884,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: const Text('Anuluj'),
+                              child: Text(AppText.t.common_cancel),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -901,7 +899,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12)),
                               ),
-                              child: Text(_isEdit ? 'Zapisz' : 'Dodaj'),
+                              child: Text(_isEdit ? AppText.t.common_save : 'Dodaj'),
                             ),
                           ),
                         ],
@@ -941,7 +939,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                             const Icon(Icons.add_photo_alternate_outlined,
                                 size: 40, color: AppColors.textLight),
                             const SizedBox(height: 6),
-                            Text('Brak zdjęcia',
+                            Text(AppText.t.photoGuess_noPhoto,
                                 style: GoogleFonts.inter(
                                     fontSize: 12, color: AppColors.textLight)),
                           ],
@@ -957,7 +955,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
               child: OutlinedButton.icon(
                 onPressed: _uploading ? null : () => _pick(ImageSource.gallery),
                 icon: const Icon(Icons.photo_library_outlined, size: 18),
-                label: const Text('Z galerii'),
+                label: Text(AppText.t.photoGuess_fromGallery),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
                   side: const BorderSide(color: AppColors.accent),

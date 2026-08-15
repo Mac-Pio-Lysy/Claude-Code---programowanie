@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../services/guest_space_service.dart';
+import '../../l10n/app_text.dart';
 
 /// Rodzaj treści w zakładce — decyduje o sposobie wyświetlenia wpisu.
 enum _Kind {
@@ -34,19 +35,21 @@ class GuestInteractionsScreen extends StatelessWidget {
 
   final String guestToken;
 
-  static const _tabs = <({String coll, String label, _Kind kind})>[
+  // Getter, nie stała: etykiety zakładek są tłumaczone, więc muszą powstawać
+  // po zmianie języka na nowo.
+  static List<({String coll, String label, _Kind kind})> get _tabs => [
     (coll: 'rsvp', label: 'RSVP', kind: _Kind.text),
-    (coll: 'guestbook', label: 'Księga', kind: _Kind.text),
-    (coll: 'advice', label: 'Rady', kind: _Kind.text),
-    (coll: 'guestMap', label: 'Mapa', kind: _Kind.text),
-    (coll: 'timeCapsule', label: 'Kapsuła', kind: _Kind.text),
-    (coll: 'gallery', label: 'Galeria', kind: _Kind.photo),
-    (coll: 'photoChallenges', label: 'Foto-wyzwania', kind: _Kind.photo),
-    (coll: 'musicProposals', label: 'Muzyka', kind: _Kind.music),
-    (coll: 'quizResults', label: 'Quiz', kind: _Kind.score),
-    (coll: 'trueFalseResults', label: 'Prawda/Fałsz', kind: _Kind.score),
-    (coll: 'photoGuessResults', label: 'Zgadnij zdjęcie', kind: _Kind.score),
-    (coll: 'bingoResults', label: 'Bingo', kind: _Kind.bingo),
+    (coll: 'guestbook', label: AppText.t.gi_tabGuestbook, kind: _Kind.text),
+    (coll: 'advice', label: AppText.t.gi_tabAdvice, kind: _Kind.text),
+    (coll: 'guestMap', label: AppText.t.gi_tabMap, kind: _Kind.text),
+    (coll: 'timeCapsule', label: AppText.t.gi_tabCapsule, kind: _Kind.text),
+    (coll: 'gallery', label: AppText.t.gi_tabGallery, kind: _Kind.photo),
+    (coll: 'photoChallenges', label: AppText.t.gi_tabChallenges, kind: _Kind.photo),
+    (coll: 'musicProposals', label: AppText.t.gi_tabMusic, kind: _Kind.music),
+    (coll: 'quizResults', label: AppText.t.gi_tabQuiz, kind: _Kind.score),
+    (coll: 'trueFalseResults', label: AppText.t.gi_tabTrueFalse, kind: _Kind.score),
+    (coll: 'photoGuessResults', label: AppText.t.gi_tabPhotoGuess, kind: _Kind.score),
+    (coll: 'bingoResults', label: AppText.t.gi_tabBingo, kind: _Kind.bingo),
   ];
 
   @override
@@ -60,7 +63,7 @@ class GuestInteractionsScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.transparent,
           elevation: 0.5,
-          title: Text('Interakcje gości',
+          title: Text(AppText.t.gi_title,
               style: GoogleFonts.playfairDisplay(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -111,18 +114,18 @@ class _InteractionList extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text('Usunąć wpis?'),
+        title: Text(AppText.t.gi_deleteTitle),
         content: Text(kind == _Kind.photo
-            ? 'Zdjęcie zniknie ze strony gości. Oryginał zostaje w Cloudinary.'
-            : 'Wpis gościa zostanie trwale usunięty.'),
+            ? AppText.t.gi_deletePhotoBody
+            : AppText.t.gi_deleteEntryBody),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Usuń'),
+            child: Text(AppText.t.common_delete),
           ),
         ],
       ),
@@ -143,7 +146,7 @@ class _InteractionList extends StatelessWidget {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text('Nie udało się wczytać: ${snapshot.error}',
+              child: Text(AppText.t.gi_loadError('${snapshot.error}'),
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(color: AppColors.textLight)),
             ),
@@ -152,7 +155,7 @@ class _InteractionList extends StatelessWidget {
         final entries = snapshot.data ?? const [];
         if (entries.isEmpty) {
           return Center(
-            child: Text('Brak wpisów.',
+            child: Text(AppText.t.gi_empty,
                 style: GoogleFonts.inter(color: AppColors.textLight)),
           );
         }
@@ -206,7 +209,7 @@ class _InteractionList extends StatelessWidget {
               onPressed: () => _delete(context, e['id'] as String),
               icon: const Icon(Icons.delete_outline, size: 20),
               color: const Color(0xFFC0392B),
-              tooltip: 'Usuń',
+              tooltip: AppText.t.common_delete,
             ),
           ],
         ),
@@ -233,10 +236,10 @@ class _InteractionList extends StatelessWidget {
   Widget _statusRow(Map<String, dynamic> e) {
     final id = e['id'] as String;
     final current = (e['status'] as String?) ?? 'new';
-    const options = <({String value, String label})>[
-      (value: 'new', label: 'Nowa'),
-      (value: 'accepted', label: 'Zagramy'),
-      (value: 'rejected', label: 'Odrzucona'),
+    final options = <({String value, String label})>[
+      (value: 'new', label: AppText.t.gi_musicNew),
+      (value: 'accepted', label: AppText.t.gi_musicAccepted),
+      (value: 'rejected', label: AppText.t.gi_musicRejected),
     ];
     return Wrap(
       spacing: 6,
@@ -257,7 +260,7 @@ class _InteractionList extends StatelessWidget {
   }
 
   String _title(Map<String, dynamic> e) {
-    final name = (e['name'] as String?) ?? 'Gość';
+    final name = (e['name'] as String?) ?? AppText.t.role_guest;
     switch (kind) {
       case _Kind.music:
         final title = (e['title'] as String?) ?? '';
@@ -266,18 +269,17 @@ class _InteractionList extends StatelessWidget {
       case _Kind.score:
         final score = (e['score'] as num?)?.toInt() ?? 0;
         final total = (e['total'] as num?)?.toInt() ?? 0;
-        return '$name — $score/$total pkt';
+        return AppText.t.gi_score(name, score, total);
       case _Kind.bingo:
         final marked = (e['marked'] as num?)?.toInt() ?? 0;
         final total = (e['total'] as num?)?.toInt() ?? 0;
-        return '$name — skreślone $marked/$total';
+        return AppText.t.gi_bingoMarked(name, marked, total);
       case _Kind.photo:
       case _Kind.text:
         if (coll == 'rsvp') {
           final attending = e['attending'] == true;
           final comp = (e['companions'] as num?)?.toInt() ?? 0;
-          return '$name — ${attending ? 'Będzie' : 'Nie będzie'}'
-              '${attending && comp > 0 ? ' (+$comp)' : ''}';
+          return '$name — ${attending ? 'Będzie' : 'Nie będzie'}${attending && comp > 0 ? ' (+$comp)' : ''}';
         }
         if (coll == 'guestMap') {
           final city = (e['city'] as String?) ?? '';
@@ -290,11 +292,12 @@ class _InteractionList extends StatelessWidget {
   String _body(Map<String, dynamic> e) {
     switch (kind) {
       case _Kind.music:
-        return 'Zaproponował(a): ${(e['name'] as String?) ?? 'Gość'}';
+        return AppText.t
+            .gi_proposedBy((e['name'] as String?) ?? AppText.t.role_guest);
       case _Kind.photo:
         if (coll == 'photoChallenges') {
           final ch = (e['challengeId'] as num?)?.toInt();
-          return ch == null ? '' : 'Wyzwanie #$ch';
+          return ch == null ? '' : AppText.t.gi_challengeNo('$ch');
         }
         return (e['caption'] as String?) ?? '';
       case _Kind.score:
@@ -305,7 +308,7 @@ class _InteractionList extends StatelessWidget {
           final diet = (e['diet'] as String?) ?? '';
           final note = (e['note'] as String?) ?? '';
           return [
-            if (diet.isNotEmpty) 'Dieta: $diet',
+            if (diet.isNotEmpty) AppText.t.gi_diet(diet),
             if (note.isNotEmpty) note,
           ].join('\n');
         }

@@ -513,5 +513,2970 @@
       }
     }
   },
-  "roomplan_elementSize": "Rozmiar elementu"
+  "roomplan_elementSize": "Rozmiar elementu",
+  "budget_title": "Budżet",
+  "budget_tabSummary": "Podsumowanie",
+  "budget_tabVenue": "Sala",
+  "budget_tabExpenses": "Wydatki",
+  "budget_tabAlcohol": "Alkohol",
+  "budget_tabSoft": "Napoje bezalkoholowe",
+  "budget_tabHoneymoon": "Podróż poślubna",
+  "budget_planned": "Budżet planowany",
+  "budget_reserveHint": "Rezerwę ustawisz w Ustawieniach → „Ustawienia budżetu”.",
+  "budget_saveButton": "Zapisz budżet",
+  "budget_savedToast": "Zapisano budżet",
+  "budget_invalidAmount": "Nieprawidłowa kwota",
+  "budget_paidShort": "opłacono",
+  "budget_paidAmount": "Opłacono: {amount}",
+  "@budget_paidAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_actual": "Budżet rzeczywisty (koszty)",
+  "budget_ofWhichPaid": "w tym opłacono",
+  "budget_remaining": "Pozostało z budżetu",
+  "budget_expenseDeleteTitle": "Usunąć wydatek?",
+  "budget_expenseDeleteBody": "Czy na pewno usunąć „{name}”?",
+  "@budget_expenseDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_expenseDeletedToast": "Usunięto wydatek",
+  "budget_expenseAddedToast": "Dodano pozycję: {name}",
+  "@budget_expenseAddedToast": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_expensesEmpty": "Brak wydatków. Dodaj pierwszy przyciskiem poniżej.",
+  "budget_expensesEmptyFiltered": "Brak wydatków spełniających kryteria filtrów.",
+  "budget_collapse": "zwiń",
+  "budget_expand": "rozwiń",
+  "budget_quickAddHint": "Kliknij, aby dodać gotowy wydatek — listę zmienisz w Ustawieniach.",
+  "budget_customItem": "Własna pozycja",
+  "budget_customName": "Własna nazwa",
+  "budget_paid": "Opłacono",
+  "budget_left": "Pozostało",
+  "budget_statusPaid": "✓ Opłacone",
+  "budget_statusPartial": "⚡ Częściowo",
+  "budget_statusUnpaid": "✗ Nieopłacone",
+  "budget_manual": "Ręcznie",
+  "budget_paidShortPrefix": "opł. {amount}",
+  "@budget_paidShortPrefix": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_paymentDate": "Data płatności",
+  "budget_split": "Podział",
+  "budget_splitCosts": "Podział kosztów",
+  "budget_isVendor": "🏢 To jest dostawca/usługa",
+  "budget_isVendorHint": "Pokaże się też w sekcji Dostawcy jako TEN SAM rekord (kwota się nie dubluje).",
+  "budget_vendorName": "Imię i nazwisko",
+  "budget_paymentsEmpty": "Brak płatności w tym widoku.",
+  "budget_paymentsFilter": "Filtruj płatności",
+  "budget_paymentsReminders": "🔔 Przypomnienia o płatnościach",
+  "budget_overdue": "zaległa!",
+  "budget_dueSoon": "wkrótce",
+  "budget_tripShort": "✈️ Podróż",
+  "budget_paidRemaining": "Opłacono {paid} · Pozostało {remaining}",
+  "@budget_paidRemaining": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_panelRemoveTitle": "Usuń panel: {panel}",
+  "@budget_panelRemoveTitle": {
+    "placeholders": {
+      "panel": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_panelRemovedToast": "Panel usunięty",
+  "budget_panelRemovedInfo": "Panel „{panel}” jest usunięty i NIE jest wliczany do budżetu. Pozycje pozostają zapisane — możesz przywrócić panel.",
+  "@budget_panelRemovedInfo": {
+    "placeholders": {
+      "panel": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_panelRestore": "Przywróć panel",
+  "budget_addItem": "Dodaj pozycję",
+  "budget_addItemHint": "Kliknij +, aby dodać pozycję.",
+  "budget_bottlesTotal": "butelek łącznie",
+  "budget_costTotal": "łączny koszt",
+  "budget_includeVirtual": "Uwzględniaj gości wirtualnych w przeliczeniu na osobę",
+  "budget_splitHeader": "⚖ Podział kosztów",
+  "budget_splitExceeds": "⚠ Suma podziału przekracza łączny koszt.",
+  "budget_honeymoonTitle": "✈ Podróż poślubna",
+  "budget_honeymoonName": "Nazwa / cel podróży",
+  "budget_openOffer": "Otwórz ofertę",
+  "budget_addVariant": "Dodaj wariant podróży",
+  "budget_variantsHint": "Dodaj kilka propozycji i zaznacz, która wchodzi do budżetu.",
+  "budget_variantsHeader": "✈ Warianty podróży poślubnej",
+  "budget_includeMoreExpensive": "Wlicz droższą wersję do budżetu",
+  "budget_includeMoreExpensiveHint": "Bezpieczne planowanie — liczy najdroższy wariant.",
+  "budget_payments": "Płatności",
+  "budget_toBudget": "Do budżetu",
+  "budget_alreadyPaid": "Zapłacono",
+  "budget_installments": "Harmonogram płatności",
+  "budget_addInstallment": "Dodaj ratę",
+  "budget_noInstallments": "Brak rat — dodaj harmonogram płatności.",
+  "budget_linkFailed": "Nie udało się otworzyć linku",
+  "budget_installmentPaid": "✓ Zapłacona",
+  "budget_installmentDue": "○ Do zapłaty",
+  "budget_withChildrenTitle": "Wesele z dziećmi",
+  "budget_withChildrenSwitch": "Czy to wesele z dziećmi?",
+  "budget_withChildrenHint": "Dzieci są wyłączane z przeliczeń alkoholu. Możesz też dodać stół dla dzieci (w Planie sali) i osobne menu dziecięce.",
+  "budget_childrenAuto": "Licz dzieci z listy gości",
+  "budget_childrenAutoOn": "Liczba bierze się z gości oznaczonych jako dziecko (Goście → „🧒 To dziecko”).",
+  "budget_childrenAutoOff": "Wpisujesz liczbę ręcznie. Włącz, jeśli dzieci są na liście gości.",
+  "budget_childrenFromGuests": "Liczba dzieci (z listy gości)",
+  "budget_childrenCount": "Liczba dzieci",
+  "budget_childrenMismatch": "Na liście gości oznaczono {fromGuests}, a tu wpisano {manual}. Sprawdź, która liczba jest właściwa.",
+  "@budget_childrenMismatch": {
+    "placeholders": {
+      "fromGuests": {
+        "type": "String"
+      },
+      "manual": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_childMenuSeparate": "Czy dla dzieci jest oddzielne menu?",
+  "budget_childMenuOn": "Dzieci ({count}) liczone po cenie dziecięcej.",
+  "@budget_childMenuOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_childMenuOff": "Dzieci liczone jak dorośli (cena za osobę).",
+  "budget_childMenuPrice": "Cena za dziecko (menu)",
+  "budget_childMenuCost": "Koszt menu dziecięcego",
+  "budget_cateringSeparate": "Catering od innej firmy",
+  "budget_cateringSeparateHint": "Catering od innej firmy niż sala — liczony osobno, po cenie za osobę (te same przeliczenia liczby osób co sala).",
+  "budget_cateringPricePerPerson": "Cena cateringu za osobę",
+  "budget_noAddons": "Brak dodatków. Dodaj przyciskiem +.",
+  "budget_perPersonShort": "{currency}/os.",
+  "@budget_perPersonShort": {
+    "description": "Skrot 'na osobe' przy kwocie; {currency} to symbol waluty wesela.",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_peopleForCalc": "Liczba osób do przeliczeń",
+  "budget_cateringTotal": "Łącznie catering",
+  "budget_pricePerPerson": "Cena za osobę",
+  "budget_venueMinGuests": "Minimalna liczba osób (próg sali)",
+  "budget_guestsAssigned": "Goście przypisani do stołów",
+  "budget_catVenueCatering": "Sala i catering",
+  "budget_catDress": "Suknia ślubna",
+  "budget_catSuit": "Garnitur/strój",
+  "budget_catRings": "Obrączki",
+  "budget_catPhoto": "Fotograf",
+  "budget_catVideo": "Kamerzysta/wideo",
+  "budget_catFlowersDecor": "Kwiaty/dekoracje",
+  "budget_catBouquet": "Bukiet ślubny",
+  "budget_catFlowersCouple": "Kwiaty dla PM",
+  "budget_catChurchDecor": "Przystrojenie kościoła",
+  "budget_catCake": "Tort weselny",
+  "budget_catMusic": "Muzyka/DJ/zespół",
+  "budget_catInvitations": "Zaproszenia",
+  "budget_catBeauty": "Uroda",
+  "budget_catHairMakeup": "Makijaż i fryzura",
+  "budget_catTransport": "Transport",
+  "budget_catRideReception": "Dojazd do wesela",
+  "budget_catRideChurch": "Dojazd do kościoła",
+  "budget_catGiftsGuests": "Upominki dla gości",
+  "budget_catGiftsParents": "Upominki dla rodziców",
+  "budget_catGiftsWitnesses": "Upominki dla świadków",
+  "budget_catHoneymoon": "Podróż poślubna",
+  "budget_catAlcohol": "Alkohol",
+  "budget_catOther": "Inne",
+  "@budget_catVenueCatering": {
+    "description": "ETYKIETA kategorii wydatku. Wartosc w bazie zostaje polska (Sala i catering) - patrz ExpenseCategory.labelFor."
+  },
+  "budget_expenseFallbackName": "Wydatek",
+  "budget_guestsUnassigned": "Goście nieprzypisani",
+  "budget_guestsBilledTotal": "Razem gości liczonych",
+  "budget_guestsCost": "Koszt gości",
+  "budget_countUnassigned": "Licz gości nieprzypisanych do stołów",
+  "budget_countUnassignedOn": "Nieprzypisani ({count}) są wliczani do kosztu.",
+  "@budget_countUnassignedOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_countUnassignedOff": "Nieprzypisani ({count}) NIE są wliczani.",
+  "@budget_countUnassignedOff": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_virtualGuests": "Goście wirtualni (do progu sali)",
+  "budget_virtualGuestsCost": "Koszt gości wirtualnych",
+  "budget_includeVirtualCalc": "Uwzględnij gości wirtualnych w obliczeniach",
+  "budget_cateringSeparateNote": "Catering (osobna firma) liczony w osobnej karcie poniżej.",
+  "budget_cateringIncluded": "Catering wliczony w cenę sali za osobę.",
+  "budget_staff": "Obsługa",
+  "@budget_staff": {
+    "description": "Naglowek karty obslugi. UWAGA: nazwa nowej pozycji obslugi zapisywana do bazy jest osobno w budget_service."
+  },
+  "budget_staffHint": "Kelnerzy, fotograf, DJ, kamerzysta — osoby, które jedzą, ale nie są gośćmi. Liczone osobno.",
+  "budget_staffEmpty": "Brak obsługi. Dodaj przyciskiem +.",
+  "budget_staffRate": "Stawka obsługi za osobę (puste = jak goście)",
+  "budget_staffInclude": "Doliczaj obsługę do kosztu sali",
+  "budget_staffIncludeHint": "Liczona jest obsługa oznaczona „w kosztach”.",
+  "budget_staffCountTotal": "Osób obsługi łącznie",
+  "budget_staffRateShort": "Stawka obsługi / os.",
+  "budget_staffCost": "Koszt obsługi",
+  "budget_menuAddonsTotal": "Łącznie dodatki do menu",
+  "budget_tableDecor": "Dekoracje stołów (per stolik)",
+  "budget_honorTable": "⭐ Stół Pary Młodej",
+  "budget_honorTableEmpty": "Brak dekoracji stołu Pary Młodej.",
+  "budget_regularTables": "Pozostałe stoły (×{count})",
+  "@budget_regularTables": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_regularTablesEmpty": "Brak dekoracji pozostałych stołów.",
+  "budget_perTableShort": "{currency}/stół",
+  "@budget_perTableShort": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_honorTableDecor": "Dekoracje stołu Pary Młodej",
+  "budget_regularTablesDecor": "Dekoracje pozostałych stołów",
+  "budget_decorTotal": "Łącznie dekoracje",
+  "budget_venueSummary": "Podsumowanie kosztów sali",
+  "budget_guestsCostCount": "Koszt gości ({count} os.)",
+  "@budget_guestsCostCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_virtualCostCount": "Goście wirtualni ({count} os.)",
+  "@budget_virtualCostCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_staffCostCount": "Obsługa ({count} os.)",
+  "@budget_staffCostCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_staffCostCountExcluded": "Obsługa ({count} os., nieliczona)",
+  "@budget_staffCostCountExcluded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budget_cateringSeparateCard": "Catering (oddzielny)",
+  "budget_childrenSuffix": "dzieci",
+  "budget_tableDecorTotal": "Dekoracje stołów",
+  "budget_variantBudgeted": "Do budżetu: {name}",
+  "@budget_variantBudgeted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_variantNone": "brak wyboru",
+  "budget_reserveSettings": "Ustawienia budżetu",
+  "budget_expensesQuickAdd": "Kliknij, aby dodać gotowy wydatek — listę zmienisz w Ustawieniach.",
+  "budget_statusPaidShort": "Opłacone",
+  "schedule_title": "📅 Harmonogram dnia ślubu",
+  "schedule_qrForGuests": "Kod QR dla gości",
+  "schedule_forGuests": "Dla gości",
+  "schedule_eventNameHint": "np. Ceremonia ślubna",
+  "schedule_nameRequired": "Podaj nazwę",
+  "schedule_detailsHint": "Szczegóły…",
+  "schedule_private": "🔒 Prywatne (ukryte przed gośćmi)",
+  "schedule_showLink": "👁 Pokaż link gościom",
+  "schedule_deleteTitle": "Usunąć wydarzenie?",
+  "schedule_deleteBody": "Czy na pewno usunąć „{name}”?",
+  "@schedule_deleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "schedule_deletedToast": "Usunięto wydarzenie",
+  "schedule_empty": "Brak wydarzeń. Dodaj pierwsze poniżej.",
+  "schedule_openLocation": "Otwórz lokalizację",
+  "schedule_guestPreview": "Podgląd dla gości ({count})",
+  "@schedule_guestPreview": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "schedule_noneVisible": "Żadne wydarzenie nie jest oznaczone jako widoczne dla gości.",
+  "schedule_guestPreviewHint": "Tak goście widzą harmonogram na stronie /harmonogram:",
+  "schedule_visibility": "Widoczność wydarzeń",
+  "schedule_emptyAddInPlan": "Brak wydarzeń. Dodaj je w zakładce „Plan dnia”.",
+  "schedule_visibilityHint": "Zaznacz, które wydarzenia widzą goście.",
+  "schedule_visibleToGuests": "Widoczne dla gości",
+  "checklist_addHint": "Co zrobić…",
+  "checklist_progress": "{done}/{total} ukończonych ({percent}%)",
+  "@checklist_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "checklist_addItem": "Dodaj pozycję",
+  "tasks_deleteTitle": "Usunąć zadanie?",
+  "tasks_deleteBody": "Czy na pewno usunąć „{name}”?",
+  "@tasks_deleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tasks_deletedToast": "Usunięto zadanie",
+  "tasks_goalReached": "🎯 Cel osiągnięty",
+  "tasks_goalReachedBody": "„{goal}” zostało oznaczone jako zrealizowane.\n\nCzy utworzyć z tego pozycję w budżecie?",
+  "@tasks_goalReachedBody": {
+    "placeholders": {
+      "goal": {
+        "type": "String"
+      }
+    }
+  },
+  "tasks_goalCreateYes": "Tak, utwórz",
+  "tasks_budgetItemCreated": "Utworzono pozycję w budżecie",
+  "tasks_newBudgetItem": "💰 Nowa pozycja w budżecie",
+  "tasks_estimatedCost": "Szacowany koszt ({currency})",
+  "@tasks_estimatedCost": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "tasks_budgetCategory": "Kategoria budżetowa",
+  "tasks_create": "Utwórz",
+  "tasks_progress": "{done}/{total} ukończonych ({percent}%)",
+  "@tasks_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "tasks_allLinks": "Wszystkie powiązania",
+  "tasks_linkBudget": "💰 Budżet",
+  "tasks_linkVendor": "👨‍🍳 Dostawca",
+  "tasks_noLink": "Bez powiązania",
+  "tasks_dragHere": "Przeciągnij tutaj",
+  "tasks_deleteAction": "🗑 Usuń",
+  "tasks_nameHint": "np. Zarezerwować salę",
+  "tasks_nameRequired": "Podaj nazwę zadania",
+  "tasks_customGoal": "➕ Inny cel (wpisz własny)",
+  "tasks_goalDone": "🎯 Cel osiągnięty",
+  "tasks_goalDoneHint": "np. „DJ znaleziony” — zaznacz, gdy cel jest już zrealizowany.",
+  "tasks_showMore": "Pokaż więcej opcji",
+  "tasks_customPerson": "Własna osoba (opcjonalnie)",
+  "tasks_customPersonHint": "Imię — nadpisuje powyższy wybór",
+  "tasks_startDate": "Data rozpoczęcia",
+  "tasks_endDate": "Data zakończenia",
+  "tasks_linkBudgetSwitch": "💰 Powiąż z budżetem",
+  "tasks_linkBudgetHint": "Tworzy/aktualizuje powiązany wpis w budżecie (referencja).",
+  "tasks_links": "🔗 Powiązania",
+  "tasks_linksHint": "Powiąż zadanie z Dostawcą, Transportem, Noclegiem lub Muzyką. Możesz utworzyć nowy element — powstanie jako referencja (ten sam rekord widoczny w obu sekcjach), bez duplikowania danych.",
+  "tasks_createVendor": "➕ Utwórz nowego dostawcę",
+  "tasks_createTransport": "➕ Utwórz wpis transportu",
+  "tasks_createAccommodation": "➕ Utwórz wpis noclegu",
+  "tasks_createSong": "➕ Utwórz utwór",
+  "tasks_song": "Utwór",
+  "tasks_costWithCurrency": "💰 {amount} {currency}",
+  "@tasks_costWithCurrency": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "schedule_tabDayPlan": "Plan dnia",
+  "schedule_tabChecklist": "Checklista",
+  "vendors_catVenue": "Sala",
+  "@vendors_catVenue": {
+    "description": "ETYKIETA kategorii budzetowej dostawcy. Wartosc w bazie zostaje polska - patrz vendorBudgetCategoryLabel."
+  },
+  "vendors_catOutfit": "Strój",
+  "vendors_catDocs": "Dokumenty",
+  "vendors_catDecor": "Dekoracje",
+  "vendors_catOther": "Inne",
+  "tasks_title": "Zadania",
+  "tasks_addButton": "Dodaj zadanie",
+  "tasks_addedToast": "Dodano zadanie",
+  "tasks_notNow": "Nie teraz",
+  "tasks_editAction": "✏ Edytuj",
+  "budget_expenseAddedShort": "Dodano wydatek",
+  "budget_addExpense": "Dodaj wydatek",
+  "budget_quickItems": "⚡ Szybkie pozycje",
+  "budget_filtersSort": "Filtry i sortowanie",
+  "budget_allCategories": "Wszystkie kategorie",
+  "budget_offerLink": "Link do oferty",
+  "budget_roughAmount": "Kwota orientacyjna",
+  "budget_addVariantShort": "Dodaj wariant",
+  "budget_cateringAddons": "Dodatki cateringu (per osoba)",
+  "budget_cateringSeparateAsk": "Czy catering jest oddzielny?",
+  "budget_menuAddons": "Dodatki do menu (per osoba)",
+  "budget_includeInVenueCost": "Wliczaj w koszt sali",
+  "checklist_newItem": "Nowa pozycja — {category}",
+  "@checklist_newItem": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "checklist_addedToast": "Dodano: {text}",
+  "@checklist_addedToast": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "checklist_empty": "Brak pozycji.",
+  "schedule_addEvent": "Dodaj wydarzenie",
+  "roomplan_roomDimsLabel": "Wymiary sali (m)",
+  "roomplan_addElementSheet": "Dodaj element sali",
+  "roomplan_autoSizeHint": "0 = rozmiar automatyczny wg liczby miejsc.",
+  "tables_assignTo": "Przypisz do: {table}",
+  "@tables_assignTo": {
+    "placeholders": {
+      "table": {
+        "type": "String"
+      }
+    }
+  },
+  "tables_seatsOf": "{used}/{total} miejsc",
+  "@tables_seatsOf": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "vendors_title": "Dostawcy",
+  "vendors_addButton": "Dodaj dostawcę",
+  "vendors_addedToast": "Dodano dostawcę",
+  "vendors_deleteTitle": "Usunąć dostawcę?",
+  "vendors_deleteKeepEntry": "Usuń, zostaw wpis",
+  "vendors_deletedToast": "Usunięto dostawcę",
+  "vendors_empty": "Brak dostawców.",
+  "vendors_contact": "👤 {name}",
+  "@vendors_contact": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vendors_price": "Cena: {amount}",
+  "@vendors_price": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "vendors_installments": "💵 Raty / płatności",
+  "vendors_noInstallments": "Brak rat.",
+  "vendors_paidRemaining": "Zapłacono: {paid} · Pozostało: {remaining}",
+  "@vendors_paidRemaining": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "vendors_toPay": "Do zapłaty",
+  "vendors_paid": "Zapłacona",
+  "vendors_linkBudget": "💰 Powiąż z budżetem",
+  "vendors_linkBudgetHint": "Tworzy/aktualizuje powiązany wpis w budżecie (referencja).",
+  "transport_title": "Transport",
+  "transport_addVehicle": "Dodaj pojazd",
+  "transport_vehicleAdded": "Dodano pojazd",
+  "transport_noGuestsAvailable": "Brak dostępnych gości",
+  "transport_showOwn": "Pokaż transport własny",
+  "transport_seatsOf": "{used}/{total} miejsc",
+  "@transport_seatsOf": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "transport_ownHeader": "🚶 Transport własny",
+  "transport_ownEmpty": "Brak gości z własnym dojazdem.",
+  "transport_addGuest": "Dodaj gościa",
+  "transport_unassignedHeader": "❓ Bez przydziału ({count})",
+  "@transport_unassignedHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "transport_allAssigned": "Wszyscy goście mają transport.",
+  "transport_internalHeader": "🚕 Transport wewnętrzny",
+  "transport_internalEmpty": "Brak. Dodaj Bolt / Taxi / inny.",
+  "transport_showInSchedule": "Pokaż gościom w harmonogramie",
+  "accommodation_title": "Noclegi",
+  "accommodation_deleteHotelTitle": "Usunąć hotel?",
+  "accommodation_deleteHotelBody": "Czy na pewno usunąć „{name}”?",
+  "@accommodation_deleteHotelBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accommodation_guestsNeeding": "Goście potrzebujący noclegu",
+  "accommodation_hotels": "Hotele i miejsca noclegowe",
+  "accommodation_addHotel": "Dodaj hotel",
+  "accommodation_noHotel": "Brak hotelu",
+  "accommodation_statusHint": "Status…",
+  "accommodation_onSite": "🏰 W kompleksie",
+  "accommodation_onSiteSwitch": "🏰 Hotel w kompleksie wesela",
+  "vendors_paidRemainingTotal": "Zapłacono: {paid} · Pozostało: {remaining} · Suma: {total}",
+  "@vendors_paidRemainingTotal": {
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "analytics_title": "Analityka",
+  "analytics_empty": "Brak danych do analizy",
+  "analytics_emptyHint": "Dodaj gości i wydatki, żeby zobaczyć analitykę — potwierdzenia obecności, rozkład kosztów, postęp płatności, menu i diety.",
+  "analytics_budgetForecast": "Prognoza końcowego budżetu",
+  "analytics_costPerGuest": "Koszt per gość",
+  "dashboard_availableTiles": "Dostępne kafelki",
+  "rsvp_title": "Potwierdzenia",
+  "rsvp_allTitle": "Wszystkie RSVP",
+  "rsvp_allHint": "Lista wszystkich odpowiedzi oraz kody QR i linki dla gości.",
+  "rsvp_allEmpty": "Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.",
+  "rsvp_qrHint": "Wszystkie kody QR i linki do stron dla gości w jednym miejscu.",
+  "rsvp_qrError": "Błąd generowania QR: {error}",
+  "@rsvp_qrError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "rsvp_quotedMessage": "„{message}”",
+  "@rsvp_quotedMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "rsvp_deleteEntry": "Usuń wpis",
+  "rsvp_deleteEntryTitle": "Usunąć wpis RSVP?",
+  "rsvp_clearAll": "Wyczyść wszystkie",
+  "rsvp_clear": "Wyczyść",
+  "rsvp_clearAllTitle": "Wyczyścić wszystkie potwierdzenia?",
+  "rsvp_empty": "Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).",
+  "rsvp_unmatched": "Nierozpoznane potwierdzenia ({count})",
+  "@rsvp_unmatched": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rsvp_guestsCount": "Goście ({count})",
+  "@rsvp_guestsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rsvp_noGuestsInCategory": "Brak gości w tej kategorii.",
+  "rsvp_assignToGuest": "Przypisz do gościa…",
+  "games_title": "Ślubne gry",
+  "games_activeForGuests": "Gra aktywna dla gości",
+  "games_quizActiveForGuests": "Quiz aktywny dla gości",
+  "games_ranking": "🏆 Ranking gości",
+  "games_addAnswer": "Dodaj odpowiedź",
+  "games_scoreOf": "{score}/{total}",
+  "@games_scoreOf": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "games_bingo": "Ślubne Bingo",
+  "games_quiz": "Quiz o Parze Młodej",
+  "games_trueFalse": "Prawda czy Fałsz",
+  "games_photoGuess": "Zgadnij zdjęcie",
+  "games_wheel": "Koło fortuny",
+  "games_photoChallenge": "Foto-wyzwania",
+  "quiz_addQuestion": "Dodaj pytanie",
+  "quiz_empty": "Brak pytań",
+  "quiz_emptyHint": "Dodaj własne pytania lub zacznij od gotowych przykładów.",
+  "quiz_examplesAdded": "Dodano przykładowe pytania",
+  "quiz_addExamples": "Dodaj przykładowe pytania",
+  "quiz_saved": "Zapisano pytanie",
+  "quiz_added": "Dodano pytanie",
+  "quiz_deleteTitle": "Usunąć pytanie?",
+  "quiz_deleteBody": "Czy na pewno usunąć „{text}”?",
+  "@quiz_deleteBody": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "quiz_deleted": "Usunięto pytanie",
+  "quiz_hardest": "📊 Najtrudniejsze pytania",
+  "quiz_numbered": "{index}. {text}",
+  "@quiz_numbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "tf_addStatement": "Dodaj stwierdzenie",
+  "tf_empty": "Brak stwierdzeń",
+  "tf_emptyHint": "Dodaj własne stwierdzenia lub zacznij od gotowych przykładów.",
+  "tf_examplesAdded": "Dodano przykładowe stwierdzenia",
+  "tf_addExamples": "Dodaj przykładowe",
+  "tf_saved": "Zapisano stwierdzenie",
+  "tf_added": "Dodano stwierdzenie",
+  "tf_deleteTitle": "Usunąć stwierdzenie?",
+  "tf_deleteBody": "Czy na pewno usunąć „{text}”?",
+  "@tf_deleteBody": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "tf_deleted": "Usunięto stwierdzenie",
+  "photoGuess_add": "Dodaj zdjęcie z pytaniem",
+  "photoGuess_empty": "Brak zdjęć",
+  "photoGuess_emptyHint": "Dodaj stare zdjęcia (np. z dzieciństwa) i pytania, które goście będą zgadywać.",
+  "photoGuess_saved": "Zapisano zdjęcie",
+  "photoGuess_added": "Dodano zdjęcie",
+  "photoGuess_deleteTitle": "Usunąć zdjęcie?",
+  "photoGuess_deleteBody": "Czy na pewno usunąć pytanie „{text}”?",
+  "@photoGuess_deleteBody": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "photoGuess_deleted": "Usunięto zdjęcie",
+  "photoGuess_hardest": "📊 Najtrudniejsze zdjęcia",
+  "photoGuess_noPhoto": "Brak zdjęcia",
+  "photoGuess_fromGallery": "Z galerii",
+  "photoChallenge_add": "Dodaj wyzwanie",
+  "photoChallenge_empty": "Brak wyzwań",
+  "photoChallenge_emptyHint": "Dodaj własne wyzwania lub zacznij od gotowych przykładów.",
+  "photoChallenge_examplesAdded": "Dodano przykładowe wyzwania",
+  "photoChallenge_addExamples": "Dodaj przykładowe",
+  "photoChallenge_saved": "Zapisano wyzwanie",
+  "photoChallenge_added": "Dodano wyzwanie",
+  "photoChallenge_deleteTitle": "Usunąć wyzwanie?",
+  "photoChallenge_deleteBody": "Czy na pewno usunąć „{text}”? Przesłane zdjęcia zostaną usunięte razem z wyzwaniem.",
+  "@photoChallenge_deleteBody": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "photoChallenge_deleted": "Usunięto wyzwanie",
+  "photoChallenge_points": "⭐ {points} pkt",
+  "@photoChallenge_points": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "photoChallenge_deletePhotoTitle": "Usunąć zdjęcie?",
+  "photoChallenge_deletePhotoBody": "Czy na pewno usunąć zdjęcie od „{name}”?",
+  "@photoChallenge_deletePhotoBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "photoChallenge_photoDeleted": "Usunięto zdjęcie",
+  "photoChallenge_text": "Treść wyzwania",
+  "photoChallenge_textHint": "np. Zrób selfie z Parą Młodą",
+  "photoChallenge_textRequired": "Wpisz treść wyzwania",
+  "common_filtersSort": "Filtry i sortowanie",
+  "common_pdfError": "Błąd generowania PDF: {error}",
+  "@common_pdfError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "common_exportPdf": "Eksport PDF",
+  "common_sortBy": "Sortuj:",
+  "common_view": "Widok:",
+  "gallery_title": "Galeria & QR",
+  "gallery_readError": "Błąd odczytu galerii: {error}",
+  "@gallery_readError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "gallery_usage": "Wykorzystano: {used} / 25 GB",
+  "@gallery_usage": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      }
+    }
+  },
+  "gallery_empty": "Brak plików w galerii.",
+  "gallery_video": "▶ film",
+  "gallery_uploadedBy": "📷 {name}",
+  "@gallery_uploadedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gallery_format": "Format:",
+  "gallery_pdfError": "Błąd PDF: {error}",
+  "@gallery_pdfError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "gallery_deleteTitle": "Usunąć plik z galerii?",
+  "gallery_deleteBody": "Zniknie z galerii gości. Oryginał pozostaje w Cloudinary.",
+  "gallery_deleted": "Usunięto plik",
+  "gifts_thanked": "Podziękowano",
+  "gifts_empty": "Brak upominków.",
+  "gifts_addPerson": "+ Dodaj osobę…",
+  "gifts_wishlistHint": "Lista życzeń od Pary Młodej. Zaznaczone propozycje są widoczne dla gości na stronie harmonogramu.",
+  "gifts_showToGuests": "Pokaż gościom na stronie harmonogramu",
+  "keepsakes_title": "Ślubne pamiątki",
+  "keepsakes_guestbook": "Księga gości",
+  "keepsakes_advices": "Rady dla Pary Młodej",
+  "keepsakes_timeCapsule": "Kapsuła czasu",
+  "keepsakes_guestMap": "Mapa gości",
+  "advices_filterByCategory": "Filtruj po kategorii",
+  "advices_slideshow": "Pokaz slajdów",
+  "advices_labelCount": "{label} ({count})",
+  "@advices_labelCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "advices_delete": "Usuń radę",
+  "advices_deleteTitle": "Usunąć radę?",
+  "advices_deleted": "Usunięto radę",
+  "advices_header": "💌 Rady dla Pary Młodej",
+  "advices_position": "{index} / {total}",
+  "@advices_position": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "advices_quoted": "„{message}”",
+  "@advices_quoted": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "guestbook_deleteEntry": "Usuń wpis",
+  "guestbook_deleteTitle": "Usunąć wpis?",
+  "guestbook_deleted": "Usunięto wpis",
+  "capsule_exportOpen": "Eksport otwartych do PDF",
+  "capsule_sealedUntil": "🔒 Zapieczętowane do {date}",
+  "@capsule_sealedUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "capsule_hasPhoto": "📷 zawiera zdjęcie",
+  "capsule_deleteMessage": "Usuń wiadomość",
+  "capsule_openAllTitle": "Otworzyć wszystko teraz?",
+  "capsule_openAllBody": "Zobaczysz treść także zapieczętowanych wiadomości, zanim nadejdzie ich termin.",
+  "capsule_openAll": "Otwórz wszystko",
+  "capsule_deleteTitle": "Usunąć wiadomość?",
+  "capsule_deleted": "Usunięto wiadomość",
+  "guestMap_addManually": "Dodaj gościa ręcznie",
+  "guestMap_empty": "Brak zlokalizowanych gości. Pinezki pojawią się po dodaniu miejscowości do wpisów.",
+  "guestMap_farthest": "Najdalszy gość: {name}",
+  "@guestMap_farthest": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guestMap_setVenueHint": "Aby policzyć dystans najdalszego gościa, ustaw „Miejsce wesela” w Konfiguracji.",
+  "guestMap_kmFromVenue": "{km} km od miejsca wesela",
+  "@guestMap_kmFromVenue": {
+    "placeholders": {
+      "km": {
+        "type": "int"
+      }
+    }
+  },
+  "guestMap_notLocated": "⚠ Niezlokalizowany — uzupełnij miejscowość",
+  "guestMap_deleteTitle": "Usunąć wpis?",
+  "guestMap_deleted": "Usunięto wpis",
+  "guestMap_name": "Imię",
+  "guestMap_city": "Miejscowość",
+  "guestMap_cityHint": "np. Kraków",
+  "guestMap_greeting": "Pozdrowienie (opcjonalnie)",
+  "music_title": "Muzyka",
+  "music_added": "Dodano utwór",
+  "music_qrForGuests": "Kod QR dla gości",
+  "music_unmatched": "⚠ Niedopasowane / do weryfikacji ({count})",
+  "@music_unmatched": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "music_list": "Lista utworów ({count})",
+  "@music_list": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "music_emptyFiltered": "Brak utworów spełniających kryteria.",
+  "music_searchDeezer": "Szukaj utworu (Deezer)…",
+  "music_addManually": "Dodaj ręcznie",
+  "music_deezerError": "Nie udało się połączyć z Deezer (sprawdź internet/CORS).",
+  "music_deezerEmpty": "Nie znaleziono w Deezer.",
+  "music_addedTitle": "Dodano: {title}",
+  "@music_addedTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "music_addedUnmatched": "Dodano jako niedopasowany",
+  "music_addToVerify": "Dodaj „{query}” do weryfikacji",
+  "@music_addToVerify": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "music_allMoments": "Wszystkie momenty",
+  "music_fromGuest": "👤 od gościa",
+  "music_momentsHint": "Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.",
+  "music_addOwnMoment": "Dodaj własny moment",
+  "music_outsideList": "spoza listy",
+  "music_removeMoment": "Usuń moment z listy",
+  "music_noSongAssigned": "Brak utworu — dodaj lub przypisz.",
+  "music_addNew": "Dodaj nowy",
+  "music_assignmentRemoved": "Usunięto przypisanie",
+  "music_removeAssignment": "Usuń przypisanie",
+  "music_newMoment": "Nowy moment",
+  "music_momentName": "Nazwa momentu",
+  "music_momentNameHint": "np. Poprawiny",
+  "music_momentExists": "Taki moment już istnieje",
+  "music_momentAdded": "Dodano moment: {name}",
+  "@music_momentAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "music_removeMomentTitle": "Usunąć moment z listy?",
+  "music_removeMomentBody": "Moment „{label}” zniknie z listy. Przypisane utwory NIE zostaną usunięte.",
+  "@music_removeMomentBody": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "music_emptyAddFirst": "Brak utworów na liście. Dodaj najpierw utwór.",
+  "music_assignTo": "Przypisz do: {label}",
+  "@music_assignTo": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "music_assignedTo": "Przypisano utwór do: {label}",
+  "@music_assignedTo": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "music_nothingToExport": "Brak utworów do eksportu",
+  "music_exportCsv": "Eksport CSV",
+  "music_exportText": "Eksport tekstowy",
+  "music_copiedToClipboard": "Skopiowano do schowka",
+  "music_import": "Import utworów",
+  "music_pasteHere": "Wklej tutaj…",
+  "music_nothingRecognized": "Nie rozpoznano utworów",
+  "music_imported": "Zaimportowano {count} utworów",
+  "@music_imported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "music_addSongManually": "Dodaj utwór ręcznie",
+  "music_songTitle": "Tytuł",
+  "music_searchInDeezer": "Szukaj w Deezer…",
+  "music_nothingFound": "Nic nie znaleziono (możesz dodać ręcznie poniżej).",
+  "music_orAddManually": "…lub dodaj ręcznie",
+  "guestMap_deleteBody": "Czy na pewno usunąć „{name}”?",
+  "@guestMap_deleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guestbook_deleteBody": "Czy na pewno usunąć wpis od „{name}”?",
+  "@guestbook_deleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "capsule_deleteBody": "Czy na pewno usunąć wiadomość od „{name}”?",
+  "@capsule_deleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "music_momentsHintFull": "Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.",
+  "rsvp_allEmptyFull": "Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.",
+  "rsvp_qrHintFull": "Wszystkie kody QR i linki do stron dla gości w jednym miejscu.",
+  "rsvp_emptyFull": "Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).",
+  "guestMap_txt1": "Strona, na której goście zaznaczają, skąd przyjeżdżają. Pokaż im kod QR lub wyślij link.",
+  "guestMap_txt2": "Brak wpisów. Udostępnij gościom kod QR z zakładki „Strona dla gości\".",
+  "guestMap_txt3": "Brak zlokalizowanych gości. Pinezki pojawią się po wpisach gości lub ręcznym dodaniu z miejscowością.",
+  "guestMap_txt4": "Aby policzyć dystans najdalszego gościa, ustaw „Miejsce wesela\" w Konfiguracji (sekcja Ustawienia).",
+  "capsule_txt1": "Strona, na której goście zostawią wiadomości do otwarcia w przyszłości (np. w rocznicę). Pokaż im kod QR lub wyślij link.",
+  "capsule_txt2": "Brak wiadomości. Udostępnij gościom kod QR z zakładki „Strona dla gości\".",
+  "capsule_txt3": "Zobaczysz treść także zapieczętowanych wiadomości, zanim nadejdzie ich data. To tylko podgląd dla Ciebie — nie zmienia dat otwarcia ani tego, co widzą inni. Najwięcej radości daje jednak czekanie 💙",
+  "guestbook_txt1": "Strona, na której goście zostawią życzenia i wiadomości dla Pary Młodej (z opcjonalnym zdjęciem). Pokaż im kod QR lub wyślij link.",
+  "guestbook_txt2": "Brak wpisów. Udostępnij gościom kod QR z zakładki „Strona dla gości\", aby zaczęli się wpisywać.",
+  "advices_txt1": "Strona, na której goście zostawią rady i złote myśli o małżeństwie. Pokaż im kod QR lub wyślij link.",
+  "advices_txt2": "Brak rad. Udostępnij gościom kod QR z zakładki „Strona dla gości\".",
+  "music_txt1": "Strona, na której goście proponują utwory do zagrania. Pokaż im kod QR lub wyślij link.",
+  "music_txt2": "Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić chronologię. Przy każdym momencie dodaj nowy utwór lub przypisz istniejący z listy.",
+  "rsvp_txt1": "Brak wpisów RSVP. Pojawią się tutaj, gdy goście wypełnią formularz /rsvp lub gdy ustawisz status ręcznie w sekcji „Potwierdzenia\".",
+  "rsvp_txt2": "Wszystkie kody QR i linki do stron dla gości w jednym miejscu. Każdy kod możesz skopiować, otworzyć albo pobrać/udostępnić (PDF do druku lub wysłania).",
+  "rsvpMain_txt1": "Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej sekcji) lub link do strony /rsvp, aby zbierać potwierdzenia. Możesz też ręcznie ustawić status każdego gościa poniżej.",
+  "rsvpMain_txt2": "Udostępnij gościom stronę potwierdzeń obecności (RSVP). Pokaż kod QR lub wyślij link.",
+  "gallery_txt1": "Strona dla gości: wspólna galeria zdjęć i filmów oraz możliwość zaproponowania muzyki. Pokaż kod QR lub wyślij link.",
+  "photoChallenge_txt1": "Strona, na której goście wykonują wyzwania fotograficzne i przesyłają zdjęcia. Włącz grę w zakładce „Wyzwania\", pokaż kod QR lub wyślij link.",
+  "photoChallenge_txt2": "Brak zdjęć. Gdy goście wykonają wyzwania, pojawią się tutaj — pogrupowane po wyzwaniach.",
+  "photoGuess_txt1": "Strona, na której goście oglądają stare zdjęcia i zgadują odpowiedzi. Włącz grę w zakładce „Zdjęcia\", pokaż kod QR lub wyślij link.",
+  "photoGuess_txt2": "Dodaj stare zdjęcia (np. z dzieciństwa) i pytania, które goście będą zgadywać.",
+  "tf_txt1": "Strona, na której goście zgadują, czy stwierdzenia o Parze Młodej są prawdą czy fałszem. Włącz grę w zakładce „Stwierdzenia\", pokaż kod QR lub wyślij link.",
+  "quiz_txt1": "Strona, na której goście odpowiadają na pytania o Parę Młodą i poznają swój wynik. Włącz quiz w zakładce „Pytania\", pokaż kod QR lub wyślij link.",
+  "guestbook_deleteBodyNamed": "Czy na pewno usunąć wpis od „{name}”? Tej operacji nie można cofnąć.",
+  "capsule_deleteBodyNamed": "Czy na pewno usunąć wiadomość od „{name}”? Tej operacji nie można cofnąć.",
+  "@guestbook_deleteBodyNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@capsule_deleteBodyNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guestSection_rsvp": "RSVP (Potwierdzenia)",
+  "guestSection_gallery": "Galeria",
+  "guestSection_schedule": "Harmonogram",
+  "guestSection_music": "Muzyka",
+  "guestSection_guestbook": "Księga gości",
+  "guestSection_advice": "Rady",
+  "guestSection_timeCapsule": "Kapsuła czasu",
+  "guestSection_guestMap": "Mapa gości",
+  "guestSection_quiz": "Quiz",
+  "guestSection_trueFalse": "Prawda/Fałsz",
+  "guestSection_photoGuess": "Zgadnij zdjęcie",
+  "guestSection_photoChallenge": "Foto-wyzwania",
+  "guestSection_bingo": "Ślubne Bingo",
+  "gw_appTitle": "Wesele — strefa gości",
+  "gw_language": "Język",
+  "@gw_language": {
+    "description": "Podpowiedź przy globusie — gość przełącza język strefy gości."
+  },
+  "gw_help": "Pomoc",
+  "gw_connecting": "Łączę…",
+  "gw_invalidLink": "Nieprawidłowy lub nieaktywny link",
+  "gw_invalidLinkBody": "Poproś Parę Młodą o aktualny link lub kod QR do strony gości.",
+  "gw_guestZone": "Strefa gości",
+  "gw_unavailable": "Strona gości jest chwilowo niedostępna. Zajrzyj później.",
+  "gw_ourWedding": "Nasze Wesele",
+  "gw_emptyInfo": "Sekcje dla gości pojawią się tutaj, gdy Para Młoda je udostępni.",
+  "gw_availableFrom": "Dostępne od {date}",
+  "@gw_availableFrom": {
+    "description": "Data, od której sekcja jest dostępna dla gościa.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "gw_noLongerAvailable": "Już niedostępne",
+  "gw_unavailableShort": "Niedostępne",
+  "gw_comingSoon": "Ta sekcja będzie dostępna wkrótce",
+  "gw_yourName": "Twoje imię",
+  "gw_guest": "Gość",
+  "gw_sending": "Wysyłanie…",
+  "gw_thanks": "Dziękujemy ✓",
+  "gw_updated": "Zaktualizowano ✓",
+  "gw_saveChanges": "Zapisz zmiany",
+  "gw_sendError": "Nie udało się wysłać: {error}",
+  "@gw_sendError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "gw_sessionError": "Nie udało się przygotować sesji gościa. Odśwież stronę i spróbuj ponownie.",
+  "gw_nameFirst": "Najpierw podaj swoje imię.",
+  "gw_scheduleSoon": "Harmonogram pojawi się wkrótce.",
+  "gw_scheduleItem": "Punkt programu",
+  "gw_guestbookHint": "Twój wpis dla Pary Młodej…",
+  "gw_guestbookCta": "Dodaj wpis",
+  "gw_guestbookEmpty": "Bądź pierwszy — zostaw wpis!",
+  "gw_adviceHint": "Twoja rada dla Pary Młodej…",
+  "gw_adviceCta": "Dodaj radę",
+  "gw_adviceEmpty": "Podziel się pierwszą radą!",
+  "gw_needNameAndMessage": "Podaj imię i treść.",
+  "gw_needNameAndCity": "Podaj imię i miasto.",
+  "gw_fromWhereCity": "Skąd przyjeżdżasz (miasto)",
+  "gw_greetingOptional": "Pozdrowienie (opcjonalnie)",
+  "gw_addToMap": "Dodaj na mapę",
+  "gw_mapEmpty": "Bądź pierwszy na mapie gości!",
+  "gw_needNameAndText": "Podaj imię i wiadomość.",
+  "gw_capsuleSealed": "Wiadomość zapieczętowana!",
+  "gw_capsuleSealedBody": "Para Młoda otworzy Twoją wiadomość w wybranym czasie. Dziękujemy!",
+  "gw_capsuleIntro": "Zostaw wiadomość, którą Para Młoda otworzy w przyszłości. Inni goście jej nie zobaczą.",
+  "gw_capsuleHint": "Twoja wiadomość do kapsuły czasu…",
+  "gw_capsuleSeal": "Zapieczętuj wiadomość",
+  "gw_needFullName": "Podaj imię i nazwisko.",
+  "gw_rsvpSeeYou": "Do zobaczenia na weselu! 🎉",
+  "gw_rsvpThanks": "Dziękujemy za odpowiedź",
+  "gw_rsvpSent": "Twoje potwierdzenie trafiło do Pary Młodej.",
+  "gw_rsvpEdit": "Popraw odpowiedź",
+  "gw_rsvpExistingHint": "To Twoje wcześniejsze potwierdzenie. Możesz je poprawić — zapiszemy nową wersję zamiast dodawać kolejną.",
+  "gw_rsvpNewHint": "Wystarczy jedno potwierdzenie. Jeśli plany się zmienią, wróć tutaj i popraw odpowiedź.",
+  "gw_fullName": "Imię i nazwisko",
+  "gw_rsvpQuestion": "Czy będziesz na weselu?",
+  "gw_rsvpYes": "Będę",
+  "gw_rsvpNo": "Nie dam rady",
+  "gw_companions": "Liczba osób towarzyszących",
+  "gw_dietOptional": "Dieta / alergie (opcjonalnie)",
+  "gw_messageOptional": "Wiadomość dla Pary Młodej (opcjonalnie)",
+  "gw_rsvpSend": "Wyślij potwierdzenie",
+  "gw_photoCaption": "Podpis zdjęcia (opcjonalnie)",
+  "gw_photoThanks": "Dziękujemy za zdjęcie ✓",
+  "gw_photoError": "Nie udało się dodać zdjęcia: {error}",
+  "@gw_photoError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "gw_galleryError": "Nie udało się wczytać galerii.",
+  "gw_galleryEmpty": "Bądź pierwszy — dodaj zdjęcie!",
+  "gw_photoUploading": "Wysyłanie zdjęcia…",
+  "gw_camera": "Aparat",
+  "gw_pickPhoto": "Wybierz zdjęcie",
+  "gw_searchUnavailable": "Wyszukiwarka niedostępna — wpisz tytuł i wykonawcę ręcznie.",
+  "gw_needSongTitle": "Podaj tytuł utworu.",
+  "gw_proposalSent": "Propozycja wysłana ✓",
+  "gw_musicIntro": "Zaproponuj utwór, który chcesz usłyszeć na weselu. Propozycje trafiają do Pary Młodej.",
+  "gw_musicSearch": "Szukaj utworu lub wykonawcy",
+  "gw_noResults": "Brak wyników — spróbuj innej frazy.",
+  "gw_addManually": "Dodaj ręcznie",
+  "gw_songTitle": "Tytuł utworu",
+  "gw_artistOptional": "Wykonawca (opcjonalnie)",
+  "gw_sendProposal": "Wyślij propozycję",
+  "gw_yourProposals": "Twoje propozycje",
+  "gw_gameInactive": "Ta gra nie jest w tej chwili aktywna.",
+  "gw_questionsSoon": "Pytania pojawią się wkrótce.",
+  "gw_statementsSoon": "Stwierdzenia pojawią się wkrótce.",
+  "gw_answerAllQuestions": "Odpowiedz na wszystkie pytania.",
+  "gw_answerAllStatements": "Odpowiedz na wszystkie stwierdzenia.",
+  "gw_finishAndSend": "Zakończ i wyślij wynik",
+  "gw_scoreError": "Nie udało się wysłać wyniku: {error}",
+  "@gw_scoreError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "gw_scorePrivate": "Wynik zobaczy Para Młoda. Nie ma publicznego rankingu.",
+  "gw_true": "Prawda",
+  "gw_false": "Fałsz",
+  "gw_yourScore": "Twój wynik: {score} / {total}",
+  "@gw_yourScore": {
+    "placeholders": {
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "gw_scoreEarlier": "To Twój wcześniejszy wynik. Możesz spróbować ponownie — nowy wynik zastąpi poprzedni.",
+  "gw_scoreThanks": "Dziękujemy za zabawę! Wynik trafił do Pary Młodej.",
+  "gw_playAgain": "Zagraj ponownie",
+  "gw_challengesInactive": "Foto-wyzwania nie są w tej chwili aktywne.",
+  "gw_challengesSoon": "Wyzwania pojawią się wkrótce.",
+  "gw_challengeHint": "Jedno zdjęcie na wyzwanie — kolejne zastąpi poprzednie.",
+  "gw_guestPhotos": "Zdjęcia gości",
+  "gw_photosError": "Nie udało się wczytać zdjęć.",
+  "gw_photosEmpty": "Jeszcze nikt nie przesłał zdjęcia — zacznij Ty!",
+  "gw_points": "{points, plural, =1{1 pkt} other{{points} pkt}}",
+  "@gw_points": {
+    "description": "Punkty za foto-wyzwanie.",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "gw_sendPhoto": "Wyślij zdjęcie",
+  "gw_photoSent": "Zdjęcie wysłane ✓",
+  "gw_bingoSoon": "Plansza bingo pojawi się wkrótce.",
+  "gw_bingoIntro": "Skreślaj pola, gdy zobaczysz je na weselu. Skreślenia są tylko na Twoim telefonie — wyślij zgłoszenie, gdy uzbierasz komplet.",
+  "gw_bingoMarked": "Skreślone: {marked} / {total}",
+  "@gw_bingoMarked": {
+    "placeholders": {
+      "marked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "gw_bingoDone": "Mam bingo!",
+  "gw_bingoFree": "GRATIS",
+  "@gw_bingoFree": {
+    "description": "Darmowe pole na środku planszy bingo (gdy para nie ustawiła własnego)."
+  },
+  "settings_configSaved": "Konfiguracja zapisana ✓",
+  "settings_syncCard": "Status synchronizacji",
+  "settings_syncOk": "Zsynchronizowano z Firestore",
+  "settings_syncConnecting": "Łączenie…",
+  "settings_guideCard": "Przewodnik i pomoc",
+  "settings_guideHint": "Wróć do interaktywnego przewodnika po aplikacji lub do listy kroków organizacji wesela.",
+  "settings_helpOpen": "Pomoc — opisy funkcji",
+  "settings_legacyCard": "Dane starych sekcji (legacy)",
+  "settings_legacyHint": "Wpisy z czasów jednego wesela (galeria, księga gości, rady, mapa, kapsuła czasu, wyniki gier) nie mają przypisanego wesela. Migracja przypisuje je do TEGO wesela — bez niej znikną z panelu po wdrożeniu nowych reguł bezpieczeństwa.",
+  "settings_legacyBefore": "Uruchom PRZED wdrożeniem nowych reguł.",
+  "settings_legacyCheck": "Sprawdź",
+  "settings_legacyMigrate": "Migruj",
+  "settings_legacyError": "{collection}: BŁĄD — {error}",
+  "@settings_legacyError": {
+    "placeholders": {
+      "collection": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_legacyToDo": "{collection}: do migracji {stamped}, już przypisane {skipped}",
+  "@settings_legacyToDo": {
+    "placeholders": {
+      "collection": {
+        "type": "String"
+      },
+      "stamped": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_legacyDone": "{collection}: przypisano {stamped}, pominięto {skipped}",
+  "@settings_legacyDone": {
+    "placeholders": {
+      "collection": {
+        "type": "String"
+      },
+      "stamped": {
+        "type": "int"
+      },
+      "skipped": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_legacyCheckFailed": "Nie udało się sprawdzić: {error}",
+  "@settings_legacyCheckFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_legacyConfirmTitle": "Przypisać stare wpisy do tego wesela?",
+  "settings_legacyConfirmBody": "Wszystkie wpisy bez przypisanego wesela (galeria, księga gości, rady, mapa, kapsuła czasu, wyniki gier) zostaną przypisane do AKTYWNEGO wesela. Wpisy, które już mają wesele, nie zostaną ruszone. Operacji nie da się cofnąć jednym kliknięciem.",
+  "settings_legacyAssign": "Przypisz",
+  "settings_legacyFinished": "Migracja zakończona ✓",
+  "settings_legacyFailed": "Migracja nieudana: {error}",
+  "@settings_legacyFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_currencyToast": "Waluta: {code}",
+  "@settings_currencyToast": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_displayModeCard": "Tryb wyświetlania",
+  "settings_displayModeHint": "Domyślnie układ dobiera się do szerokości ekranu. Możesz go wymusić — przyda się na małym tablecie albo gdy wolisz układ telefonowy na dużym ekranie.",
+  "settings_interactionsCard": "Interakcje gości (moderacja)",
+  "settings_interactionsHint": "Zobacz i moderuj to, co goście przesłali przez stronę web: potwierdzenia RSVP, wpisy księgi, rady, mapę gości i kapsułę czasu.",
+  "settings_interactionsOpen": "Zobacz interakcje gości",
+  "settings_loading": "Ładowanie…",
+  "settings_guestLinkCard": "Link i QR dla gości (strona web)",
+  "settings_guestLinkHint": "Udostępnij gościom ten link lub kod QR. Otworzą stronę gości BEZ logowania — zobaczą tylko sekcje dla gości (z Twoimi ustawieniami widoczności).",
+  "settings_guestLinkCopied": "Skopiowano link dla gości",
+  "settings_copyLink": "Kopiuj link",
+  "settings_qrCode": "Kod QR",
+  "settings_peopleCard": "Osoby i dostęp",
+  "settings_peopleHint": "Zarządzaj osobami z dostępem do wesela: dodawaj współorganizatorów i planerów, ustawiaj datę ważności, blokuj i usuwaj dostęp.",
+  "settings_peopleOpen": "Zarządzaj osobami",
+  "settings_inviteCard": "Zaproszenie dla gości (dołączenie na konto)",
+  "settings_inviteHint": "Przekaż gościom kod QR albo trzy dane z tej karty. Gość poda je w aplikacji („Dołącz do wesela\") i zobaczy wesele na swoim koncie. To inna droga niż link do strony gości niżej — ten działa bez logowania.",
+  "settings_codeCopied": "Skopiowano kod: {code}",
+  "@settings_codeCopied": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_copyCode": "Kopiuj kod",
+  "settings_qrScanHint": "skanuje się w aplikacji",
+  "settings_inviteCopied": "Skopiowano gotowe zaproszenie",
+  "settings_copyInvite": "Kopiuj gotowe zaproszenie",
+  "settings_inviteDataTitle": "Co gość musi podać",
+  "settings_weddingCode": "Kod wesela",
+  "settings_weddingDate": "Data ślubu",
+  "settings_notSet": "nie ustawiono",
+  "settings_coupleSurname": "Nazwisko Państwa Młodych",
+  "settings_copiedValue": "Skopiowano: {value}",
+  "@settings_copiedValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_surnameMissing": "Uzupełnij pole „Nazwisko / nazwiska Pary Młodej\" w Konfiguracji — bez niego gość nie ma czego wpisać i nie dołączy.",
+  "settings_surnameFallback": "Gość poda tu na razie „Osoby\". Wpisz w Konfiguracji pole „Nazwisko / nazwiska Pary Młodej\", jeśli wolisz, żeby podawał nazwisko.",
+  "settings_inviteTextHeader": "Zapraszamy! Dołącz do naszego wesela w aplikacji Moje Wesele:",
+  "settings_inviteTextStep1": "1. Zainstaluj aplikację i załóż konto.",
+  "settings_inviteTextStep2": "2. Wybierz „Dołącz do wesela\".",
+  "settings_inviteTextStep3": "3. Podaj poniższe dane:",
+  "settings_inviteTextCode": "   • Kod wesela: {code}",
+  "@settings_inviteTextCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_inviteTextDate": "   • Data ślubu: {date}",
+  "@settings_inviteTextDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_inviteTextSurname": "   • Nazwisko Państwa Młodych: {surname}",
+  "@settings_inviteTextSurname": {
+    "placeholders": {
+      "surname": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_inviteTextQr": "Możesz też zeskanować nasz kod QR — wypełni kod za Ciebie.",
+  "settings_joinStepsTitle": "Jak gość dołącza — krok po kroku",
+  "settings_joinStep1": "Gość instaluje aplikację i zakłada konto (albo loguje się na swoje).",
+  "settings_joinStep2": "Na liście wesel wybiera „Dołącz do wesela\".",
+  "settings_joinStep3": "Wpisuje kod wesela — albo klika „Skanuj\" i skanuje Twój kod QR, co wypełnia to pole automatycznie.",
+  "settings_joinStep4": "Wybiera datę ślubu z kalendarza.",
+  "settings_joinStep5": "Wpisuje nazwisko Państwa Młodych (to z tej karty).",
+  "settings_joinStep6": "Gotowe — wesele pojawia się na jego liście.",
+  "settings_visibilityCard": "Widoczność dla gości",
+  "settings_visibilityHint": "Ustal, które sekcje i w jakim czasie widzą goście na stronach publicznych (np. RSVP do tygodnia przed, galeria od dnia wesela).",
+  "settings_visibilityOpen": "Ustaw widoczność sekcji",
+  "settings_notificationsHint": "Wybierz, o czym chcesz wiedzieć na telefonie. Dzwoneczek w aplikacji działa zawsze, niezależnie od tych ustawień.",
+  "settings_notificationsOpen": "Ustawienia powiadomień",
+  "settings_securityCard": "Logowanie",
+  "settings_securityHint": "Biometria (odcisk palca), PIN lub wzór do odblokowywania aplikacji przy kolejnych otwarciach.",
+  "settings_securityOpen": "Logowanie i zabezpieczenia",
+  "settings_configOwnerHint": "Zmianę daty ślubu i nazwisk musi zapisać właściciel wesela — inaczej dane dołączania gości pozostaną nieaktualne.",
+  "settings_coupleType": "Typ uroczystości",
+  "settings_coupleTypeHint": "{hint}. Możesz to zmienić w każdej chwili — zmieniają się tylko etykiety, dane gości zostają nietknięte.",
+  "@settings_coupleTypeHint": {
+    "description": "{hint} to podpowiedź typu uroczystości z CoupleType.",
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_eventName": "Nazwa wydarzenia",
+  "settings_persons": "Osoby",
+  "settings_verificationSurnames": "Nazwisko / nazwiska Pary Młodej",
+  "settings_verificationHint": "Używane tylko do weryfikacji gościa przy dołączaniu kodem — nie jest nigdzie wyświetlane. Jeśli nazwiska są różne, wpisz oba (np. „Kowalska Nowak\").",
+  "settings_time": "Godzina",
+  "settings_ceremonyPlace": "Miejsce ceremonii",
+  "settings_receptionPlace": "Miejsce wesela",
+  "settings_person1": "Osoba 1 (podział kosztów)",
+  "settings_person2": "Osoba 2",
+  "settings_witnesses": "Liczba świadków",
+  "settings_witnessesHint": "Domyślnie 2. Dla nietradycyjnych ślubów możesz ustawić więcej.",
+  "settings_children": "Dzieci na weselu",
+  "settings_childrenHint": "Możesz oznaczać gości jako dzieci, dodać stół dla dzieci i osobne menu. Ceny ustawisz w Budżet → Sala.",
+  "settings_childrenSwitch": "Włącz, jeśli na weselu będą dzieci.",
+  "settings_menuDict": "Słownik menu (po jednym w linii)",
+  "settings_expenseCategories": "Kategorie wydatków (po jednym w linii)",
+  "settings_saveConfig": "Zapisz konfigurację",
+  "settings_budgetCard": "Ustawienia budżetu",
+  "settings_budgetHint": "Budżet planowany to kwota założona na start. Rezerwa to opcjonalny bufor na nieprzewidziane wydatki — doliczany do planowanego jako bezpiecznik.",
+  "settings_budgetPlanned": "Budżet planowany ({currency})",
+  "@settings_budgetPlanned": {
+    "description": "{currency} to symbol waluty wesela (zł, €, …).",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_budgetReserve": "Rezerwa ({currency})",
+  "@settings_budgetReserve": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_budgetSave": "Zapisz ustawienia budżetu",
+  "settings_budgetSaved": "Zapisano ustawienia budżetu ✓",
+  "settings_accessCard": "Dostęp",
+  "settings_accessHint": "Rejestracja otwarta — każde konto Google może się zalogować i założyć własne wesele. Dostęp do tego wesela mają osoby z nim powiązane (właściciel i zaproszeni).",
+  "settings_devCard": "Ustawienia programistyczne",
+  "settings_exportData": "Eksport danych",
+  "settings_importData": "Import danych",
+  "settings_backupCreate": "Utwórz kopię",
+  "settings_backupsCard": "Kopie zapasowe",
+  "settings_backupsHint": "Kopie zapasowe (3 ostatnie) przechowywane lokalnie na urządzeniu.",
+  "settings_exportTitle": "Eksport danych (JSON)",
+  "settings_importWarning": "⚠ Import ZASTĄPI wszystkie obecne dane. Wklej poprawny JSON.",
+  "settings_importHint": "Wklej JSON…",
+  "settings_importButton": "Importuj (zastąp)",
+  "settings_importBadFormat": "Nieprawidłowy format JSON",
+  "settings_importDone": "Zaimportowano dane",
+  "settings_importFailed": "Błąd importu: {error}",
+  "@settings_importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_backupCreated": "Utworzono kopię zapasową",
+  "settings_backupsEmpty": "Brak kopii zapasowych.",
+  "settings_backupRestore": "Przywróć",
+  "settings_backupRestoreTitle": "Przywrócić kopię?",
+  "settings_backupRestoreBody": "Dane z {date} zastąpią obecne dane.",
+  "@settings_backupRestoreBody": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_backupRestored": "Przywrócono kopię",
+  "settings_backupRestoreFailed": "Błąd przywracania: {error}",
+  "@settings_backupRestoreFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "role_planner": "Planer",
+  "role_collaborator": "Współorganizator",
+  "role_guest": "Gość",
+  "status_active": "Aktywny",
+  "status_blocked": "Zablokowany",
+  "status_pending": "Oczekuje",
+  "status_expired": "Wygasł",
+  "vis_saved": "Zapisano ustawienia widoczności ✓",
+  "vis_title": "Widoczność dla gości",
+  "vis_sectionsHeader": "SEKCJE DLA GOŚCI",
+  "vis_saving": "Zapisywanie…",
+  "vis_save": "Zapisz ustawienia",
+  "vis_intro": "Ustal, kiedy goście widzą poszczególne sekcje na stronach publicznych. Możesz podać datę OD, DO, obie lub żadną. Daty liczone są wg czasu polskiego (Europe/Warsaw).",
+  "vis_masterTitle": "Strona dla gości",
+  "vis_masterOn": "Włączona — obowiązują ustawienia sekcji poniżej",
+  "vis_masterOff": "Wyłączona — goście nie widzą żadnej sekcji",
+  "vis_from": "Widoczne od",
+  "vis_to": "Widoczne do",
+  "vis_outOfRange": "Gdy niedostępne dla gościa:",
+  "vis_showMessage": "Pokaż komunikat",
+  "vis_hideSection": "Ukryj sekcję",
+  "vis_stateVisible": "Widoczna dla gości teraz",
+  "vis_stateFrom": "Będzie widoczna od {date}",
+  "@vis_stateFrom": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vis_stateTo": "Już niedostępna (do {date})",
+  "@vis_stateTo": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vis_stateOff": "Wyłączona dla gości",
+  "vis_stateMasterOff": "Cała strona dla gości wyłączona",
+  "notif_pushWhen": "Wyślij mi push, gdy:",
+  "notif_soonTitle": "Powiadomienia na telefon — wkrótce",
+  "notif_soonBody": "Push jeszcze nie działa — wymaga włączenia powiadomień systemowych i uruchomienia usługi po naszej stronie. Twój wybór zapisujemy już teraz, więc po włączeniu push wszystko zadziała bez ponownego ustawiania.",
+  "notif_bellTitle": "Dzwoneczek w aplikacji działa zawsze",
+  "notif_bellBody": "Centrum powiadomień w prawym górnym rogu pokazuje zmiany niezależnie od poniższych ustawień. Te przełączniki dotyczą wyłącznie powiadomień wysyłanych na telefon, gdy nie korzystasz z aplikacji.",
+  "notif_allOff": "Wszystko wyłączone — po uruchomieniu push nie dostaniesz żadnego powiadomienia na telefon. Dzwoneczek w aplikacji nadal będzie działał.",
+  "sec_enabled": "Zabezpieczenia włączone ✓",
+  "sec_disableTitle": "Wyłączyć zabezpieczenia?",
+  "sec_disableBody": "Aplikacja przestanie wymagać odcisku palca / PIN-u przy otwieraniu. Zapisany PIN/wzór zostanie usunięty z tego urządzenia.",
+  "sec_disable": "Wyłącz",
+  "sec_disabled": "Zabezpieczenia wyłączone",
+  "sec_confirmBiometric": "Potwierdź odcisk palca, aby włączyć szybkie logowanie",
+  "sec_biometricFailed": "Nie potwierdzono biometrii",
+  "sec_biometricOn": "Logowanie odciskiem palca włączone",
+  "sec_biometricOff": "Logowanie odciskiem palca wyłączone",
+  "sec_backupChanged": "Zmieniono zabezpieczenie zapasowe ✓",
+  "sec_title": "Logowanie",
+  "sec_statusCard": "Status zabezpieczeń",
+  "sec_lockOn": "Blokada aplikacji jest aktywna",
+  "sec_lockOff": "Blokada aplikacji wyłączona",
+  "sec_biometricStatusOn": "Logowanie odciskiem palca: włączone",
+  "sec_biometricStatusOff": "Logowanie odciskiem palca: wyłączone",
+  "sec_backupStatus": "Zabezpieczenie zapasowe: {type}",
+  "@sec_backupStatus": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "sec_noReader": "To urządzenie nie ma czytnika biometrycznego — dostępny tylko PIN/wzór.",
+  "sec_lockCard": "Blokada aplikacji",
+  "sec_requireBiometric": "Wymagaj odcisku palca lub PIN-u",
+  "sec_requirePin": "Wymagaj PIN-u lub wzoru",
+  "sec_onNextOpen": "Przy kolejnych otwarciach aplikacji.",
+  "sec_fingerprint": "Odcisk palca",
+  "sec_fastLogin": "Szybkie logowanie odciskiem palca",
+  "sec_pinStaysBackup": "PIN/wzór pozostaje jako metoda zapasowa.",
+  "sec_noReaderLong": "Brak czytnika biometrycznego na tym urządzeniu. Odblokowujesz aplikację PIN-em lub wzorem.",
+  "sec_backupCard": "Zabezpieczenie zapasowe",
+  "sec_backupCurrent": "Aktualnie: {type}. Możesz zmienić bez wyłączania całej blokady.",
+  "@sec_backupCurrent": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "sec_changePin": "Zmień PIN / wzór",
+  "people_addConfirm": "Czy na pewno dodać osobę „{email}\" jako {role}?",
+  "@people_addConfirm": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "people_codeConfirm": "Wygenerować kod zaproszenia dla roli {role}?",
+  "@people_codeConfirm": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "people_added": "Dodano osobę jako {role} ✓",
+  "@people_added": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "people_noAccount": "Nie znaleziono konta „{email}\". Osoba musi najpierw założyć konto w aplikacji.",
+  "@people_noAccount": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "people_alreadyMember": "Ta osoba już ma dostęp do wesela.",
+  "people_error": "Błąd. Spróbuj ponownie.",
+  "people_inviteCodeTitle": "Kod zaproszenia — {role}",
+  "@people_inviteCodeTitle": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "people_inviteCodeBody": "Przekaż ten kod osobie. Po zalogowaniu wejdzie w „Mam kod zaproszenia\" na ekranie „Twoje wesela\" i odbierze dostęp.",
+  "people_codeCopied": "Skopiowano kod: {code}",
+  "@people_codeCopied": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "people_blockTitle": "Zablokować dostęp?",
+  "people_unblockTitle": "Przywrócić dostęp?",
+  "people_blockBody": "Osoba „{who}\" straci dostęp do wesela, dopóki go nie przywrócisz.",
+  "@people_blockBody": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "people_unblockBody": "Osoba „{who}\" znów będzie miała dostęp do wesela.",
+  "@people_unblockBody": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "people_blocked": "Zablokowano dostęp",
+  "people_unblocked": "Przywrócono dostęp",
+  "people_removeTitle": "Usunąć osobę?",
+  "people_removeBody": "Osoba „{who}\" zostanie całkowicie usunięta z wesela. Możesz ją później dodać ponownie.",
+  "@people_removeBody": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
+  "people_removed": "Usunięto osobę",
+  "people_expiryTitle": "Data ważności dostępu planera",
+  "people_expiryUpdated": "Zaktualizowano datę ważności",
+  "people_title": "Osoby i dostęp",
+  "people_add": "Dodaj osobę",
+  "people_intro": "Zarządzaj osobami z dostępem do wesela. Współorganizator ma pełny panel bez ograniczeń czasu; planer ma pełny panel z datą ważności. Ty (Para Młoda) zawsze zostajesz właścicielem.",
+  "people_you": " (Ty)",
+  "people_validUntil": "ważny do {date}",
+  "@people_validUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "people_code": "kod: {code}",
+  "@people_code": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "people_actions": "Akcje",
+  "people_changeExpiry": "Zmień datę ważności",
+  "people_block": "Zablokuj dostęp",
+  "people_unblock": "Przywróć dostęp",
+  "people_remove": "Usuń osobę",
+  "people_pendingInvite": "Zaproszenie (oczekuje)",
+  "people_person": "Osoba",
+  "people_setExpiry": "Ustaw datę ważności dla planera.",
+  "people_role": "Rola",
+  "people_plannerHint": "Pełny panel z datą ważności dostępu (odcinany po dacie).",
+  "people_collaboratorHint": "Pełny panel bez ograniczeń czasowych (świadek, mama…).",
+  "people_expiry": "Data ważności",
+  "people_pickDate": "Wybierz datę",
+  "people_howToAdd": "Sposób dodania",
+  "people_byEmail": "Przez e-mail",
+  "people_byCode": "Kod zaproszenia",
+  "people_email": "E-mail osoby (musi mieć konto)",
+  "people_emailHint": "np. jan.kowalski@gmail.com",
+  "people_codeHint": "Wygenerujemy kod, który przekażesz osobie. Odbierze go w „Mam kod zaproszenia\" na swoim ekranie „Twoje wesela\".",
+  "gi_title": "Interakcje gości",
+  "gi_tabGuestbook": "Księga",
+  "gi_tabAdvice": "Rady",
+  "gi_tabMap": "Mapa",
+  "gi_tabCapsule": "Kapsuła",
+  "gi_tabGallery": "Galeria",
+  "gi_tabChallenges": "Foto-wyzwania",
+  "gi_tabMusic": "Muzyka",
+  "gi_tabQuiz": "Quiz",
+  "gi_tabTrueFalse": "Prawda/Fałsz",
+  "gi_tabPhotoGuess": "Zgadnij zdjęcie",
+  "gi_tabBingo": "Bingo",
+  "gi_deleteTitle": "Usunąć wpis?",
+  "gi_deletePhotoBody": "Zdjęcie zniknie ze strony gości. Oryginał zostaje w Cloudinary.",
+  "gi_deleteEntryBody": "Wpis gościa zostanie trwale usunięty.",
+  "gi_loadError": "Nie udało się wczytać: {error}",
+  "@gi_loadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "gi_empty": "Brak wpisów.",
+  "gi_musicNew": "Nowa",
+  "gi_musicAccepted": "Zagramy",
+  "gi_musicRejected": "Odrzucona",
+  "gi_score": "{name} — {score}/{total} pkt",
+  "@gi_score": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "score": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "gi_bingoMarked": "{name} — skreślone {marked}/{total}",
+  "@gi_bingoMarked": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "marked": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "gi_proposedBy": "Zaproponował(a): {name}",
+  "@gi_proposedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gi_challengeNo": "Wyzwanie #{id}",
+  "@gi_challengeNo": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "gi_diet": "Dieta: {diet}",
+  "@gi_diet": {
+    "placeholders": {
+      "diet": {
+        "type": "String"
+      }
+    }
+  },
+  "cw_title": "Nowe wesele",
+  "cw_intro": "Podaj podstawowe informacje — resztę uzupełnisz później w Ustawieniach.",
+  "cw_name": "Nazwa wesela",
+  "cw_nameHint": "np. Nasze Wesele",
+  "cw_defaultName": "Nasze Wesele",
+  "cw_coupleTypeHint": "{hint}. Możesz to zmienić później w Ustawieniach → Konfiguracja.",
+  "@cw_coupleTypeHint": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "cw_names": "Imiona Pary Młodej (opcjonalnie)",
+  "cw_namesHint": "Podane imiona od razu trafią na listę gości jako „{category}\". Puste pola pomiń — dodasz je kiedy indziej.",
+  "@cw_namesHint": {
+    "description": "{category} to etykieta kategorii Pary Młodej na liście gości.",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "cw_personsHint": "np. Ania i Piotr",
+  "cw_dateOptional": "Data ślubu (opcjonalnie)",
+  "cw_pickDateLater": "Wybierz datę (możesz później)",
+  "cw_children": "Będą dzieci na weselu",
+  "cw_childrenHint": "Możesz to zmienić później w Ustawieniach → Konfiguracja. Ceny menu dziecięcego ustawisz w Budżecie.",
+  "cw_childrenCount": "Ile dzieci (orientacyjnie, opcjonalnie)",
+  "cw_childrenCountHint": "np. 8",
+  "cw_childrenAuto": "Zostaw puste, a liczba dzieci będzie liczona z listy gości — wystarczy oznaczać ich jako dzieci.",
+  "cw_childrenManual": "Podana liczba będzie użyta w wyliczeniach. Gdy wpiszesz dzieci na listę gości, przełącz liczenie na automatyczne w Budżecie.",
+  "cw_create": "Utwórz wesele",
+  "cw_firstName": "Imię",
+  "jw_fillAll": "Uzupełnij wszystkie pola: kod, datę i nazwisko.",
+  "jw_joined": "Dołączono do wesela jako gość ✓",
+  "jw_alreadyMember": "Już należysz do tego wesela.",
+  "jw_badData": "Nieprawidłowe dane wesela. Sprawdź kod, datę ślubu i nazwisko Państwa Młodych.",
+  "jw_connectionError": "Błąd połączenia. Spróbuj ponownie.",
+  "jw_title": "Dołącz do wesela",
+  "jw_codeHint": "np. ABC234",
+  "jw_scan": "Skanuj",
+  "jw_surnameHint": "np. Kowalscy / Ania i Piotr",
+  "jw_checking": "Sprawdzanie…",
+  "jw_intro": "Aby potwierdzić, że jesteś zaproszonym gościem, podaj trzy dane z zaproszenia: kod wesela, datę ślubu i nazwisko Państwa Młodych. Wszystkie muszą się zgadzać.",
+  "jw_scanTitle": "Zeskanuj kod QR",
+  "jw_scanHint": "Skieruj aparat na kod QR z zaproszenia",
+  "wl_createFailed": "Nie udało się utworzyć wesela: {error}",
+  "@wl_createFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wl_create": "Załóż wesele",
+  "wl_haveCodeLong": "Mam kod zaproszenia (współorganizator / planer)",
+  "wl_haveCode": "Mam kod zaproszenia",
+  "wl_haveCodeBody": "Wpisz kod otrzymany od Pary Młodej, aby odebrać dostęp jako współorganizator lub planer.",
+  "wl_redeem": "Odbierz",
+  "wl_redeemed": "Dostęp odebrany ✓",
+  "wl_alreadyAccess": "Już masz dostęp do tego wesela.",
+  "wl_badCode": "Nieprawidłowy lub wykorzystany kod zaproszenia.",
+  "wl_error": "Błąd. Spróbuj ponownie.",
+  "wl_preparing": "Przygotowuję strefę gości…",
+  "wl_failed": "Nie udało się: {error}",
+  "@wl_failed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wl_nothingToPrepare": "Brak wesel do przygotowania",
+  "wl_prepareResult": "Gotowe: {ok} z {total}",
+  "@wl_prepareResult": {
+    "placeholders": {
+      "ok": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "wl_noFullAccess": "Nie masz wesel z pełnym dostępem. Wesela, w których jesteś tylko gościem, przygotowuje ich organizator.",
+  "wl_itemOk": "gotowe ✓",
+  "wl_itemError": "BŁĄD: {error}",
+  "@wl_itemError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "wl_title": "Twoje wesela",
+  "wl_subtitle": "Wybierz wesele lub utwórz nowe",
+  "wl_more": "Więcej",
+  "wl_prepareGuestZone": "Przygotuj strefę gości",
+  "wl_prepareForAll": "Dla wszystkich Twoich wesel",
+  "wl_empty": "Nie masz jeszcze żadnego wesela",
+  "wl_emptyBody": "Załóż pierwsze wesele, aby rozpocząć organizację. Możesz też dołączyć do wesela, do którego ktoś Cię zaprosi.",
+  "wl_createFirst": "Załóż pierwsze wesele",
+  "wl_loadError": "Nie udało się wczytać wesel",
+  "wl_dateTbd": "Data do ustalenia",
+  "setup_todo": "Do uzupełnienia ({count})",
+  "@setup_todo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setup_basic": "Podstawowa",
+  "setup_advanced": "Zaawansowana",
+  "setup_progress": "{done}/{total} gotowe",
+  "@setup_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "setup_allDone": "Wszystko uzupełnione ✓",
+  "setup_partial": "Uzupełniono {done} z {total} — zostało {left}",
+  "@setup_partial": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "setup_basicDone": "Podstawy gotowe. Zajrzyj do zaawansowanej, żeby dopracować budżet, stoły i strefę gości.",
+  "setup_complete": "Komplet — wszystkie dane wesela uzupełnione.",
+  "setup_done": "Gotowe ({count})",
+  "@setup_done": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "setup_goTo": "→ {section}",
+  "@setup_goTo": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "setup_fix": "Popraw",
+  "setup_go": "Przejdź",
+  "plan_newStep": "Nowy krok",
+  "plan_resetTitle": "Przywrócić domyślną listę?",
+  "plan_resetBody": "Lista kroków „Od czego zacząć?\" wróci do domyślnej. Wprowadzone zmiany zostaną utracone.",
+  "plan_reset": "Przywróć",
+  "plan_orderTitle": "Sugerowana kolejność planowania wesela",
+  "plan_orderHint": "Odhaczaj ukończone kroki — pasek pokaże postęp.",
+  "plan_progress": "{done} z {total} ukończonych · {pct}%",
+  "@plan_progress": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "plan_deleteStep": "Usuń krok",
+  "plan_addStep": "Dodaj krok",
+  "plan_resetDefaults": "Przywróć domyślne",
+  "people_codeConfirmUntil": "Wygenerować kod zaproszenia dla roli {role} (ważny do {date})?",
+  "@people_codeConfirmUntil": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "gh_title": "Wesele",
+  "gh_loadError": "Nie udało się wczytać strefy gości.",
+  "gh_loadErrorHint": "Sprawdź połączenie z internetem i spróbuj ponownie.",
+  "gh_notReady": "Strefa gości nie jest jeszcze gotowa",
+  "gh_notReadyBody": "Para Młoda jeszcze jej nie przygotowała. Zajrzyj później albo poproś ją o udostępnienie sekcji dla gości.",
+  "gh_account": "Konto",
+  "gh_guide": "Przewodnik",
+  "gh_switchWedding": "Zmień wesele",
+  "sec_backupPin": "PIN",
+  "sec_backupPattern": "wzór",
+  "@sec_backupPattern": {
+    "description": "Zapasowa metoda odblokowania; użyta w zdaniu „Aktualnie: wzór.\"."
+  },
+  "bio_reason": "Potwierdź tożsamość, aby odblokować aplikację",
+  "@bio_reason": {
+    "description": "Komunikat systemowego okna biometrii (Android/iOS)."
+  },
+  "bio_signInTitle": "Logowanie biometryczne",
+  "bio_hint": "Zweryfikuj tożsamość",
+  "bio_notRecognized": "Nie rozpoznano — spróbuj ponownie",
+  "bio_success": "Rozpoznano",
+  "bio_settings": "Ustawienia",
+  "bio_settingsHint": "Skonfiguruj biometrię w ustawieniach urządzenia.",
+  "help_start_title": "Start",
+  "@help_start_title": {
+    "description": "Nazwa kategorii na ekranie Pomocy (rozwijana sekcja)."
+  },
+  "help_start_1Title": "Pulpit",
+  "help_start_1Body": "Licznik dni do ślubu, skróty do sekcji i najważniejsze statystyki. Układ kafelków ustawiasz sam — możesz ukryć te, których nie używasz.",
+  "@help_start_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_start_2Title": "Od czego zacząć?",
+  "help_start_2Body": "Sugerowana kolejność planowania wesela. Odhaczaj ukończone kroki, a pasek pokaże postęp. Otworzysz ją z Ustawień w dowolnym momencie — lista jest wspólna dla wszystkich organizatorów wesela.",
+  "@help_start_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_start_3Title": "Przewodnik a Pomoc",
+  "help_start_3Body": "Przewodnik prowadzi po aplikacji krok po kroku i podświetla elementy na ekranie. Pomoc (ten ekran) to encyklopedia funkcji do czytania wtedy, gdy szukasz konkretnej odpowiedzi.",
+  "@help_start_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guests_title": "Goście",
+  "help_guests_1Title": "Lista gości",
+  "help_guests_1Body": "Dodawaj zaproszonych i zarządzaj ich danymi. Każdy gość może mieć osobę towarzyszącą — dodaj ją przy wpisie, a nie jako osobnego gościa, dzięki czemu liczby w podsumowaniu się zgadzają.",
+  "@help_guests_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guests_2Title": "Kartoteka",
+  "help_guests_2Body": "Szczegóły przydatne przy organizacji: dieta, alergie, wiek, potrzeba noclegu i transportu, uwagi. Te dane napędzają też kalkulacje w Budżecie i przypisania w Noclegach.",
+  "@help_guests_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guests_3Title": "Podsumowanie gości",
+  "help_guests_3Body": "Zbiorcze liczby: zaproszeni, potwierdzeni, dzieci, diety. Sprawdź je przed rozmową z salą — to na ich podstawie ustala się catering.",
+  "@help_guests_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guests_4Title": "Potwierdzenia obecności (RSVP)",
+  "help_guests_4Body": "Masz dwa źródła: wpisy, które sam dodasz w panelu, oraz potwierdzenia przysłane przez gości ze strefy gości. Te drugie znajdziesz w Ustawieniach → Interakcje gości → RSVP. Każdy gość może wysłać jedno potwierdzenie i sam je poprawić, jeśli plany się zmienią.",
+  "@help_guests_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_title": "Budżet",
+  "help_budget_1Title": "Jedno źródło danych — najważniejsza zasada",
+  "help_budget_1Body": "Pozycja dodana w Dostawcach, Prezentach czy Podróży poślubnej pojawia się w Budżecie automatycznie, z etykietą „dodano w…\". Edytuj ją tam, gdzie powstała — dzięki temu nic nie liczy się podwójnie i nie musisz pilnować dwóch list.",
+  "@help_budget_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_2Title": "Podsumowanie budżetu",
+  "help_budget_2Body": "Limit kontra wydatki, ile zostało do rozdysponowania oraz zestawienie wszystkich płatności i terminów w jednym miejscu.",
+  "@help_budget_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_3Title": "Sala i catering",
+  "help_budget_3Body": "Stawkę podajesz za osobę, a aplikacja przelicza koszt z liczby gości. Możesz osobno wliczyć obsługę (fotograf, zespół), dzieci po innej stawce i gości jeszcze nieprzypisanych do stołów. Ustaw też minimum gwarantowane przez salę, jeśli umowa je przewiduje.",
+  "@help_budget_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_4Title": "Wydatki",
+  "help_budget_4Body": "Pozostałe koszty pogrupowane w kategorie. Kategorie edytujesz w Ustawieniach → Konfiguracja.",
+  "@help_budget_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_5Title": "Alkohol i napoje",
+  "help_budget_5Body": "Rodzaje, ilości i ceny — osobno alkohol, osobno napoje bezalkoholowe. Przydaje się przy ustalaniu, co bierzecie własne, a co z sali.",
+  "@help_budget_5Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_6Title": "Podróż poślubna",
+  "help_budget_6Body": "Liczona osobno od kosztów wesela, żeby nie zaburzała budżetu przyjęcia — ale jej płatności widać w Podsumowaniu razem z pozostałymi.",
+  "@help_budget_6Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_budget_7Title": "Raty i terminy płatności",
+  "help_budget_7Body": "Przy dostawcy lub wydatku rozpisz raty z datami. Nadchodzące terminy zobaczysz w Podsumowaniu budżetu i na pulpicie.",
+  "@help_budget_7Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_room_title": "Plan sali",
+  "help_room_1Title": "Układanie sali",
+  "help_room_1Body": "Włącz „Edytuj plan\", aby przeciągać stoły i elementy oraz zmieniać ich rozmiar. Poza trybem edycji plan służy do przeglądania i przypisywania gości — trudniej wtedy coś przypadkiem przesunąć.",
+  "@help_room_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_room_2Title": "Przypisywanie gości do stołów",
+  "help_room_2Body": "Przeciągnij gościa na miejsce przy stole. Goście nieprzypisani są widoczni osobno — pamiętaj o nich, bo mogą wliczać się do kosztu cateringu, zależnie od ustawień w Budżecie.",
+  "@help_room_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_room_3Title": "Stoły obsługi",
+  "help_room_3Body": "Stoliki dla fotografa, zespołu czy obsługi oznacz osobno — mają własną stawkę cateringową i nie mieszają się z listą gości.",
+  "@help_room_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_schedule_title": "Harmonogram i zadania",
+  "help_schedule_1Title": "Plan dnia",
+  "help_schedule_1Body": "Punkty programu z godzinami, kategorią i miejscem. To najważniejszy dokument dnia ślubu — przyda się fotografowi, zespołowi i obsłudze sali.",
+  "@help_schedule_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_schedule_2Title": "Punkt prywatny",
+  "help_schedule_2Body": "Punkt oznaczony jako prywatny NIE trafia do strefy gości. Używaj go do spraw organizacyjnych: „przyjazd florystki\", „rozliczenie z salą\".",
+  "@help_schedule_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_schedule_3Title": "Link do miejsca dla gości",
+  "help_schedule_3Body": "Przy punkcie możesz podać link do mapy i osobno zdecydować, czy pokazać go gościom. Bez zaznaczenia tej opcji link zostaje tylko dla Was.",
+  "@help_schedule_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_schedule_4Title": "Checklista",
+  "help_schedule_4Body": "Lista rzeczy do odhaczenia przed weselem i w jego trakcie — osobna od Zadań, bo służy do szybkiego „zrobione / niezrobione\".",
+  "@help_schedule_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_schedule_5Title": "Zadania i powiązania",
+  "help_schedule_5Body": "Zadaniu możesz przypisać osobę odpowiedzialną i powiązać je z wydatkiem, dostawcą lub prezentem. Dzięki temu z jednego miejsca widzisz, co zostało do zrobienia i ile to kosztuje.",
+  "@help_schedule_5Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_vendors_title": "Dostawcy, transport, noclegi",
+  "help_vendors_1Title": "Dostawcy",
+  "help_vendors_1Body": "Kontakty, kwoty umów, statusy płatności i raty. Kwota dostawcy trafia do Budżetu automatycznie — nie dodawaj jej drugi raz jako wydatku.",
+  "@help_vendors_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_vendors_2Title": "Transport",
+  "help_vendors_2Body": "Trasy, pojazdy i przypisanie pasażerów. Informacja „potrzebuje transportu\" pochodzi z kartoteki gościa.",
+  "@help_vendors_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_vendors_3Title": "Noclegi",
+  "help_vendors_3Body": "Obiekty, pokoje i rezerwacje dla gości. Podobnie jak transport — korzysta z oznaczeń w kartotece.",
+  "@help_vendors_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guestZone_title": "Strefa gości",
+  "help_guestZone_1Title": "Link i kod QR dla gości",
+  "help_guestZone_1Body": "Ustawienia → „Link i QR dla gości\". Gość otwiera stronę bez logowania i bez instalowania aplikacji. Ten kod drukujesz na zaproszeniach albo kładziesz na stołach.",
+  "@help_guestZone_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guestZone_2Title": "Kod dołączenia (konto gościa)",
+  "help_guestZone_2Body": "Sześcioznakowy kod dla gościa, który chce mieć wesele na własnym koncie. Weryfikacja jest potrójna: kod, data ślubu i nazwisko — sam kod nie wystarczy, bo bywa jawny na stołach.",
+  "@help_guestZone_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guestZone_3Title": "Widoczność sekcji dla gości",
+  "help_guestZone_3Body": "Decydujesz, które sekcje widzą goście i w jakim okresie (daty OD/DO). Wybierasz też, co się dzieje poza zakresem: komunikat „dostępne od…\" albo całkowite ukrycie kafelka. Typowo: RSVP włącz od razu, galerię dopiero w dniu wesela.",
+  "@help_guestZone_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guestZone_4Title": "Interakcje gości i moderacja",
+  "help_guestZone_4Body": "Ustawienia → „Interakcje gości\". W jednym miejscu zbierają się potwierdzenia, wpisy księgi, rady, zdjęcia, propozycje muzyki i wyniki gier. Każdy wpis możesz usunąć jednym kliknięciem.",
+  "@help_guestZone_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_guestZone_5Title": "Czego gość nie widzi",
+  "help_guestZone_5Body": "Budżet, pełna lista gości, dostawcy, plan sali i zadania są dla gościa niedostępne — i nie chodzi o ukrycie w interfejsie, tylko o techniczny brak dostępu do tych danych.",
+  "@help_guestZone_5Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_media_title": "Zdjęcia i muzyka",
+  "help_media_1Title": "Galeria",
+  "help_media_1Body": "Wspólny album: goście wrzucają zdjęcia ze swoich telefonów, Wy widzicie wszystko w panelu i możecie usuwać niechciane wpisy.",
+  "@help_media_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_media_2Title": "Muzyka i propozycje gości",
+  "help_media_2Body": "Budujesz playlistę wesela, a goście przysyłają propozycje utworów. Propozycje widzicie tylko Wy — nie ma publicznej listy ani głosowania. Każdą oznaczysz jako „Zagramy\" lub „Odrzucona\".",
+  "@help_media_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_games_title": "Gry i pamiątki",
+  "help_games_1Title": "Quiz, Prawda/Fałsz, Zgadnij zdjęcie",
+  "help_games_1Body": "Dodaj pytania i włącz grę przełącznikiem „aktywna\". Gość gra na swoim telefonie, a wynik trafia do Was. Publicznego rankingu nie ma — nikt nie porównuje się z innymi.",
+  "@help_games_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_games_2Title": "Foto-wyzwania",
+  "help_games_2Body": "Lista zadań fotograficznych z punktami. Gość wysyła po jednym zdjęciu do każdego wyzwania; kolejne zastępuje poprzednie.",
+  "@help_games_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_games_3Title": "Ślubne Bingo",
+  "help_games_3Body": "Pola bingo możesz wpisać ręcznie lub wygenerować z punktów harmonogramu. Plansze drukujesz do PDF, a goście mogą też grać na telefonie.",
+  "@help_games_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_games_4Title": "Pamiątki",
+  "help_games_4Body": "Księga gości, rady dla Pary Młodej, kapsuła czasu i mapa gości. Kapsuła jest prywatna — czytacie ją tylko Wy.",
+  "@help_games_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_title": "Role i dostęp",
+  "help_roles_1Title": "Właściciel ma władzę nadrzędną",
+  "help_roles_1Body": "Konto Pary Młodej jest najważniejsze. Tylko właściciel dodaje osoby, wystawia zaproszenia i może każdemu odebrać dostęp — także planerowi.",
+  "@help_roles_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_2Title": "Współorganizator",
+  "help_roles_2Body": "Świadek, mama, przyjaciółka — pełny panel bez daty ważności. Nie może jednak dodawać kolejnych osób; to zostaje przy właścicielu.",
+  "@help_roles_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_3Title": "Planer i data ważności",
+  "help_roles_3Body": "Planerowi możesz nadać dostęp z datą wygaśnięcia. Po tej dacie wesele znika z jego listy. Dostęp da się w każdej chwili zablokować i przywrócić — wielokrotnie.",
+  "@help_roles_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_4Title": "Jak dodać planera lub współorganizatora — krok po kroku",
+  "help_roles_4Body": "Ustawienia → „Osoby i dostęp\" → „Dodaj osobę\". Wybierz rolę (Współorganizator albo Planer), a przy planerze ustaw datę ważności dostępu. Potem masz dwie drogi: podać adres e-mail osoby (musi już mieć konto w aplikacji) albo wygenerować kod zaproszenia i przekazać go dowolnym kanałem. Zaproszenie dodaje osobę tylko do TEGO wesela — przy kilku weselach każde wymaga osobnego zaproszenia.",
+  "@help_roles_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_5Title": "Jak działa kod zaproszenia",
+  "help_roles_5Body": "Kod jest jednorazowy i przypisany do konkretnego wesela oraz roli. Osoba, która go dostanie, zakłada konto (albo loguje się na istniejące), a następnie na liście wesel wybiera „Mam kod zaproszenia (współorganizator / planer)\" i wpisuje go. Po wykorzystaniu kod przestaje działać — dla kolejnej osoby wygeneruj nowy. To inna ścieżka niż kod dla gości, którym goście dołączają do strefy gościa.",
+  "@help_roles_5Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_6Title": "Data ważności dostępu planera",
+  "help_roles_6Body": "Datę ustawiasz przy zapraszaniu i zmieniasz później na liście osób. Po jej upływie wesele znika z listy planera i traci on dostęp do danych — bez usuwania czegokolwiek u Ciebie. Datę można przesunąć, a dostęp zablokować i przywrócić wielokrotnie. Współorganizator daty ważności nie ma.",
+  "@help_roles_6Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_roles_7Title": "Odbieranie dostępu",
+  "help_roles_7Body": "Na liście „Osoby i dostęp\" przy każdej osobie znajdziesz blokadę i usunięcie. Blokada zostawia osobę na liście (można ją odblokować), usunięcie kasuje członkostwo — powrót wymaga nowego zaproszenia. Właściciela nie da się usunąć.",
+  "@help_roles_7Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_analytics_title": "Analityka",
+  "help_analytics_1Title": "Wykresy i statystyki",
+  "help_analytics_1Body": "Postępy organizacji, struktura kosztów i frekwencja. Dobre miejsce, by sprawdzić, czy budżet nie rozjeżdża się z planem.",
+  "@help_analytics_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_settings_title": "Ustawienia i dane",
+  "help_settings_1Title": "Konfiguracja wesela",
+  "help_settings_1Body": "Nazwa, data, godzina, miejsca ceremonii i przyjęcia, podział kosztów oraz słowniki (menu, kategorie wydatków). Po zmianie daty lub nazwisk zapisz konfigurację — odświeża to dane dołączania gości.",
+  "@help_settings_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_settings_2Title": "Synchronizacja",
+  "help_settings_2Body": "Dane zapisują się w chmurze i są wspólne dla wszystkich organizatorów wesela. Kartę statusu znajdziesz na górze Ustawień.",
+  "@help_settings_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_settings_3Title": "Kopie zapasowe i eksport",
+  "help_settings_3Body": "Możesz utworzyć kopię zapasową oraz wyeksportować wszystkie dane do pliku JSON. Import nadpisuje dane wesela — używaj ostrożnie.",
+  "@help_settings_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_settings_4Title": "Blokada aplikacji",
+  "help_settings_4Body": "PIN, wzór lub biometria zabezpieczają dostęp na tym urządzeniu. Ustawienie jest lokalne — nie przenosi się na inne telefony.",
+  "@help_settings_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_planner_title": "Praca z klientami",
+  "help_planner_1Title": "Wiele wesel na jednym koncie",
+  "help_planner_1Body": "Możesz prowadzić dowolnie wiele wesel. Przełączasz je w menu pod logo → „Zmień wesele\". Dane każdego wesela są w pełni oddzielone — klient A nigdy nie zobaczy wesela klienta B.",
+  "@help_planner_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_planner_2Title": "Twój dostęp bywa czasowy",
+  "help_planner_2Body": "Para Młoda może nadać Ci dostęp z datą ważności oraz zablokować go i przywrócić. Gdy wesele zniknie z Twojej listy, to najczęściej wygasła data, a nie awaria — poproś klienta o przedłużenie.",
+  "@help_planner_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_planner_3Title": "Czego planer nie może",
+  "help_planner_3Body": "Dodawanie osób i wystawianie zaproszeń jest zarezerwowane dla właściciela wesela. To celowe: klient ma zawsze kontrolę nad tym, kto ma dostęp do jego danych.",
+  "@help_planner_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_planner_4Title": "Przekazanie wesela Parze",
+  "help_planner_4Body": "Nie ma osobnego „przekazania\" — wesele od początku należy do Pary Młodej. Gdy kończycie współpracę, po prostu tracisz dostęp, a wszystkie dane zostają u klienta. Nic nie trzeba eksportować.",
+  "@help_planner_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_planner_5Title": "Dane osobowe klientów",
+  "help_planner_5Body": "Lista gości zawiera dane osobowe: nazwiska, telefony, adresy e-mail, informacje o dietach. Traktuj je poufnie i nie przenoś między weselami.",
+  "@help_planner_5Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_planner_6Title": "Co pokazać klientowi",
+  "help_planner_6Body": "Najczęściej sprawdzają się: Podsumowanie budżetu (na co idą pieniądze), plan sali (wydruk) i harmonogram dnia. Analityka daje gotowy materiał na podsumowanie postępów.",
+  "@help_planner_6Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gStart_title": "Na start",
+  "help_gStart_1Title": "Czym jest ta strona",
+  "help_gStart_1Body": "To strefa gości przygotowana przez Parę Młodą. Nie musisz zakładać konta ani niczego instalować — wystarczy link lub kod QR z zaproszenia.",
+  "@help_gStart_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gStart_2Title": "Nie widzę jakiejś sekcji",
+  "help_gStart_2Body": "Para Młoda sama decyduje, co i kiedy udostępnia. Część sekcji pojawia się dopiero bliżej wesela, a niektóre znikają po nim. Zajrzyj później.",
+  "@help_gStart_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gRsvp_title": "Potwierdzenie obecności",
+  "help_gRsvp_1Title": "Jak potwierdzić obecność",
+  "help_gRsvp_1Body": "Wejdź w RSVP, wpisz imię i nazwisko, zaznacz, czy będziesz, i wyślij. Jeśli przyjeżdżasz z kimś, podaj liczbę osób towarzyszących — nie wypełniaj formularza drugi raz za tę osobę.",
+  "@help_gRsvp_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gRsvp_2Title": "Zmiana odpowiedzi",
+  "help_gRsvp_2Body": "Wystarczy jedno potwierdzenie. Gdy plany się zmienią, wróć do RSVP — formularz wypełni się Twoją poprzednią odpowiedzią, a po zapisaniu zastąpi ją nowa.",
+  "@help_gRsvp_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gRsvp_3Title": "Dieta i alergie",
+  "help_gRsvp_3Body": "Wpisz je w formularzu potwierdzenia. Ta informacja trafia prosto do Pary Młodej i pomaga ustalić menu z salą.",
+  "@help_gRsvp_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gPhotos_title": "Zdjęcia",
+  "help_gPhotos_1Title": "Dodawanie zdjęć",
+  "help_gPhotos_1Body": "W Galerii podaj imię, wybierz zdjęcie z telefonu lub zrób je od razu aparatem. Możesz dorzucić podpis. Zdjęć możesz dodać dowolnie wiele.",
+  "@help_gPhotos_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gPhotos_2Title": "Kto widzi moje zdjęcia",
+  "help_gPhotos_2Body": "Galeria jest wspólna — widzą ją wszyscy goście z linkiem oraz Para Młoda. Para może usunąć każde zdjęcie.",
+  "@help_gPhotos_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gMusic_title": "Muzyka",
+  "help_gMusic_1Title": "Propozycja utworu",
+  "help_gMusic_1Body": "Wyszukaj piosenkę albo wpisz tytuł i wykonawcę ręcznie, a potem wyślij propozycję. Jeśli wyszukiwarka nie działa (bywa tak w przeglądarce), skorzystaj z pól ręcznych — efekt jest taki sam.",
+  "@help_gMusic_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gMusic_2Title": "Kto widzi propozycje",
+  "help_gMusic_2Body": "Tylko Para Młoda. Nie ma publicznej listy ani głosowania, więc nikt nie podejrzy, co zaproponowali inni.",
+  "@help_gMusic_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gSchedule_title": "Harmonogram",
+  "help_gSchedule_1Title": "Plan dnia",
+  "help_gSchedule_1Body": "Godzina po godzinie: ceremonia, przyjęcie, tort, pierwszy taniec. U góry zobaczysz licznik dni do wesela.",
+  "@help_gSchedule_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gGames_title": "Gry",
+  "help_gGames_1Title": "Quiz, Prawda/Fałsz, Zgadnij zdjęcie",
+  "help_gGames_1Body": "Odpowiedz na wszystkie pytania i wyślij wynik. Możesz podejść ponownie — nowy wynik zastąpi poprzedni, więc nic nie tracisz.",
+  "@help_gGames_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gGames_2Title": "Foto-wyzwania",
+  "help_gGames_2Body": "Lista zadań fotograficznych. Do każdego wyzwania wysyłasz jedno zdjęcie; kolejne zastąpi poprzednie. Zdjęcia widzą wszyscy goście.",
+  "@help_gGames_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gGames_3Title": "Ślubne Bingo",
+  "help_gGames_3Body": "Skreślaj pola, gdy zobaczysz je na weselu. Skreślenia zostają na Twoim telefonie — wyślij zgłoszenie dopiero, gdy uzbierasz komplet.",
+  "@help_gGames_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gGames_4Title": "Kto widzi wyniki",
+  "help_gGames_4Body": "Wyłącznie Para Młoda. Nie ma publicznego rankingu, więc graj dla zabawy, a nie dla rywalizacji.",
+  "@help_gGames_4Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gKeepsakes_title": "Pamiątki",
+  "help_gKeepsakes_1Title": "Księga gości i rady",
+  "help_gKeepsakes_1Body": "Zostaw życzenia albo dobrą radę dla Pary Młodej. Wpisów możesz dodać kilka, a widzą je też inni goście — to trochę wspólna kronika.",
+  "@help_gKeepsakes_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gKeepsakes_2Title": "Kapsuła czasu",
+  "help_gKeepsakes_2Body": "Prywatna wiadomość do Pary Młodej. Nie zobaczy jej żaden inny gość.",
+  "@help_gKeepsakes_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gKeepsakes_3Title": "Mapa gości",
+  "help_gKeepsakes_3Body": "Zaznacz, skąd przyjeżdżasz. Jedna pinezka na gościa — możesz ją poprawić, wracając do sekcji.",
+  "@help_gKeepsakes_3Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gPrivacy_title": "Prywatność",
+  "help_gPrivacy_1Title": "Co widzi Para Młoda",
+  "help_gPrivacy_1Body": "Twoje potwierdzenie obecności, wpisy, zdjęcia, propozycje muzyczne i wyniki gier — zawsze z imieniem, które podasz.",
+  "@help_gPrivacy_1Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "help_gPrivacy_2Title": "Czego nie widzą inni goście",
+  "help_gPrivacy_2Body": "Twojego potwierdzenia obecności, wiadomości do kapsuły czasu, propozycji muzycznych ani wyników gier. Publiczne są tylko: księga gości, rady, mapa, galeria i zdjęcia z foto-wyzwań.",
+  "@help_gPrivacy_2Body": {
+    "description": "Pomoc — treść hasła. Tekst ciągły, bez podstawień; można swobodnie dostosować długość zdań do języka."
+  },
+  "setupTask_eventNameLabel": "Nazwa wesela",
+  "setupTask_eventNameHint": "Np. „Wesele Ani i Piotra\" — pokazuje się w nagłówku aplikacji i na stronie dla gości.",
+  "@setupTask_eventNameHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_weddingDateLabel": "Data i godzina ślubu",
+  "setupTask_weddingDateHint": "Od daty liczy się odliczanie na pulpicie i weryfikacja gości przy dołączaniu kodem.",
+  "@setupTask_weddingDateHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_coupleTypeLabel": "Typ uroczystości",
+  "setupTask_coupleTypeHint": "Decyduje o etykietach w całej aplikacji — „Panna Młoda / Pan Młody\", dwie Panny Młode, dwóch Panów Młodych albo neutralnie.",
+  "@setupTask_coupleTypeHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_coupleNamesLabel": "Imiona Pary Młodej",
+  "setupTask_coupleNamesHint": "Wpisz oba imiona — używa ich podział kosztów, etykiety i lista gości.",
+  "@setupTask_coupleNamesHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_ceremonyPlaceLabel": "Miejsce ceremonii",
+  "setupTask_ceremonyPlaceHint": "Kościół albo USC — adres zobaczą goście w harmonogramie.",
+  "@setupTask_ceremonyPlaceHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_receptionPlaceLabel": "Miejsce przyjęcia",
+  "setupTask_receptionPlaceHint": "Nazwa i adres sali — też trafia do harmonogramu gości.",
+  "@setupTask_receptionPlaceHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_verificationSurnamesLabel": "Nazwisko do weryfikacji gości",
+  "setupTask_verificationSurnamesHint": "Nazwisko (albo oba nazwiska), które gość poda przy dołączaniu kodem. Nigdzie się nie wyświetla — służy tylko sprawdzeniu.",
+  "@setupTask_verificationSurnamesHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_guestsLabel": "Pierwsi goście",
+  "setupTask_guestsHint": "Dodaj choć kilka osób — od listy gości zależą catering, stoły i statystyki.",
+  "@setupTask_guestsHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_budgetTotalLabel": "Budżet planowany",
+  "setupTask_budgetTotalHint": "Kwota, w której chcecie się zmieścić. Bez niej nie ma z czym porównywać wydatków.",
+  "@setupTask_budgetTotalHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_pricePerPersonLabel": "Cena za osobę (sala)",
+  "setupTask_pricePerPersonHint": "Stawka od talerza — mnoży się przez liczbę gości i daje koszt cateringu.",
+  "@setupTask_pricePerPersonHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_withChildrenLabel": "Decyzja o dzieciach",
+  "setupTask_withChildrenHint": "Ustal, czy na weselu będą dzieci. Jeśli tak, dojdzie menu dziecięce, stół dla dzieci i wyłączenie ich z przeliczeń alkoholu.",
+  "@setupTask_withChildrenHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_menuOptionsLabel": "Słownik menu",
+  "setupTask_menuOptionsHint": "Warianty dania do wyboru przy gościach (mięsne, rybne, wege, dla dziecka).",
+  "@setupTask_menuOptionsHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_expenseCategoriesLabel": "Kategorie wydatków",
+  "setupTask_expenseCategoriesHint": "Własne kategorie kosztów — po nich grupują się wydatki i wykresy w Analityce.",
+  "@setupTask_expenseCategoriesHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_witnessesLabel": "Świadkowie",
+  "setupTask_witnessesHint": "Oznacz świadków na liście gości — pojawią się w podsumowaniu i na planie sali.",
+  "@setupTask_witnessesHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_tablesLabel": "Stoły",
+  "setupTask_tablesHint": "Dodaj stoły z liczbą miejsc — bez nich nie da się rozsadzić gości.",
+  "@setupTask_tablesHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_seatingLabel": "Rozsadzenie gości",
+  "setupTask_seatingHint": "Przypisz gości do stołów — choćby część. Resztę dokończysz bliżej wesela.",
+  "@setupTask_seatingHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_scheduleLabel": "Harmonogram dnia",
+  "setupTask_scheduleHint": "Punkty programu z godzinami. Ten sam harmonogram widzą goście w swojej strefie.",
+  "@setupTask_scheduleHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupTask_guestVisibilityLabel": "Widoczność sekcji dla gości",
+  "setupTask_guestVisibilityHint": "Zdecyduj, co i od kiedy widzą goście — np. RSVP od razu, a galerię dopiero w dniu wesela.",
+  "@setupTask_guestVisibilityHint": {
+    "description": "Kreator „Poprowadź mnie za rękę\" — podpowiedź, CO wpisać w tym kroku."
+  },
+  "setupLevel_basic": "Konfiguracja podstawowa",
+  "setupLevel_advanced": "Konfiguracja zaawansowana",
+  "setupLevel_basicIntro": "Minimum, żeby ruszyć: dane wesela i pierwsi goście.",
+  "setupLevel_advancedIntro": "Dopracowanie: budżet, menu, stoły, harmonogram i strefa gości. To, co masz już uzupełnione, jest odhaczone.",
+  "section_dashboard": "Pulpit",
+  "@section_dashboard": {
+    "description": "Nazwa sekcji w nawigacji. W bazie zapisuje się `AppSection.name` (angielskie), więc tłumaczy się WYŁĄCZNIE etykieta."
+  },
+  "section_guests": "Goście",
+  "section_budget": "Budżet",
+  "section_room": "Plan sali",
+  "section_schedule": "Harmonogram",
+  "section_tasks": "Zadania",
+  "section_vendors": "Dostawcy",
+  "section_transport": "Transport",
+  "section_accommodation": "Noclegi",
+  "section_music": "Muzyka",
+  "section_gifts": "Prezenty",
+  "section_gallery": "Galeria & QR",
+  "section_games": "Ślubne gry",
+  "section_keepsakes": "Ślubne pamiątki",
+  "section_analytics": "Analityka",
+  "section_rsvp": "Potwierdzenia",
+  "section_rsvpAll": "Wszystkie RSVP",
+  "section_settings": "Ustawienia",
+  "onb_desc_dashboard": "Twój pulpit — licznik dni do ślubu, skróty i najważniejsze statystyki w jednym miejscu.",
+  "@onb_desc_dashboard": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_guests": "Lista zaproszonych, ich dane, statusy potwierdzeń i preferencje — w podzakładkach.",
+  "@onb_desc_guests": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_budget": "Kontroluj wszystkie koszty wesela w jednym miejscu — podzakładki obok.",
+  "@onb_desc_budget": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_room": "Rozmieść stoły i elementy sali na interaktywnym planie. Włącz „Edytuj plan\", aby przeciągać i zmieniać rozmiary.",
+  "@onb_desc_room": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_schedule": "Rozpisz przebieg dnia ślubu oraz checklistę — w podzakładkach.",
+  "@onb_desc_schedule": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_tasks": "Rozpisz zadania, przypisz osoby i powiąż je z budżetem, dostawcą lub prezentem.",
+  "@onb_desc_tasks": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_vendors": "Baza usługodawców — kontakty, umowy, raty płatności i powiązania z budżetem.",
+  "@onb_desc_vendors": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_transport": "Zorganizuj dojazd gości — trasy, pojazdy i przypisanie pasażerów.",
+  "@onb_desc_transport": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_accommodation": "Zarządzaj noclegami dla gości — obiekty, pokoje i rezerwacje.",
+  "@onb_desc_accommodation": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_music": "Twórz playlistę wesela i zbieraj propozycje utworów od gości (kod QR).",
+  "@onb_desc_music": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_gifts": "Ewidencja prezentów otrzymanych, upominków dla gości i listy życzeń — w podzakładkach.",
+  "@onb_desc_gifts": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_gallery": "Wspólna galeria zdjęć z wesela oraz kody QR do udostępniania gościom.",
+  "@onb_desc_gallery": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_games": "Ślubne gry — zabawy dla gości, m.in. Ślubne Bingo generowane z wydarzeń harmonogramu. Wkrótce kolejne gry.",
+  "@onb_desc_games": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_keepsakes": "Ślubne pamiątki — księga gości, rady dla Pary Młodej, kapsuła czasu i mapa gości. W przygotowaniu.",
+  "@onb_desc_keepsakes": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_analytics": "Wykresy i statystyki organizacji — postępy, koszty i frekwencja.",
+  "@onb_desc_analytics": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_rsvp": "Zarządzaj potwierdzeniami obecności (RSVP) i udostępniaj gościom formularz online.",
+  "@onb_desc_rsvp": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_settings": "Tu znajdziesz konfigurację, dostęp, logowanie i narzędzia. Przewodnik wznowisz w każdej chwili z menu pod logo. To już wszystko — powodzenia!",
+  "@onb_desc_settings": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_desc_fallback": "Sekcja „{section}\" w aplikacji.",
+  "@onb_desc_fallback": {
+    "description": "Zapasowy opis kroku dla sekcji bez własnego tekstu — {section} to nazwa sekcji.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "onb_sub_guests_1Title": "Lista",
+  "onb_sub_guests_1Desc": "Lista zaproszonych — dodawaj gości i zarządzaj ich danymi.",
+  "@onb_sub_guests_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_guests_2Title": "Kartoteka",
+  "onb_sub_guests_2Desc": "Szczegółowa kartoteka: status potwierdzenia, dieta, wiek i uwagi.",
+  "@onb_sub_guests_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_guests_3Title": "Podsumowanie",
+  "onb_sub_guests_3Desc": "Zbiorcze statystyki: liczba gości, potwierdzenia, dzieci i diety.",
+  "@onb_sub_guests_3Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_budget_1Title": "Podsumowanie",
+  "onb_sub_budget_1Desc": "Budżet całkowity kontra wydatki — ile już rozdysponowano.",
+  "@onb_sub_budget_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_budget_2Title": "Sala",
+  "onb_sub_budget_2Desc": "Koszt sali — stawka za osobę przelicza się z liczbą gości (przypisanych, nieprzypisanych i obsługi).",
+  "@onb_sub_budget_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_budget_3Title": "Wydatki",
+  "onb_sub_budget_3Desc": "Dodawaj pozostałe wydatki i grupuj je w kategorie.",
+  "@onb_sub_budget_3Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_budget_4Title": "Alkohol",
+  "onb_sub_budget_4Desc": "Planuj rodzaje, ilości i koszty alkoholu.",
+  "@onb_sub_budget_4Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_budget_5Title": "Napoje bezalkoholowe",
+  "onb_sub_budget_5Desc": "Woda, soki, napoje gazowane — ilości i koszty.",
+  "@onb_sub_budget_5Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_budget_6Title": "Podróż poślubna",
+  "onb_sub_budget_6Desc": "Budżet miesiąca miodowego osobno od kosztów wesela. W „Podsumowaniu\" znajdziesz też wszystkie płatności i terminy.",
+  "@onb_sub_budget_6Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_schedule_1Title": "Plan dnia",
+  "onb_sub_schedule_1Desc": "Punkty programu z godzinami — od ceremonii po ostatni taniec.",
+  "@onb_sub_schedule_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_schedule_2Title": "Checklista",
+  "onb_sub_schedule_2Desc": "Lista rzeczy do odhaczenia przed weselem i w jego trakcie.",
+  "@onb_sub_schedule_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_gifts_1Title": "Otrzymane",
+  "onb_sub_gifts_1Desc": "Zapisuj, co i od kogo dostaliście — przyda się przy podziękowaniach.",
+  "@onb_sub_gifts_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_gifts_2Title": "Dla gości",
+  "onb_sub_gifts_2Desc": "Planuj podziękowania i upominki dla gości.",
+  "@onb_sub_gifts_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_sub_gifts_3Title": "Propozycje",
+  "onb_sub_gifts_3Desc": "Wasza lista życzeń — podpowiedzcie gościom, co sprawi Wam radość.",
+  "@onb_sub_gifts_3Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_1Title": "Ustawienia · Status synchronizacji",
+  "onb_set_1Desc": "Sprawdź, czy dane są zsynchronizowane z chmurą (Firestore).",
+  "@onb_set_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_2Title": "Ustawienia · Widoczność dla gości",
+  "onb_set_2Desc": "Decydujesz, które sekcje widzą goście i od kiedy do kiedy. Np. RSVP włącz od razu, a galerię dopiero w dniu wesela.",
+  "@onb_set_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_3Title": "Ustawienia · Kod dołączenia dla gości",
+  "onb_set_3Desc": "Sześcioznakowy kod, którym gość dołącza do wesela na własnym koncie. Weryfikacja jest potrójna: kod, data ślubu i nazwisko.",
+  "@onb_set_3Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_4Title": "Ustawienia · Link i QR dla gości",
+  "onb_set_4Desc": "Link i kod QR do strefy gości — działa bez logowania i bez instalowania aplikacji. To go drukujesz na zaproszeniach albo kładziesz na stołach.",
+  "@onb_set_4Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_5Title": "Ustawienia · Interakcje gości",
+  "onb_set_5Desc": "Wszystko, co przysłali goście: RSVP, wpisy księgi, rady, zdjęcia, propozycje muzyki i wyniki gier. Tu też moderujesz — kasujesz nieodpowiednie wpisy jednym kliknięciem.",
+  "@onb_set_5Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_6Title": "Ustawienia · Osoby i dostęp",
+  "onb_set_6Desc": "Tu dodajesz współorganizatora (świadek, mama) i planera. „Dodaj osobę\" → wybierz rolę → podaj e-mail osoby z kontem albo wygeneruj jednorazowy kod zaproszenia i prześlij go jej. Zaproszona osoba wpisuje kod na liście wesel („Mam kod zaproszenia\"). Planerowi ustawisz datę ważności — po niej wesele znika z jego listy. Dostęp blokujesz i przywracasz w każdej chwili. Tylko właściciel wesela może tu cokolwiek zmienić — to zabezpieczenie, nie ograniczenie.",
+  "@onb_set_6Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_7Title": "Ustawienia · Konfiguracja",
+  "onb_set_7Desc": "Nazwa imprezy, data, miejsca, podział kosztów i słowniki.",
+  "@onb_set_7Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_8Title": "Ustawienia · Logowanie",
+  "onb_set_8Desc": "Biometria, PIN/wzór i status zabezpieczeń urządzenia.",
+  "@onb_set_8Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_set_9Title": "Ustawienia · Programistyczne",
+  "onb_set_9Desc": "Eksport/import danych i kopie zapasowe.",
+  "@onb_set_9Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_dashboard": "Pulpit wesela KLIENTA — licznik dni, postępy i statystyki. Każde wesele w Twoim koncie ma własny pulpit; przełączasz je w „Zmień wesele\".",
+  "@onb_plannerDesc_dashboard": {
+    "description": "Wariant PLANERA: ten sam ekran co u właściciela, ale opisany w kontekście pracy na weselu klienta. Zachować to rozróżnienie w tłumaczeniu."
+  },
+  "onb_plannerDesc_guests": "Lista gości klienta wraz z potwierdzeniami i preferencjami. To dane osobowe Waszych klientów — traktuj je poufnie.",
+  "@onb_plannerDesc_guests": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_budget": "Budżet wesela klienta. Tu najczęściej pokazujesz Parze, na co idą pieniądze i gdzie są oszczędności — podzakładki obok.",
+  "@onb_plannerDesc_budget": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_room": "Plan sali do ustalenia z klientem i salą. Wydrukowany układ stołów to jeden z najczęściej zamawianych elementów Twojej usługi.",
+  "@onb_plannerDesc_room": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_schedule": "Harmonogram dnia — Twój najważniejszy dokument roboczy. To on trafia do obsługi, fotografa i zespołu muzycznego.",
+  "@onb_plannerDesc_schedule": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_tasks": "Zadania z przypisaniem osób. Możesz tu rozdzielić obowiązki między siebie, Parę i podwykonawców.",
+  "@onb_plannerDesc_tasks": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_vendors": "Baza usługodawców z umowami i ratami. Prowadząc kilka wesel, budujesz tu swoją prywatną bazę sprawdzonych kontaktów.",
+  "@onb_plannerDesc_vendors": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_analytics": "Wykresy i statystyki — gotowy materiał na podsumowanie postępów dla klienta.",
+  "@onb_plannerDesc_analytics": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_plannerDesc_settings": "Konfiguracja wesela, dostęp osób i widoczność sekcji dla gości. Pamiętaj: właścicielem wesela pozostaje Para Młoda — to ona nadaje i odbiera dostępy. Przewodnik wznowisz z menu pod logo.",
+  "@onb_plannerDesc_settings": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_planner_1Title": "Wiele wesel na jednym koncie",
+  "onb_planner_1Desc": "Jako planer możesz prowadzić dowolnie wiele wesel. Przełączasz je w menu pod logo → „Zmień wesele\". Dane każdego wesela są w pełni oddzielone — klient A nigdy nie zobaczy wesela klienta B.",
+  "@onb_planner_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_planner_2Title": "Twój dostęp może mieć datę ważności",
+  "onb_planner_2Desc": "Para Młoda nadaje planerowi dostęp, może ustawić mu datę ważności i w każdej chwili go zablokować lub przywrócić. Po wygaśnięciu wesele znika z Twojej listy — to normalne, nie awaria.",
+  "@onb_planner_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_planner_3Title": "Przekazanie wesela Parze Młodej",
+  "onb_planner_3Desc": "Konto Pary Młodej jest nadrzędne: tylko ona dodaje osoby i wystawia zaproszenia. Gdy kończysz współpracę, to Para przejmuje pełną kontrolę — nic nie trzeba przenosić ani eksportować.",
+  "@onb_planner_3Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_1Title": "Witaj w strefie gości",
+  "onb_guest_1Desc": "To Twoje miejsce na weselu Pary Młodej. Znajdziesz tu wszystko, czego potrzebujesz jako gość — bez zakładania konta i bez instalowania czegokolwiek.",
+  "@onb_guest_1Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_2Title": "Potwierdzenie obecności (RSVP)",
+  "onb_guest_2Desc": "Daj znać, czy będziesz i z iloma osobami. Podaj dietę lub alergie, jeśli je masz. Wystarczy jedno potwierdzenie — gdy plany się zmienią, wróć tutaj i popraw odpowiedź.",
+  "@onb_guest_2Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_3Title": "Harmonogram dnia",
+  "onb_guest_3Desc": "Godzina po godzinie: ceremonia, przyjęcie, tort, pierwszy taniec. Zobaczysz też licznik dni do wesela.",
+  "@onb_guest_3Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_4Title": "Galeria — dodaj swoje zdjęcia",
+  "onb_guest_4Desc": "Wrzuć zdjęcia prosto z telefonu i oglądaj te dodane przez innych gości. Para Młoda dostaje w ten sposób ujęcia, których nie ma żaden fotograf.",
+  "@onb_guest_4Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_5Title": "Muzyka — zaproponuj utwór",
+  "onb_guest_5Desc": "Wyszukaj piosenkę i wyślij propozycję do Pary Młodej. Propozycje trafiają tylko do nich — nie ma publicznej listy ani głosowania.",
+  "@onb_guest_5Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_6Title": "Ślubne gry",
+  "onb_guest_6Desc": "Quiz o Parze Młodej, Prawda/Fałsz, Zgadnij zdjęcie, foto-wyzwania i Ślubne Bingo. Wyniki widzi tylko Para Młoda — nie ma publicznego rankingu, więc graj dla zabawy.",
+  "@onb_guest_6Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_7Title": "Gry — jak to działa",
+  "onb_guest_7Desc": "Quiz, Prawda/Fałsz i Zgadnij zdjęcie liczą wynik od razu na Twoim telefonie. Możesz podejść ponownie — nowy wynik zastąpi poprzedni. W foto-wyzwaniach wysyłasz po jednym zdjęciu do każdego zadania.",
+  "@onb_guest_7Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_8Title": "Ślubne pamiątki",
+  "onb_guest_8Desc": "Zostaw ślad po sobie: wpis w księdze gości, rada dla Pary Młodej, wiadomość do kapsuły czasu i pinezka na mapie gości.",
+  "@onb_guest_8Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_9Title": "Księga gości i rady",
+  "onb_guest_9Desc": "Wpisów możesz zostawić kilka — życzenia, wspomnienie, dobra rada. Widzą je inni goście, więc to trochę jak wspólna kronika.",
+  "@onb_guest_9Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_10Title": "Kapsuła czasu i mapa gości",
+  "onb_guest_10Desc": "Kapsuła to prywatna wiadomość — przeczyta ją wyłącznie Para Młoda. Na mapie zaznaczasz, skąd przyjeżdżasz; jedna pinezka na gościa, można ją poprawić.",
+  "@onb_guest_10Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_guest_11Title": "To wszystko!",
+  "onb_guest_11Desc": "Sekcje pojawiają się i znikają zgodnie z tym, co udostępniła Para Młoda — jeśli czegoś nie widzisz, być może będzie dostępne bliżej wesela. Bawcie się dobrze!",
+  "@onb_guest_11Desc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_planningTitle": "Od czego zacząć?",
+  "onb_planningDesc": "Sugerowana kolejność planowania wesela. Odhaczaj ukończone kroki, a pasek pokaże postęp. Otworzysz ją w każdej chwili z Ustawień.",
+  "@onb_planningDesc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_qrTitle": "Kody QR dla gości",
+  "onb_qrDesc": "Udostępnij gościom kody QR prowadzące do galerii, muzyki, harmonogramu i potwierdzeń.",
+  "@onb_qrDesc": {
+    "description": "Przewodnik — opis kroku. Tekst ciągły, bez podstawień."
+  },
+  "onb_subTitle": "{section} › {tab}",
+  "@onb_subTitle": {
+    "description": "Tytuł kroku dla podzakładki: nazwa sekcji › nazwa zakładki.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      },
+      "tab": {
+        "type": "String"
+      }
+    }
+  },
+  "onb_moreSteps": "{count, plural, =1{…i jeszcze 1 krok na liście} few{…i jeszcze {count} kroki na liście} other{…i jeszcze {count} kroków na liście}}",
+  "@onb_moreSteps": {
+    "description": "Podgląd listy „Od czego zacząć?\" — ile kroków nie zmieściło się na ekranie.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onb_stepHeader": "🧭  {title}",
+  "@onb_stepHeader": {
+    "description": "Nagłówek dymka przewodnika; emoji kompasu zostaje.",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "onb_stepCounter": "Krok {index} z {total}",
+  "@onb_stepCounter": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "onb_skip": "Pomiń",
+  "onb_finish": "Zakończ",
+  "onb_guestTitle": "Przewodnik dla gościa",
+  "onb_guestIntro": "Pokażemy Ci, co możesz zrobić na stronie przygotowanej przez Parę Młodą. Zajmie to chwilę.",
+  "onb_plannerTitle": "Przewodnik dla planera",
+  "onb_plannerIntro": "Pokażemy Ci panel wesela klienta i to, czym różni się praca planera od konta Pary Młodej. Wznowisz go z Ustawień.",
+  "onb_plannerShort": "Główne sekcje panelu i zasady pracy planera",
+  "onb_plannerFull": "Wszystkie sekcje, podzakładki i ustawienia",
+  "onb_ownerTitle": "Przewodnik po aplikacji",
+  "onb_ownerIntro": "Pokażemy Ci najważniejsze miejsca w aplikacji. Wybierz tempo — przewodnik wznowisz w każdej chwili z Ustawień (pod logo).",
+  "onb_ownerShort": "Tylko główne sekcje — szybki przegląd",
+  "onb_ownerFull": "Wszystkie sekcje i podzakładki",
+  "onb_guestPreviewNote": "To podgląd dla Ciebie. Goście oglądają swoją strefę na osobnej stronie o zupełnie innym wyglądzie — tutaj pokazujemy wyłącznie treść ich przewodnika.",
+  "onb_guestPreview": "Zobacz przewodnik gościa",
+  "onb_start": "Rozpocznij",
+  "onb_guestFull": "Wszystkie sekcje strefy gości",
+  "onb_short": "Skrócony",
+  "onb_full": "Rozszerzony",
+  "onb_guestPreviewHint": "Sprawdź, co widzą Wasi goście",
+  "onb_setupWizardHint": "Krok po kroku przez uzupełnianie danych wesela",
+  "onb_skipTour": "Pomiń przewodnik",
+  "help_guestTitle": "Pomoc dla gości",
+  "help_backToOwn": "Wróć do swojej pomocy",
+  "help_seeGuest": "Zobacz pomoc dla gości",
+  "help_guestPreviewNote": "Oglądasz pomoc, którą widzą Wasi goście.",
+  "help_searchHint": "Szukaj funkcji, np. „budżet\", „QR\", „RSVP\"",
+  "help_tourHint": "Szukasz czegoś innego? Przewodnik pokaże Ci aplikację krok po kroku — uruchomisz go z Ustawień.",
+  "help_topicCount": "{count, plural, =1{1 hasło} few{{count} hasła} other{{count} haseł}}",
+  "@help_topicCount": {
+    "description": "Liczba haseł w kategorii Pomocy.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "help_found": "{count, plural, =1{Znaleziono 1 hasło} few{Znaleziono {count} hasła} other{Znaleziono {count} haseł}}",
+  "@help_found": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "help_nothingFound": "Nic nie znaleziono dla „{query}\".\nSpróbuj innego słowa — np. „gość\", „stół\", „płatność\".",
+  "@help_nothingFound": {
+    "description": "Pusty wynik wyszukiwarki Pomocy; {query} to fraza wpisana przez użytkownika. \n rozdziela zdania.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  }
 }

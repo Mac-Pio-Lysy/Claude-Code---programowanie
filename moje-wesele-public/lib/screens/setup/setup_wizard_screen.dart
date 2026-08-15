@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../models/setup_task.dart';
 import '../../models/wedding_data.dart';
 import '../../navigation/app_sections.dart';
+import '../../l10n/app_text.dart';
 
 /// Wynik kreatora: dokąd przejść po jego zamknięciu.
 class SetupJump {
@@ -65,7 +66,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0.5,
         iconTheme: const IconThemeData(color: AppColors.text),
-        title: Text('Poprowadź mnie za rękę',
+        title: Text(AppText.t.settings_setupWizardButton,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -89,7 +90,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             if (todo.isEmpty)
               _allDoneCard()
             else ...[
-              _sectionLabel('Do uzupełnienia (${todo.length})'),
+              _sectionLabel(AppText.t.setup_todo(todo.length)),
               for (final t in todo) _taskTile(t, isDone: false),
             ],
             if (done.isNotEmpty) ...[
@@ -141,7 +142,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                level == SetupLevel.basic ? 'Podstawowa' : 'Zaawansowana',
+                level == SetupLevel.basic ? AppText.t.setup_basic : AppText.t.setup_advanced,
                 style: GoogleFonts.inter(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w700,
@@ -150,7 +151,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${p.done}/${p.total} gotowe',
+                AppText.t.setup_progress(p.done, p.total),
                 style: GoogleFonts.inter(
                   fontSize: 11.5,
                   color: selected
@@ -198,8 +199,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           const SizedBox(height: 8),
           Text(
             p.complete
-                ? 'Wszystko uzupełnione ✓'
-                : 'Uzupełniono ${p.done} z ${p.total} — zostało ${p.left}',
+                ? AppText.t.setup_allDone
+                : AppText.t.setup_partial(p.done, p.total, p.left),
             style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -234,9 +235,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           Expanded(
             child: Text(
               _level == SetupLevel.basic
-                  ? 'Podstawy gotowe. Zajrzyj do zaawansowanej, żeby dopracować '
-                      'budżet, stoły i strefę gości.'
-                  : 'Komplet — wszystkie dane wesela uzupełnione.',
+                  ? AppText.t.setup_basicDone
+                  : AppText.t.setup_complete,
               style: GoogleFonts.inter(
                   fontSize: 13, height: 1.45, color: const Color(0xFF065F46)),
             ),
@@ -263,7 +263,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         backgroundColor: Colors.white,
         collapsedBackgroundColor: Colors.white,
         leading: const Icon(Icons.check_circle, color: Color(0xFF059669)),
-        title: Text('Gotowe (${done.length})',
+        title: Text(AppText.t.setup_done(done.length),
             style: GoogleFonts.inter(
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700,
@@ -309,7 +309,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         height: 1.45,
                         color: AppColors.textLight)),
                 const SizedBox(height: 4),
-                Text('→ ${task.section.label}',
+                Text(AppText.t.setup_goTo(task.section.label),
                     style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -325,7 +325,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               foregroundColor: AppColors.accent,
               padding: const EdgeInsets.symmetric(horizontal: 10),
             ),
-            child: Text(isDone ? 'Popraw' : 'Przejdź'),
+            child: Text(isDone ? AppText.t.setup_fix : AppText.t.setup_go),
           ),
         ],
       ),

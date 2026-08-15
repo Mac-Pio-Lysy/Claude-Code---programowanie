@@ -1,3 +1,4 @@
+import '../l10n/app_text.dart';
 import '../navigation/app_sections.dart';
 import 'wedding_data.dart';
 
@@ -10,16 +11,13 @@ enum SetupLevel {
   advanced;
 
   String get label => switch (this) {
-        SetupLevel.basic => 'Konfiguracja podstawowa',
-        SetupLevel.advanced => 'Konfiguracja zaawansowana',
+        SetupLevel.basic => AppText.t.setupLevel_basic,
+        SetupLevel.advanced => AppText.t.setupLevel_advanced,
       };
 
   String get intro => switch (this) {
-        SetupLevel.basic =>
-          'Minimum, żeby ruszyć: dane wesela i pierwsi goście.',
-        SetupLevel.advanced =>
-          'Dopracowanie: budżet, menu, stoły, harmonogram i strefa gości. '
-              'To, co masz już uzupełnione, jest odhaczone.',
+        SetupLevel.basic => AppText.t.setupLevel_basicIntro,
+        SetupLevel.advanced => AppText.t.setupLevel_advancedIntro,
       };
 }
 
@@ -71,70 +69,64 @@ List<SetupTask> buildSetupTasks() => [
       // ── PODSTAWOWA ────────────────────────────────────────────────────────
       SetupTask(
         id: 'eventName',
-        label: 'Nazwa wesela',
-        hint: 'Np. „Wesele Ani i Piotra" — pokazuje się w nagłówku aplikacji '
-            'i na stronie dla gości.',
+        label: AppText.t.setupTask_eventNameLabel,
+        hint: AppText.t.setupTask_eventNameHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: (d) => _cfgText(d, 'eventName').isNotEmpty,
       ),
       SetupTask(
         id: 'weddingDate',
-        label: 'Data i godzina ślubu',
-        hint: 'Od daty liczy się odliczanie na pulpicie i weryfikacja gości '
-            'przy dołączaniu kodem.',
+        label: AppText.t.setupTask_weddingDateLabel,
+        hint: AppText.t.setupTask_weddingDateHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: (d) => d.weddingDate != null,
       ),
       SetupTask(
         id: 'coupleType',
-        label: 'Typ uroczystości',
-        hint: 'Decyduje o etykietach w całej aplikacji — „Panna Młoda / Pan '
-            'Młody", dwie Panny Młode, dwóch Panów Młodych albo neutralnie.',
+        label: AppText.t.setupTask_coupleTypeLabel,
+        hint: AppText.t.setupTask_coupleTypeHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: (d) => _cfg(d)['coupleType'] != null,
       ),
       SetupTask(
         id: 'coupleNames',
-        label: 'Imiona Pary Młodej',
-        hint: 'Wpisz oba imiona — używa ich podział kosztów, etykiety i lista '
-            'gości.',
+        label: AppText.t.setupTask_coupleNamesLabel,
+        hint: AppText.t.setupTask_coupleNamesHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: _hasCoupleNames,
       ),
       SetupTask(
         id: 'ceremonyPlace',
-        label: 'Miejsce ceremonii',
-        hint: 'Kościół albo USC — adres zobaczą goście w harmonogramie.',
+        label: AppText.t.setupTask_ceremonyPlaceLabel,
+        hint: AppText.t.setupTask_ceremonyPlaceHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: (d) => _cfgText(d, 'ceremonyPlace').isNotEmpty,
       ),
       SetupTask(
         id: 'receptionPlace',
-        label: 'Miejsce przyjęcia',
-        hint: 'Nazwa i adres sali — też trafia do harmonogramu gości.',
+        label: AppText.t.setupTask_receptionPlaceLabel,
+        hint: AppText.t.setupTask_receptionPlaceHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: (d) => _cfgText(d, 'receptionPlace').isNotEmpty,
       ),
       SetupTask(
         id: 'verificationSurnames',
-        label: 'Nazwisko do weryfikacji gości',
-        hint: 'Nazwisko (albo oba nazwiska), które gość poda przy dołączaniu '
-            'kodem. Nigdzie się nie wyświetla — służy tylko sprawdzeniu.',
+        label: AppText.t.setupTask_verificationSurnamesLabel,
+        hint: AppText.t.setupTask_verificationSurnamesHint,
         level: SetupLevel.basic,
         section: AppSection.settings,
         done: (d) => _cfgText(d, 'verificationSurnames').isNotEmpty,
       ),
       SetupTask(
         id: 'guests',
-        label: 'Pierwsi goście',
-        hint: 'Dodaj choć kilka osób — od listy gości zależą catering, stoły '
-            'i statystyki.',
+        label: AppText.t.setupTask_guestsLabel,
+        hint: AppText.t.setupTask_guestsHint,
         level: SetupLevel.basic,
         section: AppSection.guests,
         subTab: 0,
@@ -144,9 +136,8 @@ List<SetupTask> buildSetupTasks() => [
       // ── ZAAWANSOWANA ──────────────────────────────────────────────────────
       SetupTask(
         id: 'budgetTotal',
-        label: 'Budżet planowany',
-        hint: 'Kwota, w której chcecie się zmieścić. Bez niej nie ma z czym '
-            'porównywać wydatków.',
+        label: AppText.t.setupTask_budgetTotalLabel,
+        hint: AppText.t.setupTask_budgetTotalHint,
         level: SetupLevel.advanced,
         section: AppSection.budget,
         subTab: 0,
@@ -154,9 +145,8 @@ List<SetupTask> buildSetupTasks() => [
       ),
       SetupTask(
         id: 'pricePerPerson',
-        label: 'Cena za osobę (sala)',
-        hint: 'Stawka od talerza — mnoży się przez liczbę gości i daje koszt '
-            'cateringu.',
+        label: AppText.t.setupTask_pricePerPersonLabel,
+        hint: AppText.t.setupTask_pricePerPersonHint,
         level: SetupLevel.advanced,
         section: AppSection.budget,
         subTab: 1,
@@ -164,9 +154,8 @@ List<SetupTask> buildSetupTasks() => [
       ),
       SetupTask(
         id: 'withChildren',
-        label: 'Decyzja o dzieciach',
-        hint: 'Ustal, czy na weselu będą dzieci. Jeśli tak, dojdzie menu '
-            'dziecięce, stół dla dzieci i wyłączenie ich z przeliczeń alkoholu.',
+        label: AppText.t.setupTask_withChildrenLabel,
+        hint: AppText.t.setupTask_withChildrenHint,
         level: SetupLevel.advanced,
         section: AppSection.budget,
         subTab: 1,
@@ -175,27 +164,24 @@ List<SetupTask> buildSetupTasks() => [
       ),
       SetupTask(
         id: 'menuOptions',
-        label: 'Słownik menu',
-        hint: 'Warianty dania do wyboru przy gościach (mięsne, rybne, wege, '
-            'dla dziecka).',
+        label: AppText.t.setupTask_menuOptionsLabel,
+        hint: AppText.t.setupTask_menuOptionsHint,
         level: SetupLevel.advanced,
         section: AppSection.settings,
         done: (d) => _list(_cfg(d)['menuOptions']).isNotEmpty,
       ),
       SetupTask(
         id: 'expenseCategories',
-        label: 'Kategorie wydatków',
-        hint: 'Własne kategorie kosztów — po nich grupują się wydatki '
-            'i wykresy w Analityce.',
+        label: AppText.t.setupTask_expenseCategoriesLabel,
+        hint: AppText.t.setupTask_expenseCategoriesHint,
         level: SetupLevel.advanced,
         section: AppSection.settings,
         done: (d) => _list(_cfg(d)['expenseCategories']).isNotEmpty,
       ),
       SetupTask(
         id: 'witnesses',
-        label: 'Świadkowie',
-        hint: 'Oznacz świadków na liście gości — pojawią się w podsumowaniu '
-            'i na planie sali.',
+        label: AppText.t.setupTask_witnessesLabel,
+        hint: AppText.t.setupTask_witnessesHint,
         level: SetupLevel.advanced,
         section: AppSection.guests,
         subTab: 0,
@@ -206,27 +192,24 @@ List<SetupTask> buildSetupTasks() => [
       ),
       SetupTask(
         id: 'tables',
-        label: 'Stoły',
-        hint: 'Dodaj stoły z liczbą miejsc — bez nich nie da się rozsadzić '
-            'gości.',
+        label: AppText.t.setupTask_tablesLabel,
+        hint: AppText.t.setupTask_tablesHint,
         level: SetupLevel.advanced,
         section: AppSection.room,
         done: (d) => d.tables.isNotEmpty,
       ),
       SetupTask(
         id: 'seating',
-        label: 'Rozsadzenie gości',
-        hint: 'Przypisz gości do stołów — choćby część. Resztę dokończysz '
-            'bliżej wesela.',
+        label: AppText.t.setupTask_seatingLabel,
+        hint: AppText.t.setupTask_seatingHint,
         level: SetupLevel.advanced,
         section: AppSection.room,
         done: (d) => _anyGuest(d, (g) => g['tableId'] != null),
       ),
       SetupTask(
         id: 'schedule',
-        label: 'Harmonogram dnia',
-        hint: 'Punkty programu z godzinami. Ten sam harmonogram widzą goście '
-            'w swojej strefie.',
+        label: AppText.t.setupTask_scheduleLabel,
+        hint: AppText.t.setupTask_scheduleHint,
         level: SetupLevel.advanced,
         section: AppSection.schedule,
         subTab: 0,
@@ -234,9 +217,8 @@ List<SetupTask> buildSetupTasks() => [
       ),
       SetupTask(
         id: 'guestVisibility',
-        label: 'Widoczność sekcji dla gości',
-        hint: 'Zdecyduj, co i od kiedy widzą goście — np. RSVP od razu, '
-            'a galerię dopiero w dniu wesela.',
+        label: AppText.t.setupTask_guestVisibilityLabel,
+        hint: AppText.t.setupTask_guestVisibilityHint,
         level: SetupLevel.advanced,
         section: AppSection.settings,
         done: (d) => d.raw['guestVisibility'] is Map,

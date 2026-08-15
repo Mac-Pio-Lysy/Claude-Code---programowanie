@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app_colors.dart';
+import '../../l10n/app_text.dart';
 
 /// Pełnoekranowy skaner QR — zwraca zeskanowaną wartość (kod wesela) przez
 /// `Navigator.pop(context, value)` lub `null`, gdy anulowano.
@@ -46,7 +47,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         title: Text(
-          'Zeskanuj kod QR',
+          AppText.t.jw_scanTitle,
           style: GoogleFonts.inter(fontWeight: FontWeight.w700),
         ),
       ),
@@ -68,7 +69,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
             left: 24,
             right: 24,
             child: Text(
-              'Skieruj aparat na kod QR z zaproszenia',
+              AppText.t.jw_scanHint,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 color: Colors.white,

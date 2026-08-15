@@ -10,6 +10,8 @@ import '../../app_colors.dart';
 import '../../config/public_urls.dart';
 import '../../layout/responsive.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/language_picker.dart';
+import '../../l10n/app_text.dart';
 import '../../l10n/locale_controller.dart';
 import '../../models/couple.dart';
 import '../../models/currency.dart';
@@ -251,7 +253,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await ws.ensureJoinCode(widget.firestore.weddingId);
       await ws.ensureGuestToken(widget.firestore.weddingId);
     } catch (_) {}
-    _toast('Konfiguracja zapisana ✓');
+    _toast(AppText.t.settings_configSaved);
   }
 
   @override
@@ -261,7 +263,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Text('Ustawienia',
+          child: Text(AppText.t.settings_title,
               style: GoogleFonts.playfairDisplay(
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
@@ -311,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: OutlinedButton.icon(
                   onPressed: widget.onSignOut,
                   icon: const Icon(Icons.logout),
-                  label: const Text('Wyloguj'),
+                  label: Text(AppText.t.settings_logoutButton),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFC0392B),
                     side: const BorderSide(color: Color(0xFFE9A8A8)),
@@ -329,13 +331,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _syncCard() {
     final ok = widget.data != null;
     return _card(
-      'Status synchronizacji',
+      AppText.t.settings_syncCard,
       Row(
         children: [
           Icon(ok ? Icons.cloud_done_outlined : Icons.cloud_sync_outlined,
               color: ok ? const Color(0xFF059669) : AppColors.textLight),
           const SizedBox(width: 8),
-          Text(ok ? 'Zsynchronizowano z Firestore' : 'Łączenie…',
+          Text(ok ? AppText.t.settings_syncOk : AppText.t.settings_syncConnecting,
               style: GoogleFonts.inter(
                   fontSize: 13, fontWeight: FontWeight.w600)),
         ],
@@ -345,13 +347,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _helpCard() {
     return _card(
-      'Przewodnik i pomoc',
+      AppText.t.settings_guideCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wróć do interaktywnego przewodnika po aplikacji lub do listy '
-            'kroków organizacji wesela.',
+            AppText.t.settings_guideHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -360,7 +361,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: OutlinedButton.icon(
               onPressed: widget.onStartTour,
               icon: const Text('🧭', style: TextStyle(fontSize: 16)),
-              label: const Text('Uruchom przewodnik'),
+              label: Text(AppText.t.settings_tourButton),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -374,7 +375,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: OutlinedButton.icon(
               onPressed: widget.onOpenHelp,
               icon: const Icon(Icons.help_outline, size: 18),
-              label: const Text('Pomoc — opisy funkcji'),
+              label: Text(AppText.t.settings_helpOpen),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -423,20 +424,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// dokumentu bez `weddingId`, więc później migracja już nie przejdzie.
   Widget _legacyMigrationCard() {
     return _card(
-      'Dane starych sekcji (legacy)',
+      AppText.t.settings_legacyCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wpisy z czasów jednego wesela (galeria, księga gości, rady, mapa, '
-            'kapsuła czasu, wyniki gier) nie mają przypisanego wesela. '
-            'Migracja przypisuje je do TEGO wesela — bez niej znikną z panelu '
-            'po wdrożeniu nowych reguł bezpieczeństwa.',
+            AppText.t.settings_legacyHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 6),
           Text(
-            'Uruchom PRZED wdrożeniem nowych reguł.',
+            AppText.t.settings_legacyBefore,
             style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -465,7 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _legacyBusy ? null : _legacyDryRun,
                   icon: const Icon(Icons.search, size: 18),
-                  label: const Text('Sprawdź'),
+                  label: Text(AppText.t.settings_legacyCheck),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -478,7 +476,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _legacyBusy ? null : _legacyMigrate,
                   icon: const Icon(Icons.move_down, size: 18),
-                  label: const Text('Migruj'),
+                  label: Text(AppText.t.settings_legacyMigrate),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -497,13 +495,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final lines = <String>[];
     for (final r in res) {
       if (!r.ok) {
-        lines.add('${r.collection}: BŁĄD — ${r.error}');
+        lines.add(AppText.t.settings_legacyError(r.collection, '${r.error}'));
       } else if (dry) {
-        lines.add('${r.collection}: do migracji ${r.stamped}, '
-            'już przypisane ${r.skipped}');
+        lines.add(AppText.t.settings_legacyToDo(r.collection, r.stamped, r.skipped));
       } else {
-        lines.add('${r.collection}: przypisano ${r.stamped}, '
-            'pominięto ${r.skipped}');
+        lines.add(AppText.t.settings_legacyDone(r.collection, r.stamped, r.skipped));
       }
     }
     return lines.join('\n');
@@ -516,7 +512,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       setState(() => _legacyReport = _legacySummary(res, dry: true));
     } catch (e) {
-      if (mounted) _toast('Nie udało się sprawdzić: $e');
+      if (mounted) _toast(AppText.t.settings_legacyCheckFailed('$e'));
     } finally {
       if (mounted) setState(() => _legacyBusy = false);
     }
@@ -526,20 +522,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Przypisać stare wpisy do tego wesela?'),
-        content: const Text(
-          'Wszystkie wpisy bez przypisanego wesela (galeria, księga gości, '
-          'rady, mapa, kapsuła czasu, wyniki gier) zostaną przypisane do '
-          'AKTYWNEGO wesela. Wpisy, które już mają wesele, nie zostaną '
-          'ruszone. Operacji nie da się cofnąć jednym kliknięciem.',
+        title: Text(AppText.t.settings_legacyConfirmTitle),
+        content: Text(
+          AppText.t.settings_legacyConfirmBody,
         ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Przypisz')),
+              child: Text(AppText.t.settings_legacyAssign)),
         ],
       ),
     );
@@ -549,9 +542,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final res = await LegacyMigrationService().run();
       if (!mounted) return;
       setState(() => _legacyReport = _legacySummary(res, dry: false));
-      _toast('Migracja zakończona ✓');
+      _toast(AppText.t.settings_legacyFinished);
     } catch (e) {
-      if (mounted) _toast('Migracja nieudana: $e');
+      if (mounted) _toast(AppText.t.settings_legacyFailed('$e'));
     } finally {
       if (mounted) setState(() => _legacyBusy = false);
     }
@@ -586,7 +579,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _languageOption(t.settings_languageSystem, null, current),
                 for (final locale in LocaleController.supported)
                   _languageOption(
-                      _languageName(t, locale.languageCode), locale, current),
+                      languageName(t, locale.languageCode), locale, current),
               ],
             ),
           ),
@@ -616,20 +609,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               if (c == null) return;
               setState(() => _currency = c);
               await widget.config.saveCurrency(c);
-              _toast('Waluta: ${c.code}');
+              _toast(AppText.t.settings_currencyToast(c.code));
             },
           ),
         ],
       ),
     );
   }
-
-  /// Nazwa języka na liście — tłumaczona, więc po angielsku widać „Polish".
-  String _languageName(AppLocalizations t, String code) => switch (code) {
-        'pl' => t.language_pl,
-        'en' => t.language_en,
-        _ => code.toUpperCase(),
-      };
 
   Widget _languageOption(String label, Locale? value, Locale? current) {
     final selected = current?.languageCode == value?.languageCode;
@@ -675,14 +661,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// dana wesela, więc nie ma powodu trzymać jej w chmurze.
   Widget _displayModeCard() {
     return _card(
-      'Tryb wyświetlania',
+      AppText.t.settings_displayModeCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Domyślnie układ dobiera się do szerokości ekranu. Możesz go '
-            'wymusić — przyda się na małym tablecie albo gdy wolisz układ '
-            'telefonowy na dużym ekranie.',
+            AppText.t.settings_displayModeHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -758,13 +742,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _guestInteractionsCard() {
     final token = _guestToken;
     return _card(
-      'Interakcje gości (moderacja)',
+      AppText.t.settings_interactionsCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Zobacz i moderuj to, co goście przesłali przez stronę web: '
-            'potwierdzenia RSVP, wpisy księgi, rady, mapę gości i kapsułę czasu.',
+            AppText.t.settings_interactionsHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -781,8 +764,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
               icon: const Icon(Icons.forum_outlined, size: 18),
               label: Text(token == null
-                  ? 'Ładowanie…'
-                  : 'Zobacz interakcje gości'),
+                  ? AppText.t.settings_loading
+                  : AppText.t.settings_interactionsOpen),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -799,14 +782,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final token = _guestToken;
     final link = token == null ? null : _guestLink(token);
     return _card(
-      'Link i QR dla gości (strona web)',
+      AppText.t.settings_guestLinkCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Udostępnij gościom ten link lub kod QR. Otworzą stronę gości '
-            'BEZ logowania — zobaczą tylko sekcje dla gości (z Twoimi '
-            'ustawieniami widoczności).',
+            AppText.t.settings_guestLinkHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 14),
@@ -842,10 +823,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           OutlinedButton.icon(
                             onPressed: () {
                               Clipboard.setData(ClipboardData(text: link));
-                              _toast('Skopiowano link dla gości');
+                              _toast(AppText.t.settings_guestLinkCopied);
                             },
                             icon: const Icon(Icons.copy, size: 16),
-                            label: const Text('Kopiuj link'),
+                            label: Text(AppText.t.settings_copyLink),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.accent,
                               side: const BorderSide(color: AppColors.accent),
@@ -878,7 +859,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text('Kod QR',
+                    Text(AppText.t.settings_qrCode,
                         style: GoogleFonts.inter(
                             fontSize: 11, color: AppColors.textLight)),
                   ],
@@ -892,13 +873,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _peopleAccessCard() {
     return _card(
-      'Osoby i dostęp',
+      AppText.t.settings_peopleCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Zarządzaj osobami z dostępem do wesela: dodawaj współorganizatorów '
-            'i planerów, ustawiaj datę ważności, blokuj i usuwaj dostęp.',
+            AppText.t.settings_peopleHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -914,7 +894,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               icon: const Icon(Icons.admin_panel_settings_outlined, size: 18),
-              label: const Text('Zarządzaj osobami'),
+              label: Text(AppText.t.settings_peopleOpen),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -957,32 +937,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _inviteText(String code) {
     final date = _weddingDateLabel;
     return [
-      'Zapraszamy! Dołącz do naszego wesela w aplikacji Moje Wesele:',
+      AppText.t.settings_inviteTextHeader,
       '',
-      '1. Zainstaluj aplikację i załóż konto.',
-      '2. Wybierz „Dołącz do wesela".',
-      '3. Podaj poniższe dane:',
-      '   • Kod wesela: $code',
-      if (date.isNotEmpty) '   • Data ślubu: $date',
+      AppText.t.settings_inviteTextStep1,
+      AppText.t.settings_inviteTextStep2,
+      AppText.t.settings_inviteTextStep3,
+      AppText.t.settings_inviteTextCode(code),
+      if (date.isNotEmpty) AppText.t.settings_inviteTextDate(date),
       if (_verificationValue.isNotEmpty)
-        '   • Nazwisko Państwa Młodych: $_verificationValue',
+        AppText.t.settings_inviteTextSurname(_verificationValue),
       '',
-      'Możesz też zeskanować nasz kod QR — wypełni kod za Ciebie.',
+      AppText.t.settings_inviteTextQr,
     ].join('\n');
   }
 
   Widget _joinCodeCard() {
     final code = _joinCode;
     return _card(
-      'Zaproszenie dla gości (dołączenie na konto)',
+      AppText.t.settings_inviteCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Przekaż gościom kod QR albo trzy dane z tej karty. Gość poda je '
-            'w aplikacji („Dołącz do wesela") i zobaczy wesele na swoim '
-            'koncie. To inna droga niż link do strony gości niżej — ten '
-            'działa bez logowania.',
+            AppText.t.settings_inviteHint,
             style: GoogleFonts.inter(
                 fontSize: 13, height: 1.45, color: AppColors.textLight),
           ),
@@ -1029,10 +1006,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       OutlinedButton.icon(
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: code));
-                          _toast('Skopiowano kod: $code');
+                          _toast(AppText.t.settings_codeCopied(code));
                         },
                         icon: const Icon(Icons.copy, size: 16),
-                        label: const Text('Kopiuj kod'),
+                        label: Text(AppText.t.settings_copyCode),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.accent,
                           side: const BorderSide(color: AppColors.accent),
@@ -1064,12 +1041,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text('Kod QR',
+                    Text(AppText.t.settings_qrCode,
                         style: GoogleFonts.inter(
                             fontSize: 11, color: AppColors.textLight)),
                     SizedBox(
                       width: 96,
-                      child: Text('skanuje się w aplikacji',
+                      child: Text(AppText.t.settings_qrScanHint,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.inter(
                               fontSize: 10, color: AppColors.textLight)),
@@ -1089,10 +1066,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: OutlinedButton.icon(
                 onPressed: () {
                   Clipboard.setData(ClipboardData(text: _inviteText(code)));
-                  _toast('Skopiowano gotowe zaproszenie');
+                  _toast(AppText.t.settings_inviteCopied);
                 },
                 icon: const Icon(Icons.content_paste, size: 16),
-                label: const Text('Kopiuj gotowe zaproszenie'),
+                label: Text(AppText.t.settings_copyInvite),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
                   side: const BorderSide(color: AppColors.accent),
@@ -1120,21 +1097,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Co gość musi podać',
+          Text(AppText.t.settings_inviteDataTitle,
               style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 10),
-          _inviteRow('Kod wesela', _joinCode ?? '—'),
+          _inviteRow(AppText.t.settings_weddingCode, _joinCode ?? '—'),
           _inviteRow(
-            'Data ślubu',
-            date.isEmpty ? 'nie ustawiono' : date,
+            AppText.t.settings_weddingDate,
+            date.isEmpty ? AppText.t.settings_notSet : date,
             missing: date.isEmpty,
           ),
           _inviteRow(
-            'Nazwisko Państwa Młodych',
-            _verificationValue.isEmpty ? 'nie ustawiono' : _verificationValue,
+            AppText.t.settings_coupleSurname,
+            _verificationValue.isEmpty ? AppText.t.settings_notSet : _verificationValue,
             missing: _verificationValue.isEmpty,
           ),
           if (!_hasVerificationSurnames) ...[
@@ -1155,12 +1132,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Expanded(
                     child: Text(
                       _verificationValue.isEmpty
-                          ? 'Uzupełnij pole „Nazwisko / nazwiska Pary Młodej" '
-                              'w Konfiguracji — bez niego gość nie ma czego '
-                              'wpisać i nie dołączy.'
-                          : 'Gość poda tu na razie „Osoby". Wpisz w Konfiguracji '
-                              'pole „Nazwisko / nazwiska Pary Młodej", jeśli '
-                              'wolisz, żeby podawał nazwisko.',
+                          ? AppText.t.settings_surnameMissing
+                          : AppText.t.settings_surnameFallback,
                       style: GoogleFonts.inter(
                           fontSize: 11.5,
                           height: 1.4,
@@ -1203,7 +1176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             InkWell(
               onTap: () {
                 Clipboard.setData(ClipboardData(text: value));
-                _toast('Skopiowano: $value');
+                _toast(AppText.t.settings_copiedValue(value));
               },
               borderRadius: BorderRadius.circular(6),
               child: const Padding(
@@ -1218,19 +1191,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Instrukcja krok po kroku — w kolejności, w jakiej gość faktycznie klika.
   Widget _guestStepsBlock() {
-    const steps = [
-      'Gość instaluje aplikację i zakłada konto (albo loguje się na swoje).',
-      'Na liście wesel wybiera „Dołącz do wesela".',
-      'Wpisuje kod wesela — albo klika „Skanuj" i skanuje Twój kod QR, '
-          'co wypełnia to pole automatycznie.',
-      'Wybiera datę ślubu z kalendarza.',
-      'Wpisuje nazwisko Państwa Młodych (to z tej karty).',
-      'Gotowe — wesele pojawia się na jego liście.',
+    final steps = [
+      AppText.t.settings_joinStep1,
+      AppText.t.settings_joinStep2,
+      AppText.t.settings_joinStep3,
+      AppText.t.settings_joinStep4,
+      AppText.t.settings_joinStep5,
+      AppText.t.settings_joinStep6,
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Jak gość dołącza — krok po kroku',
+        Text(AppText.t.settings_joinStepsTitle,
             style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -1273,13 +1245,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _guestVisibilityCard() {
     return _card(
-      'Widoczność dla gości',
+      AppText.t.settings_visibilityCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Ustal, które sekcje i w jakim czasie widzą goście na stronach '
-            'publicznych (np. RSVP do tygodnia przed, galeria od dnia wesela).',
+            AppText.t.settings_visibilityHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -1295,7 +1266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               icon: const Icon(Icons.visibility_outlined, size: 18),
-              label: const Text('Ustaw widoczność sekcji'),
+              label: Text(AppText.t.settings_visibilityOpen),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -1312,13 +1283,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// niezależnie — mówi o tym sam ekran.
   Widget _notificationsCard() {
     return _card(
-      'Powiadomienia',
+      AppText.t.settings_notificationsCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wybierz, o czym chcesz wiedzieć na telefonie. Dzwoneczek '
-            'w aplikacji działa zawsze, niezależnie od tych ustawień.',
+            AppText.t.settings_notificationsHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -1332,7 +1302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               icon: const Icon(Icons.notifications_none, size: 18),
-              label: const Text('Ustawienia powiadomień'),
+              label: Text(AppText.t.settings_notificationsOpen),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -1347,13 +1317,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _loginCard() {
     return _card(
-      'Logowanie',
+      AppText.t.settings_securityCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Biometria (odcisk palca), PIN lub wzór do odblokowywania '
-            'aplikacji przy kolejnych otwarciach.',
+            AppText.t.settings_securityHint,
             style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
@@ -1365,7 +1334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     builder: (_) => const SecuritySettingsScreen()),
               ),
               icon: const Icon(Icons.fingerprint, size: 18),
-              label: const Text('Logowanie i zabezpieczenia'),
+              label: Text(AppText.t.settings_securityOpen),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -1380,7 +1349,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _configCard() {
     return _card(
-      'Konfiguracja',
+      AppText.t.settings_configCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1390,8 +1359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Text(
-                'Zmianę daty ślubu i nazwisk musi zapisać właściciel wesela — '
-                'inaczej dane dołączania gości pozostaną nieaktualne.',
+                AppText.t.settings_configOwnerHint,
                 style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -1401,7 +1369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Typ uroczystości — steruje etykietami pary w całej aplikacji ──
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: Text('Typ uroczystości',
+            child: Text(AppText.t.settings_coupleType,
                 style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1421,24 +1389,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Padding(
             padding: const EdgeInsets.only(top: 4, bottom: 12),
             child: Text(
-              '${_coupleType.hint}. Możesz to zmienić w każdej chwili — '
-              'zmieniają się tylko etykiety, dane gości zostają nietknięte.',
+              AppText.t.settings_coupleTypeHint(_coupleType.hint),
               style: GoogleFonts.inter(
                   fontSize: 11.5, color: AppColors.textLight),
             ),
           ),
-          _field('Nazwa wydarzenia', _eventName),
-          _field('Osoby', _displayNames),
+          _field(AppText.t.settings_eventName, _eventName),
+          _field(AppText.t.settings_persons, _displayNames),
           // Nazwiska służą WYŁĄCZNIE weryfikacji gościa przy dołączaniu kodem —
           // nigdzie ich nie pokazujemy. Bez tego pola gość wpisujący nazwisko
           // był odrzucany, bo „Osoby" zawierają imiona (zgłoszenie #23).
-          _field('Nazwisko / nazwiska Pary Młodej', _surnames),
+          _field(AppText.t.settings_verificationSurnames, _surnames),
           Padding(
             padding: const EdgeInsets.only(bottom: 12, left: 2),
             child: Text(
-              'Używane tylko do weryfikacji gościa przy dołączaniu kodem — '
-              'nie jest nigdzie wyświetlane. Jeśli nazwiska są różne, wpisz '
-              'oba (np. „Kowalska Nowak").',
+              AppText.t.settings_verificationHint,
               style: GoogleFonts.inter(
                   fontSize: 11.5, color: AppColors.textLight),
             ),
@@ -1446,28 +1411,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             children: [
               Expanded(
-                child: _pickerField('Data ślubu',
-                    _weddingDate.isEmpty ? 'Wybierz' : _weddingDate, _pickDate),
+                child: _pickerField(AppText.t.settings_weddingDate,
+                    _weddingDate.isEmpty ? AppText.t.common_select : _weddingDate, _pickDate),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _pickerField('Godzina', _weddingTime, _pickTime),
+                child: _pickerField(AppText.t.settings_time, _weddingTime, _pickTime),
               ),
             ],
           ),
-          _field('Miejsce ceremonii', _ceremony),
-          _field('Miejsce wesela', _reception),
+          _field(AppText.t.settings_ceremonyPlace, _ceremony),
+          _field(AppText.t.settings_receptionPlace, _reception),
           Row(
             children: [
-              Expanded(child: _field('Osoba 1 (podział kosztów)', _person1)),
+              Expanded(child: _field(AppText.t.settings_person1, _person1)),
               const SizedBox(width: 12),
-              Expanded(child: _field('Osoba 2', _person2)),
+              Expanded(child: _field(AppText.t.settings_person2, _person2)),
             ],
           ),
           Row(
             children: [
               Expanded(
-                child: _field('Liczba świadków', _witnessCount,
+                child: _field(AppText.t.settings_witnesses, _witnessCount,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly]),
               ),
@@ -1476,7 +1441,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
-                    'Domyślnie 2. Dla nietradycyjnych ślubów możesz ustawić więcej.',
+                    AppText.t.settings_witnessesHint,
                     style: GoogleFonts.inter(
                         fontSize: 11, color: AppColors.textLight),
                   ),
@@ -1490,14 +1455,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
-            title: Text('Dzieci na weselu',
+            title: Text(AppText.t.settings_children,
                 style: GoogleFonts.inter(
                     fontSize: 13, fontWeight: FontWeight.w600)),
             subtitle: Text(
               _withChildren
-                  ? 'Możesz oznaczać gości jako dzieci, dodać stół dla dzieci '
-                      'i osobne menu. Ceny ustawisz w Budżet → Sala.'
-                  : 'Włącz, jeśli na weselu będą dzieci.',
+                  ? AppText.t.settings_childrenHint
+                  : AppText.t.settings_childrenSwitch,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
@@ -1505,8 +1469,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (v) => setState(() => _withChildren = v),
           ),
           const SizedBox(height: 8),
-          _field('Słownik menu (po jednym w linii)', _menu, maxLines: 4),
-          _field('Kategorie wydatków (po jednym w linii)', _expenseCats,
+          _field(AppText.t.settings_menuDict, _menu, maxLines: 4),
+          _field(AppText.t.settings_expenseCategories, _expenseCats,
               maxLines: 4),
           const SizedBox(height: 8),
           SizedBox(
@@ -1518,7 +1482,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text('Zapisz konfigurację'),
+              child: Text(AppText.t.settings_saveConfig),
             ),
           ),
         ],
@@ -1528,27 +1492,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _budgetSettingsCard() {
     return _card(
-      'Ustawienia budżetu',
+      AppText.t.settings_budgetCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Budżet planowany to kwota założona na start. Rezerwa to opcjonalny '
-            'bufor na nieprzewidziane wydatki — doliczany do planowanego jako '
-            'bezpiecznik.',
+            AppText.t.settings_budgetHint,
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
-                child: _field('Budżet planowany (zł)', _plannedBudget,
+                child: _field(AppText.t.settings_budgetPlanned(AppFormat.currency.symbol), _plannedBudget,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true)),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: _field('Rezerwa (zł)', _reserve,
+                child: _field(AppText.t.settings_budgetReserve(AppFormat.currency.symbol), _reserve,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true)),
               ),
@@ -1564,7 +1526,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text('Zapisz ustawienia budżetu'),
+              child: Text(AppText.t.settings_budgetSave),
             ),
           ),
         ],
@@ -1578,15 +1540,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await widget.config
           .saveBudgetSettings(plannedBudget: planned, reserve: reserve);
-      _toast('Zapisano ustawienia budżetu ✓');
+      _toast(AppText.t.settings_budgetSaved);
     } catch (e) {
-      _toast('Błąd zapisu: $e');
+      _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 
   Widget _accessCard() {
     return _card(
-      'Dostęp',
+      AppText.t.settings_accessCard,
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1595,9 +1557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Rejestracja otwarta — każde konto Google może się zalogować '
-              'i założyć własne wesele. Dostęp do tego wesela mają osoby z nim '
-              'powiązane (właściciel i zaproszeni).',
+              AppText.t.settings_accessHint,
               style: GoogleFonts.inter(
                   fontSize: 13, height: 1.45, color: AppColors.textLight),
             ),
@@ -1609,7 +1569,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _devCard() {
     return _card(
-      'Ustawienia programistyczne',
+      AppText.t.settings_devCard,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1620,31 +1580,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               OutlinedButton.icon(
                 onPressed: _exportData,
                 icon: const Icon(Icons.ios_share, size: 18),
-                label: const Text('Eksport danych'),
+                label: Text(AppText.t.settings_exportData),
                 style: _devBtnStyle(),
               ),
               OutlinedButton.icon(
                 onPressed: _importData,
                 icon: const Icon(Icons.file_download_outlined, size: 18),
-                label: const Text('Import danych'),
+                label: Text(AppText.t.settings_importData),
                 style: _devBtnStyle(),
               ),
               OutlinedButton.icon(
                 onPressed: _createBackup,
                 icon: const Icon(Icons.backup_outlined, size: 18),
-                label: const Text('Utwórz kopię'),
+                label: Text(AppText.t.settings_backupCreate),
                 style: _devBtnStyle(),
               ),
               OutlinedButton.icon(
                 onPressed: _showBackups,
                 icon: const Icon(Icons.history, size: 18),
-                label: const Text('Kopie zapasowe'),
+                label: Text(AppText.t.settings_backupsCard),
                 style: _devBtnStyle(),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text('Kopie zapasowe (3 ostatnie) przechowywane lokalnie na urządzeniu.',
+          Text(AppText.t.settings_backupsHint,
               style: GoogleFonts.inter(
                   fontSize: 11, color: AppColors.textLight)),
         ],
@@ -1665,7 +1625,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eksport danych (JSON)'),
+        title: Text(AppText.t.settings_exportTitle),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -1677,13 +1637,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () {
               Clipboard.setData(ClipboardData(text: json));
-              _toast('Skopiowano do schowka');
+              _toast(AppText.t.common_copiedToast);
             },
-            child: const Text('Kopiuj'),
+            child: Text(AppText.t.common_copy),
           ),
           TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Zamknij')),
+              child: Text(AppText.t.common_close)),
         ],
       ),
     );
@@ -1694,7 +1654,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Import danych'),
+        title: Text(AppText.t.settings_importData),
         content: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -1702,7 +1662,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '⚠ Import ZASTĄPI wszystkie obecne dane. Wklej poprawny JSON.',
+                AppText.t.settings_importWarning,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: const Color(0xFFC0392B)),
               ),
@@ -1710,8 +1670,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               TextField(
                 controller: controller,
                 maxLines: 8,
-                decoration: const InputDecoration(
-                    hintText: 'Wklej JSON…', border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                    hintText: AppText.t.settings_importHint, border: OutlineInputBorder()),
               ),
             ],
           ),
@@ -1719,12 +1679,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Importuj (zastąp)'),
+            child: Text(AppText.t.settings_importButton),
           ),
         ],
       ),
@@ -1733,20 +1693,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final decoded = jsonDecode(controller.text);
       if (decoded is! Map) {
-        _toast('Nieprawidłowy format JSON');
+        _toast(AppText.t.settings_importBadFormat);
         return;
       }
       await widget.config.importData(Map<String, dynamic>.from(decoded));
-      _toast('Zaimportowano dane');
+      _toast(AppText.t.settings_importDone);
     } catch (e) {
-      _toast('Błąd importu: $e');
+      _toast(AppText.t.settings_importFailed('$e'));
     }
   }
 
   Future<void> _createBackup() async {
     final data = await widget.config.exportData();
     await _backups.create(_jsonSafe(data));
-    _toast('Utworzono kopię zapasową');
+    _toast(AppText.t.settings_backupCreated);
   }
 
   Future<void> _showBackups() async {
@@ -1761,14 +1721,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text('Kopie zapasowe',
+              child: Text(AppText.t.settings_backupsCard,
                   style: GoogleFonts.inter(
                       fontSize: 16, fontWeight: FontWeight.w700)),
             ),
             if (list.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(16),
-                child: Text('Brak kopii zapasowych.'),
+                child: Text(AppText.t.settings_backupsEmpty),
               )
             else
               for (final b in list)
@@ -1780,7 +1740,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.of(context).pop();
                       await _restoreBackup(b);
                     },
-                    child: const Text('Przywróć'),
+                    child: Text(AppText.t.settings_backupRestore),
                   ),
                 ),
             const SizedBox(height: 8),
@@ -1794,16 +1754,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Przywrócić kopię?'),
+        title: Text(AppText.t.settings_backupRestoreTitle),
         content: Text(
-            'Dane z ${_fmtDate(b.timestamp)} zastąpią obecne dane.'),
+            AppText.t.settings_backupRestoreBody(_fmtDate(b.timestamp))),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Anuluj')),
+              child: Text(AppText.t.common_cancel)),
           FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Przywróć')),
+              child: Text(AppText.t.settings_backupRestore)),
         ],
       ),
     );
@@ -1811,15 +1771,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final data = await _backups.decode(b);
       await widget.config.importData(data);
-      _toast('Przywrócono kopię');
+      _toast(AppText.t.settings_backupRestored);
     } catch (e) {
-      _toast('Błąd przywracania: $e');
+      _toast(AppText.t.settings_backupRestoreFailed('$e'));
     }
   }
 
   String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year} '
-      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
   Future<void> _pickDate() async {
     final initial = DateTime.tryParse(_weddingDate) ?? DateTime.now();
