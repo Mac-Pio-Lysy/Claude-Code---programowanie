@@ -9,6 +9,7 @@ import '../models/wedding_summary.dart';
 import '../models/wedding_tier.dart';
 import '../utils/warsaw_time.dart';
 import 'guest_service.dart';
+import 'join_verification.dart';
 import 'membership_service.dart';
 import 'user_service.dart';
 import '../l10n/app_text.dart';
@@ -105,8 +106,12 @@ class WeddingService {
   static const String collectionName = 'weddings';
 
   /// Publiczny indeks kodu dołączenia gościa: `weddingCodes/{KOD}` →
-  /// `{ weddingId, weddingDate, displayNames, eventName }`. Pozwala zweryfikować
-  /// dane bez czytania całego (chronionego) dokumentu wesela.
+  /// `{ weddingId, weddingDate, surnames, displayNames, eventName }`. Pozwala
+  /// zweryfikować dane bez czytania całego (chronionego) dokumentu wesela.
+  ///
+  /// ⚠️ Do WERYFIKACJI służą wyłącznie `weddingDate`, `surnames`
+  /// i `displayNames`. `eventName` zostaje jako opis, ale NIE bierze udziału
+  /// w porównaniu — bywa domyślne i wspólne dla wielu wesel.
   static const String weddingCodesCollection = 'weddingCodes';
 
   /// Indeks zaproszeń ról: `roleInvites/{KOD}` → `{ weddingId, role, expiresAt,
@@ -564,11 +569,11 @@ class WeddingService {
       }, SetOptions(merge: true));
 
   /// Dołącza użytkownika jako GOŚĆ po potrójnej weryfikacji: kod + data ślubu
-  /// + nazwisko/nazwa Państwa Młodych. Wszystkie trzy muszą się zgadzać.
+  /// + nazwisko Państwa Młodych. Wszystkie trzy muszą się zgadzać.
   ///
-  /// [date] w formacie "YYYY-MM-DD". [surname] porównywane z `displayNames`
-  /// (a zapasowo z `eventName`) po normalizacji (bez wielkości liter/znaków
-  /// diakrytycznych).
+  /// [date] w formacie "YYYY-MM-DD" — porównywana ZNAK W ZNAK.
+  /// [surname] sprawdzane przez [JoinVerification.surnameMatches]: dopasowanie
+  /// całych członów nazwiska, nigdy fragmentu.
   Future<JoinResult> joinAsGuest({
     required String userId,
     required String code,
@@ -576,8 +581,16 @@ class WeddingService {
     required String surname,
   }) async {
     try {
+      // Kod jest identyfikatorem dokumentu, więc porównanie jest z natury
+      // dokładne — normalizujemy tylko wielkość liter i spacje wokół.
       final normCode = code.trim().toUpperCase();
-      if (normCode.isEmpty || date.trim().isEmpty || surname.trim().isEmpty) {
+      final normDate = date.trim();
+      if (normCode.isEmpty || normDate.isEmpty || surname.trim().isEmpty) {
+        return const JoinResult(JoinOutcome.invalid);
+      }
+      // Data musi mieć dokładnie format ISO — inaczej nie ma czego porównywać
+      // i luźny wpis („2027-6-1") mógłby ominąć porównanie znak w znak.
+      if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(normDate)) {
         return const JoinResult(JoinOutcome.invalid);
       }
 
@@ -592,15 +605,18 @@ class WeddingService {
 
       // 1) Data ślubu musi się zgadzać (i musi być ustawiona).
       final wDate = (idx['weddingDate'] as String?)?.trim() ?? '';
-      if (wDate.isEmpty || wDate != date.trim()) {
+      if (wDate.isEmpty || wDate != normDate) {
         return const JoinResult(JoinOutcome.invalid);
       }
 
-      // 2) Nazwisko/nazwa Państwa Młodych.
-      final display = (idx['displayNames'] as String?) ?? '';
-      final event = (idx['eventName'] as String?) ?? '';
-      final surnames = (idx['surnames'] as String?) ?? '';
-      if (!_surnameMatches(surname, display, event, surnames)) {
+      // 2) Nazwisko Państwa Młodych — całe człony, nie fragment.
+      //    `eventName` świadomie NIE bierze udziału: bywa domyślne i wspólne
+      //    dla wielu wesel, więc niczego nie identyfikuje.
+      if (!JoinVerification.surnameMatches(
+        input: surname,
+        surnames: (idx['surnames'] as String?) ?? '',
+        displayNames: (idx['displayNames'] as String?) ?? '',
+      )) {
         return const JoinResult(JoinOutcome.invalid);
       }
 
@@ -885,28 +901,4 @@ class WeddingService {
     return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
   }
 
-  /// Czy podany przez gościa tekst pasuje do wesela.
-  ///
-  /// Sprawdzamy trzy źródła, bo para może wpisać dane na różne sposoby:
-  /// dedykowane pole nazwisk (najpewniejsze), „Osoby" (zwykle imiona) oraz
-  /// nazwę wydarzenia. Dzięki temu działa zarówno „Kowalscy", jak i „Ania".
-  bool _surnameMatches(String input, String displayNames, String eventName,
-      [String surnames = '']) {
-    final needle = _normalize(input);
-    if (needle.length < 2) return false;
-    final hay = '${_normalize(surnames)} ${_normalize(displayNames)} ${_normalize(eventName)}';
-    return hay.contains(needle);
-  }
-
-  /// Normalizacja: małe litery, bez polskich znaków diakrytycznych, pojedyncze
-  /// spacje. Pozwala na tolerancyjne porównanie nazwiska.
-  String _normalize(String s) {
-    var t = s.toLowerCase().trim();
-    const map = {
-      'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n',
-      'ó': 'o', 'ś': 's', 'ż': 'z', 'ź': 'z',
-    };
-    map.forEach((k, v) => t = t.replaceAll(k, v));
-    return t.replaceAll(RegExp(r'\s+'), ' ');
-  }
 }
