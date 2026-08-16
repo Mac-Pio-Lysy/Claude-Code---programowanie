@@ -11,6 +11,7 @@ import '../../services/wedding_service.dart';
 import '../../utils/warsaw_time.dart';
 import '../../utils/app_format.dart';
 import '../../l10n/app_text.dart';
+import '../../models/join_code.dart';
 
 /// Panel „Osoby i dostęp" — widoczny TYLKO dla właściciela (owner).
 ///
@@ -122,12 +123,14 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.accent, width: 1.4),
               ),
+              // Grupy po cztery znaki; separatory są wyłącznie wizualne —
+              // odbiór kodu i tak je zdejmuje (JoinCode.normalize).
               child: Text(
-                code,
+                JoinCode.format(code),
                 style: GoogleFonts.robotoMono(
-                    fontSize: 26,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 4,
+                    letterSpacing: 2,
                     color: AppColors.accent),
               ),
             ),
@@ -136,8 +139,9 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
         actions: [
           TextButton.icon(
             onPressed: () {
-              Clipboard.setData(ClipboardData(text: code));
-              _toast(AppText.t.people_codeCopied(code));
+              final pretty = JoinCode.format(code);
+              Clipboard.setData(ClipboardData(text: pretty));
+              _toast(AppText.t.people_codeCopied(pretty));
             },
             icon: const Icon(Icons.copy, size: 16),
             label: Text(AppText.t.common_copy),
@@ -379,7 +383,7 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
                           style: GoogleFonts.inter(
                               fontSize: 11, color: AppColors.textLight)),
                     if (m.isPending && m.inviteCode != null)
-                      Text(AppText.t.people_code('${m.inviteCode}'),
+                      Text(AppText.t.people_code(JoinCode.format('${m.inviteCode}')),
                           style: GoogleFonts.robotoMono(
                               fontSize: 11, color: AppColors.textLight)),
                   ],

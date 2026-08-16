@@ -1179,7 +1179,7 @@
   "jw_badData": "Wrong wedding details. Check the code, the wedding date and the couple's surname.",
   "jw_connectionError": "Connection error. Please try again.",
   "jw_title": "Join a wedding",
-  "jw_codeHint": "e.g. ABC234",
+  "jw_codeHint": "e.g. ABCD-EFGH-JKMN",
   "jw_scan": "Scan",
   "jw_surnameHint": "e.g. Smiths / Anna and Peter",
   "jw_checking": "Checking…",
@@ -2275,5 +2275,16 @@
   "wheelEx_charades": "Wedding charades",
   "wheelEx_nextCouple": "Pick the next couple to marry",
   "quizEx_film3": "Forrest Gump",
-  "quizEx_film4": "The Shawshank Redemption"
+  "quizEx_film4": "The Shawshank Redemption",
+  "invite_pdfLead": "We're delighted you'll be joining us! Below you'll find everything you need to join our wedding in the app.",
+  "invite_pdfScanHint": "Scan in the app: „Join a wedding\" → „Scan\"",
+  "invite_pdfStep1": "Install the Moje Wesele app and sign in with your Google account.",
+  "invite_pdfStep2": "Choose „Join a wedding\" and scan the QR code, or type the code in by hand.",
+  "invite_pdfStep3": "Fill in the wedding date and the surname from this card — that's it.",
+  "invite_printButton": "Printout for guests (PDF)",
+  "invite_printHint": "An elegant card with the QR code and joining details — to print and slip into your invitation.",
+  "invite_printFormat": "Print format",
+  "invite_printFileName": "wedding-code-invitation.pdf",
+  "invite_printError": "Couldn't prepare the printout: {error}",
+  "invite_codeGroupHint": "We show the code in groups of four — the dashes are only for readability, guests don't have to type them."
 }

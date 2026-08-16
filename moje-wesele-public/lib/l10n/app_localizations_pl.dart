@@ -4032,7 +4032,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get jw_title => 'Dołącz do wesela';
 
   @override
-  String get jw_codeHint => 'np. ABC234';
+  String get jw_codeHint => 'np. ABCD-EFGH-JKMN';
 
   @override
   String get jw_scan => 'Skanuj';
@@ -7853,4 +7853,46 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get quizEx_film4 => 'Skazani na Shawshank';
+
+  @override
+  String get invite_pdfLead =>
+      'Cieszymy się, że będziesz z nami! Poniżej znajdziesz wszystko, czego potrzebujesz, aby dołączyć do naszego wesela w aplikacji.';
+
+  @override
+  String get invite_pdfScanHint =>
+      'Zeskanuj w aplikacji: „Dołącz do wesela\" → „Skanuj\"';
+
+  @override
+  String get invite_pdfStep1 =>
+      'Zainstaluj aplikację Moje Wesele i zaloguj się kontem Google.';
+
+  @override
+  String get invite_pdfStep2 =>
+      'Wybierz „Dołącz do wesela\" i zeskanuj kod QR albo przepisz kod ręcznie.';
+
+  @override
+  String get invite_pdfStep3 =>
+      'Uzupełnij datę ślubu i nazwisko z tej karty — gotowe.';
+
+  @override
+  String get invite_printButton => 'Wydruk dla gości (PDF)';
+
+  @override
+  String get invite_printHint =>
+      'Elegancka karta z kodem QR i danymi do dołączenia — do wydrukowania i włożenia do zaproszenia.';
+
+  @override
+  String get invite_printFormat => 'Format wydruku';
+
+  @override
+  String get invite_printFileName => 'zaproszenie-kod-wesela.pdf';
+
+  @override
+  String invite_printError(String error) {
+    return 'Nie udało się przygotować wydruku: $error';
+  }
+
+  @override
+  String get invite_codeGroupHint =>
+      'Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać.';
 }

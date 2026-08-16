@@ -2394,7 +2394,7 @@
   "jw_badData": "Nieprawidłowe dane wesela. Sprawdź kod, datę ślubu i nazwisko Państwa Młodych.",
   "jw_connectionError": "Błąd połączenia. Spróbuj ponownie.",
   "jw_title": "Dołącz do wesela",
-  "jw_codeHint": "np. ABC234",
+  "jw_codeHint": "np. ABCD-EFGH-JKMN",
   "jw_scan": "Skanuj",
   "jw_surnameHint": "np. Kowalscy / Ania i Piotr",
   "jw_checking": "Sprawdzanie…",
@@ -4905,5 +4905,29 @@
   "quizEx_film4": "Skazani na Shawshank",
   "@quizEx_film4": {
     "description": "Tytuł filmu w przykładowej odpowiedzi — użyj tytułu z danego rynku."
-  }
+  },
+  "invite_pdfLead": "Cieszymy się, że będziesz z nami! Poniżej znajdziesz wszystko, czego potrzebujesz, aby dołączyć do naszego wesela w aplikacji.",
+  "@invite_pdfLead": {
+    "description": "Wstęp na karcie do wydruku dołączanej do zaproszenia — ton uprzejmy, zwrot do gościa."
+  },
+  "invite_pdfScanHint": "Zeskanuj w aplikacji: „Dołącz do wesela\" → „Skanuj\"",
+  "invite_pdfStep1": "Zainstaluj aplikację Moje Wesele i zaloguj się kontem Google.",
+  "invite_pdfStep2": "Wybierz „Dołącz do wesela\" i zeskanuj kod QR albo przepisz kod ręcznie.",
+  "invite_pdfStep3": "Uzupełnij datę ślubu i nazwisko z tej karty — gotowe.",
+  "invite_printButton": "Wydruk dla gości (PDF)",
+  "invite_printHint": "Elegancka karta z kodem QR i danymi do dołączenia — do wydrukowania i włożenia do zaproszenia.",
+  "invite_printFormat": "Format wydruku",
+  "invite_printFileName": "zaproszenie-kod-wesela.pdf",
+  "@invite_printFileName": {
+    "description": "Nazwa pliku PDF — bez polskich znaków i spacji."
+  },
+  "invite_printError": "Nie udało się przygotować wydruku: {error}",
+  "@invite_printError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "invite_codeGroupHint": "Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać."
 }

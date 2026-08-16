@@ -7,6 +7,7 @@ import '../../services/wedding_service.dart';
 import 'qr_scan_screen.dart';
 import '../../utils/app_format.dart';
 import '../../l10n/app_text.dart';
+import '../../models/join_code.dart';
 
 /// Ekran „Dołącz do wesela" — gość podaje kod, datę i nazwisko Państwa Młodych.
 /// Po pomyślnej potrójnej weryfikacji zostaje dodany jako GOŚĆ.
@@ -43,7 +44,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
       MaterialPageRoute(builder: (_) => const QrScanScreen()),
     );
     if (code != null && code.trim().isNotEmpty) {
-      setState(() => _codeCtrl.text = code.trim().toUpperCase());
+      setState(() => _codeCtrl.text = JoinCode.normalize(code));
     }
   }
 
@@ -148,7 +149,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                       textCapitalization: TextCapitalization.characters,
                       inputFormatters: [
                         UpperCaseFormatter(),
-                        LengthLimitingTextInputFormatter(10),
+                        LengthLimitingTextInputFormatter(JoinCode.length + 4),
                       ],
                       style: GoogleFonts.robotoMono(
                           fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 2),

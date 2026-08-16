@@ -45,6 +45,201 @@ class PdfService {
     return doc.save();
   }
 
+  // ── ZAPROSZENIE Z DANYMI DOSTĘPU ─────────────────────────────────────
+
+  /// Karta do wydruku i dołączenia do zaproszenia: kod QR, trzy dane potrzebne
+  /// gościowi (kod, data, nazwisko) i instrukcja krok po kroku.
+  ///
+  /// Te same dane, które organizator widzi w Ustawieniach → „Zaproszenie dla
+  /// gości" — tu ułożone tak, żeby dało się je wydrukować i włożyć do koperty.
+  ///
+  /// [format] domyślnie A5: karta wielkości połowy kartki wchodzi do typowej
+  /// koperty na zaproszenie. A4 nadaje się na wydruk do powieszenia, A6 —
+  /// na wkładkę wielkości pocztówki.
+  static Future<Uint8List> guestInvitation({
+    required String code,
+    required String qrData,
+    required String eventName,
+    required String persons,
+    required String weddingDate,
+    required String surname,
+    PdfPageFormat format = PdfPageFormat.a5,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    doc.addPage(pw.Page(
+      pageFormat: format,
+      margin: const pw.EdgeInsets.all(28),
+      build: (ctx) => _invitationCard(
+        code: code,
+        qrData: qrData,
+        eventName: eventName,
+        persons: persons,
+        weddingDate: weddingDate,
+        surname: surname,
+      ),
+    ));
+    return doc.save();
+  }
+
+  /// Kolor akcentu wydruków — ten sam granat co w aplikacji.
+  static const PdfColor _ink = PdfColor.fromInt(0xFF1A2744);
+  static const PdfColor _accent = PdfColor.fromInt(0xFF1040B0);
+  static const PdfColor _muted = PdfColor.fromInt(0xFF6B7A90);
+
+  static pw.Widget _invitationCard({
+    required String code,
+    required String qrData,
+    required String eventName,
+    required String persons,
+    required String weddingDate,
+    required String surname,
+  }) {
+    return pw.Container(
+      // Podwójna ramka — prosty, „zaproszeniowy" akcent, który dobrze wychodzi
+      // na każdej drukarce (bez cieni i przezroczystości).
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: _accent, width: 1.4),
+      ),
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Container(
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: _accent, width: 0.5),
+        ),
+        padding: const pw.EdgeInsets.fromLTRB(20, 22, 20, 20),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            pw.Text('❦',
+                style: pw.TextStyle(fontSize: 16, color: _accent)),
+            pw.SizedBox(height: 8),
+            if (eventName.trim().isNotEmpty)
+              pw.Text(eventName.trim(),
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(
+                      fontSize: 19,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _ink)),
+            if (persons.trim().isNotEmpty) ...[
+              pw.SizedBox(height: 3),
+              pw.Text(persons.trim(),
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(fontSize: 12, color: _accent)),
+            ],
+            pw.SizedBox(height: 12),
+            pw.Container(height: 0.7, width: 90, color: _accent),
+            pw.SizedBox(height: 14),
+            pw.Text(AppText.t.invite_pdfLead,
+                textAlign: pw.TextAlign.center,
+                style: const pw.TextStyle(fontSize: 10.5, color: _muted)),
+            pw.SizedBox(height: 14),
+            pw.BarcodeWidget(
+              barcode: pw.Barcode.qrCode(),
+              data: qrData,
+              width: 116,
+              height: 116,
+              color: _accent,
+            ),
+            pw.SizedBox(height: 6),
+            pw.Text(AppText.t.invite_pdfScanHint,
+                textAlign: pw.TextAlign.center,
+                style: const pw.TextStyle(fontSize: 8.5, color: _muted)),
+            pw.SizedBox(height: 14),
+            _inviteDataBox(code, weddingDate, surname),
+            pw.SizedBox(height: 12),
+            _inviteSteps(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Ramka z trzema danymi, o które gość zostanie zapytany w aplikacji.
+  static pw.Widget _inviteDataBox(
+      String code, String weddingDate, String surname) {
+    pw.Widget row(String label, String value, {bool mono = false}) => pw.Padding(
+          padding: const pw.EdgeInsets.symmetric(vertical: 3),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.SizedBox(
+                width: 96,
+                child: pw.Text(label,
+                    style: const pw.TextStyle(fontSize: 9, color: _muted)),
+              ),
+              pw.Expanded(
+                child: pw.Text(
+                  value,
+                  style: pw.TextStyle(
+                    fontSize: mono ? 13 : 10.5,
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: mono ? 1.4 : 0,
+                    color: mono ? _accent : _ink,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.fromLTRB(14, 10, 14, 10),
+      decoration: pw.BoxDecoration(
+        color: const PdfColor.fromInt(0xFFF6F8FE),
+        border: pw.Border.all(color: const PdfColor.fromInt(0xFFD6E0F5)),
+      ),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(AppText.t.settings_inviteDataTitle,
+              style: pw.TextStyle(
+                  fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: _ink)),
+          pw.SizedBox(height: 6),
+          row(AppText.t.settings_weddingCode, code, mono: true),
+          row(AppText.t.settings_weddingDate,
+              weddingDate.isEmpty ? AppText.t.settings_notSet : weddingDate),
+          row(AppText.t.settings_coupleSurname,
+              surname.isEmpty ? AppText.t.settings_notSet : surname),
+        ],
+      ),
+    );
+  }
+
+  /// Instrukcja — te same kroki, co na ekranie Ustawień.
+  static pw.Widget _inviteSteps() {
+    final steps = [
+      AppText.t.invite_pdfStep1,
+      AppText.t.invite_pdfStep2,
+      AppText.t.invite_pdfStep3,
+    ];
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < steps.length; i++)
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 3),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.SizedBox(
+                  width: 14,
+                  child: pw.Text('${i + 1}.',
+                      style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                          color: _accent)),
+                ),
+                pw.Expanded(
+                  child: pw.Text(steps[i],
+                      style: const pw.TextStyle(fontSize: 9, color: _ink)),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
   static Future<Uint8List> gallery({
     required String galleryUrl,
     required PdfPageFormat format,

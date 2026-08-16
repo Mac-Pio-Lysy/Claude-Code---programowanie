@@ -28,6 +28,9 @@ import 'guest_visibility_screen.dart';
 import 'notification_settings_screen.dart';
 import 'people_access_screen.dart';
 import 'security_settings_screen.dart';
+import 'package:pdf/pdf.dart';
+import '../../models/join_code.dart';
+import '../../services/pdf_service.dart';
 
 /// Sekcja „Ustawienia" — konfiguracja, dostęp, narzędzia programistyczne,
 /// status synchronizacji i wylogowanie.
@@ -91,6 +94,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _reserve;
   String _weddingDate = '';
   String _weddingTime = '16:00';
+
+  /// Trwa składanie PDF-u z zaproszeniem (blokuje przycisk).
+  bool _printing = false;
+
+  /// Wybrany format wydruku karty z danymi dostępu.
+  String _inviteFormat = 'A5';
 
   /// Typ uroczystości — steruje etykietami pary w całej aplikacji.
   CoupleType _coupleType = CoupleType.mixed;
@@ -942,7 +951,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       AppText.t.settings_inviteTextStep1,
       AppText.t.settings_inviteTextStep2,
       AppText.t.settings_inviteTextStep3,
-      AppText.t.settings_inviteTextCode(code),
+      AppText.t.settings_inviteTextCode(JoinCode.format(code)),
       if (date.isNotEmpty) AppText.t.settings_inviteTextDate(date),
       if (_verificationValue.isNotEmpty)
         AppText.t.settings_inviteTextSurname(_verificationValue),
@@ -992,21 +1001,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: AppColors.accent, width: 1.4),
                         ),
+                        // Kod w grupach po cztery znaki — 12 znaków ciągiem
+                        // przepisuje się z kartki dużo gorzej. Myślniki są
+                        // wyłącznie wizualne; weryfikacja i tak je zdejmuje.
                         child: Text(
-                          code,
+                          JoinCode.format(code),
                           style: GoogleFonts.robotoMono(
-                            fontSize: 26,
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 4,
+                            letterSpacing: 2,
                             color: AppColors.accent,
                           ),
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      Text(AppText.t.invite_codeGroupHint,
+                          style: GoogleFonts.inter(
+                              fontSize: 10.5,
+                              height: 1.35,
+                              color: AppColors.textLight)),
                       const SizedBox(height: 8),
                       OutlinedButton.icon(
                         onPressed: () {
-                          Clipboard.setData(ClipboardData(text: code));
-                          _toast(AppText.t.settings_codeCopied(code));
+                          // Do schowka trafia postać czytelna — po wklejeniu
+                          // w aplikacji separatory i tak zostaną zdjęte.
+                          final pretty = JoinCode.format(code);
+                          Clipboard.setData(ClipboardData(text: pretty));
+                          _toast(AppText.t.settings_codeCopied(pretty));
                         },
                         icon: const Icon(Icons.copy, size: 16),
                         label: Text(AppText.t.settings_copyCode),
@@ -1077,10 +1098,100 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            _invitationPrintBlock(code),
           ],
         ],
       ),
     );
+  }
+
+  /// Wydruk karty z danymi dostępu — do włożenia do zaproszenia.
+  ///
+  /// Korzysta DOKŁADNIE z tych samych danych, które organizator widzi wyżej
+  /// na tej karcie (kod, data, nazwisko weryfikacyjne, kod QR), więc wydruk
+  /// nie może się rozjechać z tym, co pokazuje aplikacja.
+  Widget _invitationPrintBlock(String code) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(AppText.t.invite_printHint,
+            style: GoogleFonts.inter(
+                fontSize: 11.5, height: 1.4, color: AppColors.textLight)),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text(AppText.t.invite_printFormat,
+                style: GoogleFonts.inter(
+                    fontSize: 12, color: AppColors.textLight)),
+            const SizedBox(width: 10),
+            for (final f in _invitationFormats.keys) ...[
+              ChoiceChip(
+                label: Text(f),
+                selected: _inviteFormat == f,
+                onSelected: (_) => setState(() => _inviteFormat = f),
+                labelStyle: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _inviteFormat == f
+                        ? AppColors.accent
+                        : AppColors.textLight),
+                selectedColor: AppColors.accent.withValues(alpha: 0.12),
+              ),
+              const SizedBox(width: 6),
+            ],
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: _printing ? null : () => _printInvitation(code),
+            icon: _printing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.print_outlined, size: 18),
+            label: Text(AppText.t.invite_printButton),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Formaty wydruku. A5 domyślnie — wchodzi do koperty na zaproszenie.
+  static final Map<String, PdfPageFormat> _invitationFormats = {
+    'A5': PdfPageFormat.a5,
+    'A6': PdfPageFormat.a6,
+    'A4': PdfPageFormat.a4,
+  };
+
+  Future<void> _printInvitation(String code) async {
+    setState(() => _printing = true);
+    try {
+      final bytes = await PdfService.guestInvitation(
+        // Na wydruku kod grupowany, w QR surowy — czytnik nie ma potrzeby
+        // rozbierać separatorów.
+        code: JoinCode.format(code),
+        qrData: code,
+        eventName: _eventName.text.trim(),
+        persons: _displayNames.text.trim(),
+        weddingDate: _weddingDateLabel,
+        surname: _verificationValue,
+        format: _invitationFormats[_inviteFormat] ?? PdfPageFormat.a5,
+      );
+      await PdfService.preview(bytes, AppText.t.invite_printFileName);
+    } catch (e) {
+      if (mounted) _toast(AppText.t.invite_printError('$e'));
+    } finally {
+      if (mounted) setState(() => _printing = false);
+    }
   }
 
   /// Komplet danych, których potrzebuje gość — dokładnie te trzy pola widzi
@@ -1103,7 +1214,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   fontWeight: FontWeight.w700,
                   color: AppColors.text)),
           const SizedBox(height: 10),
-          _inviteRow(AppText.t.settings_weddingCode, _joinCode ?? '—'),
+          _inviteRow(AppText.t.settings_weddingCode,
+              _joinCode == null
+                  ? AppText.t.common_none
+                  : JoinCode.format(_joinCode!)),
           _inviteRow(
             AppText.t.settings_weddingDate,
             date.isEmpty ? AppText.t.settings_notSet : date,

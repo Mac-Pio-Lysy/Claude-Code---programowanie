@@ -7179,7 +7179,7 @@ abstract class AppLocalizations {
   /// No description provided for @jw_codeHint.
   ///
   /// In pl, this message translates to:
-  /// **'np. ABC234'**
+  /// **'np. ABCD-EFGH-JKMN'**
   String get jw_codeHint;
 
   /// No description provided for @jw_scan.
@@ -13758,6 +13758,72 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Skazani na Shawshank'**
   String get quizEx_film4;
+
+  /// Wstęp na karcie do wydruku dołączanej do zaproszenia — ton uprzejmy, zwrot do gościa.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cieszymy się, że będziesz z nami! Poniżej znajdziesz wszystko, czego potrzebujesz, aby dołączyć do naszego wesela w aplikacji.'**
+  String get invite_pdfLead;
+
+  /// No description provided for @invite_pdfScanHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zeskanuj w aplikacji: „Dołącz do wesela\" → „Skanuj\"'**
+  String get invite_pdfScanHint;
+
+  /// No description provided for @invite_pdfStep1.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zainstaluj aplikację Moje Wesele i zaloguj się kontem Google.'**
+  String get invite_pdfStep1;
+
+  /// No description provided for @invite_pdfStep2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz „Dołącz do wesela\" i zeskanuj kod QR albo przepisz kod ręcznie.'**
+  String get invite_pdfStep2;
+
+  /// No description provided for @invite_pdfStep3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uzupełnij datę ślubu i nazwisko z tej karty — gotowe.'**
+  String get invite_pdfStep3;
+
+  /// No description provided for @invite_printButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wydruk dla gości (PDF)'**
+  String get invite_printButton;
+
+  /// No description provided for @invite_printHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Elegancka karta z kodem QR i danymi do dołączenia — do wydrukowania i włożenia do zaproszenia.'**
+  String get invite_printHint;
+
+  /// No description provided for @invite_printFormat.
+  ///
+  /// In pl, this message translates to:
+  /// **'Format wydruku'**
+  String get invite_printFormat;
+
+  /// Nazwa pliku PDF — bez polskich znaków i spacji.
+  ///
+  /// In pl, this message translates to:
+  /// **'zaproszenie-kod-wesela.pdf'**
+  String get invite_printFileName;
+
+  /// No description provided for @invite_printError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się przygotować wydruku: {error}'**
+  String invite_printError(String error);
+
+  /// No description provided for @invite_codeGroupHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać.'**
+  String get invite_codeGroupHint;
 }
 
 class _AppLocalizationsDelegate

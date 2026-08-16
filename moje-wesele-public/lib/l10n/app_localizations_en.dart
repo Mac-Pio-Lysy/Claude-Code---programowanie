@@ -4026,7 +4026,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jw_title => 'Join a wedding';
 
   @override
-  String get jw_codeHint => 'e.g. ABC234';
+  String get jw_codeHint => 'e.g. ABCD-EFGH-JKMN';
 
   @override
   String get jw_scan => 'Scan';
@@ -7831,4 +7831,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quizEx_film4 => 'The Shawshank Redemption';
+
+  @override
+  String get invite_pdfLead =>
+      'We\'re delighted you\'ll be joining us! Below you\'ll find everything you need to join our wedding in the app.';
+
+  @override
+  String get invite_pdfScanHint =>
+      'Scan in the app: „Join a wedding\" → „Scan\"';
+
+  @override
+  String get invite_pdfStep1 =>
+      'Install the Moje Wesele app and sign in with your Google account.';
+
+  @override
+  String get invite_pdfStep2 =>
+      'Choose „Join a wedding\" and scan the QR code, or type the code in by hand.';
+
+  @override
+  String get invite_pdfStep3 =>
+      'Fill in the wedding date and the surname from this card — that\'s it.';
+
+  @override
+  String get invite_printButton => 'Printout for guests (PDF)';
+
+  @override
+  String get invite_printHint =>
+      'An elegant card with the QR code and joining details — to print and slip into your invitation.';
+
+  @override
+  String get invite_printFormat => 'Print format';
+
+  @override
+  String get invite_printFileName => 'wedding-code-invitation.pdf';
+
+  @override
+  String invite_printError(String error) {
+    return 'Couldn\'t prepare the printout: $error';
+  }
+
+  @override
+  String get invite_codeGroupHint =>
+      'We show the code in groups of four — the dashes are only for readability, guests don\'t have to type them.';
 }

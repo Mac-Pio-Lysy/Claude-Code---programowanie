@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/children.dart';
 import '../models/couple.dart';
 import '../models/guest_visibility.dart';
+import '../models/join_code.dart';
 import '../models/wedding_summary.dart';
 import '../models/wedding_tier.dart';
 import '../utils/warsaw_time.dart';
@@ -582,8 +583,9 @@ class WeddingService {
   }) async {
     try {
       // Kod jest identyfikatorem dokumentu, więc porównanie jest z natury
-      // dokładne — normalizujemy tylko wielkość liter i spacje wokół.
-      final normCode = code.trim().toUpperCase();
+      // dokładne. Normalizacja zdejmuje tylko wielkość liter i separatory
+      // grup — gość przepisuje z zaproszenia „ABCD-EFGH-JKMN" i tak go wpisze.
+      final normCode = JoinCode.normalize(code);
       final normDate = date.trim();
       if (normCode.isEmpty || normDate.isEmpty || surname.trim().isEmpty) {
         return const JoinResult(JoinOutcome.invalid);
@@ -699,7 +701,9 @@ class WeddingService {
     required String code,
   }) async {
     try {
-      final normCode = code.trim().toUpperCase();
+      // Ta sama normalizacja co przy kodzie gościa — osoba odbierająca
+      // zwykle wkleja kod, więc separatory grup nie mogą jej blokować.
+      final normCode = JoinCode.normalize(code);
       if (normCode.isEmpty) return const ClaimResult(ClaimOutcome.invalid);
 
       final inviteSnap =
@@ -851,15 +855,15 @@ class WeddingService {
 
   // ── Kod dołączenia ───────────────────────────────────────────────────────
 
-  /// Alfabet kodu — bez znaków mylących (0/O, 1/I/L), same wielkie litery/cyfry.
-  static const String _codeAlphabet = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-
-  /// Generuje 6-znakowy kod dołączenia.
-  String _generateCode() {
+  /// Generuje losowy kod o zadanej długości (alfabet z [JoinCode]).
+  ///
+  /// `Random.secure()` — kod jest jednym z trzech czynników wpuszczających
+  /// gościa na wesele, więc nie może pochodzić z generatora przewidywalnego.
+  String _generateCode([int length = JoinCode.length]) {
     final rnd = Random.secure();
     return List.generate(
-      6,
-      (_) => _codeAlphabet[rnd.nextInt(_codeAlphabet.length)],
+      length,
+      (_) => JoinCode.alphabet[rnd.nextInt(JoinCode.alphabet.length)],
     ).join();
   }
 
@@ -879,6 +883,10 @@ class WeddingService {
 
   /// Generuje kod dołączenia i sprawdza unikalność przez publiczny indeks
   /// `weddingCodes` (odczyt dozwolony bez członkostwa).
+  ///
+  /// NOWE wesela dostają [JoinCode.length] znaków. Kody wydane wcześniej
+  /// (6 znaków) działają dalej — kod jest identyfikatorem dokumentu, więc
+  /// odczyt nie zależy od długości i nic nie wymaga migracji.
   Future<String> _uniqueJoinCode() async {
     for (var i = 0; i < 6; i++) {
       final code = _generateCode();
@@ -886,11 +894,21 @@ class WeddingService {
           await _db.collection(weddingCodesCollection).doc(code).get();
       if (!taken.exists) return code;
     }
-    // Skrajnie mało prawdopodobne — dokładamy przyrostek z czasu.
-    return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
+    // Skrajnie mało prawdopodobne przy 31^12 kombinacjach — ale gdyby jednak,
+    // wolimy dłuższy kod niż kolizję albo pętlę bez końca.
+    return _generateCode(JoinCode.length + JoinCode.groupSize);
   }
 
   /// Generuje unikalny kod zaproszenia roli (sprawdza indeks `roleInvites`).
+  ///
+  /// Ta sama długość co kod gościa — [JoinCode.length]. Zaproszenie roli daje
+  /// PEŁNY panel (współorganizator/planer), więc nie może mieć słabszego kodu
+  /// niż dostęp gościa. Nikt go nie drukuje ani nie przepisuje z zaproszenia:
+  /// trafia raz do jednej osoby, zwykle wklejony — dłuższy kod nic tu nie
+  /// kosztuje.
+  ///
+  /// Kody wydane wcześniej (6 znaków) działają dalej — kod jest
+  /// identyfikatorem dokumentu, więc odczyt nie zależy od długości.
   Future<String> _uniqueInviteCode() async {
     for (var i = 0; i < 6; i++) {
       final code = _generateCode();
@@ -898,7 +916,7 @@ class WeddingService {
           await _db.collection(roleInvitesCollection).doc(code).get();
       if (!taken.exists) return code;
     }
-    return '${_generateCode()}${DateTime.now().millisecondsSinceEpoch % 100}';
+    return _generateCode(JoinCode.length + JoinCode.groupSize);
   }
 
 }

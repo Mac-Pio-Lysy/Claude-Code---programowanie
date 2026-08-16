@@ -9,6 +9,7 @@ import 'create_wedding_sheet.dart';
 import 'join_wedding_screen.dart';
 import '../../utils/app_format.dart';
 import '../../l10n/app_text.dart';
+import '../../models/join_code.dart';
 
 /// Ekran „Twoje wesela" — pokazywany po wejściu do aplikacji, przed panelem.
 ///
@@ -240,7 +241,7 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
             onPressed: () =>
-                Navigator.of(context).pop(codeCtrl.text.trim().toUpperCase()),
+                Navigator.of(context).pop(JoinCode.normalize(codeCtrl.text)),
             child: Text(AppText.t.wl_redeem),
           ),
         ],
