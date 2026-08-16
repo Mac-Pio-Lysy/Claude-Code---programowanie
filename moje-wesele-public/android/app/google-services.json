@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "221816723659-m0ltatpe7scglqgjaraqrtjrmvdh1djc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ceremonia.moje_wesele",
+            "certificate_hash": "f01687787efcd0583b51c2f62ccf713327cc4dd9"
+          }
+        },
+        {
           "client_id": "221816723659-n11bpn1iurom23mmt8eukl4dlbl0b4u2.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -49,6 +57,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "221816723659-c6d76add4bf0smpoof6d6dudhsl6jhf7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ceremonia.mojewesele.pub",
+            "certificate_hash": "37203a5a703a8bf6b7e9167e8e819cb8a44e37f6"
+          }
+        },
         {
           "client_id": "221816723659-omiaauv5mcdf4ldm5hhgbg95qg7lpolo.apps.googleusercontent.com",
           "client_type": 1,
