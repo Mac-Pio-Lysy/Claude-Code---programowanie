@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_colors.dart';
+import '../l10n/app_text.dart';
 
 /// Karta z kodem QR i klikalnym linkiem do publicznej strony dla gości
 /// (kopiowanie i otwieranie w przeglądarce).
@@ -40,7 +41,7 @@ class PublicLinkCard extends StatelessWidget {
               style: GoogleFonts.inter(
                   fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.text)),
           const SizedBox(height: 4),
-          Text('Strona dla gości',
+          Text(AppText.t.w_guestPage,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight)),
           const SizedBox(height: 12),
@@ -68,21 +69,21 @@ class PublicLinkCard extends StatelessWidget {
                   ScaffoldMessenger.of(context)
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
-                        const SnackBar(content: Text('Skopiowano link')));
+                        SnackBar(content: Text(AppText.t.w_linkCopied)));
                 },
                 icon: const Icon(Icons.copy, size: 16),
-                label: const Text('Kopiuj'),
+                label: Text(AppText.t.common_copy),
               ),
               TextButton.icon(
                 onPressed: () => _open(url),
                 icon: const Icon(Icons.open_in_new, size: 16),
-                label: const Text('Otwórz'),
+                label: Text(AppText.t.common_open),
               ),
               if (onShare != null)
                 TextButton.icon(
                   onPressed: onShare,
                   icon: const Icon(Icons.download, size: 16),
-                  label: const Text('Pobierz / udostępnij'),
+                  label: Text(AppText.t.w_download),
                 ),
             ],
           ),
@@ -116,7 +117,7 @@ Future<void> showPublicLinkDialog(
               style: TextButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: AppColors.textLight),
-              child: const Text('Zamknij'),
+              child: Text(AppText.t.common_close),
             ),
           ],
         ),

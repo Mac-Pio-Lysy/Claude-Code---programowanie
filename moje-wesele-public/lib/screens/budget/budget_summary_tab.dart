@@ -238,8 +238,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
                   AppText.t.budget_paidAmount(formatPlnZl(s.totalPaid))),
               _legend(
                   const Color(0xFFCBD5E1),
-                  'Planowany${s.reserve > 0 ? ' + rezerwa' : ''}: '
-                      '${formatPlnZl(s.plannedWithReserve)}'),
+                  'Planowany${s.reserve > 0 ? ' + rezerwa' : ''}: ${formatPlnZl(s.plannedWithReserve)}'),
             ],
           ),
         ],
@@ -280,7 +279,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
             _valueRow('Rezerwa', formatPlnZl(s.reserve),
                 const Color(0xFF7C3AED)),
           if (s.reserve > 0)
-            _valueRow('Planowany + rezerwa', formatPlnZl(s.plannedWithReserve),
+            _valueRow(AppText.t.bs_plannedPlusReserve, formatPlnZl(s.plannedWithReserve),
                 const Color(0xFF1D4ED8),
                 bold: true),
           const Divider(height: 18),
@@ -288,7 +287,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           _valueRow(AppText.t.budget_actual, formatPlnZl(s.actualCost),
               const Color(0xFFEA580C)),
           if (s.catering > 0)
-            _valueRow('w tym sala', formatPlnZl(s.catering),
+            _valueRow(AppText.t.bs_ofWhichVenue, formatPlnZl(s.catering),
                 AppColors.textLight,
                 small: true),
           _valueRow(AppText.t.budget_ofWhichPaid, formatPlnZl(s.totalPaid),
@@ -298,7 +297,7 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           // ── Rezerwa wykorzystana + pozostało ──
           if (s.reserve > 0)
             _valueRow(
-              'Wykorzystana rezerwa',
+              AppText.t.bs_reserveUsed,
               '${formatPlnZl(s.reserveUsed)} z ${formatPlnZl(s.reserve)}',
               s.reserveUsed > 0
                   ? const Color(0xFFB45309)

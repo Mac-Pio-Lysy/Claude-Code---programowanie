@@ -1,3 +1,4 @@
+import '../l10n/app_text.dart';
 /// Element galerii z kolekcji `gallery` (osobna kolekcja Firestore).
 /// Pola: `{uploadedBy, type('image'|'video'), url, fileSize, timestamp}`.
 class GalleryItem {
@@ -7,7 +8,7 @@ class GalleryItem {
   String get id => (raw['id'] as String?) ?? '';
   String get uploadedBy {
     final v = (raw['uploadedBy'] as String?)?.trim();
-    return (v == null || v.isEmpty) ? 'Gość' : v;
+    return (v == null || v.isEmpty) ? AppText.t.role_guest : v;
   }
 
   String get type => (raw['type'] as String?) ?? 'image';

@@ -1,4 +1,5 @@
 import 'app_localizations.dart';
+import 'app_localizations_en.dart';
 import 'app_localizations_pl.dart';
 
 /// Dostęp do tłumaczeń POZA drzewem widgetów.
@@ -24,4 +25,15 @@ class AppText {
 
   /// Ustawiane przez korzeń aplikacji po zbudowaniu `MaterialApp`.
   static void apply(AppLocalizations value) => _current = value;
+
+  /// Tłumaczenia we WSZYSTKICH obsługiwanych językach naraz.
+  ///
+  /// Potrzebne tam, gdzie porównujemy tekst ZAPISANY W BAZIE z etykietą:
+  /// zapis powstał w języku, w którym zakładano wesele, więc dopasowanie tylko
+  /// do języka bieżącego by go przegapiło (patrz `specialMomentIcon`).
+  /// Dodanie kolejnego języka = jedna pozycja tutaj.
+  static final List<AppLocalizations> allLocales = [
+    AppLocalizationsPl(),
+    AppLocalizationsEn(),
+  ];
 }

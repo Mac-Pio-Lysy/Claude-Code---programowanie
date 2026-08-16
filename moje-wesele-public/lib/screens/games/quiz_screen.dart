@@ -63,10 +63,10 @@ class _QuizScreenState extends State<QuizScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Pytania'),
               Tab(text: 'Wyniki'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -75,7 +75,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 _questionsTab(),
                 _resultsTab(),
                 GuestPageTab(
-                  links: [('🧠 Quiz o Parze Młodej', PublicPages.quiz(base))],
+                  links: [(AppText.t.quiz_headerTitle, PublicPages.quiz(base))],
                   intro:
                       AppText.t.quiz_txt1,
                 ),
@@ -153,9 +153,9 @@ class _QuizScreenState extends State<QuizScreen> {
         subtitle: Text(
           hasQuestions
               ? (_active
-                  ? 'Goście mogą teraz grać przez stronę / kod QR.'
-                  : 'Włącz, aby goście mogli odpowiadać.')
-              : 'Najpierw dodaj przynajmniej jedno pytanie.',
+                  ? AppText.t.gp_activeHint
+                  : AppText.t.gp_enableHint)
+              : AppText.t.quiz_needQuestion,
           style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
         ),
       ),
@@ -367,7 +367,7 @@ class _QuizScreenState extends State<QuizScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać wyników. Sprawdź połączenie.');
+          return _info(AppText.t.gp_loadResultsError);
         }
         final results = [...?snapshot.data];
         final questions = _questions;
@@ -383,7 +383,7 @@ class _QuizScreenState extends State<QuizScreen> {
                     color: AppColors.text)),
             const SizedBox(height: 8),
             if (results.isEmpty)
-              _info('Brak wyników. Udostępnij gościom kod QR, aby zagrali.')
+              _info(AppText.t.gp_noResults)
             else
               ..._ranking(results),
             if (results.isNotEmpty && questions.isNotEmpty) ...[
@@ -423,9 +423,9 @@ class _QuizScreenState extends State<QuizScreen> {
       ),
       child: Row(
         children: [
-          _stat('$participants', 'Uczestników', AppColors.accent),
-          _stat('$questionCount', 'Pytań', const Color(0xFF7C3AED)),
-          _stat(avg.toStringAsFixed(1), 'Śr. wynik', const Color(0xFF059669)),
+          _stat('$participants', AppText.t.gp_participants, AppColors.accent),
+          _stat('$questionCount', AppText.t.quiz_questions, const Color(0xFF7C3AED)),
+          _stat(avg.toStringAsFixed(1), AppText.t.gp_avgScore, const Color(0xFF059669)),
         ],
       ),
     );
@@ -475,7 +475,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         color: AppColors.textLight)),
               ),
               Expanded(
-                child: Text(sorted[i].name.isEmpty ? 'Gość' : sorted[i].name,
+                child: Text(sorted[i].name.isEmpty ? AppText.t.role_guest : sorted[i].name,
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -555,8 +555,8 @@ class _QuizScreenState extends State<QuizScreen> {
                   const SizedBox(width: 10),
                   Text(
                     s.answered == 0
-                        ? 'brak odpowiedzi'
-                        : '${s.wrong}/${s.answered} błędnych',
+                        ? AppText.t.gp_noAnswers
+                        : AppText.t.gp_wrongOf(s.wrong, s.answered),
                     style: GoogleFonts.inter(
                         fontSize: 11, color: AppColors.textLight),
                   ),
@@ -645,15 +645,15 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
     final answers = _answers.map((c) => c.text.trim()).toList();
     final filled = answers.where((a) => a.isNotEmpty).toList();
     if (q.isEmpty) {
-      _err('Wpisz treść pytania');
+      _err(AppText.t.gp_questionText);
       return;
     }
     if (filled.length < 2) {
-      _err('Podaj przynajmniej 2 odpowiedzi');
+      _err(AppText.t.gp_needTwoAnswers);
       return;
     }
     if (answers[_correct].isEmpty) {
-      _err('Zaznaczona poprawna odpowiedź jest pusta');
+      _err(AppText.t.gp_emptyCorrect);
       return;
     }
     // Przelicz indeks poprawnej po odfiltrowaniu pustych.
@@ -699,7 +699,7 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(_isEdit ? 'Edytuj pytanie' : AppText.t.quiz_addQuestion,
+                    child: Text(_isEdit ? AppText.t.quiz_editQuestion : AppText.t.quiz_addQuestion,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -712,14 +712,14 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                     padding: EdgeInsets.fromLTRB(
                         20, 8, 20, 20 + MediaQuery.paddingOf(context).bottom),
                     children: [
-                      _label('Treść pytania'),
+                      _label(AppText.t.quiz_questionLabel),
                       TextField(
                         controller: _question,
                         maxLines: 2,
-                        decoration: _dec(hint: 'np. Gdzie się poznaliśmy?'),
+                        decoration: _dec(hint: AppText.t.quiz_questionHint),
                       ),
                       const SizedBox(height: 16),
-                      _label('Odpowiedzi (zaznacz poprawną)'),
+                      _label(AppText.t.gp_answers),
                       RadioGroup<int>(
                         groupValue: _correct,
                         onChanged: (v) => setState(() => _correct = v ?? 0),
@@ -738,7 +738,7 @@ class _QuestionFormSheetState extends State<_QuestionFormSheet> {
                                       child: TextField(
                                         controller: _answers[i],
                                         decoration:
-                                            _dec(hint: 'Odpowiedź ${i + 1}'),
+                                            _dec(hint: AppText.t.gp_answerN(i + 1)),
                                       ),
                                     ),
                                     if (_answers.length > 2)

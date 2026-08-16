@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/photo_challenge.dart';
 import 'firestore_service.dart';
 import 'legacy_scope.dart';
+import '../l10n/app_text.dart';
 
 /// Operacje gry „Foto-wyzwania".
 ///
@@ -23,13 +24,16 @@ class PhotoChallengeService {
   static const String submissionsCollection = 'photoChallenges';
 
   /// Przykładowe wyzwania na start.
-  static const List<({String text, int points})> examples = [
-    (text: 'Zrób selfie z Parą Młodą', points: 3),
-    (text: 'Sfotografuj najpiękniejszy toast', points: 2),
-    (text: 'Znajdź i sfotografuj najstarszego gościa', points: 2),
-    (text: 'Zdjęcie z parkietu', points: 1),
-    (text: 'Grupowe zdjęcie Twojego stolika', points: 2),
-    (text: 'Uchwyć pierwszy taniec', points: 3),
+  ///
+  /// Getter, nie stała: treść jest tłumaczona i zapisuje się do bazy
+  /// w języku interfejsu z chwili zakładania wesela.
+  static List<({String text, int points})> get examples => [
+    (text: AppText.t.pcEx_1, points: 3),
+    (text: AppText.t.pcEx_2, points: 2),
+    (text: AppText.t.pcEx_3, points: 2),
+    (text: AppText.t.pcEx_4, points: 1),
+    (text: AppText.t.pcEx_5, points: 2),
+    (text: AppText.t.pcEx_6, points: 3),
   ];
 
   // ── WYZWANIA (w main doc) ────────────────────────────────────────────

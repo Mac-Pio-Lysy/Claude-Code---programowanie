@@ -6,6 +6,7 @@ import '../../models/vendor.dart';
 import '../../services/vendor_service.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Modalny formularz dodawania / edycji dostawcy.
 class VendorFormSheet extends StatefulWidget {
@@ -142,7 +143,7 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _isEdit ? 'Edytuj dostawcę' : 'Dodaj dostawcę',
+                      _isEdit ? AppText.t.vf_editVendor : AppText.t.vf_addVendor,
                       style: GoogleFonts.playfairDisplay(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
@@ -174,27 +175,27 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                         ),
                         if (_category == 'Inne')
                           _field(
-                            'Własna kategoria',
+                            AppText.t.vf_customCategory,
                             TextField(
                               controller: _customCategory,
-                              decoration: _dec(hint: 'np. Animator'),
+                              decoration: _dec(hint: AppText.t.vf_customCategoryHint),
                             ),
                           ),
                         _field(
-                          'Nazwa firmy *',
+                          AppText.t.vf_companyRequired,
                           TextFormField(
                             controller: _companyName,
-                            decoration: _dec(hint: 'np. Studio Foto'),
+                            decoration: _dec(hint: AppText.t.vf_companyHint),
                             validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Podaj nazwę firmy'
+                                ? AppText.t.vf_needCompany
                                 : null,
                           ),
                         ),
                         _field(
-                          'Osoba kontaktowa',
+                          AppText.t.vf_contactPerson,
                           TextField(
                             controller: _contactName,
-                            decoration: _dec(hint: 'Imię i nazwisko'),
+                            decoration: _dec(hint: AppText.t.vf_fullName),
                           ),
                         ),
                         _field(
@@ -202,7 +203,7 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                           TextField(
                             controller: _phone,
                             keyboardType: TextInputType.phone,
-                            decoration: _dec(hint: 'np. 600 100 200'),
+                            decoration: _dec(hint: AppText.t.common_phoneHint),
                           ),
                         ),
                         _field(
@@ -210,19 +211,19 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                           TextField(
                             controller: _email,
                             keyboardType: TextInputType.emailAddress,
-                            decoration: _dec(hint: 'kontakt@firma.pl'),
+                            decoration: _dec(hint: AppText.t.common_emailHint),
                           ),
                         ),
                         Row(
                           children: [
                             Expanded(
-                              child: _field('Cena (zł)',
+                              child: _field(AppText.t.vf_price(AppFormat.currency.symbol),
                                   _numField(_price)),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _field(
-                                'Status płatności',
+                                AppText.t.vf_paymentStatus,
                                 DropdownButtonFormField<String>(
                                   initialValue: _paymentStatus,
                                   isExpanded: true,
@@ -240,7 +241,7 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                           ],
                         ),
                         _field(
-                          'Link do Google Maps',
+                          AppText.t.vf_mapsLink,
                           TextField(
                             controller: _mapUrl,
                             keyboardType: TextInputType.url,
@@ -252,7 +253,7 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                           TextField(
                             controller: _notes,
                             maxLines: 2,
-                            decoration: _dec(hint: 'Opcjonalnie…'),
+                            decoration: _dec(hint: AppText.t.common_optionalHint),
                           ),
                         ),
                         const Divider(height: 24),
@@ -271,10 +272,10 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
                           onChanged: (v) => setState(() => _isBudgetLinked = v),
                         ),
                         if (_isBudgetLinked) ...[
-                          _field('Kwota umowy / szac. koszt (zł)',
+                          _field(AppText.t.vf_contractAmount(AppFormat.currency.symbol),
                               _numField(_contractAmount)),
                           _field(
-                            'Kategoria budżetowa',
+                            AppText.t.vf_budgetCategory,
                             DropdownButtonFormField<String>(
                               initialValue: _budgetCategory,
                               isExpanded: true,
@@ -358,7 +359,7 @@ class _VendorFormSheetState extends State<VendorFormSheet> {
   Widget _numField(TextEditingController c) => TextField(
         controller: c,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: _dec(hint: '0', suffix: 'zł'),
+        decoration: _dec(hint: '0', suffix: AppFormat.currency.symbol),
       );
 
   InputDecoration _dec({String? hint, String? suffix}) => InputDecoration(

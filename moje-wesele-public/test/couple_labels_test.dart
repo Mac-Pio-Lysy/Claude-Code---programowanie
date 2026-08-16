@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:moje_wesele/models/couple.dart';
+import 'package:moje_wesele/models/vehicle.dart';
 import 'package:moje_wesele/models/wedding_data.dart';
 
 /// Testy etykiet Pary Młodej (krok 1: typ uroczystości + etykiety).
@@ -134,17 +135,24 @@ void main() {
       );
     });
 
-    test('sklejanie z przedrostkiem pilnuje gramatyki', () {
-      expect(
-        CoupleLabels.fromRaw(raw()).withPerson('Auto rodziców', 1),
-        'Auto rodziców Panny Młodej',
-      );
-      // Imion nie odmieniamy — stąd nawias zamiast dopełniacza.
+    test('frazy z osobą wybierają wariant, nie sklejają gramatyki', () {
+      // Zastąpiło `withPerson(prefix, index)`: każde miejsce ma teraz własny,
+      // pełny klucz i pyta tylko, KTÓRY wariant wziąć.
+      expect(CoupleLabels.fromRaw(raw()).usesNames, isFalse);
       expect(
         CoupleLabels.fromRaw(raw(type: 'women', names: ['Ania', 'Kasia']))
-            .withPerson('Auto rodziców', 2),
-        'Auto rodziców (Kasia)',
+            .usesNames,
+        isTrue,
       );
+
+      // Efekt końcowy na przykładzie typów pojazdu.
+      CoupleLabels.current = CoupleLabels.fromRaw(raw());
+      expect(kVehicleTypes, contains('Auto rodziców Panny Młodej'));
+
+      CoupleLabels.current =
+          CoupleLabels.fromRaw(raw(type: 'women', names: ['Ania', 'Kasia']));
+      expect(kVehicleTypes, contains('Auto rodziców (Kasia)'));
+      CoupleLabels.current = CoupleLabels.fallback;
     });
 
     test('ikona pary zależy od typu', () {

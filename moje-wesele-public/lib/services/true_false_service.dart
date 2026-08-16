@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/true_false.dart';
 import 'firestore_service.dart';
 import 'legacy_scope.dart';
+import '../l10n/app_text.dart';
 
 /// Operacje gry „Prawda czy Fałsz".
 ///
@@ -22,22 +23,24 @@ class TrueFalseService {
   static const String resultsCollection = 'trueFalseResults';
 
   /// Przykładowe stwierdzenia na start.
-  static const List<({String text, bool isTrue, String explanation})> examples = [
+  /// Getter, nie stała: treść jest tłumaczona i zapisuje się do bazy
+  /// w języku interfejsu z chwili zakładania wesela.
+  static List<({String text, bool isTrue, String explanation})> get examples => [
     (
-      text: 'Para Młoda poznała się w pracy',
+      text: AppText.t.tfEx_1,
       isTrue: false,
-      explanation: 'Poznali się przez wspólnych znajomych.'
+      explanation: AppText.t.tfEx_1e
     ),
     (
-      text: 'Pierwsza randka była w kinie',
+      text: AppText.t.tfEx_2,
       isTrue: false,
-      explanation: 'Pierwsza randka była w kawiarni.'
+      explanation: AppText.t.tfEx_2e
     ),
     (
       // Bez rodzaju gramatycznego — to samo zdanie pasuje do każdej pary.
-      text: 'Oświadczyny odbyły się za granicą',
+      text: AppText.t.tfEx_3,
       isTrue: true,
-      explanation: 'Oświadczyny odbyły się podczas wspólnego wyjazdu.'
+      explanation: AppText.t.tfEx_3e
     ),
   ];
 

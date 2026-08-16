@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../services/app_lock_service.dart';
 import 'pattern_lock.dart';
 import 'pin_pad.dart';
+import '../../l10n/app_text.dart';
 
 /// Ekran konfiguracji zabezpieczenia zapasowego (PIN lub wzór) wymaganego
 /// przy włączaniu blokady aplikacji. Może też od razu włączyć biometrię.
@@ -35,17 +36,16 @@ class SecuritySetupScreen extends StatefulWidget {
 
     if (bio && !changeOnly) {
       final ok = await lock.authenticateBiometric(
-        reason: 'Potwierdź odcisk palca, aby włączyć logowanie biometryczne',
+        reason: AppText.t.setup_confirmBiometric,
       );
       if (!ok) {
         if (!context.mounted) return false;
         final onlyPin = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Biometria niepotwierdzona'),
-            content: const Text(
-                'Nie udało się potwierdzić odcisku palca. Czy ustawić samo '
-                'zabezpieczenie zapasowe (PIN lub wzór)?'),
+            title: Text(AppText.t.setup_biometricUnconfirmed),
+            content: Text(
+                AppText.t.setup_biometricFailed),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -54,7 +54,7 @@ class SecuritySetupScreen extends StatefulWidget {
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
                 style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-                child: const Text('Ustaw PIN/wzór'),
+                child: Text(AppText.t.setup_setPin),
               ),
             ],
           ),
@@ -93,13 +93,13 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
   bool _saving = false;
 
   String get _title => switch (_step) {
-        _Step.choose => 'Wybierz zabezpieczenie zapasowe',
+        _Step.choose => AppText.t.setup_chooseBackup,
         _Step.enter => _type == BackupType.pin
-            ? 'Ustaw kod PIN (4 cyfry)'
-            : 'Narysuj wzór odblokowania',
+            ? AppText.t.setup_setPinCode
+            : AppText.t.lock_drawPattern,
         _Step.confirm => _type == BackupType.pin
-            ? 'Powtórz kod PIN'
-            : 'Powtórz wzór, aby potwierdzić',
+            ? AppText.t.setup_repeatPin
+            : AppText.t.setup_repeatPattern,
       };
 
   void _pick(BackupType t) =>
@@ -134,8 +134,8 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
         _first = '';
       });
       _toast(_type == BackupType.pin
-          ? 'Kody PIN się różnią — spróbuj ponownie'
-          : 'Wzory się różnią — spróbuj ponownie');
+          ? AppText.t.setup_pinMismatch
+          : AppText.t.setup_patternMismatch);
       return;
     }
     setState(() => _saving = true);
@@ -191,10 +191,8 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
                       const SizedBox(height: 8),
                       Text(
                         widget.enableBiometric
-                            ? 'PIN/wzór posłuży, gdy odcisk palca nie zadziała '
-                                '(np. mokry palec).'
-                            : 'To zabezpieczenie odblokuje aplikację przy '
-                                'kolejnych otwarciach.',
+                            ? AppText.t.setup_pinBackupHint
+                            : AppText.t.setup_unlockHint,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                             fontSize: 13, color: AppColors.textLight),
@@ -243,7 +241,7 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
           ),
           Expanded(
             child: Text(
-              widget.changeOnly ? 'Zmiana zabezpieczenia' : 'Konfiguracja blokady',
+              widget.changeOnly ? AppText.t.setup_changeBackup : AppText.t.setup_lockConfig,
               style: GoogleFonts.inter(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
@@ -262,15 +260,15 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
           children: [
             _methodCard(
               icon: Icons.pin_outlined,
-              title: 'Kod PIN',
-              subtitle: '4 cyfry',
+              title: AppText.t.setup_pinCode,
+              subtitle: AppText.t.setup_fourDigits,
               onTap: () => _pick(BackupType.pin),
             ),
             const SizedBox(height: 12),
             _methodCard(
               icon: Icons.pattern_outlined,
-              title: 'Wzór graficzny',
-              subtitle: 'Połącz co najmniej 4 punkty',
+              title: AppText.t.setup_pattern,
+              subtitle: AppText.t.setup_connectDots,
               onTap: () => _pick(BackupType.pattern),
             ),
           ],
@@ -294,7 +292,7 @@ class _SecuritySetupScreenState extends State<SecuritySetupScreen> {
           onCompleted: (nodes) {
             if (nodes.isEmpty) {
               setState(() => _error = true);
-              _toast('Wzór jest za krótki — połącz min. 4 punkty');
+              _toast(AppText.t.setup_patternTooShort);
               return;
             }
             onDone(PatternLock.serialize(nodes));

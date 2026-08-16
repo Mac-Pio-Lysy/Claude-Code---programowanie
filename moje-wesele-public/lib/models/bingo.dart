@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'couple.dart';
 import 'wedding_data.dart';
+import '../l10n/app_text.dart';
 
 /// Pole bazy bingo `{id, text, enabled}`.
 class BingoField {
@@ -48,7 +50,7 @@ class BingoEngine {
           final name = (e['name'] as String?)?.trim() ?? '';
           final id = (e['id'] as num?)?.toInt();
           if (name.isEmpty || (id != null && exclude.contains(id))) continue;
-          add('Bądź obecny/a na: $name');
+          add(AppText.t.bingo_beAt(name));
         }
       }
     }
@@ -64,7 +66,7 @@ class BingoEngine {
           (bd is Map && bd['coupleNames'] is List) ? bd['coupleNames'] as List : const [];
       String real(dynamic v) {
         final s = (v?.toString() ?? '').trim();
-        return (s.isNotEmpty && s != 'Osoba 1' && s != 'Osoba 2') ? s : '';
+        return (s.isNotEmpty && !CoupleLabels.isPlaceholderName(s)) ? s : '';
       }
 
       final names = [

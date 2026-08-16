@@ -92,9 +92,9 @@ class RsvpAllScreen extends StatelessWidget {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-            tabs: const [
-              Tab(text: 'Wpisy RSVP'),
-              Tab(text: 'Kody QR i linki'),
+            tabs: [
+              Tab(text: AppText.t.rsvpAll_tabEntries),
+              Tab(text: AppText.t.rsvpAll_tabQr),
             ],
           ),
           Expanded(
@@ -136,19 +136,19 @@ class RsvpAllScreen extends StatelessWidget {
   /// Zbiorcze centrum kodów QR i linków do wszystkich stron dla gości.
   Widget _qrCenterTab(BuildContext context, String base) {
     final links = <(String, String)>[
-      ('📋 Potwierdzenia (RSVP)', PublicPages.rsvp(base)),
-      ('📸 Galeria', PublicPages.galeria(base)),
-      ('📅 Harmonogram', PublicPages.harmonogram(base)),
-      ('🎵 Muzyka', PublicPages.muzyka(base)),
-      ('🎲 Ślubne Bingo', PublicPages.bingo(base)),
-      ('💝 Księga gości', PublicPages.ksiega(base)),
-      ('🧠 Quiz o Parze Młodej', PublicPages.quiz(base)),
-      ('💌 Rady dla Pary Młodej', PublicPages.rady(base)),
-      ('🤔 Prawda czy Fałsz', PublicPages.prawdaFalsz(base)),
-      ('📸 Zgadnij zdjęcie', PublicPages.zgadnijZdjecie(base)),
-      ('⏳ Kapsuła czasu', PublicPages.kapsula(base)),
-      ('🗺️ Mapa gości', PublicPages.mapa(base)),
-      ('📷 Foto-wyzwania', PublicPages.fotoWyzwania(base)),
+      (AppText.t.rsvpAll_qr, PublicPages.rsvp(base)),
+      (AppText.t.gal_photos, PublicPages.galeria(base)),
+      (AppText.t.qr_schedule, PublicPages.harmonogram(base)),
+      (AppText.t.qr_music, PublicPages.muzyka(base)),
+      (AppText.t.qr_bingo, PublicPages.bingo(base)),
+      (AppText.t.qr_guestbook, PublicPages.ksiega(base)),
+      (AppText.t.qr_quiz, PublicPages.quiz(base)),
+      (AppText.t.qr_advices, PublicPages.rady(base)),
+      (AppText.t.qr_trueFalse, PublicPages.prawdaFalsz(base)),
+      (AppText.t.qr_photoGuess, PublicPages.zgadnijZdjecie(base)),
+      (AppText.t.qr_capsule, PublicPages.kapsula(base)),
+      (AppText.t.qr_guestMap, PublicPages.mapa(base)),
+      (AppText.t.qr_photoChallenge, PublicPages.fotoWyzwania(base)),
     ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
@@ -193,7 +193,7 @@ class RsvpAllScreen extends StatelessWidget {
       // Usuwamy emoji z tytułu PDF, zachowujemy czytelny opis.
       final title = label.replaceAll(RegExp(r'[^\p{L}\p{N}\s()&-]', unicode: true), '').trim();
       final bytes = await PdfService.qrCode(
-        title: title.isEmpty ? 'Strona dla gości' : title,
+        title: title.isEmpty ? AppText.t.gp_guestPage : title,
         url: url,
       );
       await PdfService.preview(bytes, 'qr.pdf');
@@ -216,9 +216,9 @@ class RsvpAllScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _stat('$total', 'Wpisów', AppColors.accent),
-          _stat('$attending', 'Przyjdą', const Color(0xFF059669)),
-          _stat('$notAtt', 'Nie przyjdą', const Color(0xFFC0392B)),
+          _stat('$total', AppText.t.rsvpAll_entries, AppColors.accent),
+          _stat('$attending', AppText.t.an_willAttend, const Color(0xFF059669)),
+          _stat('$notAtt', AppText.t.an_willNotAttend, const Color(0xFFC0392B)),
           _stat('$unmatched', 'Nierozpoznane', const Color(0xFFB45309)),
         ],
       ),
@@ -245,19 +245,19 @@ class RsvpAllScreen extends StatelessWidget {
     final guest = e.guestId != null ? byId[e.guestId!] : null;
     final name = guest != null && guest.fullName.isNotEmpty
         ? guest.fullName
-        : (e.rawName.isNotEmpty ? e.rawName : '(bez imienia)');
+        : (e.rawName.isNotEmpty ? e.rawName : AppText.t.common_noName);
 
     Color color;
     String label;
     if (e.isAttending) {
       color = const Color(0xFF059669);
-      label = '✓ Przyjdzie';
+      label = AppText.t.rsvp_attendingShort;
     } else if (e.isNotAttending) {
       color = const Color(0xFFC0392B);
-      label = '✗ Nie przyjdzie';
+      label = AppText.t.rsvp_notAttendingShort;
     } else {
       color = AppColors.textLight;
-      label = e.status.isEmpty ? 'Brak statusu' : e.status;
+      label = e.status.isEmpty ? AppText.t.rsvp_noStatus : e.status;
     }
 
     final ts = _fmtTimestamp(e.raw['timestamp'] as String?);
@@ -303,7 +303,7 @@ class RsvpAllScreen extends StatelessWidget {
             runSpacing: 6,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              _tag(e.manual ? '✍ Ręczny' : '🌐 Z formularza',
+              _tag(e.manual ? AppText.t.rsvpAll_manual : AppText.t.rsvp_fromForm,
                   const Color(0xFFEEF3FF), AppColors.accent),
               if (e.isUnmatched)
                 _tag('Nieprzypisany', const Color(0xFFFEF3C7),

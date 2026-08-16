@@ -13,6 +13,7 @@ import '../screens/welcome_screen.dart';
 import '../services/active_wedding.dart';
 import '../services/app_lock_service.dart';
 import '../services/auth_service.dart';
+import '../l10n/app_text.dart';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PRZEŁĄCZNIK TEST/PROD (ETAP 4a: logowanie WŁĄCZONE — domyślnie false)
@@ -214,7 +215,7 @@ class _AuthGateState extends State<AuthGate> {
         setState(() {
           _signingIn = false;
           _interactiveSignIn = false;
-          _error = 'Błąd logowania. Spróbuj ponownie.';
+          _error = AppText.t.auth_generic;
         });
       }
     }
@@ -224,19 +225,17 @@ class _AuthGateState extends State<AuthGate> {
   String _errorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'network-request-failed':
-        return 'Błąd sieci — sprawdź połączenie z internetem.';
+        return AppText.t.auth_network;
       case 'too-many-requests':
-        return 'Zbyt wiele prób logowania. Poczekaj chwilę i spróbuj ponownie.';
+        return AppText.t.auth_tooMany;
       case 'user-disabled':
-        return 'To konto Google zostało wyłączone.';
+        return AppText.t.auth_disabled;
       case 'operation-not-allowed':
-        return 'Logowanie przez Google nie jest włączone. '
-            'Skontaktuj się z administratorem.';
+        return AppText.t.auth_notEnabled;
       case 'popup-blocked':
-        return 'Okno logowania zostało zablokowane przez przeglądarkę — '
-            'zezwól na wyskakujące okienka i spróbuj ponownie.';
+        return AppText.t.auth_popupBlocked;
       default:
-        return 'Błąd logowania (${e.code}). Spróbuj ponownie.';
+        return AppText.t.auth_codeError(e.code);
     }
   }
 

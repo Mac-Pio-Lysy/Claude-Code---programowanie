@@ -1112,7 +1112,6 @@
   "accommodation_hotels": "Hotele i miejsca noclegowe",
   "accommodation_addHotel": "Dodaj hotel",
   "accommodation_noHotel": "Brak hotelu",
-  "accommodation_statusHint": "Status…",
   "accommodation_onSite": "🏰 W kompleksie",
   "accommodation_onSiteSwitch": "🏰 Hotel w kompleksie wesela",
   "vendors_paidRemainingTotal": "Zapłacono: {paid} · Pozostało: {remaining} · Suma: {total}",
@@ -1510,7 +1509,7 @@
     }
   },
   "music_removeMomentTitle": "Usunąć moment z listy?",
-  "music_removeMomentBody": "Moment „{label}” zniknie z listy. Przypisane utwory NIE zostaną usunięte.",
+  "music_removeMomentBody": "Moment „{label}\" zniknie z listy. Przypisane utwory NIE zostaną usunięte — pokażą się jako „spoza listy\", możesz je przypisać ponownie lub odłączyć.",
   "@music_removeMomentBody": {
     "placeholders": {
       "label": {
@@ -3478,5 +3477,1433 @@
         "type": "String"
       }
     }
+  },
+  "coupleType_mixed": "Kobieta i mężczyzna",
+  "coupleType_women": "Dwie kobiety",
+  "coupleType_men": "Dwóch mężczyzn",
+  "coupleType_neutral": "Niebinarne / inne",
+  "coupleType_mixedHint": "Panna Młoda i Pan Młody",
+  "coupleType_womenHint": "Obie osoby jako Panny Młode",
+  "coupleType_menHint": "Obie osoby jako Panowie Młodzi",
+  "coupleType_neutralHint": "Neutralne etykiety: Osoba 1 i Osoba 2",
+  "couple_bride": "Panna Młoda",
+  "couple_groom": "Pan Młody",
+  "couple_brideEmoji": "👰 Panna Młoda",
+  "couple_groomEmoji": "🤵 Pan Młody",
+  "couple_personNumbered": "Osoba {index}",
+  "@couple_personNumbered": {
+    "description": "Etykieta zastępcza, gdy imię nie zostało podane.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "couple_brideNumbered": "Panna Młoda {index}",
+  "@couple_brideNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "couple_groomNumbered": "Pan Młody {index}",
+  "@couple_groomNumbered": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "couple_withEmoji": "{emoji} {name}",
+  "@couple_withEmoji": {
+    "description": "Sklejenie ikony z etykietą osoby. Jeśli w danym języku ikona ma stać po tekście, zmień kolejność podstawień.",
+    "placeholders": {
+      "emoji": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couple_fromBride": "Od Panny Młodej",
+  "couple_fromGroom": "Od Pana Młodego",
+  "couple_fromNamed": "Od: {person}",
+  "@couple_fromNamed": {
+    "description": "Filtr „kto zaprosił\" przy parze jednopłciowej lub neutralnej — używamy dwukropka, bo imion nie odmieniamy.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "couple_witnessBride": "Świadkowa",
+  "couple_witnessGroom": "Świadek",
+  "couple_witnessNamed": "Świadek/Świadkowa ({person})",
+  "@couple_witnessNamed": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "couple_witnessNone": "Brak roli",
+  "couple_personShort": "osoba {index}",
+  "@couple_personShort": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "couple_categoryMixed": "Państwo Młodzi",
+  "couple_categoryWomen": "Panny Młode",
+  "couple_categoryMen": "Panowie Młodzi",
+  "couple_categoryNeutral": "Para Młoda",
+  "couple_joinNames": "{first} i {second}",
+  "@couple_joinNames": {
+    "description": "Złączenie dwóch imion („Ania i Piotr\").",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "vehicle_rented": "Auto wynajęte",
+  "vehicle_own": "Auto własne",
+  "vehicle_parentsBride": "Auto rodziców Panny Młodej",
+  "@vehicle_parentsBride": {
+    "description": "Typ pojazdu. UWAGA: cała fraza w jednym kluczu — polski wymaga tu dopełniacza, więc sklejanie z przedrostka nie działa."
+  },
+  "vehicle_parentsGroom": "Auto rodziców Pana Młodego",
+  "vehicle_parentsNamed": "Auto rodziców ({person})",
+  "@vehicle_parentsNamed": {
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "vehicle_bus": "Bus",
+  "vehicle_taxi": "Taxi/Uber",
+  "vehicle_other": "Inne",
+  "quiz_favouriteFilmGroom": "Ulubiony film Pana Młodego?",
+  "quiz_favouriteFilmNamed": "Ulubiony film ({person})?",
+  "@quiz_favouriteFilmNamed": {
+    "description": "Przykładowe pytanie quizu; {person} to imię drugiej osoby z pary.",
+    "placeholders": {
+      "person": {
+        "type": "String"
+      }
+    }
+  },
+  "musicMoment_firstDance": "Pierwszy taniec",
+  "musicMoment_entrance": "Wejście",
+  "musicMoment_games": "Oczepiny",
+  "musicMoment_slow": "Wolne",
+  "musicMoment_party": "Imprezowe",
+  "musicMoment_other": "Inne",
+  "@musicMoment_other": {
+    "description": "Wartość domyślna pola `moment` utworu."
+  },
+  "specialMoment_firstDance": "Pierwszy taniec",
+  "@specialMoment_firstDance": {
+    "description": "Kluczowy moment wesela. UWAGA: ta wartość ZAPISUJE SIĘ w bazie przy zakładaniu wesela i po niej dobierana jest ikona — dopasowanie działa we wszystkich obsługiwanych językach, więc tłumaczenie jest bezpieczne, ale nie zmieniaj go po wydaniu."
+  },
+  "specialMoment_firstSong": "Pierwszy utwór",
+  "specialMoment_coupleEntrance": "Wejście Pary Młodej",
+  "specialMoment_cake": "Tort",
+  "specialMoment_games": "Oczepiny",
+  "specialMoment_lastDance": "Ostatni taniec",
+  "specialMoment_toast": "Toast",
+  "musicStatus_proposal": "Propozycja",
+  "musicStatus_approved": "Zatwierdzone",
+  "musicStatus_rejected": "Odrzucone",
+  "musicStatus_dj": "Do decyzji DJa",
+  "adviceCat_love": "Miłość",
+  "@adviceCat_love": {
+    "description": "Kategoria rady. W bazie zapisuje się identyfikator (`love`), więc tłumaczy się wyłącznie etykieta."
+  },
+  "adviceCat_daily": "Codzienność",
+  "adviceCat_humor": "Humor",
+  "adviceCat_wisdom": "Mądrość życiowa",
+  "adviceCat_other": "Inne",
+  "beverage_alcohol": "Alkohol",
+  "beverage_soft": "Napoje bezalkoholowe",
+  "giftCat_guests": "Goście",
+  "giftCat_witnesses": "Świadkowie",
+  "giftCat_parents": "Rodzice",
+  "giftCat_distinction": "Wyróżnienie",
+  "taskStatus_todo": "Do zrobienia",
+  "@taskStatus_todo": {
+    "description": "Status zadania; w bazie zostaje `todo`."
+  },
+  "taskStatus_inprogress": "W trakcie",
+  "taskStatus_done": "Zrobione",
+  "taskStatus_cancelled": "Anulowane",
+  "taskPriority_low": "Niski",
+  "taskPriority_med": "Średni",
+  "taskPriority_high": "Wysoki",
+  "taskPerson_both": "Oboje",
+  "push_rsvp": "Potwierdzenia gości (RSVP)",
+  "push_tasks": "Nowe zadania",
+  "push_schedule": "Zmiany w harmonogramie",
+  "push_memberJoined": "Nowa osoba w weselu",
+  "push_deadlines": "Zbliżające się terminy",
+  "push_rsvpHint": "Gdy gość potwierdzi obecność albo zmieni decyzję.",
+  "push_tasksHint": "Gdy ktoś doda zadanie do listy.",
+  "push_scheduleHint": "Gdy pojawi się nowy punkt programu albo zmieni się godzina.",
+  "push_memberJoinedHint": "Gdy do wesela dołączy planer, współorganizator albo gość.",
+  "push_deadlinesHint": "Przypomnienie o płatności lub zadaniu z bliskim terminem.",
+  "gs_attending": "Przyjdzie",
+  "gs_notAttending": "Nie przyjdzie",
+  "gs_noAnswer": "Brak odpowiedzi",
+  "gs_ownTransport": "Własny",
+  "gs_organisedTransport": "Zorganizowany",
+  "gs_roomReserved": "Zarezerwowany",
+  "gs_roomPending": "Do zarezerwowania",
+  "gs_roomSelf": "Sam rezerwuje",
+  "gs_roomNeeded": "Potrzebuje",
+  "gs_table": "Stół",
+  "@gs_table": {
+    "description": "Zapasowa nazwa stołu, gdy para nie nadała własnej."
+  },
+  "pay_sala": "Sala",
+  "pay_expenses": "Wydatki",
+  "pay_honeymoon": "Podróż poślubna",
+  "pay_vendor": "Dostawca",
+  "pay_generic": "Płatność",
+  "pay_salaComputed": "Koszt sali (obliczony)",
+  "pay_vendorInstalment": "Rata do dostawcy: {vendor}",
+  "@pay_vendorInstalment": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_guestAdded": "Dodano gościa: {name}",
+  "@notif_guestAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_guestAttending": "{name} potwierdził(a) obecność",
+  "@notif_guestAttending": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_guestNotAttending": "{name} nie przyjdzie",
+  "@notif_guestNotAttending": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_guestChanged": "{name} — zmiana potwierdzenia",
+  "@notif_guestChanged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_taskAdded": "Dodano zadanie",
+  "notif_taskAddedNamed": "Dodano zadanie: {name}",
+  "@notif_taskAddedNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_scheduleAdded": "Harmonogram: {label} o {time}",
+  "@notif_scheduleAdded": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_scheduleChanged": "Zmieniono w harmonogramie: {label}",
+  "@notif_scheduleChanged": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "notif_guestNoName": "Gość bez imienia",
+  "currency_pln": "Złoty polski",
+  "currency_eur": "Euro",
+  "currency_usd": "Dolar amerykański",
+  "currency_gbp": "Funt brytyjski",
+  "currency_czk": "Korona czeska",
+  "currency_chf": "Frank szwajcarski",
+  "children_adultAtKidsTable": "Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.",
+  "children_kidAtNormalTable": "Dziecko przy zwykłym stole — jest też stół dla dzieci.",
+  "auth_googleUnsupported": "Logowanie Google nie jest obsługiwane na tej platformie.",
+  "auth_noToken": "Brak tokenu Google. Spróbuj ponownie.",
+  "auth_googleError": "Błąd logowania Google.",
+  "auth_generic": "Błąd logowania. Spróbuj ponownie.",
+  "auth_network": "Błąd sieci — sprawdź połączenie z internetem.",
+  "auth_tooMany": "Zbyt wiele prób logowania. Poczekaj chwilę i spróbuj ponownie.",
+  "auth_disabled": "To konto Google zostało wyłączone.",
+  "auth_notEnabled": "Logowanie przez Google nie jest włączone. Skontaktuj się z administratorem.",
+  "auth_popupBlocked": "Okno logowania zostało zablokowane przez przeglądarkę — zezwól na wyskakujące okienka i spróbuj ponownie.",
+  "auth_codeError": "Błąd logowania ({code}). Spróbuj ponownie.",
+  "@auth_codeError": {
+    "description": "{code} to kod błędu z Firebase — zostaje bez tłumaczenia.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "guestId_noUser": "Logowanie anonimowe nie zwróciło użytkownika.",
+  "guestId_notConfigured": "Strona gości nie jest jeszcze w pełni skonfigurowana. Przeglądanie działa, ale wysyłanie wpisów może się nie udać.",
+  "guestId_offline": "Brak połączenia z internetem. Sprawdź sieć i odśwież stronę.",
+  "guestId_generic": "Nie udało się przygotować sesji gościa. Możesz przeglądać stronę, ale wysyłanie wpisów może nie zadziałać.",
+  "guestSvc_coupleLimit": "W kategorii „{category}\" mogą być najwyżej {max} osoby. Zmień kategorię tego gościa albo popraw istniejący wpis Pary Młodej.",
+  "@guestSvc_coupleLimit": {
+    "description": "{category} to etykieta kategorii Pary Młodej, {max} — limit osób.",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "guestSvc_coupleNoCompanion": "Para Młoda nie ma osoby towarzyszącej — obie osoby dodaj jako osobne wpisy Pary Młodej.",
+  "bingo_beAt": "Bądź obecny/a na: {name}",
+  "@bingo_beAt": {
+    "description": "Pole planszy bingo generowane z punktu harmonogramu.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "dash_countdown": "Licznik do ślubu",
+  "dash_setDate": "Ustaw datę w Ustawieniach",
+  "dash_today": "To dziś!",
+  "dash_daysLeft": "{days, plural, =1{dzień do ślubu} other{dni do ślubu}}",
+  "@dash_daysLeft": {
+    "description": "Podpis pod liczbą dni na kafelku licznika. Sama liczba stoi nad podpisem, dlatego w treści jej nie powtarzamy.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_guestsSub": "{attending} potw. · {declined} odmów · {noRsvp} bez odp.",
+  "@dash_guestsSub": {
+    "placeholders": {
+      "attending": {
+        "type": "int"
+      },
+      "declined": {
+        "type": "int"
+      },
+      "noRsvp": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_tablesSub": "{assigned} przypisanych · {free} wolnych miejsc",
+  "@dash_tablesSub": {
+    "placeholders": {
+      "assigned": {
+        "type": "int"
+      },
+      "free": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_budgetSub": "Opłacono {paid} · zostało {left}",
+  "@dash_budgetSub": {
+    "description": "{paid} i {left} to gotowe kwoty z symbolem waluty.",
+    "placeholders": {
+      "paid": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "dash_noEvents": "brak wydarzeń",
+  "dash_nextEvent": "najbliższe wydarzenie",
+  "dash_tasksSub": "{todo} do zrobienia · {inProgress} w trakcie",
+  "@dash_tasksSub": {
+    "placeholders": {
+      "todo": {
+        "type": "int"
+      },
+      "inProgress": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_transportSub": "{count, plural, =0{wszyscy mają transport} =1{1 gość bez transportu} few{{count} gości bez transportu} other{{count} gości bez transportu}}",
+  "@dash_transportSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_roomsSub": "{reserved} zarezerwowanych",
+  "@dash_roomsSub": {
+    "placeholders": {
+      "reserved": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_giftsSub": "łącznie {value} · {thanked} z podziękowaniem",
+  "@dash_giftsSub": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "thanked": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_rsvpSub": "{declined} odmów · {total} odpowiedzi",
+  "@dash_rsvpSub": {
+    "placeholders": {
+      "declined": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_bottles": "{count} butelek",
+  "@dash_bottles": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "dash_paymentsSub": "{overdue} zaległych · {soon} wkrótce",
+  "@dash_paymentsSub": {
+    "placeholders": {
+      "overdue": {
+        "type": "int"
+      },
+      "soon": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_vendorsSub": "{count} potwierdzonych",
+  "@dash_vendorsSub": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dash_gallerySub": "zdjęć i filmów",
+  "pdf_qrHint": "Zeskanuj telefonem, aby otworzyć stronę dla gości.",
+  "pdf_galleryTitle": "Galeria zdjęć z wesela",
+  "pdf_galleryHintVideo": "Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia i filmy.",
+  "pdf_galleryHint": "Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia.",
+  "pdf_scheduleTitle": "Harmonogram dnia ślubu",
+  "pdf_place": "Miejsce: {place}",
+  "@pdf_place": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "pdf_scheduleEmpty": "Brak wydarzeń w harmonogramie.",
+  "pdf_guestbookTitle": "Księga Gości",
+  "pdf_guestbookSub": "Życzenia i wiadomości od gości",
+  "pdf_guestbookEmpty": "Brak wpisów w księdze gości.",
+  "pdf_hasPhoto": "📷 (zdjęcie dostępne online)",
+  "pdf_advicesTitle": "Rady dla Pary Młodej",
+  "pdf_advicesSub": "Złote myśli o małżeństwie od gości",
+  "pdf_advicesEmpty": "Brak rad.",
+  "pdf_quoted": "„{text}\"",
+  "@pdf_quoted": {
+    "description": "Cudzysłów wokół cytatu — użyj znaków typowych dla języka.",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "pdf_adviceAuthor": "— {name} · {category}",
+  "@pdf_adviceAuthor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "pdf_capsuleTitle": "Kapsuła czasu",
+  "pdf_capsuleSub": "Otwarte wiadomości od gości",
+  "pdf_capsuleEmpty": "Brak otwartych wiadomości.",
+  "pdf_openedOn": "otwarta {date}",
+  "@pdf_openedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pdf_bingoTitle": "ŚLUBNE BINGO",
+  "w_addedIn": "Dodano w: {section}",
+  "@w_addedIn": {
+    "description": "Plakietka przy pozycji budżetu utworzonej w innej sekcji.",
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "w_comingSoon": "Wkrótce",
+  "w_comingSoonBody": "Ta funkcja jest w przygotowaniu.",
+  "w_hideFilters": "Ukryj filtry",
+  "w_showFilters": "Pokaż filtry",
+  "w_more": "Więcej",
+  "w_notifications": "Powiadomienia",
+  "w_notificationsUnread": "Powiadomienia ({count} nieprzeczytane)",
+  "@w_notificationsUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "w_unreadCount": "{count, plural, =1{1 nieprzeczytane} few{{count} nieprzeczytane} other{{count} nieprzeczytanych}}",
+  "@w_unreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "w_markAll": "Oznacz wszystkie",
+  "w_noNotifications": "Brak nowych powiadomień",
+  "w_noNotificationsBody": "Damy znać, gdy pojawią się potwierdzenia gości, nowe zadania albo zmiany w harmonogramie.",
+  "w_groupSummary": "{label}: {summary}",
+  "@w_groupSummary": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "w_goToSection": "Przejdź do sekcji",
+  "w_markRead": "Oznacz jako przeczytane",
+  "w_justNow": "przed chwilą",
+  "w_minutesAgo": "{minutes} min temu",
+  "@w_minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "w_guestPage": "Strona dla gości",
+  "w_linkCopied": "Skopiowano link",
+  "w_download": "Pobierz / udostępnij",
+  "w_weddingToday": "To już dziś! 🎉",
+  "w_seeYouAtWedding": "Do zobaczenia na weselu",
+  "w_timeToWedding": "Do wesela zostało",
+  "nav_biometricTitle": "Czy chcesz logować się odciskiem palca?",
+  "nav_securityTitle": "Czy chcesz zabezpieczyć aplikację?",
+  "nav_biometricBody": "Przy kolejnych otwarciach odblokujesz aplikację odciskiem palca. Ustawisz też zapasowy PIN lub wzór na wypadek, gdyby czytnik nie zadziałał. Konto Google pozostaje zalogowane.",
+  "nav_securityBody": "To urządzenie nie ma czytnika biometrycznego. Możesz ustawić PIN lub wzór, aby odblokowywać aplikację przy kolejnych otwarciach.",
+  "nav_notNow": "Nie teraz",
+  "nav_enable": "Tak, włącz",
+  "nav_logoutTitle": "Wylogować się?",
+  "nav_logoutBody": "Czy wyłączyć też zabezpieczenia (odcisk palca / PIN) na tym urządzeniu? Przydatne, gdy z aplikacji może korzystać inna osoba.",
+  "nav_logoutKeep": "Wyloguj, zachowaj",
+  "nav_logoutClear": "Wyloguj i wyłącz",
+  "nav_appName": "Moje Wesele",
+  "@nav_appName": {
+    "description": "Nazwa własna produktu — NIE tłumaczyć."
+  },
+  "nav_moreSections": "Więcej sekcji",
+  "nav_configureBar": "Konfiguruj pasek",
+  "nav_configureBottomBar": "Konfiguruj dolny pasek",
+  "nav_configureHint": "Dashboard (środek) i „Więcej\" (skrajnie prawy) są zawsze na stałych miejscach. Wybierz liczbę pozostałych ikon, dotknij ikonę zamiany (⇄), by wybrać inną sekcję, i przeciągnij za uchwyt, by zmienić kolejność — pierwsza połowa trafi na lewo od Dashboardu, reszta na prawo.",
+  "nav_icons4": "4 ikony",
+  "nav_icons6": "6 ikon",
+  "nav_changeSection": "Zmień sekcję",
+  "nav_testMode": "Tryb testowy",
+  "countdown_hours": "{count, plural, =1{godzina} few{godziny} other{godzin}}",
+  "@countdown_hours": {
+    "description": "Podpis pod liczbą na liczniku — sama liczba stoi nad podpisem, więc w treści jej nie powtarzamy.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdown_days": "{count, plural, =1{dzień} other{dni}}",
+  "@countdown_days": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdown_minutesDetail": "{count, plural, =1{{count} minuta} few{{count} minuty} other{{count} minut}}",
+  "@countdown_minutesDetail": {
+    "description": "Doprecyzowanie pod licznikiem — tu liczba JEST w treści.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdown_hoursDetail": "{count, plural, =1{i {count} godzina} few{i {count} godziny} other{i {count} godzin}}",
+  "@countdown_hoursDetail": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wheel_poolInfo": "Losowanie spośród gości z listy. W puli: {count, plural, =1{1 gość} few{{count} gości} other{{count} gości}} ({excluded} pominięci).",
+  "@wheel_poolInfo": {
+    "description": "{excluded} to etykieta kategorii Pary Młodej (pomijanej w losowaniu).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "excluded": {
+        "type": "String"
+      }
+    }
+  },
+  "gp_guestPage": "Strona dla gości",
+  "gp_activeHint": "Goście mogą teraz grać przez stronę / kod QR.",
+  "gp_enableHint": "Włącz, aby goście mogli odpowiadać.",
+  "gp_loadResultsError": "Nie udało się wczytać wyników. Sprawdź połączenie.",
+  "gp_noResults": "Brak wyników. Udostępnij gościom kod QR, aby zagrali.",
+  "gp_participants": "Uczestników",
+  "gp_avgScore": "Śr. wynik",
+  "gp_wrongOf": "{wrong}/{answered} błędnych",
+  "@gp_wrongOf": {
+    "placeholders": {
+      "wrong": {
+        "type": "int"
+      },
+      "answered": {
+        "type": "int"
+      }
+    }
+  },
+  "gp_questionText": "Wpisz treść pytania",
+  "gp_emptyCorrect": "Zaznaczona poprawna odpowiedź jest pusta",
+  "gp_answers": "Odpowiedzi (zaznacz poprawną)",
+  "gp_answerN": "Odpowiedź {index}",
+  "@gp_answerN": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "quiz_headerTitle": "🧠 Quiz o Parze Młodej",
+  "quiz_questions": "Pytań",
+  "quiz_questionLabel": "Treść pytania",
+  "quiz_questionHint": "np. Gdzie się poznaliśmy?",
+  "tf_headerTitle": "🤔 Prawda czy Fałsz o Parze Młodej",
+  "tf_true": "✓ PRAWDA",
+  "tf_false": "✗ FAŁSZ",
+  "tf_deleteConfirm": "Czy na pewno usunąć „{text}\"?",
+  "@tf_deleteConfirm": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "tf_confusing": "📊 Najbardziej mylące stwierdzenia",
+  "tf_statements": "Stwierdzeń",
+  "tf_needText": "Wpisz treść stwierdzenia",
+  "tf_textLabel": "Treść stwierdzenia",
+  "tf_textHint": "np. Para Młoda poznała się w pracy",
+  "tf_falseShort": "Fałsz",
+  "tf_explanation": "Wyjaśnienie (opcjonalnie)",
+  "tf_explanationHint": "np. Poznali się przez wspólnych znajomych",
+  "pg_headerTitle": "📸 Zgadnij zdjęcie",
+  "pg_photos": "Zdjęcia",
+  "pg_enableHint": "Włącz, aby goście mogli zgadywać.",
+  "pg_needPhoto": "Najpierw dodaj przynajmniej jedno zdjęcie.",
+  "pg_photosCount": "Zdjęć",
+  "pg_uploadError": "Nie udało się wgrać zdjęcia: {error}",
+  "@pg_uploadError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pg_addPhotoFirst": "Najpierw dodaj zdjęcie",
+  "pg_editPhoto": "Edytuj zdjęcie",
+  "pg_addPhoto": "Dodaj zdjęcie",
+  "pg_questionHint": "np. Kto to z dzieciństwa?",
+  "pg_photo": "Zdjęcie",
+  "pc_headerTitle": "📷 Foto-wyzwania",
+  "pc_activeHint": "Goście mogą teraz wykonywać wyzwania przez stronę / kod QR.",
+  "pc_enableHint": "Włącz, aby goście mogli przesyłać zdjęcia.",
+  "pc_deleteConfirm": "Czy na pewno usunąć „{text}\"? Przesłane zdjęcia pozostaną w galerii.",
+  "@pc_deleteConfirm": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "pc_loadPhotosError": "Nie udało się wczytać zdjęć. Sprawdź połączenie.",
+  "pc_deleted": "Usunięte wyzwanie",
+  "pc_deletePhotoTitle": "Usunąć zdjęcie?",
+  "pc_deletePhotoBody": "Czy na pewno usunąć zdjęcie od „{name}\"?",
+  "@pc_deletePhotoBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pc_empty": "Brak wykonanych wyzwań. Udostępnij gościom kod QR.",
+  "pc_photos": "Zdjęć",
+  "pc_challenges": "Wyzwań",
+  "bingo_needPool": "Potrzeba min. 24 pól w puli (jest {count}).",
+  "@bingo_needPool": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bingo_title": "Ślubne Bingo",
+  "bingo_headerTitle": "🎯 Ślubne Bingo",
+  "bingo_guestHint": "Strona z interaktywnym bingo dla gości. Pokaż im kod QR lub wyślij link, aby grali na telefonach.",
+  "bingo_pool": "Pula losowania: {count} pól",
+  "@bingo_pool": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "bingo_preview": "Losuj podgląd",
+  "bingo_previewBoard": "Podgląd planszy",
+  "bingo_fromSchedule": "Dołącz pola z harmonogramu",
+  "bingo_centerField": "Środkowe pole planszy",
+  "bingo_coupleNames": "Imiona Pary Młodej",
+  "bingo_fieldsBase": "Baza pól ({active} / {total} aktywnych)",
+  "@bingo_fieldsBase": {
+    "placeholders": {
+      "active": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bingo_empty": "Brak pól. Dodaj pierwsze powyżej.",
+  "bingo_newField": "Treść pola…",
+  "wheel_fields": "Pola koła ({count})",
+  "@wheel_fields": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "wheel_removeOnPick": "Usuń wylosowanego z puli",
+  "wheel_removeOnPickOn": "Wylosowane pola nie pojawią się ponownie (w tej sesji).",
+  "wheel_removeOnPickOff": "Wylosowane pola zostają w puli.",
+  "wheel_fullscreen": "Tryb prezentacji (pełny ekran)",
+  "wheel_fullscreenHint": "Duże koło do pokazania na sali.",
+  "wheel_poolEmpty": "Pula jest pusta — dodaj pola lub zresetuj pulę.",
+  "wheel_poolReset": "Pula przywrócona",
+  "wheel_noFields": "Brak pól w puli",
+  "wheel_spinning": "Kręcę…",
+  "wheel_pressSpin": "Naciśnij „Zakręć!\"",
+  "wheel_spin": "Zakręć!",
+  "wheel_reset": "Resetuj pulę",
+  "wheel_history": "🕘 Historia losowań",
+  "wheelMode_nextDance": "Kto tańczy następny",
+  "@wheelMode_nextDance": {
+    "description": "Tryb koła fortuny; wartość zapisywana w bazie jest osobna."
+  },
+  "wheelMode_coupleTask": "Zadanie dla Pary Młodej",
+  "wheelMode_custom": "Własne koło",
+  "advices_loadError": "Nie udało się wczytać rad. Sprawdź połączenie.",
+  "advices_deleteConfirm": "Czy na pewno usunąć radę od „{name}\"? Tej operacji nie można cofnąć.",
+  "@advices_deleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "advices_pdfTitleNamed": "Rady dla Pary Młodej — {event}",
+  "@advices_pdfTitleNamed": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
+  "guestbook_headerTitle": "💝 Księga gości",
+  "guestbook_loadError": "Nie udało się wczytać wpisów. Sprawdź połączenie z internetem.",
+  "guestbook_wishCount": "{count, plural, =1{życzenie} few{życzenia} other{życzeń}}",
+  "@guestbook_wishCount": {
+    "description": "Podpis pod liczbą wpisów w księdze gości.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "guestbook_pdfTitleNamed": "Księga Gości — {event}",
+  "@guestbook_pdfTitleNamed": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
+  "capsule_headerTitle": "⏳ Kapsuła czasu",
+  "capsule_messages": "Wiadomości",
+  "capsule_loadError": "Nie udało się wczytać wiadomości. Sprawdź połączenie.",
+  "capsule_sealed": "Zapieczętowane",
+  "capsule_nearest": "Najbliższe",
+  "capsule_previewOn": "Podgląd wszystkich włączony (treści widoczne tylko dla Ciebie).",
+  "capsule_autoOpen": "Wiadomości otworzą się automatycznie w swojej dacie.",
+  "capsule_seal": "Zapieczętuj",
+  "capsule_previewUntil": "🔓 Podgląd — otworzy się {date}",
+  "@capsule_previewUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "capsule_later": "później",
+  "capsule_pdfTitleNamed": "Kapsuła czasu — {event}",
+  "@capsule_pdfTitleNamed": {
+    "placeholders": {
+      "event": {
+        "type": "String"
+      }
+    }
+  },
+  "guestMap_headerTitle": "🗺️ Mapa gości",
+  "guestMap_loadError": "Nie udało się wczytać mapy. Sprawdź połączenie.",
+  "guestMap_guests": "Gości",
+  "guestMap_cities": "Miejscowości",
+  "guestMap_noCity": "Brak miejscowości",
+  "guestMap_savedNoGeo": "Zapisano (nie udało się zlokalizować miejscowości)",
+  "guestMap_addedNoGeo": "Dodano (nie udało się zlokalizować miejscowości)",
+  "guestMap_deleteConfirm": "Czy na pewno usunąć „{name}\"?",
+  "@guestMap_deleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "guestMap_addGuest": "Dodaj gościa",
+  "hotel_deleteConfirm": "Czy na pewno usunąć „{name}\"? Przypisania gości do tego hotelu zostaną wyczyszczone.",
+  "@hotel_deleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "hotel_deleted": "Usunięto hotel",
+  "hotel_noGuests": "Brak gości z zaznaczonym noclegiem.\nZaznacz „Nocleg\" przy gościu w sekcji Goście.",
+  "hotel_empty": "Brak hoteli. Dodaj pierwszy poniżej.",
+  "hotel_address": "📍 {address}",
+  "@hotel_address": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "hotel_phone": "📞 {phone}",
+  "@hotel_phone": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "hotel_perRoom": "👥 {count} os./pokój",
+  "@hotel_perRoom": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hotel_guestCount": "🛏 gości: {count}",
+  "@hotel_guestCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hotel_nameHint": "np. Hotel Pod Różą",
+  "hotel_needName": "Podaj nazwę hotelu",
+  "hotel_personsPerRoom": "Osób w pokoju",
+  "an_budgetChart": "Budżet: planowany / orientacyjny / opłacony",
+  "an_expensesChart": "Rozkład wydatków (kategorie)",
+  "an_paymentsChart": "Postęp płatności w czasie",
+  "an_rsvpChart": "Potwierdzenia gości",
+  "an_menuChart": "Rozkład menu",
+  "an_dietChart": "Rozkład diet",
+  "an_costPerGuest": "Koszt / gość",
+  "an_byBudget": "Wg budżetu",
+  "an_guests": "Gości",
+  "an_paid": "Opłacony",
+  "an_noExpenses": "Brak wydatków.",
+  "an_noPayments": "Brak danych o płatnościach z datą.",
+  "an_noGuests": "Brak gości.",
+  "an_willAttend": "Przyjdą",
+  "an_willNotAttend": "Nie przyjdą",
+  "dash_emptyTiles": "Brak kafelków. Kliknij „Edytuj\", aby dodać.",
+  "dash_afterWedding": "Już po ślubie!",
+  "gal_photoVideo": "📸 Galeria zdjęć i filmów",
+  "gal_musicChoice": "🎵 Wybór muzyki",
+  "gal_photos": "📷 Zdjęcia",
+  "gal_combined": "Połączony",
+  "gifts_forGuests": "Dla gości",
+  "gifts_count": "Prezentów",
+  "gifts_totalValue": "Łączna wartość",
+  "gifts_favoursCount": "Upominków",
+  "gifts_totalCost": "Łączny koszt",
+  "gifts_totalCostFor": "Łączny koszt ({count} os.)",
+  "@gifts_totalCostFor": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "gifts_recalcToReal": "Przelicz na gości rzeczywistych",
+  "gifts_addProposal": "Dodaj propozycję",
+  "gifts_proposalHint": "Tytuł propozycji…",
+  "rsvpAll_qr": "📋 Potwierdzenia (RSVP)",
+  "rsvpAll_entries": "Wpisów",
+  "rsvpAll_manual": "✍ Ręczny",
+  "rsvp_attendingShort": "✓ Przyjdzie",
+  "rsvp_qrTitle": "Kod QR potwierdzeń",
+  "rsvp_attendingCount": "✓ Przyjdą ({count})",
+  "@rsvp_attendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rsvp_notAttendingCount": "✗ Nie przyjdą ({count})",
+  "@rsvp_notAttendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "music_headerTitle": "🎵 Muzyka — propozycje gości",
+  "music_needTitle": "Podaj tytuł utworu",
+  "music_exportTitle": "Tytuł",
+  "music_exportSpecial": "Utwór specjalny",
+  "music_exportFromGuest": "Od gościa",
+  "music_importHelp": "Wklej listę utworów. Obsługiwane formaty:\n• CSV: Tytuł;Wykonawca;Status (separator średnik)\n• Tekst: \"- Tytuł — Wykonawca\" (po jednym w linii)\nStatus rozpoznawany ze słów: „zatwierdzone\", „odrzucone\", „dj\".",
+  "tr_ownTransport": "transport własny",
+  "tr_unassigned": "bez przydziału",
+  "tr_vehicles": "pojazdów",
+  "tr_route": "🛣 {route}",
+  "@tr_route": {
+    "placeholders": {
+      "route": {
+        "type": "String"
+      }
+    }
+  },
+  "tr_addToOwn": "Dodaj do transportu własnego",
+  "tr_typeHint": "np. Pojazd Kuby, Bus wynajęty",
+  "tr_needType": "Podaj typ/nazwę",
+  "tr_driverName": "Imię kierowcy",
+  "tr_routeHint": "np. Kościół → Sala",
+  "tr_cost": "Koszt ({currency})",
+  "@tr_cost": {
+    "description": "{currency} to symbol waluty wesela.",
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "vf_editVendor": "Edytuj dostawcę",
+  "vf_addVendor": "Dodaj dostawcę",
+  "vf_customCategory": "Własna kategoria",
+  "vf_needCompany": "Podaj nazwę firmy",
+  "vf_fullName": "Imię i nazwisko",
+  "vf_price": "Cena ({currency})",
+  "@vf_price": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "vf_paymentStatus": "Status płatności",
+  "vf_contractAmount": "Kwota umowy / szac. koszt ({currency})",
+  "@vf_contractAmount": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
+  "vf_budgetCategory": "Kategoria budżetowa",
+  "vend_linkedBody": "Dostawca „{vendor}\" jest powiązany z wpisem w budżecie. Co zrobić z powiązanym wpisem?",
+  "@vend_linkedBody": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "vend_deleteConfirm": "Czy na pewno usunąć „{vendor}\"?",
+  "@vend_deleteConfirm": {
+    "placeholders": {
+      "vendor": {
+        "type": "String"
+      }
+    }
+  },
+  "vend_deleteBoth": "Usuń oba",
+  "vend_anyStatus": "Każdy status",
+  "vend_byName": "Wg nazwy (A–Z)",
+  "task_transport": "🚗 Transport",
+  "task_gift": "🎁 Prezent",
+  "task_goToSection": "→ {section}",
+  "@task_goToSection": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "sched_location": "📍 {location}",
+  "@sched_location": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
+  "pay_expensesTab": "📋 Wydatki",
+  "pay_dueDate": "📅 {date}",
+  "@pay_dueDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "lock_unlock": "Odblokuj, aby kontynuować",
+  "lock_touchToScan": "Dotknij, aby zeskanować odcisk palca",
+  "lock_useBackup": "Użyj {type}",
+  "@lock_useBackup": {
+    "description": "{type} to „PIN\" albo „wzór\" — patrz sec_backupPin / sec_backupPattern.",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "lock_drawPattern": "Narysuj wzór odblokowania",
+  "lock_wrongBackup": "Błędny {type} — pozostało prób: {left}",
+  "@lock_wrongBackup": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "left": {
+        "type": "int"
+      }
+    }
+  },
+  "lock_useFingerprint": "Użyj odcisku palca",
+  "lock_forgot": "Nie pamiętasz? Zaloguj przez Google",
+  "setup_confirmBiometric": "Potwierdź odcisk palca, aby włączyć logowanie biometryczne",
+  "setup_biometricFailed": "Nie udało się potwierdzić odcisku palca. Czy ustawić samo zabezpieczenie zapasowe (PIN lub wzór)?",
+  "setup_setPin": "Ustaw PIN/wzór",
+  "setup_repeatPin": "Powtórz kod PIN",
+  "setup_repeatPattern": "Powtórz wzór, aby potwierdzić",
+  "setup_pinMismatch": "Kody PIN się różnią — spróbuj ponownie",
+  "setup_patternMismatch": "Wzory się różnią — spróbuj ponownie",
+  "setup_pinBackupHint": "PIN/wzór posłuży, gdy odcisk palca nie zadziała (np. mokry palec).",
+  "setup_unlockHint": "To zabezpieczenie odblokuje aplikację przy kolejnych otwarciach.",
+  "setup_pattern": "Wzór graficzny",
+  "setup_connectDots": "Połącz co najmniej 4 punkty",
+  "setup_patternTooShort": "Wzór jest za krótki — połącz min. 4 punkty",
+  "login_subtitle": "Zaloguj się lub załóż konto swoim kontem Google",
+  "login_secure": "🔒 Bezpieczne logowanie — bez osobnego hasła",
+  "login_google": "Zaloguj się przez Google",
+  "welcome_testMode": "Tryb testowy — wejście bez logowania",
+  "welcome_enter": "Wejdź do aplikacji",
+  "auth_cancelled": "Anulowano logowanie.",
+  "wsum_owner": "Właściciel",
+  "wsum_collab": "Współpraca",
+  "hotel_added": "Dodano hotel",
+  "hotel_needsRoom": "Potrzebuje noclegu",
+  "common_noName": "(bez imienia)",
+  "hotel_edit": "Edytuj hotel",
+  "hotel_add": "Dodaj hotel",
+  "hotel_nameRequired": "Nazwa hotelu *",
+  "hotel_streetCity": "Ulica, miasto",
+  "hotel_pricePerNight": "Cena za os./noc",
+  "hotel_bookingLink": "Link do rezerwacji",
+  "an_byEstimate": "Wg orientacyjnego",
+  "an_estimateShort": "Orientac.",
+  "an_noMenu": "Bez menu",
+  "an_noMenuData": "Brak danych o menu.",
+  "an_noDietData": "Brak danych o dietach.",
+  "bingo_generator": "Generator plansz",
+  "bingo_boardCount": "Liczba plansz:",
+  "bingo_newFieldHint": "Nowe pole bingo…",
+  "bev_bottlesPerPerson": "butelek / os.",
+  "bev_costPerPerson": "koszt / os.",
+  "bev_brand": "Marka / nazwa (opcjonalnie)",
+  "bev_pieces": "szt.",
+  "bs_plannedPlusReserve": "Planowany + rezerwa",
+  "bs_ofWhichVenue": "w tym sala",
+  "bs_reserveUsed": "Wykorzystana rezerwa",
+  "ef_edit": "Edytuj wydatek",
+  "ef_add": "Dodaj wydatek",
+  "ef_nameHint": "np. Atrakcje dla dzieci",
+  "ef_estimate": "Kwota orientacyjna",
+  "vf_companyName": "Nazwa firmy",
+  "vf_companyHint": "np. Studio Foto",
+  "vf_contactPerson": "Osoba kontaktowa",
+  "vf_vendorCategory": "Kategoria dostawcy",
+  "common_email": "E-mail",
+  "sala_cateringBase": "Baza cateringu",
+  "sala_cateringExtras": "Dodatki cateringu",
+  "sala_inCosts": "W kosztach",
+  "sala_menuExtras": "Dodatki do menu",
+  "sala_separateCatering": "Catering (oddzielny)",
+  "sala_venueTotal": "Razem sala",
+  "sala_staffNameHint": "Nazwa (np. Kelnerzy)",
+  "gal_videos": "▶ Filmy",
+  "gal_pdfPrints": "Wydruki PDF",
+  "gal_galleryQr": "Galeria (QR)",
+  "pc_needChallenge": "Najpierw dodaj przynajmniej jedno wyzwanie.",
+  "pc_editChallenge": "Edytuj wyzwanie",
+  "gp_needTwoAnswers": "Podaj przynajmniej 2 odpowiedzi",
+  "quiz_needQuestion": "Najpierw dodaj przynajmniej jedno pytanie.",
+  "gp_noAnswers": "brak odpowiedzi",
+  "quiz_editQuestion": "Edytuj pytanie",
+  "tf_needStatement": "Najpierw dodaj przynajmniej jedno stwierdzenie.",
+  "tf_editStatement": "Edytuj stwierdzenie",
+  "tf_isItTrue": "Czy to prawda?",
+  "wheel_mode": "Tryb losowania",
+  "wheel_addField": "Dodaj pole",
+  "wheel_addHint": "Dodaj pola przyciskiem +.",
+  "wheel_fieldN": "Pole {index}",
+  "@wheel_fieldN": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "wheel_drawn": "🎉 Wylosowano",
+  "wheel_inPool": "W puli: {count}",
+  "@wheel_inPool": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gifts_addGift": "Dodaj prezent",
+  "gifts_fromWho": "Od kogo…",
+  "gifts_giftDesc": "Opis prezentu…",
+  "gifts_recalcAll": "Przelicz na rzeczywistych + wirtualnych",
+  "gifts_favourHint": "Upominek…",
+  "common_descriptionHint": "Opis…",
+  "gc_seatHint": "np. miejsce przy rodzinie",
+  "gc_allergyHint": "np. orzechy, gluten",
+  "gc_extraInfo": "Dodatkowe informacje…",
+  "advices_emptyCategory": "Brak rad w tej kategorii.",
+  "advices_autoplay": "Auto-pokaz",
+  "guestMap_onMap": "Na mapie",
+  "guestMap_savedEntry": "Zapisano wpis",
+  "guestMap_addedEntry": "Dodano wpis",
+  "guestMap_editEntry": "Edytuj wpis",
+  "capsule_opened": "💌 Otwarta",
+  "lock_locked": "Aplikacja zablokowana",
+  "lock_welcomeBack": "Witaj ponownie, {name}",
+  "@lock_welcomeBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lock_enterPin": "Wpisz kod PIN",
+  "setup_biometricUnconfirmed": "Biometria niepotwierdzona",
+  "setup_chooseBackup": "Wybierz zabezpieczenie zapasowe",
+  "setup_setPinCode": "Ustaw kod PIN (4 cyfry)",
+  "setup_changeBackup": "Zmiana zabezpieczenia",
+  "setup_lockConfig": "Konfiguracja blokady",
+  "setup_pinCode": "Kod PIN",
+  "setup_fourDigits": "4 cyfry",
+  "login_signingIn": "Logowanie…",
+  "music_specialFilter": "⭐ Specjalne",
+  "music_genre": "Gatunek / gust",
+  "music_specialMoment": "⭐ Moment specjalny",
+  "music_notSpecial": "— nie jest specjalny —",
+  "music_partyMoment": "Moment imprezy",
+  "music_exportHeader": "LISTA PIOSENEK NA WESELE",
+  "music_exportSpecialHeader": "### ⭐ UTWORY SPECJALNE — KLUCZOWE MOMENTY",
+  "music_exportAllHeader": "### WSZYSTKIE UTWORY (wg momentu imprezy)",
+  "room_freeSeats": "Wolne miejsca",
+  "rsvpAll_tabEntries": "Wpisy RSVP",
+  "rsvpAll_tabQr": "Kody QR i linki",
+  "rsvp_notAttendingShort": "✗ Nie przyjdzie",
+  "rsvp_noStatus": "Brak statusu",
+  "rsvp_fromForm": "🌐 Z formularza",
+  "rsvp_noReplyCount": "Brak odpowiedzi ({count})",
+  "@rsvp_noReplyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sched_editEvent": "Edytuj wydarzenie",
+  "sched_addEvent": "Dodaj wydarzenie",
+  "common_nameRequired": "Nazwa *",
+  "sched_placeHint": "np. Sala weselna",
+  "common_responsible": "Osoba odpowiedzialna",
+  "sched_responsibleHint": "np. Oboje",
+  "sched_mapLink": "Link do lokalizacji",
+  "sched_eventAdded": "Dodano wydarzenie",
+  "common_noNameNeutral": "(bez nazwy)",
+  "common_seats": "Liczba miejsc",
+  "task_edit": "Edytuj zadanie",
+  "task_add": "Dodaj zadanie",
+  "task_goal": "Cel / zdarzenie (opcjonalnie)",
+  "task_goalName": "Nazwa celu",
+  "task_goalHint": "np. Znalezienie fotografa",
+  "task_hideExtra": "Ukryj dodatkowe opcje",
+  "task_accommodation": "🏨 Nocleg",
+  "task_music": "🎵 Muzyka",
+  "task_allStatuses": "Wszystkie statusy",
+  "common_noSorting": "Bez sortowania",
+  "task_byDue": "Wg terminu",
+  "task_byPriority": "Wg priorytetu",
+  "common_byStatus": "Wg statusu",
+  "tr_inVehicles": "w pojazdach",
+  "tr_assignTo": "Przypisz do: {vehicle}",
+  "@tr_assignTo": {
+    "placeholders": {
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "tr_boltTaxi": "Bolt / Taxi",
+  "tr_infoCodePhone": "Info / kod / telefon",
+  "tr_editVehicle": "Edytuj pojazd",
+  "tr_addVehicle": "Dodaj pojazd",
+  "tr_typeRequired": "Typ / nazwa pojazdu *",
+  "tr_departure": "Godzina odjazdu",
+  "vf_customCategoryHint": "np. Animator",
+  "vf_companyRequired": "Nazwa firmy *",
+  "vf_mapsLink": "Link do Google Maps",
+  "vend_vendorChip": "🏢 Dostawca",
+  "vend_instalmentHint": "np. Zadatek",
+  "welcome_tagline": "PANEL ORGANIZACJI WESELA",
+  "layout_forcePhone": "Wymuś telefon",
+  "layout_forceTablet": "Wymuś tablet",
+  "layout_autoHint": "Układ dobiera się do szerokości ekranu",
+  "layout_phoneHint": "Zawsze dolny pasek nawigacji",
+  "layout_tabletHint": "Zawsze boczna nawigacja i szersze siatki",
+  "common_statusHint": "Status…",
+  "gs_companion": "osoba towarzysząca",
+  "gs_accompanies": "towarzyszy gościowi",
+  "notif_programmeItem": "punkt programu",
+  "taskSvc_fromTask": "Utworzono z zadania: {name}",
+  "@taskSvc_fromTask": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "vendSvc_vendor": "Dostawca: {label}",
+  "@vendSvc_vendor": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "wedSvc_weddingId": "Wesele {id}",
+  "@wedSvc_weddingId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "vendStatus_contacted": "Skontaktowano",
+  "@vendStatus_contacted": {
+    "description": "Status dostawcy; w bazie zostaje `contacted`."
+  },
+  "vendStatus_confirmed": "Potwierdzony",
+  "vendStatus_cancelled": "Anulowany",
+  "quizEx_q1": "Gdzie się poznaliśmy?",
+  "@quizEx_q1": {
+    "description": "Przykładowe pytanie quizu wstawiane przy zakładaniu wesela. Zapisuje się w bazie w języku interfejsu i późniejsza zmiana języka go NIE rusza — to już treść pary, mogła ją edytować."
+  },
+  "quizEx_q1a1": "W pracy",
+  "quizEx_q1a2": "Na studiach",
+  "quizEx_q1a3": "Przez znajomych",
+  "quizEx_q1a4": "W wakacje",
+  "quizEx_q3": "Gdzie była nasza pierwsza randka?",
+  "quizEx_q3a1": "W kinie",
+  "quizEx_q3a2": "W restauracji",
+  "quizEx_q3a3": "Na spacerze",
+  "quizEx_q3a4": "W kawiarni",
+  "quizEx_q4": "Kto się pierwszy oświadczył?",
+  "tfEx_1": "Para Młoda poznała się w pracy",
+  "tfEx_1e": "Poznali się przez wspólnych znajomych.",
+  "tfEx_2": "Pierwsza randka była w kinie",
+  "tfEx_2e": "Pierwsza randka była w kawiarni.",
+  "tfEx_3": "Oświadczyny odbyły się za granicą",
+  "tfEx_3e": "Oświadczyny odbyły się podczas wspólnego wyjazdu.",
+  "pcEx_1": "Zrób selfie z Parą Młodą",
+  "pcEx_2": "Sfotografuj najpiękniejszy toast",
+  "pcEx_3": "Znajdź i sfotografuj najstarszego gościa",
+  "pcEx_4": "Zdjęcie z parkietu",
+  "pcEx_5": "Grupowe zdjęcie Twojego stolika",
+  "pcEx_6": "Uchwyć pierwszy taniec",
+  "tableSvc_defaultName": "Stół {number}",
+  "@tableSvc_defaultName": {
+    "description": "Domyślna nazwa nowego stołu; {number} to kolejny numer.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "cfg_defaultEventName": "Ceremonia Weselna",
+  "cfg_defaultPersons": "Patrycji i Piotra",
+  "@cfg_defaultPersons": {
+    "description": "Przykładowe imiona w danych startowych — dostosuj do języka."
+  },
+  "taskSvc_song": "Utwór",
+  "err_noActiveWedding": "Brak aktywnego wesela — nie wiadomo, komu przypisać dane. Wybierz wesele i spróbuj ponownie.",
+  "err_weddingDocMissing": "Dokument wesela nie istnieje",
+  "common_optionalHint": "Opcjonalnie…",
+  "common_phoneHint": "np. 600 100 200",
+  "common_emailHint": "kontakt@firma.pl",
+  "qr_schedule": "📅 Harmonogram",
+  "qr_music": "🎵 Muzyka",
+  "qr_bingo": "🎲 Ślubne Bingo",
+  "qr_guestbook": "💝 Księga gości",
+  "qr_quiz": "🧠 Quiz o Parze Młodej",
+  "qr_advices": "💌 Rady dla Pary Młodej",
+  "qr_trueFalse": "🤔 Prawda czy Fałsz",
+  "qr_photoGuess": "📸 Zgadnij zdjęcie",
+  "qr_capsule": "⏳ Kapsuła czasu",
+  "qr_guestMap": "🗺️ Mapa gości",
+  "qr_photoChallenge": "📷 Foto-wyzwania",
+  "pay_venueTab": "🏠 Sala",
+  "pay_vendorsTab": "🏢 Dostawcy",
+  "hm_variantName": "Nazwa wariantu",
+  "hm_offerLink": "Link do oferty (https://…)",
+  "common_linkHint": "Link (https://…)",
+  "bingo_generatePdf": "Generuj PDF ({count} plansz, {format})",
+  "@bingo_generatePdf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "common_personsShort": "os.",
+  "@common_personsShort": {
+    "description": "Skrot slowa osob przy liczbach, np. 12 os."
+  },
+  "notif_oneNew": "1 nowe",
+  "wheelEx_toast": "Kto wznosi toast",
+  "@wheelEx_toast": {
+    "description": "Domyślne pole koła fortuny; zapisuje się do bazy przy tworzeniu wesela w języku interfejsu."
+  },
+  "wheelEx_gamesTask": "Zadanie na oczepiny",
+  "wheelEx_veilKiss": "Pocałunek przez welon",
+  "wheelEx_blindDance": "Wspólny taniec z zawiązanymi oczami",
+  "wheelEx_singSong": "Odśpiewajcie ulubioną piosenkę",
+  "wheelEx_feedCake": "Nakarmcie się nawzajem tortem",
+  "wheelEx_longKiss": "Pocałunek dłuższy niż 10 sekund",
+  "wheelEx_compliment": "Powiedzcie sobie komplement",
+  "wheelEx_bouquetToss": "Rzut bukietem",
+  "wheelEx_tieToss": "Rzut muszką / krawatem",
+  "wheelEx_chairDance": "Taniec z krzesłami",
+  "wheelEx_bestDance": "Konkurs na najlepszy taniec",
+  "wheelEx_charades": "Kalambury weselne",
+  "wheelEx_nextCouple": "Wybór następnej pary do ślubu",
+  "quizEx_film3": "Forrest Gump",
+  "quizEx_film4": "Skazani na Shawshank",
+  "@quizEx_film4": {
+    "description": "Tytuł filmu w przykładowej odpowiedzi — użyj tytułu z danego rynku."
   }
 }

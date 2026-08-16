@@ -1,5 +1,6 @@
 import '../l10n/app_text.dart';
 import '../navigation/app_sections.dart';
+import 'couple.dart';
 import 'wedding_data.dart';
 
 /// Poziom kreatora „Poprowadź mnie za rękę".
@@ -250,7 +251,7 @@ bool _hasCoupleNames(WeddingData d) {
   var filled = 0;
   for (var i = 0; i < names.length && i < 2; i++) {
     final v = names[i]?.toString().trim() ?? '';
-    if (v.isNotEmpty && v != 'Osoba 1' && v != 'Osoba 2') filled++;
+    if (v.isNotEmpty && !CoupleLabels.isPlaceholderName(v)) filled++;
   }
   return filled >= 2;
 }

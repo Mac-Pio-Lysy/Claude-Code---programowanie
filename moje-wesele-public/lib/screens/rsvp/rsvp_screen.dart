@@ -113,9 +113,9 @@ class _RsvpScreenState extends State<RsvpScreen> {
           dividerColor: const Color(0xFFE2EAF7),
           labelStyle:
               GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-          tabs: const [
+          tabs: [
             Tab(text: 'Lista'),
-            Tab(text: 'Kod QR potwierdzeń'),
+            Tab(text: AppText.t.rsvp_qrTitle),
           ],
         ),
         Expanded(
@@ -192,7 +192,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
           ),
               GuestPageTab(
                 links: [
-                  ('📋 Potwierdzenia (RSVP)', PublicPages.rsvp(baseUrl)),
+                  (AppText.t.rsvpAll_qr, PublicPages.rsvp(baseUrl)),
                 ],
                 intro:
                     AppText.t.rsvpMain_txt2,
@@ -234,9 +234,9 @@ class _RsvpScreenState extends State<RsvpScreen> {
       child: Row(
         children: [
           chip('Wszyscy', 'all'),
-          chip('✓ Przyjdą ($attending)', 'attending'),
-          chip('✗ Nie przyjdą ($notAtt)', 'not_attending'),
-          chip('Brak odpowiedzi ($noReply)', 'noreply'),
+          chip(AppText.t.rsvp_attendingCount(attending), 'attending'),
+          chip(AppText.t.rsvp_notAttendingCount(notAtt), 'not_attending'),
+          chip(AppText.t.rsvp_noReplyCount(noReply), 'noreply'),
         ],
       ),
     );
@@ -259,9 +259,9 @@ class _RsvpScreenState extends State<RsvpScreen> {
       ),
       child: Row(
         children: [
-          _stat('$attending', 'Przyjdą', const Color(0xFF059669)),
-          _stat('$notAtt', 'Nie przyjdą', const Color(0xFFC0392B)),
-          _stat('$noReply', 'Brak odpowiedzi', const Color(0xFFB45309)),
+          _stat('$attending', AppText.t.an_willAttend, const Color(0xFF059669)),
+          _stat('$notAtt', AppText.t.an_willNotAttend, const Color(0xFFC0392B)),
+          _stat('$noReply', AppText.t.gs_noAnswer, const Color(0xFFB45309)),
         ],
       ),
     );
@@ -288,13 +288,13 @@ class _RsvpScreenState extends State<RsvpScreen> {
     String badgeText;
     if (status == 'attending') {
       badgeColor = const Color(0xFF059669);
-      badgeText = '✓ Przyjdzie';
+      badgeText = AppText.t.rsvp_attendingShort;
     } else if (status == 'not_attending') {
       badgeColor = const Color(0xFFC0392B);
-      badgeText = '✗ Nie przyjdzie';
+      badgeText = AppText.t.rsvp_notAttendingShort;
     } else {
       badgeColor = AppColors.textLight;
-      badgeText = 'Brak odpowiedzi';
+      badgeText = AppText.t.gs_noAnswer;
     }
     final gid = g.id ?? 0;
 
@@ -321,7 +321,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName,
+                child: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
                     style: GoogleFonts.inter(
                         fontSize: 14, fontWeight: FontWeight.w600)),
               ),
@@ -346,7 +346,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
               _btn('Przyjdzie', const Color(0xFF059669),
                   () => widget.service.setGuestStatus(gid, 'attending')),
               const SizedBox(width: 6),
-              _btn('Nie przyjdzie', const Color(0xFFC0392B),
+              _btn(AppText.t.gs_notAttending, const Color(0xFFC0392B),
                   () => widget.service.setGuestStatus(gid, 'not_attending')),
               const Spacer(),
               if (status != null)
@@ -389,7 +389,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${e.rawName.isEmpty ? '(brak imienia)' : e.rawName} → ${e.isAttending ? 'Przyjdzie' : 'Nie przyjdzie'}',
+            '${e.rawName.isEmpty ? '(brak imienia)' : e.rawName} → ${e.isAttending ? 'Przyjdzie' : AppText.t.gs_notAttending}',
             style:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
           ),
@@ -420,7 +420,7 @@ class _RsvpScreenState extends State<RsvpScreen> {
                       DropdownMenuItem(
                           value: g.id,
                           child: Text(
-                              g.fullName.isEmpty ? 'Gość' : g.fullName)),
+                              g.fullName.isEmpty ? AppText.t.role_guest : g.fullName)),
                   ],
                   onChanged: (v) {
                     if (v != null && e.id != null) {

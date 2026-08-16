@@ -7,6 +7,7 @@ import '../../models/vendor.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Modalny formularz dodawania / edycji wydatku. Zwraca [ExpenseDraft].
 class ExpenseFormSheet extends StatefulWidget {
@@ -151,9 +152,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final n1 = widget.coupleNames.isNotEmpty ? widget.coupleNames[0] : 'Osoba 1';
+    final n1 = widget.coupleNames.isNotEmpty ? widget.coupleNames[0] : AppText.t.couple_personNumbered(1);
     final n2 =
-        widget.coupleNames.length > 1 ? widget.coupleNames[1] : 'Osoba 2';
+        widget.coupleNames.length > 1 ? widget.coupleNames[1] : AppText.t.couple_personNumbered(2);
 
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -184,7 +185,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _isEdit ? 'Edytuj wydatek' : 'Dodaj wydatek',
+                      _isEdit ? AppText.t.ef_edit : AppText.t.ef_add,
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -221,11 +222,11 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                           AppText.t.budget_customName,
                           TextField(
                             controller: _customName,
-                            decoration: _dec(hint: 'np. Atrakcje dla dzieci'),
+                            decoration: _dec(hint: AppText.t.ef_nameHint),
                           ),
                         ),
-                      _field('Kwota orientacyjna', _numField(_planned, 'zł')),
-                      _field(AppText.t.budget_paid, _numField(_paid, 'zł')),
+                      _field(AppText.t.ef_estimate, _numField(_planned, AppFormat.currency.symbol)),
+                      _field(AppText.t.budget_paid, _numField(_paid, AppFormat.currency.symbol)),
                       _field(
                         AppText.t.budget_paymentDate,
                         InkWell(
@@ -274,9 +275,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Expanded(child: _field(n1, _numField(_splitP1, 'zł'))),
+                          Expanded(child: _field(n1, _numField(_splitP1, AppFormat.currency.symbol))),
                           const SizedBox(width: 12),
-                          Expanded(child: _field(n2, _numField(_splitP2, 'zł'))),
+                          Expanded(child: _field(n2, _numField(_splitP2, AppFormat.currency.symbol))),
                         ],
                       ),
                       _field(
@@ -284,7 +285,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                         TextField(
                           controller: _note,
                           maxLines: 2,
-                          decoration: _dec(hint: 'Opcjonalnie…'),
+                          decoration: _dec(hint: AppText.t.common_optionalHint),
                         ),
                       ),
                       _vendorSection(),
@@ -365,9 +366,9 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
           ),
         ),
         if (_isVendor) ...[
-          _field('Nazwa firmy',
-              TextField(controller: _vCompany, decoration: _dec(hint: 'np. Studio Foto'))),
-          _field('Osoba kontaktowa',
+          _field(AppText.t.vf_companyName,
+              TextField(controller: _vCompany, decoration: _dec(hint: AppText.t.vf_companyHint))),
+          _field(AppText.t.vf_contactPerson,
               TextField(controller: _vContact, decoration: _dec(hint: AppText.t.budget_vendorName))),
           Row(
             children: [
@@ -384,7 +385,7 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
               const SizedBox(width: 12),
               Expanded(
                 child: _field(
-                  'Kategoria dostawcy',
+                  AppText.t.vf_vendorCategory,
                   DropdownButtonFormField<String>(
                     initialValue: _vCategory,
                     isExpanded: true,
@@ -400,11 +401,11 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
             ],
           ),
           _field(
-            'E-mail',
+            AppText.t.common_email,
             TextField(
               controller: _vEmail,
               keyboardType: TextInputType.emailAddress,
-              decoration: _dec(hint: 'kontakt@…'),
+              decoration: _dec(hint: AppText.t.common_emailHint),
             ),
           ),
         ],

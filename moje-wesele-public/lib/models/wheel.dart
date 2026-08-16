@@ -1,3 +1,4 @@
+import '../l10n/app_text.dart';
 /// Tryby „Koła fortuny" (gotowe zestawy losowania).
 enum WheelMode { toast, dance, couple, oczepiny, custom }
 
@@ -5,11 +6,11 @@ extension WheelModeX on WheelMode {
   String get id => name;
 
   String get label => switch (this) {
-        WheelMode.toast => 'Kto wznosi toast',
-        WheelMode.dance => 'Kto tańczy następny',
-        WheelMode.couple => 'Zadanie dla Pary Młodej',
-        WheelMode.oczepiny => 'Zadanie na oczepiny',
-        WheelMode.custom => 'Własne koło',
+        WheelMode.toast => AppText.t.wheelEx_toast,
+        WheelMode.dance => AppText.t.wheelMode_nextDance,
+        WheelMode.couple => AppText.t.wheelMode_coupleTask,
+        WheelMode.oczepiny => AppText.t.wheelEx_gamesTask,
+        WheelMode.custom => AppText.t.wheelMode_custom,
       };
 
   String get emoji => switch (this) {
@@ -33,21 +34,21 @@ extension WheelModeX on WheelMode {
 
   /// Domyślne (przykładowe) pola dla trybów własnych — gdy nic nie zapisano.
   List<String> get defaults => switch (this) {
-        WheelMode.couple => const [
-            'Pocałunek przez welon',
-            'Wspólny taniec z zawiązanymi oczami',
-            'Odśpiewajcie ulubioną piosenkę',
-            'Nakarmcie się nawzajem tortem',
-            'Pocałunek dłuższy niż 10 sekund',
-            'Powiedzcie sobie komplement',
+        WheelMode.couple => [
+            AppText.t.wheelEx_veilKiss,
+            AppText.t.wheelEx_blindDance,
+            AppText.t.wheelEx_singSong,
+            AppText.t.wheelEx_feedCake,
+            AppText.t.wheelEx_longKiss,
+            AppText.t.wheelEx_compliment,
           ],
-        WheelMode.oczepiny => const [
-            'Rzut bukietem',
-            'Rzut muszką / krawatem',
-            'Taniec z krzesłami',
-            'Konkurs na najlepszy taniec',
-            'Kalambury weselne',
-            'Wybór następnej pary do ślubu',
+        WheelMode.oczepiny => [
+            AppText.t.wheelEx_bouquetToss,
+            AppText.t.wheelEx_tieToss,
+            AppText.t.wheelEx_chairDance,
+            AppText.t.wheelEx_bestDance,
+            AppText.t.wheelEx_charades,
+            AppText.t.wheelEx_nextCouple,
           ],
         _ => const [],
       };

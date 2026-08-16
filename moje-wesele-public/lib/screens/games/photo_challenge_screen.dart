@@ -63,11 +63,11 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Wyzwania'),
               Tab(text: 'Galeria'),
               Tab(text: 'Ranking'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -78,7 +78,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
                 _rankingTab(),
                 GuestPageTab(
                   links: [
-                    ('📷 Foto-wyzwania', PublicPages.fotoWyzwania(base))
+                    (AppText.t.pc_headerTitle, PublicPages.fotoWyzwania(base))
                   ],
                   intro:
                       AppText.t.photoChallenge_txt1,
@@ -155,9 +155,9 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
         subtitle: Text(
           hasTasks
               ? (_active
-                  ? 'Goście mogą teraz wykonywać wyzwania przez stronę / kod QR.'
-                  : 'Włącz, aby goście mogli przesyłać zdjęcia.')
-              : 'Najpierw dodaj przynajmniej jedno wyzwanie.',
+                  ? AppText.t.pc_activeHint
+                  : AppText.t.pc_enableHint)
+              : AppText.t.pc_needChallenge,
           style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
         ),
       ),
@@ -314,8 +314,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppText.t.photoChallenge_deleteTitle),
-        content: Text('Czy na pewno usunąć „${t.text}"? Przesłane zdjęcia '
-            'pozostaną w galerii.'),
+        content: Text(AppText.t.pc_deleteConfirm(t.text)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -348,7 +347,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać zdjęć. Sprawdź połączenie.');
+          return _info(AppText.t.pc_loadPhotosError);
         }
         final subs = snapshot.data ?? const <PhotoChallengeSubmission>[];
         if (subs.isEmpty) {
@@ -368,7 +367,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
             // Zdjęcia do usuniętych wyzwań:
             for (final entry in byChallenge.entries)
               if (!tasks.any((t) => t.id == entry.key))
-                _challengeGallery('Usunięte wyzwanie', entry.value),
+                _challengeGallery(AppText.t.pc_deleted, entry.value),
           ],
         );
       },
@@ -458,7 +457,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
               child: Container(
                 color: Colors.black.withValues(alpha: 0.45),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Text(s.name.isEmpty ? 'Gość' : s.name,
+                child: Text(s.name.isEmpty ? AppText.t.role_guest : s.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
@@ -501,7 +500,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(s.name.isEmpty ? 'Gość' : s.name,
+                  Text(s.name.isEmpty ? AppText.t.role_guest : s.name,
                       style: GoogleFonts.inter(
                           fontSize: 13, fontWeight: FontWeight.w600)),
                   const SizedBox(width: 12),
@@ -528,9 +527,9 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Usunąć zdjęcie?'),
+        title: Text(AppText.t.pc_deletePhotoTitle),
         content: Text(
-            'Czy na pewno usunąć zdjęcie od „${s.name.isEmpty ? 'Gość' : s.name}"?'),
+            'Czy na pewno usunąć zdjęcie od „${s.name.isEmpty ? AppText.t.role_guest : s.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -568,7 +567,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
         // Per gość: zbiór wykonanych wyzwań (distinct challengeId).
         final done = <String, Set<int>>{};
         for (final s in subs) {
-          final name = s.name.isEmpty ? 'Gość' : s.name;
+          final name = s.name.isEmpty ? AppText.t.role_guest : s.name;
           done.putIfAbsent(name, () => <int>{}).add(s.challengeId);
         }
         final ranking = done.entries
@@ -588,7 +587,7 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
                     color: AppColors.text)),
             const SizedBox(height: 8),
             if (ranking.isEmpty)
-              _info('Brak wykonanych wyzwań. Udostępnij gościom kod QR.')
+              _info(AppText.t.pc_empty)
             else
               ..._ranking(ranking, taskCount),
           ],
@@ -614,9 +613,9 @@ class _PhotoChallengeScreenState extends State<PhotoChallengeScreen> {
       ),
       child: Row(
         children: [
-          _stat('$players', 'Uczestników', AppColors.accent),
-          _stat('$photos', 'Zdjęć', const Color(0xFF7C3AED)),
-          _stat('$taskCount', 'Wyzwań', const Color(0xFF059669)),
+          _stat('$players', AppText.t.gp_participants, AppColors.accent),
+          _stat('$photos', AppText.t.pc_photos, const Color(0xFF7C3AED)),
+          _stat('$taskCount', AppText.t.pc_challenges, const Color(0xFF059669)),
         ],
       ),
     );
@@ -733,7 +732,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing != null ? 'Edytuj wyzwanie' : AppText.t.photoChallenge_add),
+      title: Text(widget.existing != null ? AppText.t.pc_editChallenge : AppText.t.photoChallenge_add),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

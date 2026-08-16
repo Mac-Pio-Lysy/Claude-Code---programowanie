@@ -1,4 +1,5 @@
 import 'guest.dart';
+import '../l10n/app_text.dart';
 
 /// Pomocnicze opisy i agregaty dla Podsumowania gości
 /// (odwzorowane z `_guestSummaryStats` / `_gs*` w zrodlo-web/script.js).
@@ -17,15 +18,15 @@ class GuestSummary {
   }
 
   static String rsvpLabel(String status) => switch (status) {
-        'attending' => 'Przyjdzie',
-        'not_attending' => 'Nie przyjdzie',
-        _ => 'Brak odpowiedzi',
+        'attending' => AppText.t.gs_attending,
+        'not_attending' => AppText.t.gs_notAttending,
+        _ => AppText.t.gs_noAnswer,
       };
 
   /// Opis transportu: „Własny" / typ pojazdu / „—".
   static (bool has, bool own, String label) transport(
       Guest g, List<dynamic> vehicles) {
-    if (g.raw['ownTransport'] == true) return (true, true, 'Własny');
+    if (g.raw['ownTransport'] == true) return (true, true, AppText.t.gs_ownTransport);
     final vid = (g.raw['vehicleId'] as num?)?.toInt();
     for (final v in vehicles) {
       if (v is! Map) continue;
@@ -37,7 +38,7 @@ class GuestSummary {
           : const <int>[];
       if (id == vid || ids.contains(g.id)) {
         final type = (v['type'] as String?)?.trim();
-        return (true, false, type?.isNotEmpty == true ? type! : 'Zorganizowany');
+        return (true, false, type?.isNotEmpty == true ? type! : AppText.t.gs_organisedTransport);
       }
     }
     return (false, false, '—');
@@ -58,10 +59,10 @@ class GuestSummary {
     }
     final st = g.raw['accommodationStatus'] as String?;
     return (true, switch (st) {
-      'reserved' => 'Zarezerwowany',
-      'pending' => 'Do zarezerwowania',
-      'self' => 'Sam rezerwuje',
-      _ => 'Potrzebuje',
+      'reserved' => AppText.t.gs_roomReserved,
+      'pending' => AppText.t.gs_roomPending,
+      'self' => AppText.t.gs_roomSelf,
+      _ => AppText.t.gs_roomNeeded,
     });
   }
 
@@ -74,13 +75,13 @@ class GuestSummary {
     final linked = all.where((x) => x.companionOfId == g.id).toList();
     if (linked.isNotEmpty) {
       return linked
-          .map((c) => c.namePending ? 'osoba towarzysząca' : c.fullName)
+          .map((c) => c.namePending ? AppText.t.gs_companion : c.fullName)
           .join(', ');
     }
     if (g.companionOfId != null) {
       final inviter = all.where((x) => x.id == g.companionOfId).firstOrNull;
       return inviter == null
-          ? 'towarzyszy gościowi'
+          ? AppText.t.gs_accompanies
           : 'towarzyszy: ${inviter.fullName}';
     }
     if (!g.hasCompanion) return '—';
@@ -92,7 +93,7 @@ class GuestSummary {
     if (tid == null) return '—';
     for (final t in tables) {
       if (t is Map && (t['id'] as num?)?.toInt() == tid) {
-        return (t['name'] as String?) ?? 'Stół';
+        return (t['name'] as String?) ?? AppText.t.gs_table;
       }
     }
     return '—';

@@ -1,8 +1,9 @@
 import '../navigation/app_sections.dart';
-import '../utils/format.dart';
 import 'budget_summary.dart';
 import 'payment_item.dart' show isDueSoon, isOverdue;
 import 'wedding_data.dart';
+import '../l10n/app_text.dart';
+import '../utils/app_format.dart';
 
 /// Statystyka kafelka dashboardu (liczba + podpis + flaga alarmu).
 class DashStat {
@@ -62,21 +63,21 @@ class DashWidgets {
     DashWidgetDef(
       id: 'countdown',
       icon: '💍',
-      title: 'Licznik do ślubu',
+      title: AppText.t.dash_countdown,
       target: AppSection.settings,
       compute: (d) {
         final days = d?.daysUntilWedding;
         if (d?.weddingDate == null || days == null) {
-          return const DashStat('—', 'Ustaw datę w Ustawieniach');
+          return DashStat(AppText.t.common_none, AppText.t.dash_setDate);
         }
-        if (days == 0) return const DashStat('🎉', 'To dziś!');
-        return DashStat('$days', days == 1 ? 'dzień do ślubu' : 'dni do ślubu');
+        if (days == 0) return DashStat('🎉', AppText.t.dash_today);
+        return DashStat('$days', AppText.t.dash_daysLeft(days));
       },
     ),
     DashWidgetDef(
       id: 'guests',
       icon: '👥',
-      title: 'Goście',
+      title: AppText.t.section_guests,
       target: AppSection.guests,
       compute: (d) {
         final guests = d?.guests ?? const [];
@@ -92,13 +93,13 @@ class DashWidgets {
           return !rsvp.any((e) => e['guestId'] == id);
         }).length;
         return DashStat('${guests.length}',
-            '$attending potw. · $declined odmów · $noRsvp bez odp.');
+            AppText.t.dash_guestsSub(attending, declined, noRsvp));
       },
     ),
     DashWidgetDef(
       id: 'tables',
       icon: '🪑',
-      title: 'Stoły',
+      title: AppText.t.tables_statTables,
       target: AppSection.room,
       compute: (d) {
         final tables = d?.tables ?? const [];
@@ -110,21 +111,21 @@ class DashWidgets {
             .length;
         final free = (seats - assigned) < 0 ? 0 : seats - assigned;
         return DashStat(
-            '${tables.length}', '$assigned przypisanych · $free wolnych miejsc');
+            '${tables.length}', AppText.t.dash_tablesSub(assigned, free));
       },
     ),
     DashWidgetDef(
       id: 'budget',
       icon: '💰',
-      title: 'Budżet',
+      title: AppText.t.section_budget,
       target: AppSection.budget,
       compute: (d) {
         // Pełna logika budżetu (zaplanowane/opłacone/pozostało) — ta sama co
         // w sekcji Budżet i w wersji web (renderBudgetOverview).
         final b = BudgetSummary.from(d);
         return DashStat(
-          '${formatPln(b.planForCalc)} zł',
-          'Opłacono ${formatPln(b.totalPaid)} zł · zostało ${formatPln(b.remaining)} zł',
+          AppFormat.money(b.planForCalc),
+          AppText.t.dash_budgetSub(AppFormat.money(b.totalPaid), AppFormat.money(b.remaining)),
           alert: b.diff < 0,
         );
       },
@@ -132,12 +133,12 @@ class DashWidgets {
     DashWidgetDef(
       id: 'schedule',
       icon: '📅',
-      title: 'Harmonogram',
+      title: AppText.t.section_schedule,
       target: AppSection.schedule,
       compute: (d) {
         final events =
             _raw(d, 'scheduleEvents').whereType<Map>().toList();
-        if (events.isEmpty) return const DashStat('—', 'brak wydarzeń');
+        if (events.isEmpty) return DashStat(AppText.t.common_none, AppText.t.dash_noEvents);
         // Harmonogram to jeden dzień — „najbliższe" = najwcześniejsze w programie.
         int mins(Map e) => (_d(e['hour']) * 60 + _d(e['minute'])).toInt();
         events.sort((a, b) => mins(a).compareTo(mins(b)));
@@ -146,13 +147,13 @@ class DashWidgets {
         final time = '${p(_d(ev['hour']))}:${p(_d(ev['minute']))}';
         final name = (ev['name'] as String?)?.trim();
         return DashStat(
-            time, (name == null || name.isEmpty) ? 'najbliższe wydarzenie' : name);
+            time, (name == null || name.isEmpty) ? AppText.t.dash_nextEvent : name);
       },
     ),
     DashWidgetDef(
       id: 'tasks',
       icon: '✅',
-      title: 'Zadania',
+      title: AppText.t.section_tasks,
       target: AppSection.tasks,
       compute: (d) {
         final tasks = _raw(d, 'tasks').whereType<Map>();
@@ -161,13 +162,13 @@ class DashWidgets {
             tasks.where((t) => t['status'] == 'inprogress').length;
         final todo = tasks.where((t) => t['status'] == 'todo').length;
         return DashStat(
-            '$done/${tasks.length}', '$todo do zrobienia · $inProgress w trakcie');
+            '$done/${tasks.length}', AppText.t.dash_tasksSub(todo, inProgress));
       },
     ),
     DashWidgetDef(
       id: 'transport',
       icon: '🚗',
-      title: 'Transport',
+      title: AppText.t.section_transport,
       target: AppSection.transport,
       compute: (d) {
         final vehicles = _raw(d, 'vehicles');
@@ -182,39 +183,39 @@ class DashWidgets {
           final id = (g is Map) ? (g['id'] as num?)?.toInt() : null;
           return !inCars.contains(id) && (g is Map && g['ownTransport'] != true);
         }).length;
-        return DashStat('${vehicles.length}', '$without gości bez transportu');
+        return DashStat('${vehicles.length}', AppText.t.dash_transportSub(without));
       },
     ),
     DashWidgetDef(
       id: 'accommodation',
       icon: '🏨',
-      title: 'Noclegi',
+      title: AppText.t.section_accommodation,
       target: AppSection.accommodation,
       compute: (d) {
         final guests = (d?.guests ?? const []).whereType<Map>();
         final needs = guests.where((g) => g['needsAccommodation'] == true).length;
         final reserved =
             guests.where((g) => g['accommodationStatus'] == 'reserved').length;
-        return DashStat('$needs', '$reserved zarezerwowanych');
+        return DashStat('$needs', AppText.t.dash_roomsSub(reserved));
       },
     ),
     DashWidgetDef(
       id: 'gifts',
       icon: '🎁',
-      title: 'Prezenty',
+      title: AppText.t.section_gifts,
       target: AppSection.gifts,
       compute: (d) {
         final gifts = _raw(d, 'gifts').whereType<Map>();
         final thanked = gifts.where((g) => g['thanked'] == true).length;
         final value = gifts.fold<double>(0, (s, g) => s + _d(g['value']));
         return DashStat('${gifts.length}',
-            'łącznie ${formatPln(value)} zł · $thanked z podziękowaniem');
+            AppText.t.dash_giftsSub(AppFormat.money(value), thanked));
       },
     ),
     DashWidgetDef(
       id: 'rsvp',
       icon: '📋',
-      title: 'Potwierdzenia',
+      title: AppText.t.section_rsvp,
       target: AppSection.rsvp,
       compute: (d) {
         final rsvp = _raw(d, 'rsvpEntries').whereType<Map>();
@@ -224,13 +225,13 @@ class DashWidgets {
         final declined = rsvp
             .where((e) => e['guestId'] != null && e['status'] == 'not_attending')
             .length;
-        return DashStat('$attending', '$declined odmów · ${rsvp.length} odpowiedzi');
+        return DashStat('$attending', AppText.t.dash_rsvpSub(declined, rsvp.length));
       },
     ),
     DashWidgetDef(
       id: 'alcohol',
       icon: '🍾',
-      title: 'Alkohol',
+      title: AppText.t.beverage_alcohol,
       target: AppSection.budget,
       compute: (d) {
         final bd = _bd(d);
@@ -238,26 +239,26 @@ class DashWidgets {
         final total =
             items.fold<double>(0, (s, i) => s + _d(i['bottles']) * _d(i['pricePerBottle']));
         final bottles = items.fold<double>(0, (s, i) => s + _d(i['bottles']));
-        return DashStat('${formatPln(total)} zł', '${bottles.toStringAsFixed(0)} butelek');
+        return DashStat(AppFormat.money(total), AppText.t.dash_bottles(bottles.toStringAsFixed(0)));
       },
     ),
     DashWidgetDef(
       id: 'honeymoon',
       icon: '✈️',
-      title: 'Podróż poślubna',
+      title: AppText.t.pay_honeymoon,
       target: AppSection.budget,
       compute: (d) {
         final h = _bd(d)['honeymoon'];
         final hm = h is Map ? h : const {};
         final name = (hm['name'] as String?)?.trim();
-        return DashStat('${formatPln(_d(hm['totalAmount']))} zł',
+        return DashStat(AppFormat.money(_d(hm['totalAmount'])),
             (name == null || name.isEmpty) ? 'Podróż poślubna' : name);
       },
     ),
     DashWidgetDef(
       id: 'payments',
       icon: '💳',
-      title: 'Płatności',
+      title: AppText.t.budget_payments,
       target: AppSection.budget,
       compute: (d) {
         final payments = _raw(d, 'payments');
@@ -276,14 +277,14 @@ class DashWidgets {
             }
           }
         }
-        return DashStat('${overdue + soon}', '$overdue zaległych · $soon wkrótce',
+        return DashStat('${overdue + soon}', AppText.t.dash_paymentsSub(overdue, soon),
             alert: overdue > 0);
       },
     ),
     DashWidgetDef(
       id: 'vendors',
       icon: '👨‍🍳',
-      title: 'Dostawcy',
+      title: AppText.t.section_vendors,
       target: AppSection.vendors,
       compute: (d) {
         final vendors = _raw(d, 'vendors').whereType<Map>();
@@ -291,16 +292,16 @@ class DashWidgets {
             .where((v) =>
                 v['paymentStatus'] == 'confirmed' || v['paymentStatus'] == 'paid')
             .length;
-        return DashStat('${vendors.length}', '$confirmed potwierdzonych');
+        return DashStat('${vendors.length}', AppText.t.dash_vendorsSub(confirmed));
       },
     ),
     DashWidgetDef(
       id: 'gallery',
       icon: '📸',
-      title: 'Galeria',
+      title: AppText.t.section_gallery,
       target: AppSection.gallery,
       // Liczbę plików dostarcza StreamBuilder w UI (osobna kolekcja `gallery`).
-      compute: (d) => const DashStat('—', 'zdjęć i filmów'),
+      compute: (d) => DashStat(AppText.t.common_none, AppText.t.dash_gallerySub),
     ),
   ];
 

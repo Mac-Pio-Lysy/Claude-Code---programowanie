@@ -1,3 +1,5 @@
+import '../l10n/app_text.dart';
+
 /// Rodzaje powiadomień, które w przyszłości trafią na telefon jako PUSH.
 ///
 /// ⚠️ To NIE dotyczy dzwoneczka w aplikacji. Centrum powiadomień działa zawsze
@@ -27,23 +29,23 @@ enum PushTopic {
   String get key => name;
 
   String get label => switch (this) {
-        PushTopic.rsvp => 'Potwierdzenia gości (RSVP)',
-        PushTopic.tasks => 'Nowe zadania',
-        PushTopic.schedule => 'Zmiany w harmonogramie',
-        PushTopic.memberJoined => 'Nowa osoba w weselu',
-        PushTopic.deadlines => 'Zbliżające się terminy',
+        PushTopic.rsvp => AppText.t.push_rsvp,
+        PushTopic.tasks => AppText.t.push_tasks,
+        PushTopic.schedule => AppText.t.push_schedule,
+        PushTopic.memberJoined => AppText.t.push_memberJoined,
+        PushTopic.deadlines => AppText.t.push_deadlines,
       };
 
   String get description => switch (this) {
         PushTopic.rsvp =>
-          'Gdy gość potwierdzi obecność albo zmieni decyzję.',
-        PushTopic.tasks => 'Gdy ktoś doda zadanie do listy.',
+          AppText.t.push_rsvpHint,
+        PushTopic.tasks => AppText.t.push_tasksHint,
         PushTopic.schedule =>
-          'Gdy pojawi się nowy punkt programu albo zmieni się godzina.',
+          AppText.t.push_scheduleHint,
         PushTopic.memberJoined =>
-          'Gdy do wesela dołączy planer, współorganizator albo gość.',
+          AppText.t.push_memberJoinedHint,
         PushTopic.deadlines =>
-          'Przypomnienie o płatności lub zadaniu z bliskim terminem.',
+          AppText.t.push_deadlinesHint,
       };
 
   String get emoji => switch (this) {

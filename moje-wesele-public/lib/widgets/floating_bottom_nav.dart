@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../navigation/app_sections.dart';
+import '../l10n/app_text.dart';
 
 /// Dolny pasek nawigacji w kolorach aplikacji (jasnoniebieski/indygo).
 /// Dashboard to pływający okrąg na środku (stały, zarezerwowany — nic innego
@@ -134,7 +135,7 @@ class FloatingBottomNav extends StatelessWidget {
                             child: _NavItem(
                               key: moreKey,
                               icon: Icons.more_horiz,
-                              label: 'Więcej',
+                              label: AppText.t.w_more,
                               selected: false,
                               compact: compact,
                               onTap: onMore,

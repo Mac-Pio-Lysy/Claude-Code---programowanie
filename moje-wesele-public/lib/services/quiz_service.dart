@@ -6,6 +6,7 @@ import '../models/couple.dart';
 import '../models/quiz.dart';
 import 'firestore_service.dart';
 import 'legacy_scope.dart';
+import '../l10n/app_text.dart';
 
 /// Operacje quizu o Parze Młodej.
 ///
@@ -29,22 +30,25 @@ class QuizService {
   /// jej etykietę z typu uroczystości (patrz [CoupleLabels]).
   static List<({String q, List<String> a, int correct})> get examples => [
     (
-      q: 'Gdzie się poznaliśmy?',
-      a: ['W pracy', 'Na studiach', 'Przez znajomych', 'W wakacje'],
+      q: AppText.t.quizEx_q1,
+      a: [AppText.t.quizEx_q1a1, AppText.t.quizEx_q1a2, AppText.t.quizEx_q1a3, AppText.t.quizEx_q1a4],
       correct: 0
     ),
     (
-      q: '${CoupleLabels.current.withPerson('Ulubiony film', 2)}?',
-      a: ['Incepcja', 'Gladiator', 'Forrest Gump', 'Skazani na Shawshank'],
+      q: CoupleLabels.current.usesNames
+          ? AppText.t.quiz_favouriteFilmNamed(
+              CoupleLabels.current.personPlain(2))
+          : AppText.t.quiz_favouriteFilmGroom,
+      a: ['Incepcja', 'Gladiator', AppText.t.quizEx_film3, AppText.t.quizEx_film4],
       correct: 3
     ),
     (
-      q: 'Gdzie była nasza pierwsza randka?',
-      a: ['W kinie', 'W restauracji', 'Na spacerze', 'W kawiarni'],
+      q: AppText.t.quizEx_q3,
+      a: [AppText.t.quizEx_q3a1, AppText.t.quizEx_q3a2, AppText.t.quizEx_q3a3, AppText.t.quizEx_q3a4],
       correct: 3
     ),
     (
-      q: 'Kto się pierwszy oświadczył?',
+      q: AppText.t.quizEx_q4,
       a: [
         CoupleLabels.current.personPlain(2),
         CoupleLabels.current.personPlain(1),

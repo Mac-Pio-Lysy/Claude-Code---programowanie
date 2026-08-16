@@ -4,6 +4,7 @@ import 'dart:ui' show Offset;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'firestore_service.dart';
+import '../l10n/app_text.dart';
 
 /// Dane z formularza dodawania stołu.
 class TableDraft {
@@ -48,7 +49,7 @@ class TableService {
 
     tables.add({
       'id': nextId,
-      'name': draft.name.isNotEmpty ? draft.name : 'Stół $nextId',
+      'name': draft.name.isNotEmpty ? draft.name : AppText.t.tableSvc_defaultName(nextId),
       'shape': shape,
       'seats': draft.seats,
       'seatsData': List<dynamic>.filled(draft.seats, null, growable: true),

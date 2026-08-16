@@ -13,6 +13,7 @@ import '../../services/firestore_service.dart';
 import '../../services/pdf_service.dart';
 import '../../widgets/guest_page_tab.dart';
 import '../budget/budget_fields.dart';
+import '../../l10n/app_text.dart';
 
 /// Sekcja „Ślubne Bingo" — baza pól, generator i wydruki PDF.
 class BingoScreen extends StatefulWidget {
@@ -77,7 +78,7 @@ class _BingoScreenState extends State<BingoScreen> {
   void _generatePreview() {
     final pool = BingoEngine.pool(widget.data);
     if (pool.length < 24) {
-      _toast('Potrzeba min. 24 pól w puli (jest ${pool.length}).');
+      _toast(AppText.t.bingo_needPool(pool.length));
       return;
     }
     setState(() => _previewBoard = BingoEngine.generateBoard(pool, Random()));
@@ -86,7 +87,7 @@ class _BingoScreenState extends State<BingoScreen> {
   Future<void> _generatePdf() async {
     final pool = BingoEngine.pool(widget.data);
     if (pool.length < 24) {
-      _toast('Potrzeba min. 24 pól w puli (jest ${pool.length}).');
+      _toast(AppText.t.bingo_needPool(pool.length));
       return;
     }
     setState(() => _generating = true);
@@ -103,7 +104,7 @@ class _BingoScreenState extends State<BingoScreen> {
       );
       await PdfService.preview(bytes, 'bingo.pdf');
     } catch (e) {
-      _toast('Błąd generowania PDF: $e');
+      _toast(AppText.t.common_pdfError('$e'));
     } finally {
       if (mounted) setState(() => _generating = false);
     }
@@ -124,7 +125,7 @@ class _BingoScreenState extends State<BingoScreen> {
           if (widget.showHeader) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: Text('Ślubne Bingo',
+              child: Text(AppText.t.bingo_title,
                   style: GoogleFonts.playfairDisplay(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -141,9 +142,9 @@ class _BingoScreenState extends State<BingoScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Organizacja'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -162,10 +163,9 @@ class _BingoScreenState extends State<BingoScreen> {
                   ],
                 ),
                 GuestPageTab(
-                  links: [('🎯 Ślubne Bingo', PublicPages.bingo(base))],
+                  links: [(AppText.t.bingo_headerTitle, PublicPages.bingo(base))],
                   intro:
-                      'Strona z interaktywnym bingo dla gości. Pokaż im kod QR '
-                      'lub wyślij link, aby grali na telefonach.',
+                      AppText.t.bingo_guestHint,
                 ),
               ],
             ),
@@ -177,11 +177,11 @@ class _BingoScreenState extends State<BingoScreen> {
 
   Widget _generatorCard(int poolSize) {
     return _card(
-      title: 'Generator plansz',
+      title: AppText.t.bingo_generator,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Pula losowania: $poolSize pól',
+          Text(AppText.t.bingo_pool(poolSize),
               style: GoogleFonts.inter(
                   fontSize: 12, color: AppColors.textLight)),
           const SizedBox(height: 12),
@@ -191,7 +191,7 @@ class _BingoScreenState extends State<BingoScreen> {
                 child: OutlinedButton.icon(
                   onPressed: _generatePreview,
                   icon: const Icon(Icons.casino_outlined, size: 18),
-                  label: const Text('Losuj podgląd'),
+                  label: Text(AppText.t.bingo_preview),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: const BorderSide(color: AppColors.accent),
@@ -203,7 +203,7 @@ class _BingoScreenState extends State<BingoScreen> {
           const SizedBox(height: 10),
           Row(
             children: [
-              Text('Liczba plansz:',
+              Text(AppText.t.bingo_boardCount,
                   style: GoogleFonts.inter(fontSize: 13)),
               const SizedBox(width: 8),
               _stepper(Icons.remove, () {
@@ -243,7 +243,7 @@ class _BingoScreenState extends State<BingoScreen> {
                       child: CircularProgressIndicator(
                           strokeWidth: 2, color: Colors.white))
                   : const Icon(Icons.picture_as_pdf_outlined),
-              label: Text('Generuj PDF ($_boardCount plansz, $_format)'),
+              label: Text(AppText.t.bingo_generatePdf(_boardCount, _format)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
@@ -270,7 +270,7 @@ class _BingoScreenState extends State<BingoScreen> {
       }
     }
     return _card(
-      title: 'Podgląd planszy',
+      title: AppText.t.bingo_previewBoard,
       child: GridView.count(
         crossAxisCount: 5,
         shrinkWrap: true,
@@ -308,7 +308,7 @@ class _BingoScreenState extends State<BingoScreen> {
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
-            title: Text('Dołącz pola z harmonogramu',
+            title: Text(AppText.t.bingo_fromSchedule,
                 style: GoogleFonts.inter(fontSize: 13)),
             value: _useSchedule,
             onChanged: (v) => widget.service.setUseSchedule(v),
@@ -338,7 +338,7 @@ class _BingoScreenState extends State<BingoScreen> {
               ),
             ),
           const Divider(),
-          Text('Środkowe pole planszy',
+          Text(AppText.t.bingo_centerField,
               style: GoogleFonts.inter(
                   fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
@@ -346,7 +346,7 @@ class _BingoScreenState extends State<BingoScreen> {
             children: [
               _modeChip('GRATIS', 'gratis'),
               const SizedBox(width: 8),
-              _modeChip('Imiona Pary Młodej', 'names'),
+              _modeChip(AppText.t.bingo_coupleNames, 'names'),
             ],
           ),
         ],
@@ -375,7 +375,7 @@ class _BingoScreenState extends State<BingoScreen> {
 
   Widget _fieldsCard(List<BingoField> fields, int activeCount) {
     return _card(
-      title: 'Baza pól ($activeCount / ${fields.length} aktywnych)',
+      title: AppText.t.bingo_fieldsBase(activeCount, fields.length),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -385,7 +385,7 @@ class _BingoScreenState extends State<BingoScreen> {
                 child: TextField(
                   controller: _newField,
                   decoration: InputDecoration(
-                    hintText: 'Nowe pole bingo…',
+                    hintText: AppText.t.bingo_newFieldHint,
                     isDense: true,
                     filled: true,
                     fillColor: const Color(0xFFF8FAFF),
@@ -414,7 +414,7 @@ class _BingoScreenState extends State<BingoScreen> {
           ),
           const SizedBox(height: 8),
           if (fields.isEmpty)
-            Text('Brak pól. Dodaj pierwsze powyżej.',
+            Text(AppText.t.bingo_empty,
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight))
           else
@@ -431,7 +431,7 @@ class _BingoScreenState extends State<BingoScreen> {
                     child: BudgetTextField(
                       key: ValueKey('bingo-${f.id}'),
                       initial: f.text,
-                      hint: 'Treść pola…',
+                      hint: AppText.t.bingo_newField,
                       onSaved: (v) =>
                           widget.service.updateField(f.id ?? 0, text: v),
                     ),

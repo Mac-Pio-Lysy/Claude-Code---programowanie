@@ -416,7 +416,7 @@ class _GuestCardState extends State<_GuestCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          g.fullName.isEmpty ? '(bez imienia)' : g.fullName,
+                          g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

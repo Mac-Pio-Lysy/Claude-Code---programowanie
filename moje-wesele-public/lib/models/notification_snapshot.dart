@@ -1,6 +1,7 @@
 import 'app_notification.dart';
 import 'guest.dart';
 import 'wedding_data.dart';
+import '../l10n/app_text.dart';
 
 /// „Odcisk" stanu wesela — to, co użytkownik już widział.
 ///
@@ -154,7 +155,7 @@ class NotificationDetector {
         return AppNotification(
           id: mark,
           kind: NotifKind.guestAdded,
-          text: 'Dodano gościa: $name',
+          text: AppText.t.notif_guestAdded(name),
           at: at,
         );
 
@@ -166,14 +167,14 @@ class NotificationDetector {
         final rawName = (entry['rawName'] as String?)?.trim() ?? '';
         final name = guestId != null && guestsById[guestId] != null
             ? _guestName(guestsById[guestId])
-            : (rawName.isNotEmpty ? rawName : 'Gość');
+            : (rawName.isNotEmpty ? rawName : AppText.t.role_guest);
         return AppNotification(
           id: mark,
           kind: NotifKind.rsvp,
           text: switch (status) {
-            'attending' => '$name potwierdził(a) obecność',
-            'not_attending' => '$name nie przyjdzie',
-            _ => '$name — zmiana potwierdzenia',
+            'attending' => AppText.t.notif_guestAttending(name),
+            'not_attending' => AppText.t.notif_guestNotAttending(name),
+            _ => AppText.t.notif_guestChanged(name),
           },
           at: at,
         );
@@ -184,7 +185,9 @@ class NotificationDetector {
         return AppNotification(
           id: mark,
           kind: NotifKind.taskAdded,
-          text: name.isEmpty ? 'Dodano zadanie' : 'Dodano zadanie: $name',
+          text: name.isEmpty
+              ? AppText.t.notif_taskAdded
+              : AppText.t.notif_taskAddedNamed(name),
           at: at,
         );
 
@@ -195,13 +198,13 @@ class NotificationDetector {
         final m = (s['minute'] as num?)?.toInt() ?? 0;
         final name = (s['name'] as String?)?.trim() ?? '';
         final time = NotificationSnapshot._hhmm(h, m);
-        final label = name.isEmpty ? 'punkt programu' : name;
+        final label = name.isEmpty ? AppText.t.notif_programmeItem : name;
         // Nie odróżniamy „dodano" od „zmieniono" — dla odbiorcy liczy się
         // aktualna treść punktu, a nie historia edycji.
         return AppNotification(
           id: mark,
           kind: NotifKind.schedule,
-          text: 'Harmonogram: $label o $time',
+          text: AppText.t.notif_scheduleAdded(label, time),
           at: at,
         );
     }
@@ -219,9 +222,9 @@ class NotificationDetector {
   }
 
   static String _guestName(Guest? g) {
-    if (g == null) return 'Gość';
+    if (g == null) return AppText.t.role_guest;
     final full = g.fullName.trim();
-    return full.isEmpty ? 'Gość bez imienia' : full;
+    return full.isEmpty ? AppText.t.notif_guestNoName : full;
   }
 
   /// Ten sam mechanizm dla STREFY GOŚCIA, ale wąski: wyłącznie harmonogram.
@@ -268,13 +271,12 @@ class NotificationDetector {
       final h = (e['hour'] as num?)?.toInt() ?? 0;
       final m = (e['minute'] as num?)?.toInt() ?? 0;
       final name = (e['name'] as String?)?.trim() ?? '';
-      final label = name.isEmpty ? 'punkt programu' : name;
+      final label = name.isEmpty ? AppText.t.notif_programmeItem : name;
 
       out.add(AppNotification(
         id: mark,
         kind: NotifKind.schedule,
-        text: 'Zmieniono w harmonogramie: $label '
-            '${NotificationSnapshot._hhmm(h, m)}',
+        text: 'Zmieniono w harmonogramie: $label ${NotificationSnapshot._hhmm(h, m)}',
         at: at,
       ));
     }

@@ -6,6 +6,7 @@ import '../../models/hotel.dart';
 import '../../services/accommodation_service.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Modalny formularz dodawania / edycji hotelu.
 class HotelFormSheet extends StatefulWidget {
@@ -105,30 +106,30 @@ class _HotelFormSheetState extends State<HotelFormSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(_isEdit ? 'Edytuj hotel' : 'Dodaj hotel',
+                  Text(_isEdit ? AppText.t.hotel_edit : AppText.t.hotel_add,
                       style: GoogleFonts.playfairDisplay(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: AppColors.text)),
                   const SizedBox(height: 16),
-                  _label('Nazwa hotelu *'),
+                  _label(AppText.t.hotel_nameRequired),
                   TextFormField(
                     controller: _name,
-                    decoration: _dec(hint: 'np. Hotel Pod Różą'),
+                    decoration: _dec(hint: AppText.t.hotel_nameHint),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Podaj nazwę hotelu'
+                        ? AppText.t.hotel_needName
                         : null,
                   ),
                   const SizedBox(height: 14),
                   _label('Adres'),
                   TextField(
-                      controller: _address, decoration: _dec(hint: 'Ulica, miasto')),
+                      controller: _address, decoration: _dec(hint: AppText.t.hotel_streetCity)),
                   const SizedBox(height: 14),
                   _label('Telefon'),
                   TextField(
                       controller: _phone,
                       keyboardType: TextInputType.phone,
-                      decoration: _dec(hint: 'np. 600 100 200')),
+                      decoration: _dec(hint: AppText.t.common_phoneHint)),
                   const SizedBox(height: 14),
                   Row(
                     children: [
@@ -136,12 +137,12 @@ class _HotelFormSheetState extends State<HotelFormSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _label('Cena za os./noc'),
+                            _label(AppText.t.hotel_pricePerNight),
                             TextField(
                               controller: _price,
                               keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true),
-                              decoration: _dec(hint: '0', suffix: 'zł'),
+                              decoration: _dec(hint: '0', suffix: AppFormat.currency.symbol),
                             ),
                           ],
                         ),
@@ -151,7 +152,7 @@ class _HotelFormSheetState extends State<HotelFormSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _label('Osób w pokoju'),
+                            _label(AppText.t.hotel_personsPerRoom),
                             Row(
                               children: [
                                 _stepper(Icons.remove, () {
@@ -176,7 +177,7 @@ class _HotelFormSheetState extends State<HotelFormSheet> {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  _label('Link do rezerwacji'),
+                  _label(AppText.t.hotel_bookingLink),
                   TextField(
                       controller: _bookingLink,
                       keyboardType: TextInputType.url,
@@ -186,7 +187,7 @@ class _HotelFormSheetState extends State<HotelFormSheet> {
                   TextField(
                       controller: _notes,
                       maxLines: 2,
-                      decoration: _dec(hint: 'Opcjonalnie…')),
+                      decoration: _dec(hint: AppText.t.common_optionalHint)),
                   const SizedBox(height: 4),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,

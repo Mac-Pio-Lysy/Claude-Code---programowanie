@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/beverage.dart';
 import '../models/children.dart';
 import 'firestore_service.dart';
+import '../l10n/app_text.dart';
 
 /// Dane wydatku z formularza dodawania/edycji.
 class ExpenseDraft {
@@ -130,7 +131,7 @@ class BudgetService {
     final idx = list.length;
     list.add({
       'id': nextId,
-      'name': name.trim().isEmpty ? 'Obsługa' : name.trim(),
+      'name': name.trim().isEmpty ? AppText.t.budget_staff : name.trim(),
       'persons': persons,
       'includeInCost': false,
       'posX': 50 + (idx % 6) * 150,

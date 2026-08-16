@@ -3440,12 +3440,6 @@ abstract class AppLocalizations {
   /// **'Brak hotelu'**
   String get accommodation_noHotel;
 
-  /// No description provided for @accommodation_statusHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Status…'**
-  String get accommodation_statusHint;
-
   /// No description provided for @accommodation_onSite.
   ///
   /// In pl, this message translates to:
@@ -4509,7 +4503,7 @@ abstract class AppLocalizations {
   /// No description provided for @music_removeMomentBody.
   ///
   /// In pl, this message translates to:
-  /// **'Moment „{label}” zniknie z listy. Przypisane utwory NIE zostaną usunięte.'**
+  /// **'Moment „{label}\" zniknie z listy. Przypisane utwory NIE zostaną usunięte — pokażą się jako „spoza listy\", możesz je przypisać ponownie lub odłączyć.'**
   String music_removeMomentBody(String label);
 
   /// No description provided for @music_emptyAddFirst.
@@ -9810,6 +9804,3960 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nic nie znaleziono dla „{query}\".\nSpróbuj innego słowa — np. „gość\", „stół\", „płatność\".'**
   String help_nothingFound(String query);
+
+  /// No description provided for @coupleType_mixed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kobieta i mężczyzna'**
+  String get coupleType_mixed;
+
+  /// No description provided for @coupleType_women.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dwie kobiety'**
+  String get coupleType_women;
+
+  /// No description provided for @coupleType_men.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dwóch mężczyzn'**
+  String get coupleType_men;
+
+  /// No description provided for @coupleType_neutral.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niebinarne / inne'**
+  String get coupleType_neutral;
+
+  /// No description provided for @coupleType_mixedHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Panna Młoda i Pan Młody'**
+  String get coupleType_mixedHint;
+
+  /// No description provided for @coupleType_womenHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Obie osoby jako Panny Młode'**
+  String get coupleType_womenHint;
+
+  /// No description provided for @coupleType_menHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Obie osoby jako Panowie Młodzi'**
+  String get coupleType_menHint;
+
+  /// No description provided for @coupleType_neutralHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Neutralne etykiety: Osoba 1 i Osoba 2'**
+  String get coupleType_neutralHint;
+
+  /// No description provided for @couple_bride.
+  ///
+  /// In pl, this message translates to:
+  /// **'Panna Młoda'**
+  String get couple_bride;
+
+  /// No description provided for @couple_groom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pan Młody'**
+  String get couple_groom;
+
+  /// No description provided for @couple_brideEmoji.
+  ///
+  /// In pl, this message translates to:
+  /// **'👰 Panna Młoda'**
+  String get couple_brideEmoji;
+
+  /// No description provided for @couple_groomEmoji.
+  ///
+  /// In pl, this message translates to:
+  /// **'🤵 Pan Młody'**
+  String get couple_groomEmoji;
+
+  /// Etykieta zastępcza, gdy imię nie zostało podane.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osoba {index}'**
+  String couple_personNumbered(int index);
+
+  /// No description provided for @couple_brideNumbered.
+  ///
+  /// In pl, this message translates to:
+  /// **'Panna Młoda {index}'**
+  String couple_brideNumbered(int index);
+
+  /// No description provided for @couple_groomNumbered.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pan Młody {index}'**
+  String couple_groomNumbered(int index);
+
+  /// Sklejenie ikony z etykietą osoby. Jeśli w danym języku ikona ma stać po tekście, zmień kolejność podstawień.
+  ///
+  /// In pl, this message translates to:
+  /// **'{emoji} {name}'**
+  String couple_withEmoji(String emoji, String name);
+
+  /// No description provided for @couple_fromBride.
+  ///
+  /// In pl, this message translates to:
+  /// **'Od Panny Młodej'**
+  String get couple_fromBride;
+
+  /// No description provided for @couple_fromGroom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Od Pana Młodego'**
+  String get couple_fromGroom;
+
+  /// Filtr „kto zaprosił" przy parze jednopłciowej lub neutralnej — używamy dwukropka, bo imion nie odmieniamy.
+  ///
+  /// In pl, this message translates to:
+  /// **'Od: {person}'**
+  String couple_fromNamed(String person);
+
+  /// No description provided for @couple_witnessBride.
+  ///
+  /// In pl, this message translates to:
+  /// **'Świadkowa'**
+  String get couple_witnessBride;
+
+  /// No description provided for @couple_witnessGroom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Świadek'**
+  String get couple_witnessGroom;
+
+  /// No description provided for @couple_witnessNamed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Świadek/Świadkowa ({person})'**
+  String couple_witnessNamed(String person);
+
+  /// No description provided for @couple_witnessNone.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak roli'**
+  String get couple_witnessNone;
+
+  /// No description provided for @couple_personShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'osoba {index}'**
+  String couple_personShort(int index);
+
+  /// No description provided for @couple_categoryMixed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Państwo Młodzi'**
+  String get couple_categoryMixed;
+
+  /// No description provided for @couple_categoryWomen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Panny Młode'**
+  String get couple_categoryWomen;
+
+  /// No description provided for @couple_categoryMen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Panowie Młodzi'**
+  String get couple_categoryMen;
+
+  /// No description provided for @couple_categoryNeutral.
+  ///
+  /// In pl, this message translates to:
+  /// **'Para Młoda'**
+  String get couple_categoryNeutral;
+
+  /// Złączenie dwóch imion („Ania i Piotr").
+  ///
+  /// In pl, this message translates to:
+  /// **'{first} i {second}'**
+  String couple_joinNames(String first, String second);
+
+  /// No description provided for @vehicle_rented.
+  ///
+  /// In pl, this message translates to:
+  /// **'Auto wynajęte'**
+  String get vehicle_rented;
+
+  /// No description provided for @vehicle_own.
+  ///
+  /// In pl, this message translates to:
+  /// **'Auto własne'**
+  String get vehicle_own;
+
+  /// Typ pojazdu. UWAGA: cała fraza w jednym kluczu — polski wymaga tu dopełniacza, więc sklejanie z przedrostka nie działa.
+  ///
+  /// In pl, this message translates to:
+  /// **'Auto rodziców Panny Młodej'**
+  String get vehicle_parentsBride;
+
+  /// No description provided for @vehicle_parentsGroom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Auto rodziców Pana Młodego'**
+  String get vehicle_parentsGroom;
+
+  /// No description provided for @vehicle_parentsNamed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Auto rodziców ({person})'**
+  String vehicle_parentsNamed(String person);
+
+  /// No description provided for @vehicle_bus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bus'**
+  String get vehicle_bus;
+
+  /// No description provided for @vehicle_taxi.
+  ///
+  /// In pl, this message translates to:
+  /// **'Taxi/Uber'**
+  String get vehicle_taxi;
+
+  /// No description provided for @vehicle_other.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inne'**
+  String get vehicle_other;
+
+  /// No description provided for @quiz_favouriteFilmGroom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ulubiony film Pana Młodego?'**
+  String get quiz_favouriteFilmGroom;
+
+  /// Przykładowe pytanie quizu; {person} to imię drugiej osoby z pary.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ulubiony film ({person})?'**
+  String quiz_favouriteFilmNamed(String person);
+
+  /// No description provided for @musicMoment_firstDance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pierwszy taniec'**
+  String get musicMoment_firstDance;
+
+  /// No description provided for @musicMoment_entrance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wejście'**
+  String get musicMoment_entrance;
+
+  /// No description provided for @musicMoment_games.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oczepiny'**
+  String get musicMoment_games;
+
+  /// No description provided for @musicMoment_slow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wolne'**
+  String get musicMoment_slow;
+
+  /// No description provided for @musicMoment_party.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imprezowe'**
+  String get musicMoment_party;
+
+  /// Wartość domyślna pola `moment` utworu.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inne'**
+  String get musicMoment_other;
+
+  /// Kluczowy moment wesela. UWAGA: ta wartość ZAPISUJE SIĘ w bazie przy zakładaniu wesela i po niej dobierana jest ikona — dopasowanie działa we wszystkich obsługiwanych językach, więc tłumaczenie jest bezpieczne, ale nie zmieniaj go po wydaniu.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pierwszy taniec'**
+  String get specialMoment_firstDance;
+
+  /// No description provided for @specialMoment_firstSong.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pierwszy utwór'**
+  String get specialMoment_firstSong;
+
+  /// No description provided for @specialMoment_coupleEntrance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wejście Pary Młodej'**
+  String get specialMoment_coupleEntrance;
+
+  /// No description provided for @specialMoment_cake.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tort'**
+  String get specialMoment_cake;
+
+  /// No description provided for @specialMoment_games.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oczepiny'**
+  String get specialMoment_games;
+
+  /// No description provided for @specialMoment_lastDance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostatni taniec'**
+  String get specialMoment_lastDance;
+
+  /// No description provided for @specialMoment_toast.
+  ///
+  /// In pl, this message translates to:
+  /// **'Toast'**
+  String get specialMoment_toast;
+
+  /// No description provided for @musicStatus_proposal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Propozycja'**
+  String get musicStatus_proposal;
+
+  /// No description provided for @musicStatus_approved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zatwierdzone'**
+  String get musicStatus_approved;
+
+  /// No description provided for @musicStatus_rejected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odrzucone'**
+  String get musicStatus_rejected;
+
+  /// No description provided for @musicStatus_dj.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do decyzji DJa'**
+  String get musicStatus_dj;
+
+  /// Kategoria rady. W bazie zapisuje się identyfikator (`love`), więc tłumaczy się wyłącznie etykieta.
+  ///
+  /// In pl, this message translates to:
+  /// **'Miłość'**
+  String get adviceCat_love;
+
+  /// No description provided for @adviceCat_daily.
+  ///
+  /// In pl, this message translates to:
+  /// **'Codzienność'**
+  String get adviceCat_daily;
+
+  /// No description provided for @adviceCat_humor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Humor'**
+  String get adviceCat_humor;
+
+  /// No description provided for @adviceCat_wisdom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Mądrość życiowa'**
+  String get adviceCat_wisdom;
+
+  /// No description provided for @adviceCat_other.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inne'**
+  String get adviceCat_other;
+
+  /// No description provided for @beverage_alcohol.
+  ///
+  /// In pl, this message translates to:
+  /// **'Alkohol'**
+  String get beverage_alcohol;
+
+  /// No description provided for @beverage_soft.
+  ///
+  /// In pl, this message translates to:
+  /// **'Napoje bezalkoholowe'**
+  String get beverage_soft;
+
+  /// No description provided for @giftCat_guests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Goście'**
+  String get giftCat_guests;
+
+  /// No description provided for @giftCat_witnesses.
+  ///
+  /// In pl, this message translates to:
+  /// **'Świadkowie'**
+  String get giftCat_witnesses;
+
+  /// No description provided for @giftCat_parents.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rodzice'**
+  String get giftCat_parents;
+
+  /// No description provided for @giftCat_distinction.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyróżnienie'**
+  String get giftCat_distinction;
+
+  /// Status zadania; w bazie zostaje `todo`.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do zrobienia'**
+  String get taskStatus_todo;
+
+  /// No description provided for @taskStatus_inprogress.
+  ///
+  /// In pl, this message translates to:
+  /// **'W trakcie'**
+  String get taskStatus_inprogress;
+
+  /// No description provided for @taskStatus_done.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zrobione'**
+  String get taskStatus_done;
+
+  /// No description provided for @taskStatus_cancelled.
+  ///
+  /// In pl, this message translates to:
+  /// **'Anulowane'**
+  String get taskStatus_cancelled;
+
+  /// No description provided for @taskPriority_low.
+  ///
+  /// In pl, this message translates to:
+  /// **'Niski'**
+  String get taskPriority_low;
+
+  /// No description provided for @taskPriority_med.
+  ///
+  /// In pl, this message translates to:
+  /// **'Średni'**
+  String get taskPriority_med;
+
+  /// No description provided for @taskPriority_high.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysoki'**
+  String get taskPriority_high;
+
+  /// No description provided for @taskPerson_both.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oboje'**
+  String get taskPerson_both;
+
+  /// No description provided for @push_rsvp.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdzenia gości (RSVP)'**
+  String get push_rsvp;
+
+  /// No description provided for @push_tasks.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowe zadania'**
+  String get push_tasks;
+
+  /// No description provided for @push_schedule.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmiany w harmonogramie'**
+  String get push_schedule;
+
+  /// No description provided for @push_memberJoined.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowa osoba w weselu'**
+  String get push_memberJoined;
+
+  /// No description provided for @push_deadlines.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zbliżające się terminy'**
+  String get push_deadlines;
+
+  /// No description provided for @push_rsvpHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdy gość potwierdzi obecność albo zmieni decyzję.'**
+  String get push_rsvpHint;
+
+  /// No description provided for @push_tasksHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdy ktoś doda zadanie do listy.'**
+  String get push_tasksHint;
+
+  /// No description provided for @push_scheduleHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdy pojawi się nowy punkt programu albo zmieni się godzina.'**
+  String get push_scheduleHint;
+
+  /// No description provided for @push_memberJoinedHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdy do wesela dołączy planer, współorganizator albo gość.'**
+  String get push_memberJoinedHint;
+
+  /// No description provided for @push_deadlinesHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypomnienie o płatności lub zadaniu z bliskim terminem.'**
+  String get push_deadlinesHint;
+
+  /// No description provided for @gs_attending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przyjdzie'**
+  String get gs_attending;
+
+  /// No description provided for @gs_notAttending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie przyjdzie'**
+  String get gs_notAttending;
+
+  /// No description provided for @gs_noAnswer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak odpowiedzi'**
+  String get gs_noAnswer;
+
+  /// No description provided for @gs_ownTransport.
+  ///
+  /// In pl, this message translates to:
+  /// **'Własny'**
+  String get gs_ownTransport;
+
+  /// No description provided for @gs_organisedTransport.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zorganizowany'**
+  String get gs_organisedTransport;
+
+  /// No description provided for @gs_roomReserved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zarezerwowany'**
+  String get gs_roomReserved;
+
+  /// No description provided for @gs_roomPending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do zarezerwowania'**
+  String get gs_roomPending;
+
+  /// No description provided for @gs_roomSelf.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sam rezerwuje'**
+  String get gs_roomSelf;
+
+  /// No description provided for @gs_roomNeeded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potrzebuje'**
+  String get gs_roomNeeded;
+
+  /// Zapasowa nazwa stołu, gdy para nie nadała własnej.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stół'**
+  String get gs_table;
+
+  /// No description provided for @pay_sala.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sala'**
+  String get pay_sala;
+
+  /// No description provided for @pay_expenses.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wydatki'**
+  String get pay_expenses;
+
+  /// No description provided for @pay_honeymoon.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podróż poślubna'**
+  String get pay_honeymoon;
+
+  /// No description provided for @pay_vendor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostawca'**
+  String get pay_vendor;
+
+  /// No description provided for @pay_generic.
+  ///
+  /// In pl, this message translates to:
+  /// **'Płatność'**
+  String get pay_generic;
+
+  /// No description provided for @pay_salaComputed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Koszt sali (obliczony)'**
+  String get pay_salaComputed;
+
+  /// No description provided for @pay_vendorInstalment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rata do dostawcy: {vendor}'**
+  String pay_vendorInstalment(String vendor);
+
+  /// No description provided for @notif_guestAdded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano gościa: {name}'**
+  String notif_guestAdded(String name);
+
+  /// No description provided for @notif_guestAttending.
+  ///
+  /// In pl, this message translates to:
+  /// **'{name} potwierdził(a) obecność'**
+  String notif_guestAttending(String name);
+
+  /// No description provided for @notif_guestNotAttending.
+  ///
+  /// In pl, this message translates to:
+  /// **'{name} nie przyjdzie'**
+  String notif_guestNotAttending(String name);
+
+  /// No description provided for @notif_guestChanged.
+  ///
+  /// In pl, this message translates to:
+  /// **'{name} — zmiana potwierdzenia'**
+  String notif_guestChanged(String name);
+
+  /// No description provided for @notif_taskAdded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano zadanie'**
+  String get notif_taskAdded;
+
+  /// No description provided for @notif_taskAddedNamed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano zadanie: {name}'**
+  String notif_taskAddedNamed(String name);
+
+  /// No description provided for @notif_scheduleAdded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Harmonogram: {label} o {time}'**
+  String notif_scheduleAdded(String label, String time);
+
+  /// No description provided for @notif_scheduleChanged.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmieniono w harmonogramie: {label}'**
+  String notif_scheduleChanged(String label);
+
+  /// No description provided for @notif_guestNoName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gość bez imienia'**
+  String get notif_guestNoName;
+
+  /// No description provided for @currency_pln.
+  ///
+  /// In pl, this message translates to:
+  /// **'Złoty polski'**
+  String get currency_pln;
+
+  /// No description provided for @currency_eur.
+  ///
+  /// In pl, this message translates to:
+  /// **'Euro'**
+  String get currency_eur;
+
+  /// No description provided for @currency_usd.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dolar amerykański'**
+  String get currency_usd;
+
+  /// No description provided for @currency_gbp.
+  ///
+  /// In pl, this message translates to:
+  /// **'Funt brytyjski'**
+  String get currency_gbp;
+
+  /// No description provided for @currency_czk.
+  ///
+  /// In pl, this message translates to:
+  /// **'Korona czeska'**
+  String get currency_czk;
+
+  /// No description provided for @currency_chf.
+  ///
+  /// In pl, this message translates to:
+  /// **'Frank szwajcarski'**
+  String get currency_chf;
+
+  /// No description provided for @children_adultAtKidsTable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.'**
+  String get children_adultAtKidsTable;
+
+  /// No description provided for @children_kidAtNormalTable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dziecko przy zwykłym stole — jest też stół dla dzieci.'**
+  String get children_kidAtNormalTable;
+
+  /// No description provided for @auth_googleUnsupported.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie Google nie jest obsługiwane na tej platformie.'**
+  String get auth_googleUnsupported;
+
+  /// No description provided for @auth_noToken.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak tokenu Google. Spróbuj ponownie.'**
+  String get auth_noToken;
+
+  /// No description provided for @auth_googleError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Błąd logowania Google.'**
+  String get auth_googleError;
+
+  /// No description provided for @auth_generic.
+  ///
+  /// In pl, this message translates to:
+  /// **'Błąd logowania. Spróbuj ponownie.'**
+  String get auth_generic;
+
+  /// No description provided for @auth_network.
+  ///
+  /// In pl, this message translates to:
+  /// **'Błąd sieci — sprawdź połączenie z internetem.'**
+  String get auth_network;
+
+  /// No description provided for @auth_tooMany.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zbyt wiele prób logowania. Poczekaj chwilę i spróbuj ponownie.'**
+  String get auth_tooMany;
+
+  /// No description provided for @auth_disabled.
+  ///
+  /// In pl, this message translates to:
+  /// **'To konto Google zostało wyłączone.'**
+  String get auth_disabled;
+
+  /// No description provided for @auth_notEnabled.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie przez Google nie jest włączone. Skontaktuj się z administratorem.'**
+  String get auth_notEnabled;
+
+  /// No description provided for @auth_popupBlocked.
+  ///
+  /// In pl, this message translates to:
+  /// **'Okno logowania zostało zablokowane przez przeglądarkę — zezwól na wyskakujące okienka i spróbuj ponownie.'**
+  String get auth_popupBlocked;
+
+  /// {code} to kod błędu z Firebase — zostaje bez tłumaczenia.
+  ///
+  /// In pl, this message translates to:
+  /// **'Błąd logowania ({code}). Spróbuj ponownie.'**
+  String auth_codeError(String code);
+
+  /// No description provided for @guestId_noUser.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie anonimowe nie zwróciło użytkownika.'**
+  String get guestId_noUser;
+
+  /// No description provided for @guestId_notConfigured.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strona gości nie jest jeszcze w pełni skonfigurowana. Przeglądanie działa, ale wysyłanie wpisów może się nie udać.'**
+  String get guestId_notConfigured;
+
+  /// No description provided for @guestId_offline.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak połączenia z internetem. Sprawdź sieć i odśwież stronę.'**
+  String get guestId_offline;
+
+  /// No description provided for @guestId_generic.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się przygotować sesji gościa. Możesz przeglądać stronę, ale wysyłanie wpisów może nie zadziałać.'**
+  String get guestId_generic;
+
+  /// {category} to etykieta kategorii Pary Młodej, {max} — limit osób.
+  ///
+  /// In pl, this message translates to:
+  /// **'W kategorii „{category}\" mogą być najwyżej {max} osoby. Zmień kategorię tego gościa albo popraw istniejący wpis Pary Młodej.'**
+  String guestSvc_coupleLimit(String category, int max);
+
+  /// No description provided for @guestSvc_coupleNoCompanion.
+  ///
+  /// In pl, this message translates to:
+  /// **'Para Młoda nie ma osoby towarzyszącej — obie osoby dodaj jako osobne wpisy Pary Młodej.'**
+  String get guestSvc_coupleNoCompanion;
+
+  /// Pole planszy bingo generowane z punktu harmonogramu.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bądź obecny/a na: {name}'**
+  String bingo_beAt(String name);
+
+  /// No description provided for @dash_countdown.
+  ///
+  /// In pl, this message translates to:
+  /// **'Licznik do ślubu'**
+  String get dash_countdown;
+
+  /// No description provided for @dash_setDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw datę w Ustawieniach'**
+  String get dash_setDate;
+
+  /// No description provided for @dash_today.
+  ///
+  /// In pl, this message translates to:
+  /// **'To dziś!'**
+  String get dash_today;
+
+  /// Podpis pod liczbą dni na kafelku licznika. Sama liczba stoi nad podpisem, dlatego w treści jej nie powtarzamy.
+  ///
+  /// In pl, this message translates to:
+  /// **'{days, plural, =1{dzień do ślubu} other{dni do ślubu}}'**
+  String dash_daysLeft(int days);
+
+  /// No description provided for @dash_guestsSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{attending} potw. · {declined} odmów · {noRsvp} bez odp.'**
+  String dash_guestsSub(int attending, int declined, int noRsvp);
+
+  /// No description provided for @dash_tablesSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{assigned} przypisanych · {free} wolnych miejsc'**
+  String dash_tablesSub(int assigned, int free);
+
+  /// {paid} i {left} to gotowe kwoty z symbolem waluty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opłacono {paid} · zostało {left}'**
+  String dash_budgetSub(String paid, String left);
+
+  /// No description provided for @dash_noEvents.
+  ///
+  /// In pl, this message translates to:
+  /// **'brak wydarzeń'**
+  String get dash_noEvents;
+
+  /// No description provided for @dash_nextEvent.
+  ///
+  /// In pl, this message translates to:
+  /// **'najbliższe wydarzenie'**
+  String get dash_nextEvent;
+
+  /// No description provided for @dash_tasksSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{todo} do zrobienia · {inProgress} w trakcie'**
+  String dash_tasksSub(int todo, int inProgress);
+
+  /// No description provided for @dash_transportSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =0{wszyscy mają transport} =1{1 gość bez transportu} few{{count} gości bez transportu} other{{count} gości bez transportu}}'**
+  String dash_transportSub(int count);
+
+  /// No description provided for @dash_roomsSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{reserved} zarezerwowanych'**
+  String dash_roomsSub(int reserved);
+
+  /// No description provided for @dash_giftsSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'łącznie {value} · {thanked} z podziękowaniem'**
+  String dash_giftsSub(String value, int thanked);
+
+  /// No description provided for @dash_rsvpSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{declined} odmów · {total} odpowiedzi'**
+  String dash_rsvpSub(int declined, int total);
+
+  /// No description provided for @dash_bottles.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} butelek'**
+  String dash_bottles(String count);
+
+  /// No description provided for @dash_paymentsSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{overdue} zaległych · {soon} wkrótce'**
+  String dash_paymentsSub(int overdue, int soon);
+
+  /// No description provided for @dash_vendorsSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} potwierdzonych'**
+  String dash_vendorsSub(int count);
+
+  /// No description provided for @dash_gallerySub.
+  ///
+  /// In pl, this message translates to:
+  /// **'zdjęć i filmów'**
+  String get dash_gallerySub;
+
+  /// No description provided for @pdf_qrHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zeskanuj telefonem, aby otworzyć stronę dla gości.'**
+  String get pdf_qrHint;
+
+  /// No description provided for @pdf_galleryTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Galeria zdjęć z wesela'**
+  String get pdf_galleryTitle;
+
+  /// No description provided for @pdf_galleryHintVideo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia i filmy.'**
+  String get pdf_galleryHintVideo;
+
+  /// No description provided for @pdf_galleryHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia.'**
+  String get pdf_galleryHint;
+
+  /// No description provided for @pdf_scheduleTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Harmonogram dnia ślubu'**
+  String get pdf_scheduleTitle;
+
+  /// No description provided for @pdf_place.
+  ///
+  /// In pl, this message translates to:
+  /// **'Miejsce: {place}'**
+  String pdf_place(String place);
+
+  /// No description provided for @pdf_scheduleEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wydarzeń w harmonogramie.'**
+  String get pdf_scheduleEmpty;
+
+  /// No description provided for @pdf_guestbookTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Księga Gości'**
+  String get pdf_guestbookTitle;
+
+  /// No description provided for @pdf_guestbookSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'Życzenia i wiadomości od gości'**
+  String get pdf_guestbookSub;
+
+  /// No description provided for @pdf_guestbookEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wpisów w księdze gości.'**
+  String get pdf_guestbookEmpty;
+
+  /// No description provided for @pdf_hasPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'📷 (zdjęcie dostępne online)'**
+  String get pdf_hasPhoto;
+
+  /// No description provided for @pdf_advicesTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rady dla Pary Młodej'**
+  String get pdf_advicesTitle;
+
+  /// No description provided for @pdf_advicesSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'Złote myśli o małżeństwie od gości'**
+  String get pdf_advicesSub;
+
+  /// No description provided for @pdf_advicesEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak rad.'**
+  String get pdf_advicesEmpty;
+
+  /// Cudzysłów wokół cytatu — użyj znaków typowych dla języka.
+  ///
+  /// In pl, this message translates to:
+  /// **'„{text}\"'**
+  String pdf_quoted(String text);
+
+  /// No description provided for @pdf_adviceAuthor.
+  ///
+  /// In pl, this message translates to:
+  /// **'— {name} · {category}'**
+  String pdf_adviceAuthor(String name, String category);
+
+  /// No description provided for @pdf_capsuleTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kapsuła czasu'**
+  String get pdf_capsuleTitle;
+
+  /// No description provided for @pdf_capsuleSub.
+  ///
+  /// In pl, this message translates to:
+  /// **'Otwarte wiadomości od gości'**
+  String get pdf_capsuleSub;
+
+  /// No description provided for @pdf_capsuleEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak otwartych wiadomości.'**
+  String get pdf_capsuleEmpty;
+
+  /// No description provided for @pdf_openedOn.
+  ///
+  /// In pl, this message translates to:
+  /// **'otwarta {date}'**
+  String pdf_openedOn(String date);
+
+  /// No description provided for @pdf_bingoTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'ŚLUBNE BINGO'**
+  String get pdf_bingoTitle;
+
+  /// Plakietka przy pozycji budżetu utworzonej w innej sekcji.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano w: {section}'**
+  String w_addedIn(String section);
+
+  /// No description provided for @w_comingSoon.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wkrótce'**
+  String get w_comingSoon;
+
+  /// No description provided for @w_comingSoonBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ta funkcja jest w przygotowaniu.'**
+  String get w_comingSoonBody;
+
+  /// No description provided for @w_hideFilters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukryj filtry'**
+  String get w_hideFilters;
+
+  /// No description provided for @w_showFilters.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaż filtry'**
+  String get w_showFilters;
+
+  /// No description provided for @w_more.
+  ///
+  /// In pl, this message translates to:
+  /// **'Więcej'**
+  String get w_more;
+
+  /// No description provided for @w_notifications.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powiadomienia'**
+  String get w_notifications;
+
+  /// No description provided for @w_notificationsUnread.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powiadomienia ({count} nieprzeczytane)'**
+  String w_notificationsUnread(int count);
+
+  /// No description provided for @w_unreadCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{1 nieprzeczytane} few{{count} nieprzeczytane} other{{count} nieprzeczytanych}}'**
+  String w_unreadCount(int count);
+
+  /// No description provided for @w_markAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oznacz wszystkie'**
+  String get w_markAll;
+
+  /// No description provided for @w_noNotifications.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak nowych powiadomień'**
+  String get w_noNotifications;
+
+  /// No description provided for @w_noNotificationsBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Damy znać, gdy pojawią się potwierdzenia gości, nowe zadania albo zmiany w harmonogramie.'**
+  String get w_noNotificationsBody;
+
+  /// No description provided for @w_groupSummary.
+  ///
+  /// In pl, this message translates to:
+  /// **'{label}: {summary}'**
+  String w_groupSummary(String label, String summary);
+
+  /// No description provided for @w_goToSection.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przejdź do sekcji'**
+  String get w_goToSection;
+
+  /// No description provided for @w_markRead.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oznacz jako przeczytane'**
+  String get w_markRead;
+
+  /// No description provided for @w_justNow.
+  ///
+  /// In pl, this message translates to:
+  /// **'przed chwilą'**
+  String get w_justNow;
+
+  /// No description provided for @w_minutesAgo.
+  ///
+  /// In pl, this message translates to:
+  /// **'{minutes} min temu'**
+  String w_minutesAgo(int minutes);
+
+  /// No description provided for @w_guestPage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strona dla gości'**
+  String get w_guestPage;
+
+  /// No description provided for @w_linkCopied.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skopiowano link'**
+  String get w_linkCopied;
+
+  /// No description provided for @w_download.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pobierz / udostępnij'**
+  String get w_download;
+
+  /// No description provided for @w_weddingToday.
+  ///
+  /// In pl, this message translates to:
+  /// **'To już dziś! 🎉'**
+  String get w_weddingToday;
+
+  /// No description provided for @w_seeYouAtWedding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do zobaczenia na weselu'**
+  String get w_seeYouAtWedding;
+
+  /// No description provided for @w_timeToWedding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do wesela zostało'**
+  String get w_timeToWedding;
+
+  /// No description provided for @nav_biometricTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy chcesz logować się odciskiem palca?'**
+  String get nav_biometricTitle;
+
+  /// No description provided for @nav_securityTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy chcesz zabezpieczyć aplikację?'**
+  String get nav_securityTitle;
+
+  /// No description provided for @nav_biometricBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przy kolejnych otwarciach odblokujesz aplikację odciskiem palca. Ustawisz też zapasowy PIN lub wzór na wypadek, gdyby czytnik nie zadziałał. Konto Google pozostaje zalogowane.'**
+  String get nav_biometricBody;
+
+  /// No description provided for @nav_securityBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'To urządzenie nie ma czytnika biometrycznego. Możesz ustawić PIN lub wzór, aby odblokowywać aplikację przy kolejnych otwarciach.'**
+  String get nav_securityBody;
+
+  /// No description provided for @nav_notNow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie teraz'**
+  String get nav_notNow;
+
+  /// No description provided for @nav_enable.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tak, włącz'**
+  String get nav_enable;
+
+  /// No description provided for @nav_logoutTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wylogować się?'**
+  String get nav_logoutTitle;
+
+  /// No description provided for @nav_logoutBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy wyłączyć też zabezpieczenia (odcisk palca / PIN) na tym urządzeniu? Przydatne, gdy z aplikacji może korzystać inna osoba.'**
+  String get nav_logoutBody;
+
+  /// No description provided for @nav_logoutKeep.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyloguj, zachowaj'**
+  String get nav_logoutKeep;
+
+  /// No description provided for @nav_logoutClear.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyloguj i wyłącz'**
+  String get nav_logoutClear;
+
+  /// Nazwa własna produktu — NIE tłumaczyć.
+  ///
+  /// In pl, this message translates to:
+  /// **'Moje Wesele'**
+  String get nav_appName;
+
+  /// No description provided for @nav_moreSections.
+  ///
+  /// In pl, this message translates to:
+  /// **'Więcej sekcji'**
+  String get nav_moreSections;
+
+  /// No description provided for @nav_configureBar.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konfiguruj pasek'**
+  String get nav_configureBar;
+
+  /// No description provided for @nav_configureBottomBar.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konfiguruj dolny pasek'**
+  String get nav_configureBottomBar;
+
+  /// No description provided for @nav_configureHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dashboard (środek) i „Więcej\" (skrajnie prawy) są zawsze na stałych miejscach. Wybierz liczbę pozostałych ikon, dotknij ikonę zamiany (⇄), by wybrać inną sekcję, i przeciągnij za uchwyt, by zmienić kolejność — pierwsza połowa trafi na lewo od Dashboardu, reszta na prawo.'**
+  String get nav_configureHint;
+
+  /// No description provided for @nav_icons4.
+  ///
+  /// In pl, this message translates to:
+  /// **'4 ikony'**
+  String get nav_icons4;
+
+  /// No description provided for @nav_icons6.
+  ///
+  /// In pl, this message translates to:
+  /// **'6 ikon'**
+  String get nav_icons6;
+
+  /// No description provided for @nav_changeSection.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmień sekcję'**
+  String get nav_changeSection;
+
+  /// No description provided for @nav_testMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb testowy'**
+  String get nav_testMode;
+
+  /// Podpis pod liczbą na liczniku — sama liczba stoi nad podpisem, więc w treści jej nie powtarzamy.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{godzina} few{godziny} other{godzin}}'**
+  String countdown_hours(int count);
+
+  /// No description provided for @countdown_days.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{dzień} other{dni}}'**
+  String countdown_days(int count);
+
+  /// Doprecyzowanie pod licznikiem — tu liczba JEST w treści.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{{count} minuta} few{{count} minuty} other{{count} minut}}'**
+  String countdown_minutesDetail(int count);
+
+  /// No description provided for @countdown_hoursDetail.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{i {count} godzina} few{i {count} godziny} other{i {count} godzin}}'**
+  String countdown_hoursDetail(int count);
+
+  /// {excluded} to etykieta kategorii Pary Młodej (pomijanej w losowaniu).
+  ///
+  /// In pl, this message translates to:
+  /// **'Losowanie spośród gości z listy. W puli: {count, plural, =1{1 gość} few{{count} gości} other{{count} gości}} ({excluded} pominięci).'**
+  String wheel_poolInfo(int count, String excluded);
+
+  /// No description provided for @gp_guestPage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strona dla gości'**
+  String get gp_guestPage;
+
+  /// No description provided for @gp_activeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Goście mogą teraz grać przez stronę / kod QR.'**
+  String get gp_activeHint;
+
+  /// No description provided for @gp_enableHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Włącz, aby goście mogli odpowiadać.'**
+  String get gp_enableHint;
+
+  /// No description provided for @gp_loadResultsError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać wyników. Sprawdź połączenie.'**
+  String get gp_loadResultsError;
+
+  /// No description provided for @gp_noResults.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wyników. Udostępnij gościom kod QR, aby zagrali.'**
+  String get gp_noResults;
+
+  /// No description provided for @gp_participants.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uczestników'**
+  String get gp_participants;
+
+  /// No description provided for @gp_avgScore.
+  ///
+  /// In pl, this message translates to:
+  /// **'Śr. wynik'**
+  String get gp_avgScore;
+
+  /// No description provided for @gp_wrongOf.
+  ///
+  /// In pl, this message translates to:
+  /// **'{wrong}/{answered} błędnych'**
+  String gp_wrongOf(int wrong, int answered);
+
+  /// No description provided for @gp_questionText.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz treść pytania'**
+  String get gp_questionText;
+
+  /// No description provided for @gp_emptyCorrect.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznaczona poprawna odpowiedź jest pusta'**
+  String get gp_emptyCorrect;
+
+  /// No description provided for @gp_answers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odpowiedzi (zaznacz poprawną)'**
+  String get gp_answers;
+
+  /// No description provided for @gp_answerN.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odpowiedź {index}'**
+  String gp_answerN(int index);
+
+  /// No description provided for @quiz_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'🧠 Quiz o Parze Młodej'**
+  String get quiz_headerTitle;
+
+  /// No description provided for @quiz_questions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pytań'**
+  String get quiz_questions;
+
+  /// No description provided for @quiz_questionLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Treść pytania'**
+  String get quiz_questionLabel;
+
+  /// No description provided for @quiz_questionHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Gdzie się poznaliśmy?'**
+  String get quiz_questionHint;
+
+  /// No description provided for @tf_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'🤔 Prawda czy Fałsz o Parze Młodej'**
+  String get tf_headerTitle;
+
+  /// No description provided for @tf_true.
+  ///
+  /// In pl, this message translates to:
+  /// **'✓ PRAWDA'**
+  String get tf_true;
+
+  /// No description provided for @tf_false.
+  ///
+  /// In pl, this message translates to:
+  /// **'✗ FAŁSZ'**
+  String get tf_false;
+
+  /// No description provided for @tf_deleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć „{text}\"?'**
+  String tf_deleteConfirm(String text);
+
+  /// No description provided for @tf_confusing.
+  ///
+  /// In pl, this message translates to:
+  /// **'📊 Najbardziej mylące stwierdzenia'**
+  String get tf_confusing;
+
+  /// No description provided for @tf_statements.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stwierdzeń'**
+  String get tf_statements;
+
+  /// No description provided for @tf_needText.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz treść stwierdzenia'**
+  String get tf_needText;
+
+  /// No description provided for @tf_textLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Treść stwierdzenia'**
+  String get tf_textLabel;
+
+  /// No description provided for @tf_textHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Para Młoda poznała się w pracy'**
+  String get tf_textHint;
+
+  /// No description provided for @tf_falseShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'Fałsz'**
+  String get tf_falseShort;
+
+  /// No description provided for @tf_explanation.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyjaśnienie (opcjonalnie)'**
+  String get tf_explanation;
+
+  /// No description provided for @tf_explanationHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Poznali się przez wspólnych znajomych'**
+  String get tf_explanationHint;
+
+  /// No description provided for @pg_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'📸 Zgadnij zdjęcie'**
+  String get pg_headerTitle;
+
+  /// No description provided for @pg_photos.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcia'**
+  String get pg_photos;
+
+  /// No description provided for @pg_enableHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Włącz, aby goście mogli zgadywać.'**
+  String get pg_enableHint;
+
+  /// No description provided for @pg_needPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw dodaj przynajmniej jedno zdjęcie.'**
+  String get pg_needPhoto;
+
+  /// No description provided for @pg_photosCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęć'**
+  String get pg_photosCount;
+
+  /// No description provided for @pg_uploadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wgrać zdjęcia: {error}'**
+  String pg_uploadError(String error);
+
+  /// No description provided for @pg_addPhotoFirst.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw dodaj zdjęcie'**
+  String get pg_addPhotoFirst;
+
+  /// No description provided for @pg_editPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj zdjęcie'**
+  String get pg_editPhoto;
+
+  /// No description provided for @pg_addPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zdjęcie'**
+  String get pg_addPhoto;
+
+  /// No description provided for @pg_questionHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Kto to z dzieciństwa?'**
+  String get pg_questionHint;
+
+  /// No description provided for @pg_photo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie'**
+  String get pg_photo;
+
+  /// No description provided for @pc_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'📷 Foto-wyzwania'**
+  String get pc_headerTitle;
+
+  /// No description provided for @pc_activeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Goście mogą teraz wykonywać wyzwania przez stronę / kod QR.'**
+  String get pc_activeHint;
+
+  /// No description provided for @pc_enableHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Włącz, aby goście mogli przesyłać zdjęcia.'**
+  String get pc_enableHint;
+
+  /// No description provided for @pc_deleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć „{text}\"? Przesłane zdjęcia pozostaną w galerii.'**
+  String pc_deleteConfirm(String text);
+
+  /// No description provided for @pc_loadPhotosError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać zdjęć. Sprawdź połączenie.'**
+  String get pc_loadPhotosError;
+
+  /// No description provided for @pc_deleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunięte wyzwanie'**
+  String get pc_deleted;
+
+  /// No description provided for @pc_deletePhotoTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunąć zdjęcie?'**
+  String get pc_deletePhotoTitle;
+
+  /// No description provided for @pc_deletePhotoBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć zdjęcie od „{name}\"?'**
+  String pc_deletePhotoBody(String name);
+
+  /// No description provided for @pc_empty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wykonanych wyzwań. Udostępnij gościom kod QR.'**
+  String get pc_empty;
+
+  /// No description provided for @pc_photos.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęć'**
+  String get pc_photos;
+
+  /// No description provided for @pc_challenges.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyzwań'**
+  String get pc_challenges;
+
+  /// No description provided for @bingo_needPool.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potrzeba min. 24 pól w puli (jest {count}).'**
+  String bingo_needPool(int count);
+
+  /// No description provided for @bingo_title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ślubne Bingo'**
+  String get bingo_title;
+
+  /// No description provided for @bingo_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎯 Ślubne Bingo'**
+  String get bingo_headerTitle;
+
+  /// No description provided for @bingo_guestHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strona z interaktywnym bingo dla gości. Pokaż im kod QR lub wyślij link, aby grali na telefonach.'**
+  String get bingo_guestHint;
+
+  /// No description provided for @bingo_pool.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pula losowania: {count} pól'**
+  String bingo_pool(int count);
+
+  /// No description provided for @bingo_preview.
+  ///
+  /// In pl, this message translates to:
+  /// **'Losuj podgląd'**
+  String get bingo_preview;
+
+  /// No description provided for @bingo_previewBoard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podgląd planszy'**
+  String get bingo_previewBoard;
+
+  /// No description provided for @bingo_fromSchedule.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dołącz pola z harmonogramu'**
+  String get bingo_fromSchedule;
+
+  /// No description provided for @bingo_centerField.
+  ///
+  /// In pl, this message translates to:
+  /// **'Środkowe pole planszy'**
+  String get bingo_centerField;
+
+  /// No description provided for @bingo_coupleNames.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imiona Pary Młodej'**
+  String get bingo_coupleNames;
+
+  /// No description provided for @bingo_fieldsBase.
+  ///
+  /// In pl, this message translates to:
+  /// **'Baza pól ({active} / {total} aktywnych)'**
+  String bingo_fieldsBase(int active, int total);
+
+  /// No description provided for @bingo_empty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak pól. Dodaj pierwsze powyżej.'**
+  String get bingo_empty;
+
+  /// No description provided for @bingo_newField.
+  ///
+  /// In pl, this message translates to:
+  /// **'Treść pola…'**
+  String get bingo_newField;
+
+  /// No description provided for @wheel_fields.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pola koła ({count})'**
+  String wheel_fields(int count);
+
+  /// No description provided for @wheel_removeOnPick.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń wylosowanego z puli'**
+  String get wheel_removeOnPick;
+
+  /// No description provided for @wheel_removeOnPickOn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wylosowane pola nie pojawią się ponownie (w tej sesji).'**
+  String get wheel_removeOnPickOn;
+
+  /// No description provided for @wheel_removeOnPickOff.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wylosowane pola zostają w puli.'**
+  String get wheel_removeOnPickOff;
+
+  /// No description provided for @wheel_fullscreen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb prezentacji (pełny ekran)'**
+  String get wheel_fullscreen;
+
+  /// No description provided for @wheel_fullscreenHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Duże koło do pokazania na sali.'**
+  String get wheel_fullscreenHint;
+
+  /// No description provided for @wheel_poolEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pula jest pusta — dodaj pola lub zresetuj pulę.'**
+  String get wheel_poolEmpty;
+
+  /// No description provided for @wheel_poolReset.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pula przywrócona'**
+  String get wheel_poolReset;
+
+  /// No description provided for @wheel_noFields.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak pól w puli'**
+  String get wheel_noFields;
+
+  /// No description provided for @wheel_spinning.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kręcę…'**
+  String get wheel_spinning;
+
+  /// No description provided for @wheel_pressSpin.
+  ///
+  /// In pl, this message translates to:
+  /// **'Naciśnij „Zakręć!\"'**
+  String get wheel_pressSpin;
+
+  /// No description provided for @wheel_spin.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakręć!'**
+  String get wheel_spin;
+
+  /// No description provided for @wheel_reset.
+  ///
+  /// In pl, this message translates to:
+  /// **'Resetuj pulę'**
+  String get wheel_reset;
+
+  /// No description provided for @wheel_history.
+  ///
+  /// In pl, this message translates to:
+  /// **'🕘 Historia losowań'**
+  String get wheel_history;
+
+  /// Tryb koła fortuny; wartość zapisywana w bazie jest osobna.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kto tańczy następny'**
+  String get wheelMode_nextDance;
+
+  /// No description provided for @wheelMode_coupleTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zadanie dla Pary Młodej'**
+  String get wheelMode_coupleTask;
+
+  /// No description provided for @wheelMode_custom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Własne koło'**
+  String get wheelMode_custom;
+
+  /// No description provided for @advices_loadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać rad. Sprawdź połączenie.'**
+  String get advices_loadError;
+
+  /// No description provided for @advices_deleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć radę od „{name}\"? Tej operacji nie można cofnąć.'**
+  String advices_deleteConfirm(String name);
+
+  /// No description provided for @advices_pdfTitleNamed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rady dla Pary Młodej — {event}'**
+  String advices_pdfTitleNamed(String event);
+
+  /// No description provided for @guestbook_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'💝 Księga gości'**
+  String get guestbook_headerTitle;
+
+  /// No description provided for @guestbook_loadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać wpisów. Sprawdź połączenie z internetem.'**
+  String get guestbook_loadError;
+
+  /// Podpis pod liczbą wpisów w księdze gości.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{życzenie} few{życzenia} other{życzeń}}'**
+  String guestbook_wishCount(int count);
+
+  /// No description provided for @guestbook_pdfTitleNamed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Księga Gości — {event}'**
+  String guestbook_pdfTitleNamed(String event);
+
+  /// No description provided for @capsule_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'⏳ Kapsuła czasu'**
+  String get capsule_headerTitle;
+
+  /// No description provided for @capsule_messages.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wiadomości'**
+  String get capsule_messages;
+
+  /// No description provided for @capsule_loadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać wiadomości. Sprawdź połączenie.'**
+  String get capsule_loadError;
+
+  /// No description provided for @capsule_sealed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapieczętowane'**
+  String get capsule_sealed;
+
+  /// No description provided for @capsule_nearest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najbliższe'**
+  String get capsule_nearest;
+
+  /// No description provided for @capsule_previewOn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podgląd wszystkich włączony (treści widoczne tylko dla Ciebie).'**
+  String get capsule_previewOn;
+
+  /// No description provided for @capsule_autoOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wiadomości otworzą się automatycznie w swojej dacie.'**
+  String get capsule_autoOpen;
+
+  /// No description provided for @capsule_seal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapieczętuj'**
+  String get capsule_seal;
+
+  /// No description provided for @capsule_previewUntil.
+  ///
+  /// In pl, this message translates to:
+  /// **'🔓 Podgląd — otworzy się {date}'**
+  String capsule_previewUntil(String date);
+
+  /// No description provided for @capsule_later.
+  ///
+  /// In pl, this message translates to:
+  /// **'później'**
+  String get capsule_later;
+
+  /// No description provided for @capsule_pdfTitleNamed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kapsuła czasu — {event}'**
+  String capsule_pdfTitleNamed(String event);
+
+  /// No description provided for @guestMap_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'🗺️ Mapa gości'**
+  String get guestMap_headerTitle;
+
+  /// No description provided for @guestMap_loadError.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się wczytać mapy. Sprawdź połączenie.'**
+  String get guestMap_loadError;
+
+  /// No description provided for @guestMap_guests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gości'**
+  String get guestMap_guests;
+
+  /// No description provided for @guestMap_cities.
+  ///
+  /// In pl, this message translates to:
+  /// **'Miejscowości'**
+  String get guestMap_cities;
+
+  /// No description provided for @guestMap_noCity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak miejscowości'**
+  String get guestMap_noCity;
+
+  /// No description provided for @guestMap_savedNoGeo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano (nie udało się zlokalizować miejscowości)'**
+  String get guestMap_savedNoGeo;
+
+  /// No description provided for @guestMap_addedNoGeo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano (nie udało się zlokalizować miejscowości)'**
+  String get guestMap_addedNoGeo;
+
+  /// No description provided for @guestMap_deleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć „{name}\"?'**
+  String guestMap_deleteConfirm(String name);
+
+  /// No description provided for @guestMap_addGuest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj gościa'**
+  String get guestMap_addGuest;
+
+  /// No description provided for @hotel_deleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć „{name}\"? Przypisania gości do tego hotelu zostaną wyczyszczone.'**
+  String hotel_deleteConfirm(String name);
+
+  /// No description provided for @hotel_deleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunięto hotel'**
+  String get hotel_deleted;
+
+  /// No description provided for @hotel_noGuests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak gości z zaznaczonym noclegiem.\nZaznacz „Nocleg\" przy gościu w sekcji Goście.'**
+  String get hotel_noGuests;
+
+  /// No description provided for @hotel_empty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak hoteli. Dodaj pierwszy poniżej.'**
+  String get hotel_empty;
+
+  /// No description provided for @hotel_address.
+  ///
+  /// In pl, this message translates to:
+  /// **'📍 {address}'**
+  String hotel_address(String address);
+
+  /// No description provided for @hotel_phone.
+  ///
+  /// In pl, this message translates to:
+  /// **'📞 {phone}'**
+  String hotel_phone(String phone);
+
+  /// No description provided for @hotel_perRoom.
+  ///
+  /// In pl, this message translates to:
+  /// **'👥 {count} os./pokój'**
+  String hotel_perRoom(int count);
+
+  /// No description provided for @hotel_guestCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'🛏 gości: {count}'**
+  String hotel_guestCount(int count);
+
+  /// No description provided for @hotel_nameHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Hotel Pod Różą'**
+  String get hotel_nameHint;
+
+  /// No description provided for @hotel_needName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj nazwę hotelu'**
+  String get hotel_needName;
+
+  /// No description provided for @hotel_personsPerRoom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osób w pokoju'**
+  String get hotel_personsPerRoom;
+
+  /// No description provided for @an_budgetChart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Budżet: planowany / orientacyjny / opłacony'**
+  String get an_budgetChart;
+
+  /// No description provided for @an_expensesChart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozkład wydatków (kategorie)'**
+  String get an_expensesChart;
+
+  /// No description provided for @an_paymentsChart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Postęp płatności w czasie'**
+  String get an_paymentsChart;
+
+  /// No description provided for @an_rsvpChart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdzenia gości'**
+  String get an_rsvpChart;
+
+  /// No description provided for @an_menuChart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozkład menu'**
+  String get an_menuChart;
+
+  /// No description provided for @an_dietChart.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozkład diet'**
+  String get an_dietChart;
+
+  /// No description provided for @an_costPerGuest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Koszt / gość'**
+  String get an_costPerGuest;
+
+  /// No description provided for @an_byBudget.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg budżetu'**
+  String get an_byBudget;
+
+  /// No description provided for @an_guests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gości'**
+  String get an_guests;
+
+  /// No description provided for @an_paid.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opłacony'**
+  String get an_paid;
+
+  /// No description provided for @an_noExpenses.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak wydatków.'**
+  String get an_noExpenses;
+
+  /// No description provided for @an_noPayments.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych o płatnościach z datą.'**
+  String get an_noPayments;
+
+  /// No description provided for @an_noGuests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak gości.'**
+  String get an_noGuests;
+
+  /// No description provided for @an_willAttend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przyjdą'**
+  String get an_willAttend;
+
+  /// No description provided for @an_willNotAttend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie przyjdą'**
+  String get an_willNotAttend;
+
+  /// No description provided for @dash_emptyTiles.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak kafelków. Kliknij „Edytuj\", aby dodać.'**
+  String get dash_emptyTiles;
+
+  /// No description provided for @dash_afterWedding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Już po ślubie!'**
+  String get dash_afterWedding;
+
+  /// No description provided for @gal_photoVideo.
+  ///
+  /// In pl, this message translates to:
+  /// **'📸 Galeria zdjęć i filmów'**
+  String get gal_photoVideo;
+
+  /// No description provided for @gal_musicChoice.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎵 Wybór muzyki'**
+  String get gal_musicChoice;
+
+  /// No description provided for @gal_photos.
+  ///
+  /// In pl, this message translates to:
+  /// **'📷 Zdjęcia'**
+  String get gal_photos;
+
+  /// No description provided for @gal_combined.
+  ///
+  /// In pl, this message translates to:
+  /// **'Połączony'**
+  String get gal_combined;
+
+  /// No description provided for @gifts_forGuests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dla gości'**
+  String get gifts_forGuests;
+
+  /// No description provided for @gifts_count.
+  ///
+  /// In pl, this message translates to:
+  /// **'Prezentów'**
+  String get gifts_count;
+
+  /// No description provided for @gifts_totalValue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Łączna wartość'**
+  String get gifts_totalValue;
+
+  /// No description provided for @gifts_favoursCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Upominków'**
+  String get gifts_favoursCount;
+
+  /// No description provided for @gifts_totalCost.
+  ///
+  /// In pl, this message translates to:
+  /// **'Łączny koszt'**
+  String get gifts_totalCost;
+
+  /// No description provided for @gifts_totalCostFor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Łączny koszt ({count} os.)'**
+  String gifts_totalCostFor(String count);
+
+  /// No description provided for @gifts_recalcToReal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przelicz na gości rzeczywistych'**
+  String get gifts_recalcToReal;
+
+  /// No description provided for @gifts_addProposal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj propozycję'**
+  String get gifts_addProposal;
+
+  /// No description provided for @gifts_proposalHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tytuł propozycji…'**
+  String get gifts_proposalHint;
+
+  /// No description provided for @rsvpAll_qr.
+  ///
+  /// In pl, this message translates to:
+  /// **'📋 Potwierdzenia (RSVP)'**
+  String get rsvpAll_qr;
+
+  /// No description provided for @rsvpAll_entries.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisów'**
+  String get rsvpAll_entries;
+
+  /// No description provided for @rsvpAll_manual.
+  ///
+  /// In pl, this message translates to:
+  /// **'✍ Ręczny'**
+  String get rsvpAll_manual;
+
+  /// No description provided for @rsvp_attendingShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'✓ Przyjdzie'**
+  String get rsvp_attendingShort;
+
+  /// No description provided for @rsvp_qrTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod QR potwierdzeń'**
+  String get rsvp_qrTitle;
+
+  /// No description provided for @rsvp_attendingCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'✓ Przyjdą ({count})'**
+  String rsvp_attendingCount(int count);
+
+  /// No description provided for @rsvp_notAttendingCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'✗ Nie przyjdą ({count})'**
+  String rsvp_notAttendingCount(int count);
+
+  /// No description provided for @music_headerTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎵 Muzyka — propozycje gości'**
+  String get music_headerTitle;
+
+  /// No description provided for @music_needTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj tytuł utworu'**
+  String get music_needTitle;
+
+  /// No description provided for @music_exportTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tytuł'**
+  String get music_exportTitle;
+
+  /// No description provided for @music_exportSpecial.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utwór specjalny'**
+  String get music_exportSpecial;
+
+  /// No description provided for @music_exportFromGuest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Od gościa'**
+  String get music_exportFromGuest;
+
+  /// No description provided for @music_importHelp.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wklej listę utworów. Obsługiwane formaty:\n• CSV: Tytuł;Wykonawca;Status (separator średnik)\n• Tekst: \"- Tytuł — Wykonawca\" (po jednym w linii)\nStatus rozpoznawany ze słów: „zatwierdzone\", „odrzucone\", „dj\".'**
+  String get music_importHelp;
+
+  /// No description provided for @tr_ownTransport.
+  ///
+  /// In pl, this message translates to:
+  /// **'transport własny'**
+  String get tr_ownTransport;
+
+  /// No description provided for @tr_unassigned.
+  ///
+  /// In pl, this message translates to:
+  /// **'bez przydziału'**
+  String get tr_unassigned;
+
+  /// No description provided for @tr_vehicles.
+  ///
+  /// In pl, this message translates to:
+  /// **'pojazdów'**
+  String get tr_vehicles;
+
+  /// No description provided for @tr_route.
+  ///
+  /// In pl, this message translates to:
+  /// **'🛣 {route}'**
+  String tr_route(String route);
+
+  /// No description provided for @tr_addToOwn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj do transportu własnego'**
+  String get tr_addToOwn;
+
+  /// No description provided for @tr_typeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Pojazd Kuby, Bus wynajęty'**
+  String get tr_typeHint;
+
+  /// No description provided for @tr_needType.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj typ/nazwę'**
+  String get tr_needType;
+
+  /// No description provided for @tr_driverName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imię kierowcy'**
+  String get tr_driverName;
+
+  /// No description provided for @tr_routeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Kościół → Sala'**
+  String get tr_routeHint;
+
+  /// {currency} to symbol waluty wesela.
+  ///
+  /// In pl, this message translates to:
+  /// **'Koszt ({currency})'**
+  String tr_cost(String currency);
+
+  /// No description provided for @vf_editVendor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj dostawcę'**
+  String get vf_editVendor;
+
+  /// No description provided for @vf_addVendor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj dostawcę'**
+  String get vf_addVendor;
+
+  /// No description provided for @vf_customCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Własna kategoria'**
+  String get vf_customCategory;
+
+  /// No description provided for @vf_needCompany.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj nazwę firmy'**
+  String get vf_needCompany;
+
+  /// No description provided for @vf_fullName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Imię i nazwisko'**
+  String get vf_fullName;
+
+  /// No description provided for @vf_price.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cena ({currency})'**
+  String vf_price(String currency);
+
+  /// No description provided for @vf_paymentStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Status płatności'**
+  String get vf_paymentStatus;
+
+  /// No description provided for @vf_contractAmount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kwota umowy / szac. koszt ({currency})'**
+  String vf_contractAmount(String currency);
+
+  /// No description provided for @vf_budgetCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kategoria budżetowa'**
+  String get vf_budgetCategory;
+
+  /// No description provided for @vend_linkedBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostawca „{vendor}\" jest powiązany z wpisem w budżecie. Co zrobić z powiązanym wpisem?'**
+  String vend_linkedBody(String vendor);
+
+  /// No description provided for @vend_deleteConfirm.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy na pewno usunąć „{vendor}\"?'**
+  String vend_deleteConfirm(String vendor);
+
+  /// No description provided for @vend_deleteBoth.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń oba'**
+  String get vend_deleteBoth;
+
+  /// No description provided for @vend_anyStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Każdy status'**
+  String get vend_anyStatus;
+
+  /// No description provided for @vend_byName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg nazwy (A–Z)'**
+  String get vend_byName;
+
+  /// No description provided for @task_transport.
+  ///
+  /// In pl, this message translates to:
+  /// **'🚗 Transport'**
+  String get task_transport;
+
+  /// No description provided for @task_gift.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎁 Prezent'**
+  String get task_gift;
+
+  /// No description provided for @task_goToSection.
+  ///
+  /// In pl, this message translates to:
+  /// **'→ {section}'**
+  String task_goToSection(String section);
+
+  /// No description provided for @sched_location.
+  ///
+  /// In pl, this message translates to:
+  /// **'📍 {location}'**
+  String sched_location(String location);
+
+  /// No description provided for @pay_expensesTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'📋 Wydatki'**
+  String get pay_expensesTab;
+
+  /// No description provided for @pay_dueDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'📅 {date}'**
+  String pay_dueDate(String date);
+
+  /// No description provided for @lock_unlock.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odblokuj, aby kontynuować'**
+  String get lock_unlock;
+
+  /// No description provided for @lock_touchToScan.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dotknij, aby zeskanować odcisk palca'**
+  String get lock_touchToScan;
+
+  /// {type} to „PIN" albo „wzór" — patrz sec_backupPin / sec_backupPattern.
+  ///
+  /// In pl, this message translates to:
+  /// **'Użyj {type}'**
+  String lock_useBackup(String type);
+
+  /// No description provided for @lock_drawPattern.
+  ///
+  /// In pl, this message translates to:
+  /// **'Narysuj wzór odblokowania'**
+  String get lock_drawPattern;
+
+  /// No description provided for @lock_wrongBackup.
+  ///
+  /// In pl, this message translates to:
+  /// **'Błędny {type} — pozostało prób: {left}'**
+  String lock_wrongBackup(String type, int left);
+
+  /// No description provided for @lock_useFingerprint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Użyj odcisku palca'**
+  String get lock_useFingerprint;
+
+  /// No description provided for @lock_forgot.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie pamiętasz? Zaloguj przez Google'**
+  String get lock_forgot;
+
+  /// No description provided for @setup_confirmBiometric.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdź odcisk palca, aby włączyć logowanie biometryczne'**
+  String get setup_confirmBiometric;
+
+  /// No description provided for @setup_biometricFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się potwierdzić odcisku palca. Czy ustawić samo zabezpieczenie zapasowe (PIN lub wzór)?'**
+  String get setup_biometricFailed;
+
+  /// No description provided for @setup_setPin.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw PIN/wzór'**
+  String get setup_setPin;
+
+  /// No description provided for @setup_repeatPin.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtórz kod PIN'**
+  String get setup_repeatPin;
+
+  /// No description provided for @setup_repeatPattern.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtórz wzór, aby potwierdzić'**
+  String get setup_repeatPattern;
+
+  /// No description provided for @setup_pinMismatch.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kody PIN się różnią — spróbuj ponownie'**
+  String get setup_pinMismatch;
+
+  /// No description provided for @setup_patternMismatch.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wzory się różnią — spróbuj ponownie'**
+  String get setup_patternMismatch;
+
+  /// No description provided for @setup_pinBackupHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'PIN/wzór posłuży, gdy odcisk palca nie zadziała (np. mokry palec).'**
+  String get setup_pinBackupHint;
+
+  /// No description provided for @setup_unlockHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'To zabezpieczenie odblokuje aplikację przy kolejnych otwarciach.'**
+  String get setup_unlockHint;
+
+  /// No description provided for @setup_pattern.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wzór graficzny'**
+  String get setup_pattern;
+
+  /// No description provided for @setup_connectDots.
+  ///
+  /// In pl, this message translates to:
+  /// **'Połącz co najmniej 4 punkty'**
+  String get setup_connectDots;
+
+  /// No description provided for @setup_patternTooShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wzór jest za krótki — połącz min. 4 punkty'**
+  String get setup_patternTooShort;
+
+  /// No description provided for @login_subtitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się lub załóż konto swoim kontem Google'**
+  String get login_subtitle;
+
+  /// No description provided for @login_secure.
+  ///
+  /// In pl, this message translates to:
+  /// **'🔒 Bezpieczne logowanie — bez osobnego hasła'**
+  String get login_secure;
+
+  /// No description provided for @login_google.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się przez Google'**
+  String get login_google;
+
+  /// No description provided for @welcome_testMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb testowy — wejście bez logowania'**
+  String get welcome_testMode;
+
+  /// No description provided for @welcome_enter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wejdź do aplikacji'**
+  String get welcome_enter;
+
+  /// No description provided for @auth_cancelled.
+  ///
+  /// In pl, this message translates to:
+  /// **'Anulowano logowanie.'**
+  String get auth_cancelled;
+
+  /// No description provided for @wsum_owner.
+  ///
+  /// In pl, this message translates to:
+  /// **'Właściciel'**
+  String get wsum_owner;
+
+  /// No description provided for @wsum_collab.
+  ///
+  /// In pl, this message translates to:
+  /// **'Współpraca'**
+  String get wsum_collab;
+
+  /// No description provided for @hotel_added.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano hotel'**
+  String get hotel_added;
+
+  /// No description provided for @hotel_needsRoom.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potrzebuje noclegu'**
+  String get hotel_needsRoom;
+
+  /// No description provided for @common_noName.
+  ///
+  /// In pl, this message translates to:
+  /// **'(bez imienia)'**
+  String get common_noName;
+
+  /// No description provided for @hotel_edit.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj hotel'**
+  String get hotel_edit;
+
+  /// No description provided for @hotel_add.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj hotel'**
+  String get hotel_add;
+
+  /// No description provided for @hotel_nameRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa hotelu *'**
+  String get hotel_nameRequired;
+
+  /// No description provided for @hotel_streetCity.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ulica, miasto'**
+  String get hotel_streetCity;
+
+  /// No description provided for @hotel_pricePerNight.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cena za os./noc'**
+  String get hotel_pricePerNight;
+
+  /// No description provided for @hotel_bookingLink.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link do rezerwacji'**
+  String get hotel_bookingLink;
+
+  /// No description provided for @an_byEstimate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg orientacyjnego'**
+  String get an_byEstimate;
+
+  /// No description provided for @an_estimateShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'Orientac.'**
+  String get an_estimateShort;
+
+  /// No description provided for @an_noMenu.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bez menu'**
+  String get an_noMenu;
+
+  /// No description provided for @an_noMenuData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych o menu.'**
+  String get an_noMenuData;
+
+  /// No description provided for @an_noDietData.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak danych o dietach.'**
+  String get an_noDietData;
+
+  /// No description provided for @bingo_generator.
+  ///
+  /// In pl, this message translates to:
+  /// **'Generator plansz'**
+  String get bingo_generator;
+
+  /// No description provided for @bingo_boardCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Liczba plansz:'**
+  String get bingo_boardCount;
+
+  /// No description provided for @bingo_newFieldHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowe pole bingo…'**
+  String get bingo_newFieldHint;
+
+  /// No description provided for @bev_bottlesPerPerson.
+  ///
+  /// In pl, this message translates to:
+  /// **'butelek / os.'**
+  String get bev_bottlesPerPerson;
+
+  /// No description provided for @bev_costPerPerson.
+  ///
+  /// In pl, this message translates to:
+  /// **'koszt / os.'**
+  String get bev_costPerPerson;
+
+  /// No description provided for @bev_brand.
+  ///
+  /// In pl, this message translates to:
+  /// **'Marka / nazwa (opcjonalnie)'**
+  String get bev_brand;
+
+  /// No description provided for @bev_pieces.
+  ///
+  /// In pl, this message translates to:
+  /// **'szt.'**
+  String get bev_pieces;
+
+  /// No description provided for @bs_plannedPlusReserve.
+  ///
+  /// In pl, this message translates to:
+  /// **'Planowany + rezerwa'**
+  String get bs_plannedPlusReserve;
+
+  /// No description provided for @bs_ofWhichVenue.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym sala'**
+  String get bs_ofWhichVenue;
+
+  /// No description provided for @bs_reserveUsed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wykorzystana rezerwa'**
+  String get bs_reserveUsed;
+
+  /// No description provided for @ef_edit.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj wydatek'**
+  String get ef_edit;
+
+  /// No description provided for @ef_add.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj wydatek'**
+  String get ef_add;
+
+  /// No description provided for @ef_nameHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Atrakcje dla dzieci'**
+  String get ef_nameHint;
+
+  /// No description provided for @ef_estimate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kwota orientacyjna'**
+  String get ef_estimate;
+
+  /// No description provided for @vf_companyName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa firmy'**
+  String get vf_companyName;
+
+  /// No description provided for @vf_companyHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Studio Foto'**
+  String get vf_companyHint;
+
+  /// No description provided for @vf_contactPerson.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osoba kontaktowa'**
+  String get vf_contactPerson;
+
+  /// No description provided for @vf_vendorCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kategoria dostawcy'**
+  String get vf_vendorCategory;
+
+  /// No description provided for @common_email.
+  ///
+  /// In pl, this message translates to:
+  /// **'E-mail'**
+  String get common_email;
+
+  /// No description provided for @sala_cateringBase.
+  ///
+  /// In pl, this message translates to:
+  /// **'Baza cateringu'**
+  String get sala_cateringBase;
+
+  /// No description provided for @sala_cateringExtras.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodatki cateringu'**
+  String get sala_cateringExtras;
+
+  /// No description provided for @sala_inCosts.
+  ///
+  /// In pl, this message translates to:
+  /// **'W kosztach'**
+  String get sala_inCosts;
+
+  /// No description provided for @sala_menuExtras.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodatki do menu'**
+  String get sala_menuExtras;
+
+  /// No description provided for @sala_separateCatering.
+  ///
+  /// In pl, this message translates to:
+  /// **'Catering (oddzielny)'**
+  String get sala_separateCatering;
+
+  /// No description provided for @sala_venueTotal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Razem sala'**
+  String get sala_venueTotal;
+
+  /// No description provided for @sala_staffNameHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa (np. Kelnerzy)'**
+  String get sala_staffNameHint;
+
+  /// No description provided for @gal_videos.
+  ///
+  /// In pl, this message translates to:
+  /// **'▶ Filmy'**
+  String get gal_videos;
+
+  /// No description provided for @gal_pdfPrints.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wydruki PDF'**
+  String get gal_pdfPrints;
+
+  /// No description provided for @gal_galleryQr.
+  ///
+  /// In pl, this message translates to:
+  /// **'Galeria (QR)'**
+  String get gal_galleryQr;
+
+  /// No description provided for @pc_needChallenge.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw dodaj przynajmniej jedno wyzwanie.'**
+  String get pc_needChallenge;
+
+  /// No description provided for @pc_editChallenge.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj wyzwanie'**
+  String get pc_editChallenge;
+
+  /// No description provided for @gp_needTwoAnswers.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj przynajmniej 2 odpowiedzi'**
+  String get gp_needTwoAnswers;
+
+  /// No description provided for @quiz_needQuestion.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw dodaj przynajmniej jedno pytanie.'**
+  String get quiz_needQuestion;
+
+  /// No description provided for @gp_noAnswers.
+  ///
+  /// In pl, this message translates to:
+  /// **'brak odpowiedzi'**
+  String get gp_noAnswers;
+
+  /// No description provided for @quiz_editQuestion.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj pytanie'**
+  String get quiz_editQuestion;
+
+  /// No description provided for @tf_needStatement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Najpierw dodaj przynajmniej jedno stwierdzenie.'**
+  String get tf_needStatement;
+
+  /// No description provided for @tf_editStatement.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj stwierdzenie'**
+  String get tf_editStatement;
+
+  /// No description provided for @tf_isItTrue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Czy to prawda?'**
+  String get tf_isItTrue;
+
+  /// No description provided for @wheel_mode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tryb losowania'**
+  String get wheel_mode;
+
+  /// No description provided for @wheel_addField.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pole'**
+  String get wheel_addField;
+
+  /// No description provided for @wheel_addHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pola przyciskiem +.'**
+  String get wheel_addHint;
+
+  /// No description provided for @wheel_fieldN.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pole {index}'**
+  String wheel_fieldN(int index);
+
+  /// No description provided for @wheel_drawn.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎉 Wylosowano'**
+  String get wheel_drawn;
+
+  /// No description provided for @wheel_inPool.
+  ///
+  /// In pl, this message translates to:
+  /// **'W puli: {count}'**
+  String wheel_inPool(int count);
+
+  /// No description provided for @gifts_addGift.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj prezent'**
+  String get gifts_addGift;
+
+  /// No description provided for @gifts_fromWho.
+  ///
+  /// In pl, this message translates to:
+  /// **'Od kogo…'**
+  String get gifts_fromWho;
+
+  /// No description provided for @gifts_giftDesc.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis prezentu…'**
+  String get gifts_giftDesc;
+
+  /// No description provided for @gifts_recalcAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przelicz na rzeczywistych + wirtualnych'**
+  String get gifts_recalcAll;
+
+  /// No description provided for @gifts_favourHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Upominek…'**
+  String get gifts_favourHint;
+
+  /// No description provided for @common_descriptionHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opis…'**
+  String get common_descriptionHint;
+
+  /// No description provided for @gc_seatHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. miejsce przy rodzinie'**
+  String get gc_seatHint;
+
+  /// No description provided for @gc_allergyHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. orzechy, gluten'**
+  String get gc_allergyHint;
+
+  /// No description provided for @gc_extraInfo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodatkowe informacje…'**
+  String get gc_extraInfo;
+
+  /// No description provided for @advices_emptyCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak rad w tej kategorii.'**
+  String get advices_emptyCategory;
+
+  /// No description provided for @advices_autoplay.
+  ///
+  /// In pl, this message translates to:
+  /// **'Auto-pokaz'**
+  String get advices_autoplay;
+
+  /// No description provided for @guestMap_onMap.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na mapie'**
+  String get guestMap_onMap;
+
+  /// No description provided for @guestMap_savedEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano wpis'**
+  String get guestMap_savedEntry;
+
+  /// No description provided for @guestMap_addedEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano wpis'**
+  String get guestMap_addedEntry;
+
+  /// No description provided for @guestMap_editEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj wpis'**
+  String get guestMap_editEntry;
+
+  /// No description provided for @capsule_opened.
+  ///
+  /// In pl, this message translates to:
+  /// **'💌 Otwarta'**
+  String get capsule_opened;
+
+  /// No description provided for @lock_locked.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aplikacja zablokowana'**
+  String get lock_locked;
+
+  /// No description provided for @lock_welcomeBack.
+  ///
+  /// In pl, this message translates to:
+  /// **'Witaj ponownie, {name}'**
+  String lock_welcomeBack(String name);
+
+  /// No description provided for @lock_enterPin.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisz kod PIN'**
+  String get lock_enterPin;
+
+  /// No description provided for @setup_biometricUnconfirmed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Biometria niepotwierdzona'**
+  String get setup_biometricUnconfirmed;
+
+  /// No description provided for @setup_chooseBackup.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz zabezpieczenie zapasowe'**
+  String get setup_chooseBackup;
+
+  /// No description provided for @setup_setPinCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw kod PIN (4 cyfry)'**
+  String get setup_setPinCode;
+
+  /// No description provided for @setup_changeBackup.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zmiana zabezpieczenia'**
+  String get setup_changeBackup;
+
+  /// No description provided for @setup_lockConfig.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konfiguracja blokady'**
+  String get setup_lockConfig;
+
+  /// No description provided for @setup_pinCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod PIN'**
+  String get setup_pinCode;
+
+  /// No description provided for @setup_fourDigits.
+  ///
+  /// In pl, this message translates to:
+  /// **'4 cyfry'**
+  String get setup_fourDigits;
+
+  /// No description provided for @login_signingIn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Logowanie…'**
+  String get login_signingIn;
+
+  /// No description provided for @music_specialFilter.
+  ///
+  /// In pl, this message translates to:
+  /// **'⭐ Specjalne'**
+  String get music_specialFilter;
+
+  /// No description provided for @music_genre.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gatunek / gust'**
+  String get music_genre;
+
+  /// No description provided for @music_specialMoment.
+  ///
+  /// In pl, this message translates to:
+  /// **'⭐ Moment specjalny'**
+  String get music_specialMoment;
+
+  /// No description provided for @music_notSpecial.
+  ///
+  /// In pl, this message translates to:
+  /// **'— nie jest specjalny —'**
+  String get music_notSpecial;
+
+  /// No description provided for @music_partyMoment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Moment imprezy'**
+  String get music_partyMoment;
+
+  /// No description provided for @music_exportHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'LISTA PIOSENEK NA WESELE'**
+  String get music_exportHeader;
+
+  /// No description provided for @music_exportSpecialHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'### ⭐ UTWORY SPECJALNE — KLUCZOWE MOMENTY'**
+  String get music_exportSpecialHeader;
+
+  /// No description provided for @music_exportAllHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'### WSZYSTKIE UTWORY (wg momentu imprezy)'**
+  String get music_exportAllHeader;
+
+  /// No description provided for @room_freeSeats.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wolne miejsca'**
+  String get room_freeSeats;
+
+  /// No description provided for @rsvpAll_tabEntries.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpisy RSVP'**
+  String get rsvpAll_tabEntries;
+
+  /// No description provided for @rsvpAll_tabQr.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kody QR i linki'**
+  String get rsvpAll_tabQr;
+
+  /// No description provided for @rsvp_notAttendingShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'✗ Nie przyjdzie'**
+  String get rsvp_notAttendingShort;
+
+  /// No description provided for @rsvp_noStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak statusu'**
+  String get rsvp_noStatus;
+
+  /// No description provided for @rsvp_fromForm.
+  ///
+  /// In pl, this message translates to:
+  /// **'🌐 Z formularza'**
+  String get rsvp_fromForm;
+
+  /// No description provided for @rsvp_noReplyCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak odpowiedzi ({count})'**
+  String rsvp_noReplyCount(int count);
+
+  /// No description provided for @sched_editEvent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj wydarzenie'**
+  String get sched_editEvent;
+
+  /// No description provided for @sched_addEvent.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj wydarzenie'**
+  String get sched_addEvent;
+
+  /// No description provided for @common_nameRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa *'**
+  String get common_nameRequired;
+
+  /// No description provided for @sched_placeHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Sala weselna'**
+  String get sched_placeHint;
+
+  /// No description provided for @common_responsible.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osoba odpowiedzialna'**
+  String get common_responsible;
+
+  /// No description provided for @sched_responsibleHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Oboje'**
+  String get sched_responsibleHint;
+
+  /// No description provided for @sched_mapLink.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link do lokalizacji'**
+  String get sched_mapLink;
+
+  /// No description provided for @sched_eventAdded.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodano wydarzenie'**
+  String get sched_eventAdded;
+
+  /// No description provided for @common_noNameNeutral.
+  ///
+  /// In pl, this message translates to:
+  /// **'(bez nazwy)'**
+  String get common_noNameNeutral;
+
+  /// No description provided for @common_seats.
+  ///
+  /// In pl, this message translates to:
+  /// **'Liczba miejsc'**
+  String get common_seats;
+
+  /// No description provided for @task_edit.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj zadanie'**
+  String get task_edit;
+
+  /// No description provided for @task_add.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj zadanie'**
+  String get task_add;
+
+  /// No description provided for @task_goal.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cel / zdarzenie (opcjonalnie)'**
+  String get task_goal;
+
+  /// No description provided for @task_goalName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa celu'**
+  String get task_goalName;
+
+  /// No description provided for @task_goalHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Znalezienie fotografa'**
+  String get task_goalHint;
+
+  /// No description provided for @task_hideExtra.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukryj dodatkowe opcje'**
+  String get task_hideExtra;
+
+  /// No description provided for @task_accommodation.
+  ///
+  /// In pl, this message translates to:
+  /// **'🏨 Nocleg'**
+  String get task_accommodation;
+
+  /// No description provided for @task_music.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎵 Muzyka'**
+  String get task_music;
+
+  /// No description provided for @task_allStatuses.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie statusy'**
+  String get task_allStatuses;
+
+  /// No description provided for @common_noSorting.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bez sortowania'**
+  String get common_noSorting;
+
+  /// No description provided for @task_byDue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg terminu'**
+  String get task_byDue;
+
+  /// No description provided for @task_byPriority.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg priorytetu'**
+  String get task_byPriority;
+
+  /// No description provided for @common_byStatus.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg statusu'**
+  String get common_byStatus;
+
+  /// No description provided for @tr_inVehicles.
+  ///
+  /// In pl, this message translates to:
+  /// **'w pojazdach'**
+  String get tr_inVehicles;
+
+  /// No description provided for @tr_assignTo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypisz do: {vehicle}'**
+  String tr_assignTo(String vehicle);
+
+  /// No description provided for @tr_boltTaxi.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bolt / Taxi'**
+  String get tr_boltTaxi;
+
+  /// No description provided for @tr_infoCodePhone.
+  ///
+  /// In pl, this message translates to:
+  /// **'Info / kod / telefon'**
+  String get tr_infoCodePhone;
+
+  /// No description provided for @tr_editVehicle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj pojazd'**
+  String get tr_editVehicle;
+
+  /// No description provided for @tr_addVehicle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj pojazd'**
+  String get tr_addVehicle;
+
+  /// No description provided for @tr_typeRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Typ / nazwa pojazdu *'**
+  String get tr_typeRequired;
+
+  /// No description provided for @tr_departure.
+  ///
+  /// In pl, this message translates to:
+  /// **'Godzina odjazdu'**
+  String get tr_departure;
+
+  /// No description provided for @vf_customCategoryHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Animator'**
+  String get vf_customCategoryHint;
+
+  /// No description provided for @vf_companyRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa firmy *'**
+  String get vf_companyRequired;
+
+  /// No description provided for @vf_mapsLink.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link do Google Maps'**
+  String get vf_mapsLink;
+
+  /// No description provided for @vend_vendorChip.
+  ///
+  /// In pl, this message translates to:
+  /// **'🏢 Dostawca'**
+  String get vend_vendorChip;
+
+  /// No description provided for @vend_instalmentHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. Zadatek'**
+  String get vend_instalmentHint;
+
+  /// No description provided for @welcome_tagline.
+  ///
+  /// In pl, this message translates to:
+  /// **'PANEL ORGANIZACJI WESELA'**
+  String get welcome_tagline;
+
+  /// No description provided for @layout_forcePhone.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymuś telefon'**
+  String get layout_forcePhone;
+
+  /// No description provided for @layout_forceTablet.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wymuś tablet'**
+  String get layout_forceTablet;
+
+  /// No description provided for @layout_autoHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Układ dobiera się do szerokości ekranu'**
+  String get layout_autoHint;
+
+  /// No description provided for @layout_phoneHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zawsze dolny pasek nawigacji'**
+  String get layout_phoneHint;
+
+  /// No description provided for @layout_tabletHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zawsze boczna nawigacja i szersze siatki'**
+  String get layout_tabletHint;
+
+  /// No description provided for @common_statusHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Status…'**
+  String get common_statusHint;
+
+  /// No description provided for @gs_companion.
+  ///
+  /// In pl, this message translates to:
+  /// **'osoba towarzysząca'**
+  String get gs_companion;
+
+  /// No description provided for @gs_accompanies.
+  ///
+  /// In pl, this message translates to:
+  /// **'towarzyszy gościowi'**
+  String get gs_accompanies;
+
+  /// No description provided for @notif_programmeItem.
+  ///
+  /// In pl, this message translates to:
+  /// **'punkt programu'**
+  String get notif_programmeItem;
+
+  /// No description provided for @taskSvc_fromTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utworzono z zadania: {name}'**
+  String taskSvc_fromTask(String name);
+
+  /// No description provided for @vendSvc_vendor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dostawca: {label}'**
+  String vendSvc_vendor(String label);
+
+  /// No description provided for @wedSvc_weddingId.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wesele {id}'**
+  String wedSvc_weddingId(String id);
+
+  /// Status dostawcy; w bazie zostaje `contacted`.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skontaktowano'**
+  String get vendStatus_contacted;
+
+  /// No description provided for @vendStatus_confirmed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Potwierdzony'**
+  String get vendStatus_confirmed;
+
+  /// No description provided for @vendStatus_cancelled.
+  ///
+  /// In pl, this message translates to:
+  /// **'Anulowany'**
+  String get vendStatus_cancelled;
+
+  /// Przykładowe pytanie quizu wstawiane przy zakładaniu wesela. Zapisuje się w bazie w języku interfejsu i późniejsza zmiana języka go NIE rusza — to już treść pary, mogła ją edytować.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdzie się poznaliśmy?'**
+  String get quizEx_q1;
+
+  /// No description provided for @quizEx_q1a1.
+  ///
+  /// In pl, this message translates to:
+  /// **'W pracy'**
+  String get quizEx_q1a1;
+
+  /// No description provided for @quizEx_q1a2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na studiach'**
+  String get quizEx_q1a2;
+
+  /// No description provided for @quizEx_q1a3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przez znajomych'**
+  String get quizEx_q1a3;
+
+  /// No description provided for @quizEx_q1a4.
+  ///
+  /// In pl, this message translates to:
+  /// **'W wakacje'**
+  String get quizEx_q1a4;
+
+  /// No description provided for @quizEx_q3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdzie była nasza pierwsza randka?'**
+  String get quizEx_q3;
+
+  /// No description provided for @quizEx_q3a1.
+  ///
+  /// In pl, this message translates to:
+  /// **'W kinie'**
+  String get quizEx_q3a1;
+
+  /// No description provided for @quizEx_q3a2.
+  ///
+  /// In pl, this message translates to:
+  /// **'W restauracji'**
+  String get quizEx_q3a2;
+
+  /// No description provided for @quizEx_q3a3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na spacerze'**
+  String get quizEx_q3a3;
+
+  /// No description provided for @quizEx_q3a4.
+  ///
+  /// In pl, this message translates to:
+  /// **'W kawiarni'**
+  String get quizEx_q3a4;
+
+  /// No description provided for @quizEx_q4.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kto się pierwszy oświadczył?'**
+  String get quizEx_q4;
+
+  /// No description provided for @tfEx_1.
+  ///
+  /// In pl, this message translates to:
+  /// **'Para Młoda poznała się w pracy'**
+  String get tfEx_1;
+
+  /// No description provided for @tfEx_1e.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poznali się przez wspólnych znajomych.'**
+  String get tfEx_1e;
+
+  /// No description provided for @tfEx_2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pierwsza randka była w kinie'**
+  String get tfEx_2;
+
+  /// No description provided for @tfEx_2e.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pierwsza randka była w kawiarni.'**
+  String get tfEx_2e;
+
+  /// No description provided for @tfEx_3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oświadczyny odbyły się za granicą'**
+  String get tfEx_3;
+
+  /// No description provided for @tfEx_3e.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oświadczyny odbyły się podczas wspólnego wyjazdu.'**
+  String get tfEx_3e;
+
+  /// No description provided for @pcEx_1.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zrób selfie z Parą Młodą'**
+  String get pcEx_1;
+
+  /// No description provided for @pcEx_2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Sfotografuj najpiękniejszy toast'**
+  String get pcEx_2;
+
+  /// No description provided for @pcEx_3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Znajdź i sfotografuj najstarszego gościa'**
+  String get pcEx_3;
+
+  /// No description provided for @pcEx_4.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie z parkietu'**
+  String get pcEx_4;
+
+  /// No description provided for @pcEx_5.
+  ///
+  /// In pl, this message translates to:
+  /// **'Grupowe zdjęcie Twojego stolika'**
+  String get pcEx_5;
+
+  /// No description provided for @pcEx_6.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uchwyć pierwszy taniec'**
+  String get pcEx_6;
+
+  /// Domyślna nazwa nowego stołu; {number} to kolejny numer.
+  ///
+  /// In pl, this message translates to:
+  /// **'Stół {number}'**
+  String tableSvc_defaultName(int number);
+
+  /// No description provided for @cfg_defaultEventName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ceremonia Weselna'**
+  String get cfg_defaultEventName;
+
+  /// Przykładowe imiona w danych startowych — dostosuj do języka.
+  ///
+  /// In pl, this message translates to:
+  /// **'Patrycji i Piotra'**
+  String get cfg_defaultPersons;
+
+  /// No description provided for @taskSvc_song.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utwór'**
+  String get taskSvc_song;
+
+  /// No description provided for @err_noActiveWedding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak aktywnego wesela — nie wiadomo, komu przypisać dane. Wybierz wesele i spróbuj ponownie.'**
+  String get err_noActiveWedding;
+
+  /// No description provided for @err_weddingDocMissing.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dokument wesela nie istnieje'**
+  String get err_weddingDocMissing;
+
+  /// No description provided for @common_optionalHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Opcjonalnie…'**
+  String get common_optionalHint;
+
+  /// No description provided for @common_phoneHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. 600 100 200'**
+  String get common_phoneHint;
+
+  /// No description provided for @common_emailHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'kontakt@firma.pl'**
+  String get common_emailHint;
+
+  /// No description provided for @qr_schedule.
+  ///
+  /// In pl, this message translates to:
+  /// **'📅 Harmonogram'**
+  String get qr_schedule;
+
+  /// No description provided for @qr_music.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎵 Muzyka'**
+  String get qr_music;
+
+  /// No description provided for @qr_bingo.
+  ///
+  /// In pl, this message translates to:
+  /// **'🎲 Ślubne Bingo'**
+  String get qr_bingo;
+
+  /// No description provided for @qr_guestbook.
+  ///
+  /// In pl, this message translates to:
+  /// **'💝 Księga gości'**
+  String get qr_guestbook;
+
+  /// No description provided for @qr_quiz.
+  ///
+  /// In pl, this message translates to:
+  /// **'🧠 Quiz o Parze Młodej'**
+  String get qr_quiz;
+
+  /// No description provided for @qr_advices.
+  ///
+  /// In pl, this message translates to:
+  /// **'💌 Rady dla Pary Młodej'**
+  String get qr_advices;
+
+  /// No description provided for @qr_trueFalse.
+  ///
+  /// In pl, this message translates to:
+  /// **'🤔 Prawda czy Fałsz'**
+  String get qr_trueFalse;
+
+  /// No description provided for @qr_photoGuess.
+  ///
+  /// In pl, this message translates to:
+  /// **'📸 Zgadnij zdjęcie'**
+  String get qr_photoGuess;
+
+  /// No description provided for @qr_capsule.
+  ///
+  /// In pl, this message translates to:
+  /// **'⏳ Kapsuła czasu'**
+  String get qr_capsule;
+
+  /// No description provided for @qr_guestMap.
+  ///
+  /// In pl, this message translates to:
+  /// **'🗺️ Mapa gości'**
+  String get qr_guestMap;
+
+  /// No description provided for @qr_photoChallenge.
+  ///
+  /// In pl, this message translates to:
+  /// **'📷 Foto-wyzwania'**
+  String get qr_photoChallenge;
+
+  /// No description provided for @pay_venueTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'🏠 Sala'**
+  String get pay_venueTab;
+
+  /// No description provided for @pay_vendorsTab.
+  ///
+  /// In pl, this message translates to:
+  /// **'🏢 Dostawcy'**
+  String get pay_vendorsTab;
+
+  /// No description provided for @hm_variantName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa wariantu'**
+  String get hm_variantName;
+
+  /// No description provided for @hm_offerLink.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link do oferty (https://…)'**
+  String get hm_offerLink;
+
+  /// No description provided for @common_linkHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Link (https://…)'**
+  String get common_linkHint;
+
+  /// No description provided for @bingo_generatePdf.
+  ///
+  /// In pl, this message translates to:
+  /// **'Generuj PDF ({count} plansz, {format})'**
+  String bingo_generatePdf(int count, String format);
+
+  /// Skrot slowa osob przy liczbach, np. 12 os.
+  ///
+  /// In pl, this message translates to:
+  /// **'os.'**
+  String get common_personsShort;
+
+  /// No description provided for @notif_oneNew.
+  ///
+  /// In pl, this message translates to:
+  /// **'1 nowe'**
+  String get notif_oneNew;
+
+  /// Domyślne pole koła fortuny; zapisuje się do bazy przy tworzeniu wesela w języku interfejsu.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kto wznosi toast'**
+  String get wheelEx_toast;
+
+  /// No description provided for @wheelEx_gamesTask.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zadanie na oczepiny'**
+  String get wheelEx_gamesTask;
+
+  /// No description provided for @wheelEx_veilKiss.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pocałunek przez welon'**
+  String get wheelEx_veilKiss;
+
+  /// No description provided for @wheelEx_blindDance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wspólny taniec z zawiązanymi oczami'**
+  String get wheelEx_blindDance;
+
+  /// No description provided for @wheelEx_singSong.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odśpiewajcie ulubioną piosenkę'**
+  String get wheelEx_singSong;
+
+  /// No description provided for @wheelEx_feedCake.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nakarmcie się nawzajem tortem'**
+  String get wheelEx_feedCake;
+
+  /// No description provided for @wheelEx_longKiss.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pocałunek dłuższy niż 10 sekund'**
+  String get wheelEx_longKiss;
+
+  /// No description provided for @wheelEx_compliment.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powiedzcie sobie komplement'**
+  String get wheelEx_compliment;
+
+  /// No description provided for @wheelEx_bouquetToss.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rzut bukietem'**
+  String get wheelEx_bouquetToss;
+
+  /// No description provided for @wheelEx_tieToss.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rzut muszką / krawatem'**
+  String get wheelEx_tieToss;
+
+  /// No description provided for @wheelEx_chairDance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Taniec z krzesłami'**
+  String get wheelEx_chairDance;
+
+  /// No description provided for @wheelEx_bestDance.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konkurs na najlepszy taniec'**
+  String get wheelEx_bestDance;
+
+  /// No description provided for @wheelEx_charades.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kalambury weselne'**
+  String get wheelEx_charades;
+
+  /// No description provided for @wheelEx_nextCouple.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybór następnej pary do ślubu'**
+  String get wheelEx_nextCouple;
+
+  /// No description provided for @quizEx_film3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Forrest Gump'**
+  String get quizEx_film3;
+
+  /// Tytuł filmu w przykładowej odpowiedzi — użyj tytułu z danego rynku.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skazani na Shawshank'**
+  String get quizEx_film4;
 }
 
 class _AppLocalizationsDelegate

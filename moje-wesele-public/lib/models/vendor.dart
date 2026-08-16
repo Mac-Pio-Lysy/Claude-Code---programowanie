@@ -8,12 +8,16 @@ class VendorStatus {
   final String label;
   final Color color;
 
-  static const all = [
-    VendorStatus('contacted', 'Skontaktowano', Color(0xFF3B82F6)),
-    VendorStatus('confirmed', 'Potwierdzony', Color(0xFF10B981)),
-    VendorStatus('paid', 'Opłacony', Color(0xFF6D28D9)),
-    VendorStatus('cancelled', 'Anulowany', Color(0xFFEF4444)),
-  ];
+  // Getter, nie stała: etykiety są tłumaczone, `value` zostaje w bazie.
+  static List<VendorStatus> get all => [
+        VendorStatus('contacted', AppText.t.vendStatus_contacted,
+            const Color(0xFF3B82F6)),
+        VendorStatus('confirmed', AppText.t.vendStatus_confirmed,
+            const Color(0xFF10B981)),
+        VendorStatus('paid', AppText.t.an_paid, const Color(0xFF6D28D9)),
+        VendorStatus('cancelled', AppText.t.vendStatus_cancelled,
+            const Color(0xFFEF4444)),
+      ];
 
   static VendorStatus byValue(String? v) =>
       all.firstWhere((s) => s.value == v, orElse: () => all.first);

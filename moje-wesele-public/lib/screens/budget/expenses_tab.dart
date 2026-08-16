@@ -61,9 +61,9 @@ class _ExpensesTabState extends State<ExpensesTab> {
   List<String> get _coupleNames {
     final v = _bd['coupleNames'];
     if (v is List && v.length >= 2) {
-      return [v[0]?.toString() ?? 'Osoba 1', v[1]?.toString() ?? 'Osoba 2'];
+      return [v[0]?.toString() ?? AppText.t.couple_personNumbered(1), v[1]?.toString() ?? AppText.t.couple_personNumbered(2)];
     }
-    return ['Osoba 1', 'Osoba 2'];
+    return [AppText.t.couple_personNumbered(1), AppText.t.couple_personNumbered(2)];
   }
 
   List<String> get _categories => ExpenseCategories.resolve(widget.data?.raw ?? {});

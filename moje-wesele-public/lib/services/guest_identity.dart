@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import '../l10n/app_text.dart';
 
 /// Tożsamość gościa strefy publicznej — anonimowe konto Firebase zakładane
 /// w tle, całkowicie niewidoczne dla gościa (żadnego ekranu logowania).
@@ -47,7 +48,7 @@ class GuestIdentity {
     if (user == null) {
       throw FirebaseAuthException(
         code: 'null-user',
-        message: 'Logowanie anonimowe nie zwróciło użytkownika.',
+        message: AppText.t.guestId_noUser,
       );
     }
     return user.uid;
@@ -61,12 +62,10 @@ class GuestIdentity {
     final code = error is FirebaseAuthException ? error.code : '';
     return switch (code) {
       'operation-not-allowed' =>
-        'Strona gości nie jest jeszcze w pełni skonfigurowana. '
-            'Przeglądanie działa, ale wysyłanie wpisów może się nie udać.',
+        AppText.t.guestId_notConfigured,
       'network-request-failed' =>
-        'Brak połączenia z internetem. Sprawdź sieć i odśwież stronę.',
-      _ => 'Nie udało się przygotować sesji gościa. Możesz przeglądać stronę, '
-          'ale wysyłanie wpisów może nie zadziałać.',
+        AppText.t.guestId_offline,
+      _ => AppText.t.guestId_generic,
     };
   }
 }

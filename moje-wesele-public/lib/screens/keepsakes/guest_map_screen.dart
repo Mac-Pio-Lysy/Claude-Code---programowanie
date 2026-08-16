@@ -96,9 +96,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Mapa'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -106,7 +106,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
               children: [
                 _mapTab(),
                 GuestPageTab(
-                  links: [('🗺️ Mapa gości', PublicPages.mapa(base))],
+                  links: [(AppText.t.guestMap_headerTitle, PublicPages.mapa(base))],
                   intro:
                       AppText.t.guestMap_txt1,
                 ),
@@ -126,7 +126,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać mapy. Sprawdź połączenie.');
+          return _info(AppText.t.guestMap_loadError);
         }
         final entries = snapshot.data ?? const <GuestMapEntry>[];
         final located = entries.where((e) => e.hasCoords).toList();
@@ -220,7 +220,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                         height: 40,
                         child: Tooltip(
                           message:
-                              '${e.name.isEmpty ? 'Gość' : e.name} · ${e.city}',
+                              '${e.name.isEmpty ? AppText.t.role_guest : e.name} · ${e.city}',
                           child: const Icon(Icons.location_on,
                               color: AppColors.accent, size: 32),
                         ),
@@ -287,9 +287,9 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
         children: [
           Row(
             children: [
-              _stat('${entries.length}', 'Gości', AppColors.accent),
-              _stat('$cities', 'Miejscowości', const Color(0xFF7C3AED)),
-              _stat('${located.length}', 'Na mapie', const Color(0xFF059669)),
+              _stat('${entries.length}', AppText.t.guestMap_guests, AppColors.accent),
+              _stat('$cities', AppText.t.guestMap_cities, const Color(0xFF7C3AED)),
+              _stat('${located.length}', AppText.t.guestMap_onMap, const Color(0xFF059669)),
             ],
           ),
           if (farthest != null) ...[
@@ -300,9 +300,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Najdalszy gość: ${farthest.name.isEmpty ? 'Gość' : farthest.name} '
-                    '(${farthest.city}) — ${farthestKm.round()} km'
-                    '${_receptionLabel.isNotEmpty ? ' od: $_receptionLabel' : ''}',
+                    'Najdalszy gość: ${farthest.name.isEmpty ? AppText.t.role_guest : farthest.name} (${farthest.city}) — ${farthestKm.round()} km${_receptionLabel.isNotEmpty ? ' od: $_receptionLabel' : ''}',
                     style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -361,13 +359,13 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(e.name.isEmpty ? 'Gość' : e.name,
+                Text(e.name.isEmpty ? AppText.t.role_guest : e.name,
                     style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
                 Text(
-                  e.city.isEmpty ? 'Brak miejscowości' : e.city,
+                  e.city.isEmpty ? AppText.t.guestMap_noCity : e.city,
                   style: GoogleFonts.inter(
                       fontSize: 13, color: AppColors.textLight),
                 ),
@@ -434,8 +432,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             lat: lat,
             lng: lng);
         _toast(lat == null
-            ? 'Zapisano (nie udało się zlokalizować miejscowości)'
-            : 'Zapisano wpis');
+            ? AppText.t.guestMap_savedNoGeo
+            : AppText.t.guestMap_savedEntry);
       } else {
         await _service.addEntry(
             name: draft.name,
@@ -444,8 +442,8 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
             lat: lat,
             lng: lng);
         _toast(lat == null
-            ? 'Dodano (nie udało się zlokalizować miejscowości)'
-            : 'Dodano wpis');
+            ? AppText.t.guestMap_addedNoGeo
+            : AppText.t.guestMap_addedEntry);
       }
     } catch (e) {
       _toast(AppText.t.common_saveErrorToast('$e'));
@@ -458,7 +456,7 @@ class _GuestMapScreenState extends State<GuestMapScreen> {
       builder: (context) => AlertDialog(
         title: Text(AppText.t.guestMap_deleteTitle),
         content: Text(
-            'Czy na pewno usunąć „${e.name.isEmpty ? 'Gość' : e.name}"?'),
+            'Czy na pewno usunąć „${e.name.isEmpty ? AppText.t.role_guest : e.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -533,7 +531,7 @@ class _EntryFormDialogState extends State<_EntryFormDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing != null ? 'Edytuj wpis' : 'Dodaj gościa'),
+      title: Text(widget.existing != null ? AppText.t.guestMap_editEntry : AppText.t.guestMap_addGuest),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,

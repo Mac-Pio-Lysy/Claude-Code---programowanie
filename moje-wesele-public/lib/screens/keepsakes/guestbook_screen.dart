@@ -57,9 +57,9 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Wpisy'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -67,7 +67,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
               children: [
                 _entriesTab(),
                 GuestPageTab(
-                  links: [('💝 Księga gości', PublicPages.ksiega(base))],
+                  links: [(AppText.t.guestbook_headerTitle, PublicPages.ksiega(base))],
                   intro:
                       AppText.t.guestbook_txt1,
                 ),
@@ -88,7 +88,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
         }
         if (snapshot.hasError) {
           return _info(
-              'Nie udało się wczytać wpisów. Sprawdź połączenie z internetem.');
+              AppText.t.guestbook_loadError);
         }
         final entries = [...?snapshot.data];
         entries.sort((a, b) =>
@@ -141,7 +141,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
                             fontWeight: FontWeight.w800,
                             color: AppColors.accent)),
                     Text(
-                      entries.length == 1 ? 'życzenie' : 'życzeń',
+                      AppText.t.guestbook_wishCount(entries.length),
                       style: GoogleFonts.inter(
                           fontSize: 12, color: AppColors.textLight),
                     ),
@@ -237,7 +237,7 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(e.name.isEmpty ? 'Gość' : e.name,
+                    Text(e.name.isEmpty ? AppText.t.role_guest : e.name,
                         style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -362,8 +362,8 @@ class _GuestbookScreenState extends State<GuestbookScreen> {
       final bytes = await PdfService.guestbook(
         entries: entries,
         title: (eventName != null && eventName.trim().isNotEmpty)
-            ? 'Księga Gości — ${eventName.trim()}'
-            : 'Księga Gości',
+            ? AppText.t.guestbook_pdfTitleNamed(eventName.trim())
+            : AppText.t.pdf_guestbookTitle,
       );
       await PdfService.preview(bytes, 'ksiega-gosci.pdf');
     } catch (e) {

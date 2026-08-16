@@ -1,3 +1,4 @@
+import '../l10n/app_text.dart';
 /// Skrócone dane wesela do listy „Twoje wesela".
 ///
 /// Budowane z dokumentu `weddings/{id}` + roli z odpowiedniego członkostwa.
@@ -37,10 +38,10 @@ class WeddingSummary {
 
   /// Etykieta roli po polsku.
   String get roleLabel => switch (role) {
-        'owner' => 'Właściciel',
+        'owner' => AppText.t.wsum_owner,
         'planner' => 'Planer',
-        'collaborator' => 'Współpraca',
-        'guest' => 'Gość',
+        'collaborator' => AppText.t.wsum_collab,
+        'guest' => AppText.t.role_guest,
         _ => role,
       };
 
@@ -60,7 +61,7 @@ class WeddingSummary {
       id: id,
       name: (name != null && name.trim().isNotEmpty)
           ? name.trim()
-          : 'Nasze Wesele',
+          : AppText.t.cw_defaultName,
       persons: (persons ?? '').trim(),
       date: _parseDate(data['weddingDate']),
       role: role,
@@ -79,7 +80,7 @@ class WeddingSummary {
     final token = (data['guestToken'] as String?)?.trim();
     return WeddingSummary(
       id: id,
-      name: name.isNotEmpty ? name : 'Nasze Wesele',
+      name: name.isNotEmpty ? name : AppText.t.cw_defaultName,
       persons: (data['displayNames'] as String?)?.trim() ?? '',
       date: _parseDate(data['weddingDate']),
       role: role,

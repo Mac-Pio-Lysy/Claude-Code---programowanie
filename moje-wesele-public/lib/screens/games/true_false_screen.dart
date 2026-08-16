@@ -64,10 +64,10 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Stwierdzenia'),
               Tab(text: 'Wyniki'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -78,7 +78,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                 GuestPageTab(
                   links: [
                     (
-                      '🤔 Prawda czy Fałsz o Parze Młodej',
+                      AppText.t.tf_headerTitle,
                       PublicPages.prawdaFalsz(base)
                     )
                   ],
@@ -157,9 +157,9 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
         subtitle: Text(
           hasStatements
               ? (_active
-                  ? 'Goście mogą teraz grać przez stronę / kod QR.'
-                  : 'Włącz, aby goście mogli odpowiadać.')
-              : 'Najpierw dodaj przynajmniej jedno stwierdzenie.',
+                  ? AppText.t.gp_activeHint
+                  : AppText.t.gp_enableHint)
+              : AppText.t.tf_needStatement,
           style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
         ),
       ),
@@ -281,7 +281,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
               color: (s.isTrue ? trueColor : falseColor).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(s.isTrue ? '✓ PRAWDA' : '✗ FAŁSZ',
+            child: Text(s.isTrue ? AppText.t.tf_true : AppText.t.tf_false,
                 style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -331,7 +331,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppText.t.tf_deleteTitle),
-        content: Text('Czy na pewno usunąć „${s.text}"?'),
+        content: Text(AppText.t.tf_deleteConfirm(s.text)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -364,7 +364,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać wyników. Sprawdź połączenie.');
+          return _info(AppText.t.gp_loadResultsError);
         }
         final results = [...?snapshot.data];
         final statements = _statements;
@@ -380,12 +380,12 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                     color: AppColors.text)),
             const SizedBox(height: 8),
             if (results.isEmpty)
-              _info('Brak wyników. Udostępnij gościom kod QR, aby zagrali.')
+              _info(AppText.t.gp_noResults)
             else
               ..._ranking(results),
             if (results.isNotEmpty && statements.isNotEmpty) ...[
               const SizedBox(height: 20),
-              Text('📊 Najbardziej mylące stwierdzenia',
+              Text(AppText.t.tf_confusing,
                   style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -420,9 +420,9 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
       ),
       child: Row(
         children: [
-          _stat('$participants', 'Uczestników', AppColors.accent),
-          _stat('$count', 'Stwierdzeń', const Color(0xFF7C3AED)),
-          _stat(avg.toStringAsFixed(1), 'Śr. wynik', const Color(0xFF059669)),
+          _stat('$participants', AppText.t.gp_participants, AppColors.accent),
+          _stat('$count', AppText.t.tf_statements, const Color(0xFF7C3AED)),
+          _stat(avg.toStringAsFixed(1), AppText.t.gp_avgScore, const Color(0xFF059669)),
         ],
       ),
     );
@@ -473,7 +473,7 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                         color: AppColors.textLight)),
               ),
               Expanded(
-                child: Text(sorted[i].name.isEmpty ? 'Gość' : sorted[i].name,
+                child: Text(sorted[i].name.isEmpty ? AppText.t.role_guest : sorted[i].name,
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -551,8 +551,8 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
                   const SizedBox(width: 10),
                   Text(
                     s.answered == 0
-                        ? 'brak odpowiedzi'
-                        : '${s.wrong}/${s.answered} błędnych',
+                        ? AppText.t.gp_noAnswers
+                        : AppText.t.gp_wrongOf(s.wrong, s.answered),
                     style: GoogleFonts.inter(
                         fontSize: 11, color: AppColors.textLight),
                   ),
@@ -620,7 +620,7 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
     if (t.isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Wpisz treść stwierdzenia')));
+        ..showSnackBar(SnackBar(content: Text(AppText.t.tf_needText)));
       return;
     }
     Navigator.of(context).pop(_TFDraft(t, _isTrue, _explanation.text.trim()));
@@ -657,7 +657,7 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                        _isEdit ? 'Edytuj stwierdzenie' : AppText.t.tf_addStatement,
+                        _isEdit ? AppText.t.tf_editStatement : AppText.t.tf_addStatement,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -670,15 +670,15 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
                     padding: EdgeInsets.fromLTRB(
                         20, 8, 20, 20 + MediaQuery.paddingOf(context).bottom),
                     children: [
-                      _label('Treść stwierdzenia'),
+                      _label(AppText.t.tf_textLabel),
                       TextField(
                         controller: _text,
                         maxLines: 2,
                         decoration:
-                            _dec(hint: 'np. Para Młoda poznała się w pracy'),
+                            _dec(hint: AppText.t.tf_textHint),
                       ),
                       const SizedBox(height: 16),
-                      _label('Czy to prawda?'),
+                      _label(AppText.t.tf_isItTrue),
                       Row(
                         children: [
                           Expanded(
@@ -688,17 +688,17 @@ class _StatementFormSheetState extends State<_StatementFormSheet> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: _truthOption(
-                                'Fałsz', false, const Color(0xFFC0392B)),
+                                AppText.t.tf_falseShort, false, const Color(0xFFC0392B)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _label('Wyjaśnienie (opcjonalnie)'),
+                      _label(AppText.t.tf_explanation),
                       TextField(
                         controller: _explanation,
                         maxLines: 2,
                         decoration: _dec(
-                            hint: 'np. Poznali się przez wspólnych znajomych'),
+                            hint: AppText.t.tf_explanationHint),
                       ),
                       const SizedBox(height: 20),
                       Row(

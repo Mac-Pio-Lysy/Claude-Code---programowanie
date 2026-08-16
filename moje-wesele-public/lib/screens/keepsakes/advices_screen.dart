@@ -60,9 +60,9 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Rady'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -90,7 +90,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać rad. Sprawdź połączenie.');
+          return _info(AppText.t.advices_loadError);
         }
         final all = snapshot.data ?? const <Advice>[];
         final filtered = _filter.isEmpty
@@ -131,7 +131,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
             if (filtered.isEmpty)
               _info(all.isEmpty
                   ? AppText.t.advices_txt2
-                  : 'Brak rad w tej kategorii.')
+                  : AppText.t.advices_emptyCategory)
             else
               for (final a in filtered) _adviceCard(a),
           ],
@@ -283,7 +283,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
           Row(
             children: [
               Expanded(
-                child: Text('— ${a.name.isEmpty ? 'Gość' : a.name}',
+                child: Text('— ${a.name.isEmpty ? AppText.t.role_guest : a.name}',
                     style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -312,8 +312,7 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppText.t.advices_deleteTitle),
-        content: Text('Czy na pewno usunąć radę od '
-            '„${a.name.isEmpty ? 'Gość' : a.name}"? Tej operacji nie można cofnąć.'),
+        content: Text('Czy na pewno usunąć radę od „${a.name.isEmpty ? AppText.t.role_guest : a.name}"? Tej operacji nie można cofnąć.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -344,8 +343,8 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
       final bytes = await PdfService.advices(
         advices: advices,
         title: (eventName != null && eventName.trim().isNotEmpty)
-            ? 'Rady dla Pary Młodej — ${eventName.trim()}'
-            : 'Rady dla Pary Młodej',
+            ? AppText.t.advices_pdfTitleNamed(eventName.trim())
+            : AppText.t.pdf_advicesTitle,
       );
       await PdfService.preview(bytes, 'rady-dla-pary-mlodej.pdf');
     } catch (e) {
@@ -439,7 +438,7 @@ class _AdviceSlideshowPageState extends State<_AdviceSlideshowPage> {
                     onPressed: _toggleAuto,
                     icon: Icon(_auto ? Icons.pause_circle : Icons.play_circle,
                         color: Colors.white),
-                    tooltip: _auto ? 'Zatrzymaj' : 'Auto-pokaz',
+                    tooltip: _auto ? 'Zatrzymaj' : AppText.t.advices_autoplay,
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -502,7 +501,7 @@ class _AdviceSlideshowPageState extends State<_AdviceSlideshowPage> {
                       fontWeight: FontWeight.w600,
                       color: Colors.white)),
               const SizedBox(height: 24),
-              Text('— ${a.name.isEmpty ? 'Gość' : a.name}',
+              Text('— ${a.name.isEmpty ? AppText.t.role_guest : a.name}',
                   style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,

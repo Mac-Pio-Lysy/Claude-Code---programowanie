@@ -57,9 +57,9 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
-              Tab(text: 'Wiadomości'),
-              Tab(text: 'Strona dla gości'),
+            tabs: [
+              Tab(text: AppText.t.capsule_messages),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -67,7 +67,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
               children: [
                 _messagesTab(),
                 GuestPageTab(
-                  links: [('⏳ Kapsuła czasu', PublicPages.kapsula(base))],
+                  links: [(AppText.t.capsule_headerTitle, PublicPages.kapsula(base))],
                   intro:
                       AppText.t.capsule_txt1,
                 ),
@@ -87,7 +87,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać wiadomości. Sprawdź połączenie.');
+          return _info(AppText.t.capsule_loadError);
         }
         final all = [...?snapshot.data];
         all.sort((a, b) => _soonestFirst
@@ -131,8 +131,8 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
         children: [
           Row(
             children: [
-              _stat('${all.length}', 'Wiadomości', AppColors.accent),
-              _stat('$sealed', 'Zapieczętowane', const Color(0xFFB45309)),
+              _stat('${all.length}', AppText.t.capsule_messages, AppColors.accent),
+              _stat('$sealed', AppText.t.capsule_sealed, const Color(0xFFB45309)),
               _stat('$opened', 'Otwarte', const Color(0xFF059669)),
             ],
           ),
@@ -145,7 +145,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                       fontWeight: FontWeight.w700,
                       color: AppColors.textLight)),
               const SizedBox(width: 10),
-              _sortChip('Najbliższe', true),
+              _sortChip(AppText.t.capsule_nearest, true),
               const SizedBox(width: 8),
               _sortChip('Najdalsze', false),
               const Spacer(),
@@ -173,15 +173,15 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                 Expanded(
                   child: Text(
                     _revealAll
-                        ? 'Podgląd wszystkich włączony (treści widoczne tylko dla Ciebie).'
-                        : 'Wiadomości otworzą się automatycznie w swojej dacie.',
+                        ? AppText.t.capsule_previewOn
+                        : AppText.t.capsule_autoOpen,
                     style: GoogleFonts.inter(
                         fontSize: 11, color: AppColors.textLight),
                   ),
                 ),
                 TextButton(
                   onPressed: _toggleRevealAll,
-                  child: Text(_revealAll ? 'Zapieczętuj' : AppText.t.capsule_openAll),
+                  child: Text(_revealAll ? AppText.t.capsule_seal : AppText.t.capsule_openAll),
                 ),
               ],
             ),
@@ -258,7 +258,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(m.name.isEmpty ? 'Gość' : m.name,
+                Text(m.name.isEmpty ? AppText.t.role_guest : m.name,
                     style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -309,17 +309,17 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(m.name.isEmpty ? 'Gość' : m.name,
+                    Text(m.name.isEmpty ? AppText.t.role_guest : m.name,
                         style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: AppColors.text)),
                     Text(
                       peeked
-                          ? '🔓 Podgląd — otworzy się ${_dateLabel(m.openDateTime)}'
+                          ? AppText.t.capsule_previewUntil(_dateLabel(m.openDateTime))
                           : (m.openDate > 0
                               ? '💌 Otwarta ${_dateLabel(m.openDateTime)}'
-                              : '💌 Otwarta'),
+                              : AppText.t.capsule_opened),
                       style: GoogleFonts.inter(
                           fontSize: 11,
                           color: peeked
@@ -377,7 +377,7 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
   }
 
   String _dateLabel(DateTime? d) {
-    if (d == null) return 'później';
+    if (d == null) return AppText.t.capsule_later;
     String two(int n) => n.toString().padLeft(2, '0');
     return '${two(d.day)}.${two(d.month)}.${d.year}';
   }
@@ -466,8 +466,8 @@ class _TimeCapsuleScreenState extends State<TimeCapsuleScreen> {
       final bytes = await PdfService.timeCapsule(
         messages: opened,
         title: (eventName != null && eventName.trim().isNotEmpty)
-            ? 'Kapsuła czasu — ${eventName.trim()}'
-            : 'Kapsuła czasu',
+            ? AppText.t.capsule_pdfTitleNamed(eventName.trim())
+            : AppText.t.pdf_capsuleTitle,
       );
       await PdfService.preview(bytes, 'kapsula-czasu.pdf');
     } catch (e) {

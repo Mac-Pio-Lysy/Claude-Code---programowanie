@@ -222,9 +222,9 @@ class SalaTab extends StatelessWidget {
           const Divider(height: 20),
           _infoRow(AppText.t.budget_peopleForCalc,
               '${s.effectiveGuestCount.round()}'),
-          _infoRow('Baza cateringu',
+          _infoRow(AppText.t.sala_cateringBase,
               formatPlnZl(s.effectiveGuestCount * s.cateringPricePerPerson)),
-          _infoRow('Dodatki cateringu', formatPlnZl(s.cateringMenuAddonsTotal)),
+          _infoRow(AppText.t.sala_cateringExtras, formatPlnZl(s.cateringMenuAddonsTotal)),
           _infoRow(AppText.t.budget_cateringTotal, formatPlnZl(s.cateringSeparateTotal),
               bold: true),
         ],
@@ -250,7 +250,7 @@ class SalaTab extends StatelessWidget {
           BudgetNumberField(
             key: const ValueKey('venueMinGuests'),
             label: AppText.t.budget_venueMinGuests,
-            suffix: 'os.',
+            suffix: AppText.t.common_personsShort,
             integer: true,
             initial: s.venueMinGuests,
             onSaved: service.setVenueMinGuests,
@@ -385,7 +385,7 @@ class SalaTab extends StatelessWidget {
           ),
           const Divider(height: 16),
           _infoRow(AppText.t.budget_staffCountTotal, '${s.staffPersonCount.round()}'),
-          _infoRow('W kosztach', '${s.staffCostPersonCount.round()}'),
+          _infoRow(AppText.t.sala_inCosts, '${s.staffCostPersonCount.round()}'),
           _infoRow(AppText.t.budget_staffRateShort, formatPlnZl(s.staffRate)),
           _infoRow(AppText.t.budget_staffCost, formatPlnZl(s.staffCost), bold: true),
         ],
@@ -504,13 +504,13 @@ class SalaTab extends StatelessWidget {
                   : AppText.t.budget_staffCostCountExcluded(
                       s.staffCostPersonCount.round()),
               formatPlnZl(s.staffCost)),
-          _infoRow('Dodatki do menu', formatPlnZl(s.menuAddonsTotal)),
+          _infoRow(AppText.t.sala_menuExtras, formatPlnZl(s.menuAddonsTotal)),
           _infoRow(AppText.t.budget_tableDecorTotal, formatPlnZl(s.tableDecoTotal)),
           if (s.cateringSeparate)
-            _infoRow('Catering (oddzielny)',
+            _infoRow(AppText.t.sala_separateCatering,
                 formatPlnZl(s.cateringSeparateTotal)),
           const Divider(height: 20),
-          _infoRow('Razem sala', formatPlnZl(s.cateringTotal),
+          _infoRow(AppText.t.sala_venueTotal, formatPlnZl(s.cateringTotal),
               bold: true, big: true),
         ],
       ),
@@ -665,7 +665,7 @@ class _StaffRow extends StatelessWidget {
               Expanded(
                 flex: 3,
                 child: BudgetTextField(
-                  hint: 'Nazwa (np. Kelnerzy)',
+                  hint: AppText.t.sala_staffNameHint,
                   initial: name,
                   onSaved: onNameSaved,
                 ),
@@ -674,7 +674,7 @@ class _StaffRow extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: BudgetNumberField(
-                  suffix: 'os.',
+                  suffix: AppText.t.common_personsShort,
                   integer: true,
                   initial: persons.toDouble(),
                   compact: true,

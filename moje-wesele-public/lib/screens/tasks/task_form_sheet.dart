@@ -251,7 +251,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _isEdit ? 'Edytuj zadanie' : 'Dodaj zadanie',
+                      _isEdit ? AppText.t.task_edit : AppText.t.task_add,
                       style: GoogleFonts.playfairDisplay(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
@@ -268,7 +268,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                           20, 8, 20, 20 + MediaQuery.paddingOf(context).bottom),
                       children: [
                         _field(
-                          'Nazwa *',
+                          AppText.t.common_nameRequired,
                           TextFormField(
                             controller: _name,
                             decoration: _dec(hint: AppText.t.tasks_nameHint),
@@ -278,7 +278,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                           ),
                         ),
                         _field(
-                          'Cel / zdarzenie (opcjonalnie)',
+                          AppText.t.task_goal,
                           DropdownButtonFormField<String>(
                             initialValue: _goalSelection,
                             isExpanded: true,
@@ -298,11 +298,11 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                         ),
                         if (_goalSelection == _kCustomGoal)
                           _field(
-                            'Nazwa celu',
+                            AppText.t.task_goalName,
                             TextField(
                               controller: _customGoal,
                               decoration:
-                                  _dec(hint: 'np. Znalezienie fotografa'),
+                                  _dec(hint: AppText.t.task_goalHint),
                               onChanged: (_) => setState(() {}),
                             ),
                           ),
@@ -354,7 +354,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                                     : Icons.expand_more,
                                 size: 18),
                             label: Text(_showMore
-                                ? 'Ukryj dodatkowe opcje'
+                                ? AppText.t.task_hideExtra
                                 : AppText.t.tasks_showMore),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.accent,
@@ -438,7 +438,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
             ),
           ),
           _field(
-            'Osoba odpowiedzialna',
+            AppText.t.common_responsible,
             DropdownButtonFormField<String>(
               initialValue: _responsible,
               isExpanded: true,
@@ -501,7 +501,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               TextField(
                 controller: _estimatedCost,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: _dec(hint: '0', suffix: 'zł'),
+                decoration: _dec(hint: '0', suffix: AppFormat.currency.symbol),
               ),
             ),
             _field(
@@ -566,13 +566,13 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
                       _linkDropdown(AppText.t.tasks_linkVendor, _vendorList, _vendorSel,
                           AppText.t.tasks_createVendor,
                           (v) => setState(() => _vendorSel = v)),
-                      _linkDropdown('🚗 Transport', _transportList,
+                      _linkDropdown(AppText.t.task_transport, _transportList,
                           _transportSel, AppText.t.tasks_createTransport,
                           (v) => setState(() => _transportSel = v)),
-                      _linkDropdown('🏨 Nocleg', _accommodationList,
+                      _linkDropdown(AppText.t.task_accommodation, _accommodationList,
                           _accommodationSel, AppText.t.tasks_createAccommodation,
                           (v) => setState(() => _accommodationSel = v)),
-                      _linkDropdown('🎵 Muzyka', _musicList, _musicSel,
+                      _linkDropdown(AppText.t.task_music, _musicList, _musicSel,
                           AppText.t.tasks_createSong,
                           (v) => setState(() => _musicSel = v)),
                     ],

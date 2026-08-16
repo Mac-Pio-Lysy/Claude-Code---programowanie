@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../l10n/app_text.dart';
 
 /// Ekran tytułowy / powitalny — pierwszy ekran aplikacji.
 ///
@@ -96,7 +97,7 @@ class WelcomeScreen extends StatelessWidget {
                     ),
                     const _GoldFlourish(),
                     Text(
-                      'PANEL ORGANIZACJI WESELA',
+                      AppText.t.welcome_tagline,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 12,
@@ -109,7 +110,7 @@ class WelcomeScreen extends StatelessWidget {
                     _EnterButton(onTap: onEnter),
                     const SizedBox(height: 14),
                     Text(
-                      'Tryb testowy — wejście bez logowania',
+                      AppText.t.welcome_testMode,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 11,
@@ -268,7 +269,7 @@ class _EnterButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Wejdź do aplikacji',
+                AppText.t.welcome_enter,
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,

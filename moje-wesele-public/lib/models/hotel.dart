@@ -1,18 +1,24 @@
+import '../l10n/app_text.dart';
 /// Status noclegu gościa.
 class AccommodationStatus {
   const AccommodationStatus(this.value, this.label);
   final String value;
   final String label;
 
-  static const reserved = AccommodationStatus('reserved', 'Zarezerwowany');
-  static const pending = AccommodationStatus('pending', 'Do zarezerwowania');
-  static const self = AccommodationStatus('self', 'Sam rezerwuje');
+  // Gettery, nie stałe: `value` (wartość w bazie) zostaje, etykieta jest
+  // tłumaczona i musi powstawać po zmianie języka na nowo.
+  static AccommodationStatus get reserved =>
+      AccommodationStatus('reserved', AppText.t.gs_roomReserved);
+  static AccommodationStatus get pending =>
+      AccommodationStatus('pending', AppText.t.gs_roomPending);
+  static AccommodationStatus get self =>
+      AccommodationStatus('self', AppText.t.gs_roomSelf);
 
-  static const all = [reserved, pending, self];
+  static List<AccommodationStatus> get all => [reserved, pending, self];
 
   static String labelOf(String? value) =>
       all.where((s) => s.value == value).map((s) => s.label).firstOrNull ??
-      'Status…';
+      AppText.t.common_statusHint;
 }
 
 /// Hotel / miejsce noclegowe — nakładka na surową mapę.

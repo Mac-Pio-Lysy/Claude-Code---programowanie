@@ -1,19 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../l10n/app_text.dart';
 
 /// Kategoria rady (klucz zapisywany w Firestore + etykieta i emoji).
 class AdviceCategory {
   const AdviceCategory(this.key, this.label, this.emoji);
+
+  /// Klucz ZAPISYWANY w Firestore — nigdy tłumaczony.
   final String key;
+
+  /// Etykieta na ekranie — tłumaczona.
   final String label;
+
   final String emoji;
 
-  static const love = AdviceCategory('love', 'Miłość', '❤️');
-  static const daily = AdviceCategory('daily', 'Codzienność', '🏡');
-  static const humor = AdviceCategory('humor', 'Humor', '😄');
-  static const wisdom = AdviceCategory('wisdom', 'Mądrość życiowa', '🦉');
-  static const other = AdviceCategory('other', 'Inne', '💬');
+  // Gettery, nie stałe: etykiety muszą powstawać po zmianie języka na nowo.
+  static AdviceCategory get love =>
+      AdviceCategory('love', AppText.t.adviceCat_love, '❤️');
+  static AdviceCategory get daily =>
+      AdviceCategory('daily', AppText.t.adviceCat_daily, '🏡');
+  static AdviceCategory get humor =>
+      AdviceCategory('humor', AppText.t.adviceCat_humor, '😄');
+  static AdviceCategory get wisdom =>
+      AdviceCategory('wisdom', AppText.t.adviceCat_wisdom, '🦉');
+  static AdviceCategory get other =>
+      AdviceCategory('other', AppText.t.adviceCat_other, '💬');
 
-  static const all = [love, daily, humor, wisdom, other];
+  static List<AdviceCategory> get all =>
+      [love, daily, humor, wisdom, other];
 
   static AdviceCategory byKey(String? key) =>
       all.firstWhere((c) => c.key == key, orElse: () => other);

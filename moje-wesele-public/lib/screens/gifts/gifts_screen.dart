@@ -14,6 +14,7 @@ import '../../services/gift_service.dart';
 import '../../utils/format.dart';
 import '../budget/budget_fields.dart';
 import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Sekcja „Prezenty" — otrzymane, upominki dla gości, propozycje (lista życzeń).
 class GiftsScreen extends StatelessWidget {
@@ -68,9 +69,9 @@ class GiftsScreen extends StatelessWidget {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Otrzymane'),
-              Tab(text: 'Dla gości'),
+              Tab(text: AppText.t.gifts_forGuests),
               Tab(text: 'Propozycje'),
             ],
           ),
@@ -116,8 +117,8 @@ class _ReceivedTab extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             children: [
               _summaryCard([
-                ('${gifts.length}', 'Prezentów'),
-                (formatPlnZl(totalValue), 'Łączna wartość'),
+                ('${gifts.length}', AppText.t.gifts_count),
+                (formatPlnZl(totalValue), AppText.t.gifts_totalValue),
                 ('$thanked', AppText.t.gifts_thanked),
               ]),
               const SizedBox(height: 12),
@@ -126,7 +127,7 @@ class _ReceivedTab extends StatelessWidget {
             ],
           ),
         ),
-        _addBar('Dodaj prezent', () => service.addGift()),
+        _addBar(AppText.t.gifts_addGift, () => service.addGift()),
       ],
     );
   }
@@ -150,7 +151,7 @@ class _ReceivedTab extends StatelessWidget {
                 child: BudgetTextField(
                   key: ValueKey('gift-from-$id'),
                   initial: g.from,
-                  hint: 'Od kogo…',
+                  hint: AppText.t.gifts_fromWho,
                   onSaved: (v) => service.updateGift(id, from: v),
                 ),
               ),
@@ -166,7 +167,7 @@ class _ReceivedTab extends StatelessWidget {
           BudgetTextField(
             key: ValueKey('gift-desc-$id'),
             initial: g.description,
-            hint: 'Opis prezentu…',
+            hint: AppText.t.gifts_giftDesc,
             onSaved: (v) => service.updateGift(id, description: v),
           ),
           const SizedBox(height: 6),
@@ -176,7 +177,7 @@ class _ReceivedTab extends StatelessWidget {
                 child: BudgetNumberField(
                   key: ValueKey('gift-val-$id'),
                   initial: g.value ?? 0,
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   compact: true,
                   onSaved: (v) => v == 0
                       ? service.updateGift(id, clearValue: true)
@@ -259,9 +260,11 @@ class _ForGuestsTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
       children: [
         _summaryCard([
-          ('$count', 'Upominków'),
+          ('$count', AppText.t.gifts_favoursCount),
           (formatPlnZl(grand),
-              'Łączny koszt${basis.isNotEmpty ? ' ($personCount os.)' : ''}'),
+              basis.isNotEmpty
+              ? AppText.t.gifts_totalCostFor('$personCount')
+              : AppText.t.gifts_totalCost),
         ]),
         const SizedBox(height: 12),
         _basisCard(basis, personCount),
@@ -283,9 +286,9 @@ class _ForGuestsTab extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _basisRow('Przelicz na gości rzeczywistych', 'real', basis,
+          _basisRow(AppText.t.gifts_recalcToReal, 'real', basis,
               personCount),
-          _basisRow('Przelicz na rzeczywistych + wirtualnych', 'realvirtual',
+          _basisRow(AppText.t.gifts_recalcAll, 'realvirtual',
               basis, personCount),
         ],
       ),
@@ -377,7 +380,7 @@ class _ForGuestsTab extends StatelessWidget {
                 child: BudgetTextField(
                   key: ValueKey('gfg-name-$id'),
                   initial: it.name,
-                  hint: 'Upominek…',
+                  hint: AppText.t.gifts_favourHint,
                   onSaved: (v) => service.updateGiftForGuest(id, name: v),
                 ),
               ),
@@ -466,7 +469,7 @@ class _ForGuestsTab extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(byId[gid]?.fullName ?? 'Gość',
+                      Text(byId[gid]?.fullName ?? AppText.t.role_guest,
                           style: GoogleFonts.inter(
                               fontSize: 11,
                               color: const Color(0xFF7C3AED))),
@@ -498,7 +501,7 @@ class _ForGuestsTab extends StatelessWidget {
               for (final g in guests)
                 DropdownMenuItem(
                     value: g.id,
-                    child: Text(g.fullName.isEmpty ? 'Gość' : g.fullName)),
+                    child: Text(g.fullName.isEmpty ? AppText.t.role_guest : g.fullName)),
             ],
             onChanged: (v) {
               if (v != null) service.addDistinctionGuest(id, v);
@@ -541,7 +544,7 @@ class _ProposalsTab extends StatelessWidget {
             ],
           ),
         ),
-        _addBar('Dodaj propozycję', () => service.addProposal()),
+        _addBar(AppText.t.gifts_addProposal, () => service.addProposal()),
       ],
     );
   }
@@ -567,7 +570,7 @@ class _ProposalsTab extends StatelessWidget {
                 child: BudgetTextField(
                   key: ValueKey('prop-title-$id'),
                   initial: p.title,
-                  hint: 'Tytuł propozycji…',
+                  hint: AppText.t.gifts_proposalHint,
                   onSaved: (v) => service.updateProposal(id, title: v),
                 ),
               ),
@@ -583,14 +586,14 @@ class _ProposalsTab extends StatelessWidget {
           BudgetTextField(
             key: ValueKey('prop-desc-$id'),
             initial: p.desc,
-            hint: 'Opis…',
+            hint: AppText.t.common_descriptionHint,
             onSaved: (v) => service.updateProposal(id, desc: v),
           ),
           const SizedBox(height: 6),
           BudgetTextField(
             key: ValueKey('prop-link-$id'),
             initial: p.link,
-            hint: 'Link (https://…)',
+            hint: AppText.t.common_linkHint,
             onSaved: (v) => service.updateProposal(id, link: v),
           ),
           Row(

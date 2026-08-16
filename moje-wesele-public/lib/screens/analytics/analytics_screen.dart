@@ -108,20 +108,20 @@ class AnalyticsScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _perGuestCard(summary, guestCount),
               const SizedBox(height: 12),
-              _chartCard(context, 'Budżet: planowany / orientacyjny / opłacony',
+              _chartCard(context, AppText.t.an_budgetChart,
                   _budgetBars(summary)),
               const SizedBox(height: 12),
-              _chartCard(context, 'Rozkład wydatków (kategorie)',
+              _chartCard(context, AppText.t.an_expensesChart,
                   _expensePie()),
               const SizedBox(height: 12),
-              _chartCard(context, 'Postęp płatności w czasie',
+              _chartCard(context, AppText.t.an_paymentsChart,
                   _paymentLine()),
               const SizedBox(height: 12),
-              _chartCard(context, 'Potwierdzenia gości', _rsvpPie(guests)),
+              _chartCard(context, AppText.t.an_rsvpChart, _rsvpPie(guests)),
               const SizedBox(height: 12),
-              _chartCard(context, 'Rozkład menu', _menuBars(guests)),
+              _chartCard(context, AppText.t.an_menuChart, _menuBars(guests)),
               const SizedBox(height: 12),
-              _chartCard(context, 'Rozkład diet', _dietPie(guests)),
+              _chartCard(context, AppText.t.an_dietChart, _dietPie(guests)),
             ],
     );
   }
@@ -150,8 +150,8 @@ class AnalyticsScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              _miniStat('Koszt / gość', formatPlnZl(costPerGuest)),
-              _miniStat('Budżet', formatPlnZl(s.budget)),
+              _miniStat(AppText.t.an_costPerGuest, formatPlnZl(costPerGuest)),
+              _miniStat(AppText.t.section_budget, formatPlnZl(s.budget)),
               _miniStat(
                   s.diff >= 0 ? 'Zapas' : 'Przekroczenie',
                   '${s.diff >= 0 ? '+' : ''}${formatPlnZl(s.diff)}'),
@@ -211,10 +211,10 @@ class AnalyticsScreen extends StatelessWidget {
           Row(
             children: [
               _perGuestStat(
-                  'Wg orientacyjnego', formatPlnZl(perPlan), AppColors.accent),
+                  AppText.t.an_byEstimate, formatPlnZl(perPlan), AppColors.accent),
               _perGuestStat(
-                  'Wg budżetu', formatPlnZl(perBudget), const Color(0xFF7C3AED)),
-              _perGuestStat('Gości', '$guestCount', const Color(0xFF059669)),
+                  AppText.t.an_byBudget, formatPlnZl(perBudget), const Color(0xFF7C3AED)),
+              _perGuestStat(AppText.t.an_guests, '$guestCount', const Color(0xFF059669)),
             ],
           ),
         ],
@@ -242,9 +242,9 @@ class AnalyticsScreen extends StatelessWidget {
   Widget _budgetBars(BudgetSummary s) {
     final values = [
       ('Planowany', s.totalConfirmed, const Color(0xFF1D4ED8)),
-      ('Orientac.', s.planForCalc, const Color(0xFFB45309)),
-      ('Opłacony', s.totalPaid, const Color(0xFF059669)),
-      ('Budżet', s.budget, const Color(0xFF7C3AED)),
+      (AppText.t.an_estimateShort, s.planForCalc, const Color(0xFFB45309)),
+      (AppText.t.an_paid, s.totalPaid, const Color(0xFF059669)),
+      (AppText.t.section_budget, s.budget, const Color(0xFF7C3AED)),
     ];
     final maxY = values.map((v) => v.$2).fold<double>(1, (m, v) => v > m ? v : m);
     // ⚠️ WYSOKOŚĆ JEST OBOWIĄZKOWA. Wykresy fl_chart starają się zająć całą
@@ -320,7 +320,7 @@ class AnalyticsScreen extends StatelessWidget {
 
   Widget _expensePie() {
     final map = _expenseByCategory();
-    if (map.isEmpty) return _empty('Brak wydatków.');
+    if (map.isEmpty) return _empty(AppText.t.an_noExpenses);
     final entries = map.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final total = entries.fold<double>(0, (s, e) => s + e.value);
@@ -375,7 +375,7 @@ class AnalyticsScreen extends StatelessWidget {
         if (paid > 0 && date != null) points.add((date, paid));
       }
     }
-    if (points.isEmpty) return _empty('Brak danych o płatnościach z datą.');
+    if (points.isEmpty) return _empty(AppText.t.an_noPayments);
     points.sort((a, b) => a.$1.compareTo(b.$1));
     var cum = 0.0;
     final spots = <FlSpot>[];
@@ -433,11 +433,11 @@ class AnalyticsScreen extends StatelessWidget {
         none++;
       }
     }
-    if (att + not + none == 0) return _empty('Brak gości.');
+    if (att + not + none == 0) return _empty(AppText.t.an_noGuests);
     final items = [
-      ('Przyjdą', att, const Color(0xFF059669)),
-      ('Nie przyjdą', not, const Color(0xFFC0392B)),
-      ('Brak odpowiedzi', none, const Color(0xFFB45309)),
+      (AppText.t.an_willAttend, att, const Color(0xFF059669)),
+      (AppText.t.an_willNotAttend, not, const Color(0xFFC0392B)),
+      (AppText.t.gs_noAnswer, none, const Color(0xFFB45309)),
     ];
     return Column(
       children: [
@@ -486,9 +486,9 @@ class AnalyticsScreen extends StatelessWidget {
     }
     final entries = [
       ...map.entries.map((e) => (e.key, e.value)),
-      if (noMenu > 0) ('Bez menu', noMenu),
+      if (noMenu > 0) (AppText.t.an_noMenu, noMenu),
     ];
-    if (entries.isEmpty) return _empty('Brak danych o menu.');
+    if (entries.isEmpty) return _empty(AppText.t.an_noMenuData);
     final maxY =
         entries.map((e) => e.$2).fold<int>(1, (m, v) => v > m ? v : m);
     return SizedBox(
@@ -550,7 +550,7 @@ class AnalyticsScreen extends StatelessWidget {
       final label = GuestOptions.dietLabel(g.diet, g.dietOther);
       map[label] = (map[label] ?? 0) + 1;
     }
-    if (map.isEmpty) return _empty('Brak danych o dietach.');
+    if (map.isEmpty) return _empty(AppText.t.an_noDietData);
     final entries = map.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
     final total = entries.fold<int>(0, (s, e) => s + e.value);

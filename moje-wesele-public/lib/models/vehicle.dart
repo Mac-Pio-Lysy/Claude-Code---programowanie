@@ -1,19 +1,32 @@
+import '../l10n/app_text.dart';
 import 'couple.dart';
 
 /// Typy pojazdów (VEHICLE_TYPES) — podpowiedzi; pole „typ" jest wolnym tekstem,
 /// więc można wpisać własną nazwę (np. „Pojazd Kuby", „Bus wynajęty").
 ///
 /// Getter, a nie stała, bo pozycje „auto rodziców" zależą od typu uroczystości
-/// (patrz [CoupleLabels]).
-List<String> get kVehicleTypes => [
-      'Auto wynajęte',
-      'Auto własne',
-      CoupleLabels.current.withPerson('Auto rodziców', 2),
-      CoupleLabels.current.withPerson('Auto rodziców', 1),
-      'Bus',
-      'Taxi/Uber',
-      'Inne',
-    ];
+/// (patrz [CoupleLabels]) i od języka.
+///
+/// Frazy z osobą są PEŁNYMI kluczami, nie sklejeniem przedrostka z rolą:
+/// polski wymaga tu dopełniacza („Auto rodziców Panny Młodej"), a angielski
+/// dzierżawczego („Bride's parents' car") — takiej konstrukcji nie da się
+/// złożyć z kawałków w sposób przenośny między językami.
+List<String> get kVehicleTypes {
+  final labels = CoupleLabels.current;
+  return [
+    AppText.t.vehicle_rented,
+    AppText.t.vehicle_own,
+    labels.usesNames
+        ? AppText.t.vehicle_parentsNamed(labels.personPlain(2))
+        : AppText.t.vehicle_parentsGroom,
+    labels.usesNames
+        ? AppText.t.vehicle_parentsNamed(labels.personPlain(1))
+        : AppText.t.vehicle_parentsBride,
+    AppText.t.vehicle_bus,
+    AppText.t.vehicle_taxi,
+    AppText.t.vehicle_other,
+  ];
+}
 
 /// Pojazd transportu — nakładka na surową mapę.
 class Vehicle {

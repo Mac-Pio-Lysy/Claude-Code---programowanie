@@ -1,3 +1,5 @@
+import '../l10n/app_text.dart';
+
 /// Typ uroczystości — decyduje o etykietach pary w całej aplikacji.
 ///
 /// Wartość zapisywana w `appConfig.coupleType`. Brak pola (stare wesela) =
@@ -16,17 +18,17 @@ enum CoupleType {
   neutral;
 
   String get label => switch (this) {
-        CoupleType.mixed => 'Kobieta i mężczyzna',
-        CoupleType.women => 'Dwie kobiety',
-        CoupleType.men => 'Dwóch mężczyzn',
-        CoupleType.neutral => 'Niebinarne / inne',
+        CoupleType.mixed => AppText.t.coupleType_mixed,
+        CoupleType.women => AppText.t.coupleType_women,
+        CoupleType.men => AppText.t.coupleType_men,
+        CoupleType.neutral => AppText.t.coupleType_neutral,
       };
 
   String get hint => switch (this) {
-        CoupleType.mixed => 'Panna Młoda i Pan Młody',
-        CoupleType.women => 'Obie osoby jako Panny Młode',
-        CoupleType.men => 'Obie osoby jako Panowie Młodzi',
-        CoupleType.neutral => 'Neutralne etykiety: Osoba 1 i Osoba 2',
+        CoupleType.mixed => AppText.t.coupleType_mixedHint,
+        CoupleType.women => AppText.t.coupleType_womenHint,
+        CoupleType.men => AppText.t.coupleType_menHint,
+        CoupleType.neutral => AppText.t.coupleType_neutralHint,
       };
 
   /// Odczyt z zapisanej wartości; nieznana lub brak → [CoupleType.mixed].
@@ -99,7 +101,7 @@ class CoupleLabels {
     String at(int i) {
       final v = (i < names.length ? names[i]?.toString() : null)?.trim() ?? '';
       // „Osoba 1" / „Osoba 2" to wartości zastępcze, nie prawdziwe imiona.
-      return (v == 'Osoba 1' || v == 'Osoba 2') ? '' : v;
+      return isPlaceholderName(v) ? '' : v;
     }
 
     return CoupleLabels(
@@ -116,11 +118,13 @@ class CoupleLabels {
 
   bool get _sameRole => type == CoupleType.women || type == CoupleType.men;
 
-  String get _roleName => switch (type) {
-        CoupleType.women => 'Panna Młoda',
-        CoupleType.men => 'Pan Młody',
-        CoupleType.neutral => 'Osoba',
-        CoupleType.mixed => '',
+  /// Numerowana etykieta zastępcza, gdy imię nie zostało podane
+  /// („Panna Młoda 1"). Cała fraza z tłumaczeń — liczebnik bywa w innych
+  /// językach po drugiej stronie.
+  String _numbered(int index) => switch (type) {
+        CoupleType.women => AppText.t.couple_brideNumbered(index),
+        CoupleType.men => AppText.t.couple_groomNumbered(index),
+        _ => AppText.t.couple_personNumbered(index),
       };
 
   String get _emoji => switch (type) {
@@ -148,37 +152,39 @@ class CoupleLabels {
   String personPlain(int index) =>
       _person(index == 1 ? firstName1 : firstName2, index, emoji: false);
 
-  /// Skleja stały przedrostek z osobą, pilnując polskiej gramatyki.
+  /// Czy fraza z osobą wymaga wariantu „z imieniem" zamiast roli.
   ///
-  /// Przy parze mieszanej używamy dopełniacza („Auto rodziców Panny Młodej"),
-  /// bo tak brzmi naturalnie. Imion nie odmieniamy, więc tam wchodzi nawias
-  /// („Auto rodziców (Kasia)") — forma neutralna, poprawna niezależnie od
-  /// imienia.
-  String withPerson(String prefix, int index) => type == CoupleType.mixed
-      ? '$prefix ${index == 1 ? 'Panny Młodej' : 'Pana Młodego'}'
-      : '$prefix (${personPlain(index)})';
+  /// Zastąpiło `withPerson(prefix, index)`, które sklejało przedrostek z rolą
+  /// w dopełniaczu („Auto rodziców Panny Młodej"). Takiej konstrukcji nie da
+  /// się przenieść na inne języki — każde miejsce ma teraz własny, pełny klucz
+  /// i tylko wybiera wariant przez ten getter.
+  bool get usesNames => type != CoupleType.mixed;
 
   String _person(String name, int index, {bool emoji = true}) {
     // Para mieszana zostaje przy dotychczasowych etykietach — role same się
     // rozróżniają, a każde istniejące wesele ma być widziane bez zmian.
     // Imion używamy tylko tam, gdzie bez nich nie da się odróżnić osób.
     if (type == CoupleType.mixed) {
-      final base = index == 1 ? 'Panna Młoda' : 'Pan Młody';
-      return emoji ? '${index == 1 ? '👰' : '🤵'} $base' : base;
+      if (emoji) {
+        return index == 1
+            ? AppText.t.couple_brideEmoji
+            : AppText.t.couple_groomEmoji;
+      }
+      return index == 1 ? AppText.t.couple_bride : AppText.t.couple_groom;
     }
     if (type == CoupleType.neutral) {
-      return name.isEmpty ? 'Osoba $index' : name;
+      return name.isEmpty ? AppText.t.couple_personNumbered(index) : name;
     }
     // Para jednopłciowa: imię, gdy podane; numer jako wariant awaryjny.
-    final base = name.isEmpty ? '$_roleName $index' : name;
-    return emoji ? '$_emoji $base' : base;
+    final base = name.isEmpty ? _numbered(index) : name;
+    return emoji ? AppText.t.couple_withEmoji(_emoji, base) : base;
   }
 
   /// Etykieta dla zapisanej wartości `invitedBy` (`'bride'` / `'groom'`).
   String invitedBy(String? value) => switch (value) {
         'bride' => person1,
         'groom' => person2,
-        _ => '—',
+        _ => AppText.t.common_none,
       };
 
   /// Gotowy tekst filtra „kto zaprosił" (chip na liście gości).
@@ -189,31 +195,33 @@ class CoupleLabels {
   /// gramatyki z kawałków.
   String invitedByFilterLabel(String? value) {
     if (type == CoupleType.mixed) {
-      return value == 'bride' ? 'Od Panny Młodej' : 'Od Pana Młodego';
+      return value == 'bride'
+          ? AppText.t.couple_fromBride
+          : AppText.t.couple_fromGroom;
     }
-    return 'Od: ${invitedBy(value)}';
+    return AppText.t.couple_fromNamed(invitedBy(value));
   }
 
   /// Etykieta świadka po stronie danej osoby.
   String witness(String? value) => switch (value) {
         'witness_bride' => _sameRole || type == CoupleType.neutral
-            ? 'Świadek/Świadkowa (${_shortName(firstName1, 1)})'
-            : 'Świadkowa',
+            ? AppText.t.couple_witnessNamed(_shortName(firstName1, 1))
+            : AppText.t.couple_witnessBride,
         'witness_groom' => _sameRole || type == CoupleType.neutral
-            ? 'Świadek/Świadkowa (${_shortName(firstName2, 2)})'
-            : 'Świadek',
-        _ => 'Brak roli',
+            ? AppText.t.couple_witnessNamed(_shortName(firstName2, 2))
+            : AppText.t.couple_witnessGroom,
+        _ => AppText.t.couple_witnessNone,
       };
 
   String _shortName(String name, int index) =>
-      name.isEmpty ? 'osoba $index' : name;
+      name.isEmpty ? AppText.t.couple_personShort(index) : name;
 
   /// Nazwa kategorii gościa dla Pary Młodej (etykieta, nie wartość w bazie).
   String get coupleCategoryLabel => switch (type) {
-        CoupleType.mixed => 'Państwo Młodzi',
-        CoupleType.women => 'Panny Młode',
-        CoupleType.men => 'Panowie Młodzi',
-        CoupleType.neutral => 'Para Młoda',
+        CoupleType.mixed => AppText.t.couple_categoryMixed,
+        CoupleType.women => AppText.t.couple_categoryWomen,
+        CoupleType.men => AppText.t.couple_categoryMen,
+        CoupleType.neutral => AppText.t.couple_categoryNeutral,
       };
 
   /// Wartość kategorii ZAPISYWANA w bazie — niezmienna, wspólna dla wszystkich
@@ -225,6 +233,29 @@ class CoupleLabels {
   static const int maxCouple = 2;
 
   /// Składa „Ania i Piotr" z dwóch imion; puste pomija.
-  static String joinNames(String a, String b) =>
-      [a.trim(), b.trim()].where((s) => s.isNotEmpty).join(' i ');
+  static String joinNames(String a, String b) {
+    final names = [a.trim(), b.trim()].where((s) => s.isNotEmpty).toList();
+    if (names.isEmpty) return '';
+    if (names.length == 1) return names.first;
+    return AppText.t.couple_joinNames(names[0], names[1]);
+  }
+
+  /// Wartości ZASTĘPCZE imion zapisywane w `budgetData.coupleNames`, gdy para
+  /// jeszcze ich nie podała.
+  ///
+  /// ⚠️ POLSKIE I NIEZMIENNE — te napisy porównujemy z tym, co JUŻ LEŻY
+  /// W BAZIE, żeby odróżnić „imię niepodane" od prawdziwego imienia.
+  /// Przetłumaczenie ich zerwałoby wykrywanie u wszystkich istniejących wesel.
+  /// Angielska lista jest dopisana obok, bo wesele założone po angielsku
+  /// zapisze tam swoje wartości zastępcze — sprawdzamy więc oba warianty.
+  static const List<String> placeholderNames = [
+    'Osoba 1',
+    'Osoba 2',
+    'Person 1',
+    'Person 2',
+  ];
+
+  /// Czy podana wartość to wartość zastępcza, a nie prawdziwe imię.
+  static bool isPlaceholderName(String value) =>
+      placeholderNames.contains(value.trim());
 }

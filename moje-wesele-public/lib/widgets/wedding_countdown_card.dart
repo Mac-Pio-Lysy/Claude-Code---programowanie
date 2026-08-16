@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
 import '../models/wedding_countdown.dart';
+import '../l10n/app_text.dart';
 
 /// Licznik odliczający do wesela (#24).
 ///
@@ -79,14 +80,14 @@ class _WeddingCountdownCardState extends State<WeddingCountdownCard> {
 
   Widget _today() => Column(
         children: [
-          Text('To już dziś! 🎉',
+          Text(AppText.t.w_weddingToday,
               textAlign: TextAlign.center,
               style: GoogleFonts.playfairDisplay(
                   fontSize: widget.compact ? 22 : 26,
                   fontWeight: FontWeight.w700,
                   color: AppColors.accent)),
           const SizedBox(height: 4),
-          Text('Do zobaczenia na weselu',
+          Text(AppText.t.w_seeYouAtWedding,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                   fontSize: 13, color: AppColors.textLight)),
@@ -97,7 +98,7 @@ class _WeddingCountdownCardState extends State<WeddingCountdownCard> {
     final detail = c.detail;
     return Column(
       children: [
-        Text('Do wesela zostało',
+        Text(AppText.t.w_timeToWedding,
             style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

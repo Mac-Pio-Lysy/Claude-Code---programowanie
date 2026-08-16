@@ -123,7 +123,7 @@ class _EventFormSheetState extends State<EventFormSheet> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _isEdit ? 'Edytuj wydarzenie' : 'Dodaj wydarzenie',
+                      _isEdit ? AppText.t.sched_editEvent : AppText.t.sched_addEvent,
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
@@ -162,7 +162,7 @@ class _EventFormSheetState extends State<EventFormSheet> {
                           ),
                         ),
                         _field(
-                          'Nazwa *',
+                          AppText.t.common_nameRequired,
                           TextFormField(
                             controller: _name,
                             decoration: _dec(hint: AppText.t.schedule_eventNameHint),
@@ -183,14 +183,14 @@ class _EventFormSheetState extends State<EventFormSheet> {
                           'Miejsce',
                           TextField(
                             controller: _location,
-                            decoration: _dec(hint: 'np. Sala weselna'),
+                            decoration: _dec(hint: AppText.t.sched_placeHint),
                           ),
                         ),
                         _field(
-                          'Osoba odpowiedzialna',
+                          AppText.t.common_responsible,
                           TextField(
                             controller: _responsible,
-                            decoration: _dec(hint: 'np. Oboje'),
+                            decoration: _dec(hint: AppText.t.sched_responsibleHint),
                           ),
                         ),
                         _field(
@@ -211,7 +211,7 @@ class _EventFormSheetState extends State<EventFormSheet> {
                           ),
                         ),
                         _field(
-                          'Link do lokalizacji',
+                          AppText.t.sched_mapLink,
                           TextField(
                             controller: _locationUrl,
                             keyboardType: TextInputType.url,

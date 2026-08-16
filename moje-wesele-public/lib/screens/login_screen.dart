@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../l10n/app_text.dart';
 
 /// Ekran powitalny przed zalogowaniem — jasnoniebieski gradient, pierścionek
 /// w zdobionej odznace, nazwa aplikacji fontem Playfair Display i subtelne
@@ -120,7 +121,7 @@ class LoginScreen extends StatelessWidget {
           // Informacja o logowaniu / rejestracji
           const SizedBox(height: 22),
           Text(
-            'Zaloguj się lub załóż konto swoim kontem Google',
+            AppText.t.login_subtitle,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 12.5,
@@ -130,7 +131,7 @@ class LoginScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '🔒 Bezpieczne logowanie — bez osobnego hasła',
+            AppText.t.login_secure,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               fontSize: 12,
@@ -314,7 +315,7 @@ class _GoogleSignInButton extends StatelessWidget {
                 const SizedBox(width: 10),
                 Flexible(
                   child: Text(
-                    isLoading ? 'Logowanie…' : 'Zaloguj się przez Google',
+                    isLoading ? AppText.t.login_signingIn : AppText.t.login_google,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 15,

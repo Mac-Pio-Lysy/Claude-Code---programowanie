@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'children.dart';
 import 'wedding_data.dart';
+import '../l10n/app_text.dart';
 
 /// Rodzaj napojów — wspólna logika dla Alkoholu i Napojów bezalkoholowych.
 enum BeverageKind { alcohol, soft }
@@ -24,7 +25,9 @@ extension BeverageKindX on BeverageKind {
       this == BeverageKind.alcohol ? 'alcoholPanelHidden' : 'softPanelHidden';
 
   String get title =>
-      this == BeverageKind.alcohol ? 'Alkohol' : 'Napoje bezalkoholowe';
+      this == BeverageKind.alcohol
+          ? AppText.t.beverage_alcohol
+          : AppText.t.beverage_soft;
 
   /// Rodzaje (ALCOHOL_TYPES / SOFT_TYPES w zrodlo-web/script.js).
   List<String> get types => this == BeverageKind.alcohol
@@ -112,9 +115,17 @@ class BeverageSummary {
     final personCount = baseGuests + (perVirtual ? virtual : 0.0);
 
     final names = budget['coupleNames'];
+    // Etykiety zastępcze do POKAZANIA (nie do zapisu) — stąd tłumaczenie.
+    final fallback = [
+      AppText.t.couple_personNumbered(1),
+      AppText.t.couple_personNumbered(2),
+    ];
     final coupleNames = (names is List && names.length >= 2)
-        ? [names[0]?.toString() ?? 'Osoba 1', names[1]?.toString() ?? 'Osoba 2']
-        : <String>['Osoba 1', 'Osoba 2'];
+        ? [
+            names[0]?.toString() ?? fallback[0],
+            names[1]?.toString() ?? fallback[1],
+          ]
+        : fallback;
 
     return BeverageSummary(
       totalBottles: totalBottles,

@@ -133,7 +133,7 @@ class _MusicScreenState extends State<MusicScreen> {
                 onPressed: () {
                   final base = PublicPages.baseUrl(widget.data?.raw);
                   showPublicLinkDialog(
-                      context, '🎵 Muzyka — propozycje gości',
+                      context, AppText.t.music_headerTitle,
                       PublicPages.muzyka(base));
                 },
                 icon: const Icon(Icons.qr_code_2, color: AppColors.accent),
@@ -162,10 +162,10 @@ class _MusicScreenState extends State<MusicScreen> {
           dividerColor: const Color(0xFFE2EAF7),
           labelStyle:
               GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-          tabs: const [
+          tabs: [
             Tab(text: 'Propozycje'),
-            Tab(text: '⭐ Specjalne'),
-            Tab(text: 'Strona dla gości'),
+            Tab(text: AppText.t.music_specialFilter),
+            Tab(text: AppText.t.gp_guestPage),
           ],
         ),
         Expanded(
@@ -237,7 +237,7 @@ class _MusicScreenState extends State<MusicScreen> {
               GuestPageTab(
                 links: [
                   (
-                    '🎵 Muzyka — propozycje gości',
+                    AppText.t.music_headerTitle,
                     PublicPages.muzyka(PublicPages.baseUrl(widget.data?.raw)),
                   ),
                 ],
@@ -766,7 +766,7 @@ class _MusicScreenState extends State<MusicScreen> {
           BudgetTextField(
             key: ValueKey('song-genre-$id'),
             initial: s.genre,
-            hint: 'Gatunek / gust',
+            hint: AppText.t.music_genre,
             onSaved: (v) => widget.service.updateSong(id, genre: v),
           ),
           const SizedBox(height: 8),
@@ -788,13 +788,13 @@ class _MusicScreenState extends State<MusicScreen> {
     return DropdownButtonFormField<String>(
       initialValue: values.contains(s.specialMoment) ? s.specialMoment : '',
       isExpanded: true,
-      decoration: _miniDec('⭐ Moment specjalny'),
+      decoration: _miniDec(AppText.t.music_specialMoment),
       items: [
         for (final m in values)
           DropdownMenuItem(
             value: m,
             child: Text(m.isEmpty
-                ? '— nie jest specjalny —'
+                ? AppText.t.music_notSpecial
                 : '${specialMomentIcon(m)} $m'),
           ),
       ],
@@ -1061,9 +1061,7 @@ class _MusicScreenState extends State<MusicScreen> {
       builder: (context) => AlertDialog(
         title: Text(AppText.t.music_removeMomentTitle),
         content: Text(
-            'Moment „$label" zniknie z listy. Przypisane utwory NIE zostaną '
-            'usunięte — pokażą się jako „spoza listy", możesz je przypisać '
-            'ponownie lub odłączyć.'),
+            AppText.t.music_removeMomentBody(label)),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -1430,7 +1428,7 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
   Future<void> _addManual() async {
     final t = _title.text.trim();
     if (t.isEmpty) {
-      _msg('Podaj tytuł utworu');
+      _msg(AppText.t.music_needTitle);
       return;
     }
     await widget.service.addSong(

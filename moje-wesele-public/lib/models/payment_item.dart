@@ -2,16 +2,18 @@ import 'dart:math';
 
 import 'sala_summary.dart';
 import 'wedding_data.dart';
+import '../l10n/app_text.dart';
+import 'expense.dart';
 
 /// Źródło płatności w zbiorczym widoku „Płatności".
 enum PaymentSource { sala, expenses, honeymoon, vendor }
 
 extension PaymentSourceX on PaymentSource {
   String get label => switch (this) {
-        PaymentSource.sala => 'Sala',
-        PaymentSource.expenses => 'Wydatki',
-        PaymentSource.honeymoon => 'Podróż poślubna',
-        PaymentSource.vendor => 'Dostawca',
+        PaymentSource.sala => AppText.t.pay_sala,
+        PaymentSource.expenses => AppText.t.pay_expenses,
+        PaymentSource.honeymoon => AppText.t.pay_honeymoon,
+        PaymentSource.vendor => AppText.t.pay_vendor,
       };
 
   String get icon => switch (this) {
@@ -83,7 +85,7 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
         source: PaymentSource.sala,
         name: (p['name'] as String?)?.trim().isNotEmpty == true
             ? p['name'] as String
-            : 'Płatność',
+            : AppText.t.pay_generic,
         effective: effective,
         paid: paid,
         remaining: max(0.0, effective - paid),
@@ -104,7 +106,7 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
   if (salaCost > 0) {
     items.add(PaymentItem(
       source: PaymentSource.sala,
-      name: 'Koszt sali (obliczony)',
+      name: AppText.t.pay_salaComputed,
       effective: salaCost,
       paid: 0,
       remaining: salaCost,
@@ -133,7 +135,9 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
       final custom = (e['customName'] as String?) ?? '';
       items.add(PaymentItem(
         source: PaymentSource.expenses,
-        name: cat == 'Inne' && custom.isNotEmpty ? custom : cat,
+        name: cat == 'Inne' && custom.isNotEmpty
+            ? custom
+            : ExpenseCategories.labelFor(cat),
         effective: effective,
         paid: paid,
         remaining: max(0.0, effective - paid),
@@ -158,7 +162,7 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
         source: PaymentSource.honeymoon,
         name: (h['name'] as String?)?.trim().isNotEmpty == true
             ? h['name'] as String
-            : 'Podróż poślubna',
+            : AppText.t.pay_honeymoon,
         effective: effective,
         paid: paid,
         remaining: max(0.0, effective - paid),
@@ -195,7 +199,7 @@ List<PaymentItem> buildPaymentItems(WeddingData? data) {
       final paid = _paidSum(insts);
       items.add(PaymentItem(
         source: PaymentSource.vendor,
-        name: 'Rata do dostawcy: ${_vendorLabel(v)}',
+        name: AppText.t.pay_vendorInstalment(_vendorLabel(v)),
         effective: effective,
         paid: paid,
         remaining: max(0.0, effective - paid),
@@ -230,7 +234,7 @@ String _vendorLabel(Map v) {
   } else if (cat.isNotEmpty) {
     return cat;
   }
-  return 'Dostawca';
+  return AppText.t.pay_vendor;
 }
 
 // Rata reprezentowana jako (amount, dueDate, status).

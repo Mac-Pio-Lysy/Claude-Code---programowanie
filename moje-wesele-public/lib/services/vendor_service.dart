@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'firestore_service.dart';
+import '../l10n/app_text.dart';
 
 /// Dane dostawcy z formularza.
 class VendorDraft {
@@ -243,7 +244,7 @@ class VendorService {
         'estimatedAmount': draft.contractAmount,
         'paid': 0,
         'paymentDate': '',
-        'note': 'Dostawca: $label',
+        'note': AppText.t.vendSvc_vendor(label),
         'splitP1': 0,
         'splitP2': 0,
         'sidePanel': false,

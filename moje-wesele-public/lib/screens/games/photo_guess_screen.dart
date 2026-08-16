@@ -66,10 +66,10 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
-            tabs: const [
-              Tab(text: 'Zdjęcia'),
+            tabs: [
+              Tab(text: AppText.t.pg_photos),
               Tab(text: 'Wyniki'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -79,7 +79,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                 _resultsTab(),
                 GuestPageTab(
                   links: [
-                    ('📸 Zgadnij zdjęcie', PublicPages.zgadnijZdjecie(base))
+                    (AppText.t.pg_headerTitle, PublicPages.zgadnijZdjecie(base))
                   ],
                   intro:
                       AppText.t.photoGuess_txt1,
@@ -156,9 +156,9 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
         subtitle: Text(
           hasQuestions
               ? (_active
-                  ? 'Goście mogą teraz grać przez stronę / kod QR.'
-                  : 'Włącz, aby goście mogli zgadywać.')
-              : 'Najpierw dodaj przynajmniej jedno zdjęcie.',
+                  ? AppText.t.gp_activeHint
+                  : AppText.t.pg_enableHint)
+              : AppText.t.pg_needPhoto,
           style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
         ),
       ),
@@ -414,7 +414,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return _info('Nie udało się wczytać wyników. Sprawdź połączenie.');
+          return _info(AppText.t.gp_loadResultsError);
         }
         final results = [...?snapshot.data];
         final questions = _questions;
@@ -430,7 +430,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                     color: AppColors.text)),
             const SizedBox(height: 8),
             if (results.isEmpty)
-              _info('Brak wyników. Udostępnij gościom kod QR, aby zagrali.')
+              _info(AppText.t.gp_noResults)
             else
               ..._ranking(results),
             if (results.isNotEmpty && questions.isNotEmpty) ...[
@@ -470,9 +470,9 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
       ),
       child: Row(
         children: [
-          _stat('$participants', 'Uczestników', AppColors.accent),
-          _stat('$count', 'Zdjęć', const Color(0xFF7C3AED)),
-          _stat(avg.toStringAsFixed(1), 'Śr. wynik', const Color(0xFF059669)),
+          _stat('$participants', AppText.t.gp_participants, AppColors.accent),
+          _stat('$count', AppText.t.pg_photosCount, const Color(0xFF7C3AED)),
+          _stat(avg.toStringAsFixed(1), AppText.t.gp_avgScore, const Color(0xFF059669)),
         ],
       ),
     );
@@ -523,7 +523,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                         color: AppColors.textLight)),
               ),
               Expanded(
-                child: Text(sorted[i].name.isEmpty ? 'Gość' : sorted[i].name,
+                child: Text(sorted[i].name.isEmpty ? AppText.t.role_guest : sorted[i].name,
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -623,7 +623,7 @@ class _PhotoGuessScreenState extends State<PhotoGuessScreen> {
                         Text(
                           s.answered == 0
                               ? 'brak'
-                              : '${s.wrong}/${s.answered} błędnych',
+                              : AppText.t.gp_wrongOf(s.wrong, s.answered),
                           style: GoogleFonts.inter(
                               fontSize: 11, color: AppColors.textLight),
                         ),
@@ -726,7 +726,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _uploading = false);
-      _err('Nie udało się wgrać zdjęcia: $e');
+      _err(AppText.t.pg_uploadError('$e'));
     }
   }
 
@@ -745,22 +745,22 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
 
   void _submit() {
     if (_photoUrl.isEmpty) {
-      _err('Najpierw dodaj zdjęcie');
+      _err(AppText.t.pg_addPhotoFirst);
       return;
     }
     final q = _question.text.trim();
     final answers = _answers.map((c) => c.text.trim()).toList();
     final filled = answers.where((a) => a.isNotEmpty).toList();
     if (q.isEmpty) {
-      _err('Wpisz treść pytania');
+      _err(AppText.t.gp_questionText);
       return;
     }
     if (filled.length < 2) {
-      _err('Podaj przynajmniej 2 odpowiedzi');
+      _err(AppText.t.gp_needTwoAnswers);
       return;
     }
     if (answers[_correct].isEmpty) {
-      _err('Zaznaczona poprawna odpowiedź jest pusta');
+      _err(AppText.t.gp_emptyCorrect);
       return;
     }
     final correctText = answers[_correct];
@@ -805,7 +805,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text(_isEdit ? 'Edytuj zdjęcie' : 'Dodaj zdjęcie',
+                    child: Text(_isEdit ? AppText.t.pg_editPhoto : AppText.t.pg_addPhoto,
                         style: GoogleFonts.playfairDisplay(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -824,10 +824,10 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                       TextField(
                         controller: _question,
                         maxLines: 2,
-                        decoration: _dec(hint: 'np. Kto to z dzieciństwa?'),
+                        decoration: _dec(hint: AppText.t.pg_questionHint),
                       ),
                       const SizedBox(height: 16),
-                      _label('Odpowiedzi (zaznacz poprawną)'),
+                      _label(AppText.t.gp_answers),
                       RadioGroup<int>(
                         groupValue: _correct,
                         onChanged: (v) => setState(() => _correct = v ?? 0),
@@ -845,7 +845,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
                                       child: TextField(
                                         controller: _answers[i],
                                         decoration:
-                                            _dec(hint: 'Odpowiedź ${i + 1}'),
+                                            _dec(hint: AppText.t.gp_answerN(i + 1)),
                                       ),
                                     ),
                                     if (_answers.length > 2)
@@ -919,7 +919,7 @@ class _PhotoFormSheetState extends State<_PhotoFormSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _label('Zdjęcie'),
+        _label(AppText.t.pg_photo),
         AspectRatio(
           aspectRatio: 16 / 10,
           child: Container(

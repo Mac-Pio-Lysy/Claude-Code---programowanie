@@ -98,7 +98,7 @@ class GuestScheduleTab extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: AppColors.text)),
                 if (e.location.isNotEmpty)
-                  Text('📍 ${e.location}',
+                  Text(AppText.t.sched_location(e.location),
                       style: GoogleFonts.inter(
                           fontSize: 12, color: AppColors.textLight)),
               ],

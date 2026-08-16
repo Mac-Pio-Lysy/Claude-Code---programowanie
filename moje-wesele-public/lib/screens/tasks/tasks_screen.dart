@@ -417,7 +417,7 @@ class _TasksScreenState extends State<TasksScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _chipRow([
-          _chip('Wszystkie statusy', _statusFilter == 'all',
+          _chip(AppText.t.task_allStatuses, _statusFilter == 'all',
               () => setState(() => _statusFilter = 'all')),
           for (final s in TaskStatus.columns)
             _chip(s.label, _statusFilter == s.id,
@@ -439,26 +439,26 @@ class _TasksScreenState extends State<TasksScreen> {
               () => setState(() => _linkFilter = 'budget')),
           _chip(AppText.t.tasks_linkVendor, _linkFilter == 'vendor',
               () => setState(() => _linkFilter = 'vendor')),
-          _chip('🚗 Transport', _linkFilter == 'transport',
+          _chip(AppText.t.task_transport, _linkFilter == 'transport',
               () => setState(() => _linkFilter = 'transport')),
-          _chip('🏨 Nocleg', _linkFilter == 'accommodation',
+          _chip(AppText.t.task_accommodation, _linkFilter == 'accommodation',
               () => setState(() => _linkFilter = 'accommodation')),
-          _chip('🎵 Muzyka', _linkFilter == 'music',
+          _chip(AppText.t.task_music, _linkFilter == 'music',
               () => setState(() => _linkFilter = 'music')),
-          _chip('🎁 Prezent', _linkFilter == 'gift',
+          _chip(AppText.t.task_gift, _linkFilter == 'gift',
               () => setState(() => _linkFilter = 'gift')),
           _chip(AppText.t.tasks_noLink, _linkFilter == 'none',
               () => setState(() => _linkFilter = 'none')),
         ]),
         const SizedBox(height: 8),
         _chipRow([
-          _chip('Bez sortowania', _sort == 'none',
+          _chip(AppText.t.common_noSorting, _sort == 'none',
               () => setState(() => _sort = 'none')),
-          _chip('Wg terminu', _sort == 'date',
+          _chip(AppText.t.task_byDue, _sort == 'date',
               () => setState(() => _sort = 'date')),
-          _chip('Wg priorytetu', _sort == 'priority',
+          _chip(AppText.t.task_byPriority, _sort == 'priority',
               () => setState(() => _sort = 'priority')),
-          _chip('Wg statusu', _sort == 'status',
+          _chip(AppText.t.common_byStatus, _sort == 'status',
               () => setState(() => _sort = 'status')),
         ]),
       ],
@@ -674,7 +674,7 @@ class _TaskCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  t.name.isEmpty ? '(bez nazwy)' : t.name,
+                  t.name.isEmpty ? AppText.t.common_noNameNeutral : t.name,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -698,8 +698,7 @@ class _TaskCard extends StatelessWidget {
               if (t.goal.isNotEmpty) _goalBadge(t),
               if (t.dueDate.isNotEmpty)
                 _badge(
-                  '${t.isOverdue ? '⚠ ' : '📅 '}'
-                  '${AppFormat.dateShortFromIso(t.dueDate) ?? t.dueDate}',
+                  '${t.isOverdue ? '⚠ ' : '📅 '}${AppFormat.dateShortFromIso(t.dueDate) ?? t.dueDate}',
                   t.isOverdue
                       ? const Color(0xFFFEE2E2)
                       : const Color(0xFFF1F5F9),
@@ -729,7 +728,7 @@ class _TaskCard extends StatelessWidget {
               if (t.transportId != null)
                 _linkBadge(
                     _withName(
-                        '🚗 Transport',
+                        AppText.t.task_transport,
                         _linkName('vehicles', t.transportId, (m) {
                           final d = (m['description'] as String?)?.trim();
                           return (d == null || d.isEmpty)
@@ -742,7 +741,7 @@ class _TaskCard extends StatelessWidget {
               if (t.accommodationId != null)
                 _linkBadge(
                     _withName(
-                        '🏨 Nocleg',
+                        AppText.t.task_accommodation,
                         _linkName('hotels', t.accommodationId,
                             (m) => (m['name'] as String?) ?? '')),
                     const Color(0xFFF0FDFA),
@@ -751,14 +750,14 @@ class _TaskCard extends StatelessWidget {
               if (t.musicId != null)
                 _linkBadge(
                     _withName(
-                        '🎵 Muzyka',
+                        AppText.t.task_music,
                         _linkName('songs', t.musicId,
                             (m) => (m['title'] as String?) ?? '')),
                     const Color(0xFFFFF7ED),
                     const Color(0xFFB45309),
                     AppSection.music),
               if (t.giftId != null)
-                _linkBadge('🎁 Prezent', const Color(0xFFFDF2F8),
+                _linkBadge(AppText.t.task_gift, const Color(0xFFFDF2F8),
                     const Color(0xFFDB2777), AppSection.gifts),
             ],
           ),
@@ -786,7 +785,7 @@ class _TaskCard extends StatelessWidget {
             value: 'edit', child: Text(AppText.t.tasks_editAction)),
         for (final s in TaskStatus.columns)
           if (s.id != task.statusId)
-            PopupMenuItem(value: 'move:${s.id}', child: Text('→ ${s.label}')),
+            PopupMenuItem(value: 'move:${s.id}', child: Text(AppText.t.task_goToSection(s.label))),
         PopupMenuItem(
             value: 'delete', child: Text(AppText.t.tasks_deleteAction)),
       ],

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import '../l10n/app_text.dart';
 
 /// Uwierzytelnianie przez Google — odpowiednik zrodlo-web/auth.js.
 ///
@@ -73,7 +74,7 @@ class AuthService {
     if (!google.supportsAuthenticate()) {
       throw FirebaseAuthException(
         code: 'operation-not-allowed',
-        message: 'Logowanie Google nie jest obsługiwane na tej platformie.',
+        message: AppText.t.auth_googleUnsupported,
       );
     }
 
@@ -84,7 +85,7 @@ class AuthService {
       if (idToken == null) {
         throw FirebaseAuthException(
           code: 'google-signin-failed',
-          message: 'Brak tokenu Google. Spróbuj ponownie.',
+          message: AppText.t.auth_noToken,
         );
       }
       final credential = GoogleAuthProvider.credential(idToken: idToken);
@@ -95,12 +96,12 @@ class AuthService {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw FirebaseAuthException(
           code: 'cancelled-popup-request',
-          message: 'Anulowano logowanie.',
+          message: AppText.t.auth_cancelled,
         );
       }
       throw FirebaseAuthException(
         code: 'google-signin-failed',
-        message: e.description ?? 'Błąd logowania Google.',
+        message: e.description ?? AppText.t.auth_googleError,
       );
     }
   }

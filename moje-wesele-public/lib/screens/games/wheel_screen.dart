@@ -11,6 +11,7 @@ import '../../models/wheel.dart';
 import '../../services/firestore_service.dart';
 import '../../services/wheel_service.dart';
 import '../budget/budget_fields.dart';
+import '../../l10n/app_text.dart';
 
 /// Podzakładka „Koło fortuny" (w sekcji „Ślubne gry").
 ///
@@ -79,7 +80,7 @@ class WheelScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tryb losowania',
+        Text(AppText.t.wheel_mode,
             style: GoogleFonts.inter(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -130,9 +131,8 @@ class WheelScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Losowanie spośród gości z listy. W puli: $count '
-              '${_plural(count, "gość", "gości", "gości")} '
-              '(${CoupleLabels.current.coupleCategoryLabel} pominięci).',
+              AppText.t.wheel_poolInfo(
+                  count, CoupleLabels.current.coupleCategoryLabel),
               style: GoogleFonts.inter(
                   fontSize: 13, height: 1.4, color: AppColors.text),
             ),
@@ -159,7 +159,7 @@ class WheelScreen extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: Text('Pola koła (${items.length})',
+                child: Text(AppText.t.wheel_fields(items.length),
                     style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -170,14 +170,14 @@ class WheelScreen extends StatelessWidget {
                     service.setItems(setKey, [...items, '']),
                 icon: const Icon(Icons.add_circle_outline),
                 color: AppColors.accent,
-                tooltip: 'Dodaj pole',
+                tooltip: AppText.t.wheel_addField,
               ),
             ],
           ),
           if (items.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Text('Dodaj pola przyciskiem +.',
+              child: Text(AppText.t.wheel_addHint,
                   style: GoogleFonts.inter(
                       fontSize: 12, color: AppColors.textLight)),
             )
@@ -191,7 +191,7 @@ class WheelScreen extends StatelessWidget {
                       child: BudgetTextField(
                         key: ValueKey('$setKey-$i'),
                         initial: items[i],
-                        hint: 'Pole ${i + 1}',
+                        hint: AppText.t.wheel_fieldN(i + 1),
                         onSaved: (v) {
                           final list = [...items];
                           list[i] = v;
@@ -233,13 +233,13 @@ class WheelScreen extends StatelessWidget {
             activeThumbColor: AppColors.accent,
             value: cfg.removeOnPick,
             onChanged: (v) => service.setRemoveOnPick(v),
-            title: Text('Usuń wylosowanego z puli',
+            title: Text(AppText.t.wheel_removeOnPick,
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),
             subtitle: Text(
               cfg.removeOnPick
-                  ? 'Wylosowane pola nie pojawią się ponownie (w tej sesji).'
-                  : 'Wylosowane pola zostają w puli.',
+                  ? AppText.t.wheel_removeOnPickOn
+                  : AppText.t.wheel_removeOnPickOff,
               style:
                   GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
@@ -248,10 +248,10 @@ class WheelScreen extends StatelessWidget {
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.fullscreen, color: AppColors.accent),
-            title: Text('Tryb prezentacji (pełny ekran)',
+            title: Text(AppText.t.wheel_fullscreen,
                 style: GoogleFonts.inter(
                     fontSize: 14, fontWeight: FontWeight.w600)),
-            subtitle: Text('Duże koło do pokazania na sali.',
+            subtitle: Text(AppText.t.wheel_fullscreenHint,
                 style: GoogleFonts.inter(
                     fontSize: 11, color: AppColors.textLight)),
             trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
@@ -269,12 +269,6 @@ class WheelScreen extends StatelessWidget {
     );
   }
 
-  static String _plural(int n, String one, String few, String many) {
-    if (n == 1) return one;
-    final m10 = n % 10, m100 = n % 100;
-    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
-    return many;
-  }
 }
 
 /// Pełnoekranowy tryb prezentacji koła (do pokazania na sali).
@@ -399,7 +393,7 @@ class _WheelViewState extends State<WheelView>
     if (_spinning) return;
     final pool = _effectivePool;
     if (pool.isEmpty) {
-      _toast('Pula jest pusta — dodaj pola lub zresetuj pulę.');
+      _toast(AppText.t.wheel_poolEmpty);
       return;
     }
     final n = pool.length;
@@ -448,7 +442,7 @@ class _WheelViewState extends State<WheelView>
       _removed.clear();
       _result = null;
     });
-    _toast('Pula przywrócona');
+    _toast(AppText.t.wheel_poolReset);
   }
 
   void _toast(String msg) {
@@ -549,7 +543,7 @@ class _WheelViewState extends State<WheelView>
       alignment: Alignment.center,
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Text('Brak pól w puli',
+        child: Text(AppText.t.wheel_noFields,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
                 fontSize: 14,
@@ -571,7 +565,7 @@ class _WheelViewState extends State<WheelView>
               height: widget.fullscreen ? 64 : 40,
               child: Center(
                 child: Text(
-                  _spinning ? 'Kręcę…' : 'Naciśnij „Zakręć!"',
+                  _spinning ? AppText.t.wheel_spinning : AppText.t.wheel_pressSpin,
                   style: GoogleFonts.inter(
                       fontSize: 14,
                       color: onDark ? Colors.white60 : AppColors.textLight),
@@ -595,7 +589,7 @@ class _WheelViewState extends State<WheelView>
               ),
               child: Column(
                 children: [
-                  Text('🎉 Wylosowano',
+                  Text(AppText.t.wheel_drawn,
                       style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -619,7 +613,7 @@ class _WheelViewState extends State<WheelView>
       child: ElevatedButton.icon(
         onPressed: _spinning ? null : _spin,
         icon: const Icon(Icons.casino, size: 24),
-        label: Text(_spinning ? 'Kręcę…' : 'Zakręć!',
+        label: Text(_spinning ? AppText.t.wheel_spinning : AppText.t.wheel_spin,
             style:
                 GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w800)),
         style: ElevatedButton.styleFrom(
@@ -640,14 +634,14 @@ class _WheelViewState extends State<WheelView>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('W puli: $count',
+        Text(AppText.t.wheel_inPool(count),
             style: GoogleFonts.inter(fontSize: 12, color: txtColor)),
         if (_removed.isNotEmpty) ...[
           const SizedBox(width: 12),
           TextButton.icon(
             onPressed: _resetPool,
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('Resetuj pulę'),
+            label: Text(AppText.t.wheel_reset),
             style: TextButton.styleFrom(foregroundColor: AppColors.accent),
           ),
         ],
@@ -668,7 +662,7 @@ class _WheelViewState extends State<WheelView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('🕘 Historia losowań',
+          Text(AppText.t.wheel_history,
               style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

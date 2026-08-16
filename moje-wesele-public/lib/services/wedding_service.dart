@@ -11,6 +11,7 @@ import '../utils/warsaw_time.dart';
 import 'guest_service.dart';
 import 'membership_service.dart';
 import 'user_service.dart';
+import '../l10n/app_text.dart';
 
 /// Wynik przygotowania strefy gości dla jednego wesela (D1, etap 2).
 class GuestViewSyncResult {
@@ -177,7 +178,7 @@ class WeddingService {
       weddingId: weddingId,
       weddingDate: (date != null && date.isNotEmpty) ? date : null,
       displayNames: persons.trim(),
-      eventName: name.trim().isEmpty ? 'Nasze Wesele' : name.trim(),
+      eventName: name.trim().isEmpty ? AppText.t.cw_defaultName : name.trim(),
     );
 
     // Token + publiczny mirror dla gości (best-effort — wymaga reguł strefy
@@ -345,9 +346,9 @@ class WeddingService {
       if (data == null) {
         results.add(GuestViewSyncResult(
           weddingId: m.weddingId,
-          name: 'Wesele ${m.weddingId}',
+          name: AppText.t.wedSvc_weddingId(m.weddingId),
           ok: false,
-          error: 'Dokument wesela nie istnieje',
+          error: AppText.t.err_weddingDocMissing,
         ));
         continue;
       }
@@ -404,7 +405,7 @@ class WeddingService {
     final persons =
         (cfg is Map ? cfg['displayNames'] as String? : null)?.trim() ?? '';
     if (persons.isNotEmpty) return persons;
-    return 'Wesele $weddingId';
+    return AppText.t.wedSvc_weddingId(weddingId);
   }
 
   /// Odświeża publiczny mirror gościa dla [weddingId] (best-effort — nie rzuca).
@@ -447,8 +448,7 @@ class WeddingService {
       final minute = (m['minute'] as num?)?.toInt() ?? 0;
       final url = (m['locationUrl'] as String?)?.trim() ?? '';
       events.add({
-        'time': '${hour.toString().padLeft(2, '0')}'
-            ':${minute.toString().padLeft(2, '0')}',
+        'time': '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
         'name': name,
         'description': (m['description'] as String?)?.trim() ?? '',
         'location': (m['location'] as String?)?.trim() ?? '',
@@ -766,8 +766,8 @@ class WeddingService {
     final coupleNames = (person1.trim().isEmpty && person2.trim().isEmpty)
         ? _splitPersons(persons)
         : [
-            person1.trim().isEmpty ? 'Osoba 1' : person1.trim(),
-            person2.trim().isEmpty ? 'Osoba 2' : person2.trim(),
+            person1.trim().isEmpty ? CoupleLabels.placeholderNames[0] : person1.trim(),
+            person2.trim().isEmpty ? CoupleLabels.placeholderNames[1] : person2.trim(),
           ];
 
     // Rekordy gości dla Pary Młodej (#9). Puste imiona = pusta lista, więc
@@ -788,7 +788,7 @@ class WeddingService {
       // (patrz `PremiumAccess` i opisana tam zasada grandfatheringu).
       ...PremiumAccess.initialFields(),
       'appConfig': {
-        'eventName': name.trim().isEmpty ? 'Nasze Wesele' : name.trim(),
+        'eventName': name.trim().isEmpty ? AppText.t.cw_defaultName : name.trim(),
         'displayNames': persons.trim(),
         'ceremonyPlace': '',
         'receptionPlace': '',
@@ -823,13 +823,13 @@ class WeddingService {
   /// osoba pozostaje pusta (uzupełni się w Ustawieniach).
   List<String> _splitPersons(String persons) {
     final p = persons.trim();
-    if (p.isEmpty) return ['Osoba 1', 'Osoba 2'];
+    if (p.isEmpty) return [CoupleLabels.placeholderNames[0], CoupleLabels.placeholderNames[1]];
     final parts = p.split(RegExp(r'\s+i\s+', caseSensitive: false));
     final a = parts.isNotEmpty ? parts[0].trim() : '';
     final b = parts.length > 1 ? parts[1].trim() : '';
     return [
-      a.isEmpty ? 'Osoba 1' : a,
-      b.isEmpty ? 'Osoba 2' : b,
+      a.isEmpty ? CoupleLabels.placeholderNames[0] : a,
+      b.isEmpty ? CoupleLabels.placeholderNames[1] : b,
     ];
   }
 
@@ -894,8 +894,7 @@ class WeddingService {
       [String surnames = '']) {
     final needle = _normalize(input);
     if (needle.length < 2) return false;
-    final hay = '${_normalize(surnames)} ${_normalize(displayNames)} '
-        '${_normalize(eventName)}';
+    final hay = '${_normalize(surnames)} ${_normalize(displayNames)} ${_normalize(eventName)}';
     return hay.contains(needle);
   }
 

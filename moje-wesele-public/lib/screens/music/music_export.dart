@@ -1,4 +1,5 @@
 import '../../models/song.dart';
+import '../../l10n/app_text.dart';
 
 /// Wynik parsowania importu: tytuł, wykonawca, status.
 class ParsedSong {
@@ -21,13 +22,13 @@ class MusicExport {
     }
 
     final head = [
-      'Tytuł',
+      AppText.t.music_exportTitle,
       'Wykonawca',
-      'Moment imprezy',
-      'Utwór specjalny',
+      AppText.t.music_partyMoment,
+      AppText.t.music_exportSpecial,
       'Status',
       'Gatunek',
-      'Od gościa'
+      AppText.t.music_exportFromGuest
     ];
     final rows = songs.map((s) => [
           s.title,
@@ -45,7 +46,7 @@ class MusicExport {
   /// [specialMoments], potem reszta pogrupowana po momentach imprezy.
   static String toTxt(List<Song> songs, {List<String> specialMoments = const []}) {
     final buf = StringBuffer()
-      ..writeln('LISTA PIOSENEK NA WESELE')
+      ..writeln(AppText.t.music_exportHeader)
       ..writeln('========================')
       ..writeln();
 
@@ -56,7 +57,7 @@ class MusicExport {
     }
     if (special.isNotEmpty) {
       buf
-        ..writeln('### ⭐ UTWORY SPECJALNE — KLUCZOWE MOMENTY')
+        ..writeln(AppText.t.music_exportSpecialHeader)
         ..writeln();
       final ordered = <String>[
         ...specialMoments.where(special.containsKey),
@@ -77,7 +78,7 @@ class MusicExport {
       byMoment.putIfAbsent(s.moment.isEmpty ? 'Inne' : s.moment, () => []).add(s);
     }
     buf
-      ..writeln('### WSZYSTKIE UTWORY (wg momentu imprezy)')
+      ..writeln(AppText.t.music_exportAllHeader)
       ..writeln();
     for (final m in kMusicMoments) {
       final list = byMoment[m];
@@ -94,11 +95,9 @@ class MusicExport {
   }
 
   /// Instrukcja formatu importu (pokazywana użytkownikowi).
-  static const String importHelp =
-      'Wklej listę utworów. Obsługiwane formaty:\n'
-      '• CSV: Tytuł;Wykonawca;Status (separator średnik)\n'
-      '• Tekst: "- Tytuł — Wykonawca" (po jednym w linii)\n'
-      'Status rozpoznawany ze słów: „zatwierdzone", „odrzucone", „dj".';
+  ///
+  /// Getter, nie stała: treść jest tłumaczona.
+  static String get importHelp => AppText.t.music_importHelp;
 
   /// Parsuje wklejony tekst (CSV lub listę).
   static List<ParsedSong> parse(String text) {

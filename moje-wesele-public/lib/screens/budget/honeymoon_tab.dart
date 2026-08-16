@@ -344,7 +344,7 @@ class _OptionRow extends StatelessWidget {
               Expanded(
                 child: BudgetTextField(
                   initial: option.name,
-                  hint: 'Nazwa wariantu',
+                  hint: AppText.t.hm_variantName,
                   onSaved: (v) => service.updateHoneymoonOption(_id, name: v),
                 ),
               ),
@@ -380,7 +380,7 @@ class _OptionRow extends StatelessWidget {
           const SizedBox(height: 6),
           BudgetTextField(
             initial: option.link,
-            hint: 'Link do oferty (https://…)',
+            hint: AppText.t.hm_offerLink,
             onSaved: (v) => service.updateHoneymoonOption(_id, link: v),
           ),
         ],

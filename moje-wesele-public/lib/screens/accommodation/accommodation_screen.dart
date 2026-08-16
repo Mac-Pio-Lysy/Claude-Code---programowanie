@@ -50,7 +50,7 @@ class AccommodationScreen extends StatelessWidget {
     );
     if (draft == null) return;
     await service.addHotel(draft);
-    if (context.mounted) _toast(context, 'Dodano hotel');
+    if (context.mounted) _toast(context, AppText.t.hotel_added);
   }
 
   Future<void> _editHotel(BuildContext context, Hotel hotel) async {
@@ -70,8 +70,7 @@ class AccommodationScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppText.t.accommodation_deleteHotelTitle),
-        content: Text('Czy na pewno usunąć „${hotel.name}"? '
-            'Przypisania gości do tego hotelu zostaną wyczyszczone.'),
+        content: Text(AppText.t.hotel_deleteConfirm(hotel.name)),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -87,7 +86,7 @@ class AccommodationScreen extends StatelessWidget {
     );
     if (ok != true || hotel.id == null) return;
     await service.deleteHotel(hotel.id!);
-    if (context.mounted) _toast(context, 'Usunięto hotel');
+    if (context.mounted) _toast(context, AppText.t.hotel_deleted);
   }
 
   @override
@@ -139,7 +138,7 @@ class AccommodationScreen extends StatelessWidget {
               const SizedBox(height: 8),
               if (needs.isEmpty)
                 _hint(
-                    'Brak gości z zaznaczonym noclegiem.\nZaznacz „Nocleg" przy gościu w sekcji Goście.')
+                    AppText.t.hotel_noGuests)
               else
                 for (final g in needs) _guestRow(g, hotels),
               const SizedBox(height: 20),
@@ -156,7 +155,7 @@ class AccommodationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               if (hotels.isEmpty)
-                _hint('Brak hoteli. Dodaj pierwszy poniżej.')
+                _hint(AppText.t.hotel_empty)
               else
                 for (final h in hotels)
                   _hotelCard(context, h,
@@ -203,9 +202,9 @@ class AccommodationScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _stat('$needs', 'Potrzebuje noclegu', AppColors.accent),
+          _stat('$needs', AppText.t.hotel_needsRoom, AppColors.accent),
           _stat('$reserved', 'Zarezerwowane', const Color(0xFF059669)),
-          _stat('${needs - reserved}', 'Do zarezerwowania',
+          _stat('${needs - reserved}', AppText.t.gs_roomPending,
               const Color(0xFFB45309)),
         ],
       ),
@@ -253,7 +252,7 @@ class AccommodationScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName,
+                child: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
                     style: GoogleFonts.inter(
                         fontSize: 14, fontWeight: FontWeight.w600)),
               ),
@@ -288,7 +287,7 @@ class AccommodationScreen extends StatelessWidget {
                   isExpanded: true,
                   decoration: _miniDec(),
                   items: [
-                    DropdownMenuItem(value: '', child: Text(AppText.t.accommodation_statusHint)),
+                    DropdownMenuItem(value: '', child: Text(AppText.t.common_statusHint)),
                     for (final s in AccommodationStatus.all)
                       DropdownMenuItem(value: s.value, child: Text(s.label)),
                   ],
@@ -360,7 +359,7 @@ class AccommodationScreen extends StatelessWidget {
             ],
           ),
           if (h.address.isNotEmpty)
-            Text('📍 ${h.address}',
+            Text(AppText.t.hotel_address(h.address),
                 style: GoogleFonts.inter(
                     fontSize: 12, color: AppColors.textLight)),
           const SizedBox(height: 6),
@@ -369,11 +368,11 @@ class AccommodationScreen extends StatelessWidget {
             runSpacing: 6,
             children: [
               if (h.phone.isNotEmpty)
-                _chip('📞 ${h.phone}'),
+                _chip(AppText.t.hotel_phone(h.phone)),
               _chip('${formatPlnZl(h.pricePerNight)}/os.'),
-              _chip('👥 ${h.personsPerRoom} os./pokój'),
+              _chip(AppText.t.hotel_perRoom(h.personsPerRoom)),
               _chip('💰 koszt: ${formatPlnZl(h.cost)}'),
-              _chip('🛏 gości: $guestCount'),
+              _chip(AppText.t.hotel_guestCount(guestCount)),
             ],
           ),
           if (h.notes.isNotEmpty)

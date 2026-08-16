@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../l10n/app_text.dart';
 
 /// Klikalna plakietka „Dodano w: [sekcja]" — pokazywana przy rekordzie, który
 /// został utworzony w innej sekcji (jedno źródło danych / SSOT) i tu tylko się
@@ -29,7 +30,7 @@ class AddedInChip extends StatelessWidget {
           children: [
             const Icon(Icons.link, size: 13, color: AppColors.accent),
             const SizedBox(width: 4),
-            Text('Dodano w: $section',
+            Text(AppText.t.w_addedIn(section),
                 style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

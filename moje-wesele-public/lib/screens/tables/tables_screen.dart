@@ -568,7 +568,7 @@ class _GuestChip extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            guest.fullName.isEmpty ? '(bez imienia)' : guest.fullName,
+            guest.fullName.isEmpty ? AppText.t.common_noName : guest.fullName,
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -636,7 +636,7 @@ class _GuestPickerSheet extends StatelessWidget {
                         ),
                       ),
                     ),
-                    title: Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName),
+                    title: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName),
                     subtitle: g.category.isNotEmpty ? Text(g.category) : null,
                     onTap: () => Navigator.of(context).pop(g.id),
                   );

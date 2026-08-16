@@ -208,7 +208,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName,
+                  child: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
@@ -238,7 +238,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
             BudgetTextField(
               key: ValueKey('pref-$id'),
               initial: (g.raw['preferences'] as String?) ?? '',
-              hint: 'np. miejsce przy rodzinie',
+              hint: AppText.t.gc_seatHint,
               onSaved: (v) => widget.service.setField(id, 'preferences', v),
             ),
             const SizedBox(height: 8),
@@ -246,7 +246,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
             BudgetTextField(
               key: ValueKey('alerg-$id'),
               initial: (g.raw['allergies'] as String?) ?? '',
-              hint: 'np. orzechy, gluten',
+              hint: AppText.t.gc_allergyHint,
               onSaved: (v) => widget.service.setField(id, 'allergies', v),
             ),
             const SizedBox(height: 8),
@@ -254,7 +254,7 @@ class _GuestsCardTabState extends State<GuestsCardTab> {
             BudgetTextField(
               key: ValueKey('notes-$id'),
               initial: (g.raw['cardNotes'] as String?) ?? '',
-              hint: 'Dodatkowe informacje…',
+              hint: AppText.t.gc_extraInfo,
               onSaved: (v) => widget.service.setField(id, 'cardNotes', v),
             ),
           ],

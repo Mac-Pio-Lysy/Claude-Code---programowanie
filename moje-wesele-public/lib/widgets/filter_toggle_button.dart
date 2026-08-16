@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_colors.dart';
+import '../l10n/app_text.dart';
 
 /// Mała strzałka/przycisk do chowania i pokazywania opcji filtrowania
 /// i sortowania (ikona filtra + obracający się chevron).
@@ -17,7 +18,7 @@ class FilterToggleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: expanded ? 'Ukryj filtry' : 'Pokaż filtry',
+      message: expanded ? AppText.t.w_hideFilters : AppText.t.w_showFilters,
       child: Material(
         color: expanded ? const Color(0xFFEEF3FF) : Colors.white,
         borderRadius: BorderRadius.circular(10),

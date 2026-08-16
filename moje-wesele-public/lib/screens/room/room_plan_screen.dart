@@ -274,7 +274,7 @@ class _RoomPlanScreenState extends State<RoomPlanScreen> {
           _stat(AppText.t.guests_filterUnassigned, '$unassigned',
               const Color(0xFFB45309)),
           _stat(AppText.t.tables_statTables, '$tables', const Color(0xFF7C3AED)),
-          _stat('Wolne miejsca', '$free', const Color(0xFF0891B2)),
+          _stat(AppText.t.room_freeSeats, '$free', const Color(0xFF0891B2)),
         ],
       ),
     );

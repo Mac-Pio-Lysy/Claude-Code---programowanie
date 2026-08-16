@@ -5,6 +5,7 @@ import '../../app_colors.dart';
 import '../../services/app_lock_service.dart';
 import 'pattern_lock.dart';
 import 'pin_pad.dart';
+import '../../l10n/app_text.dart';
 
 /// Ekran blokady pokazywany przy kolejnych otwarciach aplikacji, gdy włączona
 /// jest biometria/PIN. Konto pozostaje zalogowane przez Google w tle — tu
@@ -134,7 +135,7 @@ class _LockScreenState extends State<LockScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Aplikacja zablokowana',
+                        AppText.t.lock_locked,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.playfairDisplay(
                           fontSize: 24,
@@ -145,8 +146,8 @@ class _LockScreenState extends State<LockScreen> {
                       const SizedBox(height: 6),
                       Text(
                         widget.displayName?.isNotEmpty == true
-                            ? 'Witaj ponownie, ${widget.displayName}'
-                            : 'Odblokuj, aby kontynuować',
+                            ? AppText.t.lock_welcomeBack(widget.displayName!)
+                            : AppText.t.lock_unlock,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                             fontSize: 13, color: AppColors.textLight),
@@ -194,7 +195,7 @@ class _LockScreenState extends State<LockScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Dotknij, aby zeskanować odcisk palca',
+          AppText.t.lock_touchToScan,
           style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
         ),
         const SizedBox(height: 24),
@@ -206,7 +207,7 @@ class _LockScreenState extends State<LockScreen> {
               _pin = '';
             }),
             icon: const Icon(Icons.dialpad, size: 18),
-            label: Text('Użyj ${_backupType!.label}'),
+            label: Text(AppText.t.lock_useBackup(_backupType!.label)),
             style: TextButton.styleFrom(foregroundColor: AppColors.accent),
           ),
       ],
@@ -218,15 +219,17 @@ class _LockScreenState extends State<LockScreen> {
       children: [
         Text(
           _backupType == BackupType.pin
-              ? 'Wpisz kod PIN'
-              : 'Narysuj wzór odblokowania',
+              ? AppText.t.lock_enterPin
+              : AppText.t.lock_drawPattern,
           style: GoogleFonts.inter(
               fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text),
         ),
         if (_error) ...[
           const SizedBox(height: 6),
           Text(
-            'Błędny ${_backupType?.label ?? 'kod'} — pozostało prób: $_attemptsLeft',
+            AppText.t.lock_wrongBackup(
+                _backupType?.label ?? AppText.t.setup_pinCode,
+                _attemptsLeft),
             style: GoogleFonts.inter(
                 fontSize: 12, color: const Color(0xFFC0392B)),
           ),
@@ -261,13 +264,13 @@ class _LockScreenState extends State<LockScreen> {
               _error = false;
             }),
             icon: const Icon(Icons.fingerprint, size: 18),
-            label: const Text('Użyj odcisku palca'),
+            label: Text(AppText.t.lock_useFingerprint),
             style: TextButton.styleFrom(foregroundColor: AppColors.accent),
           ),
         TextButton(
           onPressed: widget.onForceReauth,
           child: Text(
-            'Nie pamiętasz? Zaloguj przez Google',
+            AppText.t.lock_forgot,
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
         ),

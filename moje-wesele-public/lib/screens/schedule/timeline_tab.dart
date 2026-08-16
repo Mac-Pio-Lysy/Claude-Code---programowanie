@@ -42,7 +42,7 @@ class TimelineTab extends StatelessWidget {
     );
     if (draft == null) return;
     await service.addEvent(draft);
-    if (context.mounted) _toast(context, 'Dodano wydarzenie');
+    if (context.mounted) _toast(context, AppText.t.sched_eventAdded);
   }
 
   Future<void> _edit(BuildContext context, ScheduleEvent event) async {
@@ -55,7 +55,7 @@ class TimelineTab extends StatelessWidget {
     );
     if (draft == null || event.id == null) return;
     await service.updateEvent(event.id!, draft);
-    if (context.mounted) _toast(context, 'Zapisano zmiany');
+    if (context.mounted) _toast(context, AppText.t.common_savedToast);
   }
 
   Future<void> _delete(BuildContext context, ScheduleEvent event) async {
@@ -219,7 +219,7 @@ class _EventCardState extends State<_EventCard> {
                                           style: const TextStyle(fontSize: 14)),
                                       Flexible(
                                         child: Text(
-                                          e.name.isEmpty ? '(bez nazwy)' : e.name,
+                                          e.name.isEmpty ? AppText.t.common_noNameNeutral : e.name,
                                           style: GoogleFonts.inter(
                                               fontSize: 15,
                                               fontWeight: FontWeight.w700,
@@ -247,7 +247,7 @@ class _EventCardState extends State<_EventCard> {
                                       child: Text(
                                         [
                                           if (e.location.isNotEmpty)
-                                            '📍 ${e.location}',
+                                            AppText.t.sched_location(e.location),
                                           if (e.responsible.isNotEmpty)
                                             '👤 ${e.responsible}',
                                         ].join('  ·  '),

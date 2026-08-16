@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'legacy_scope.dart';
+import '../l10n/app_text.dart';
 
 /// Wynik migracji jednej kolekcji legacy.
 class LegacyMigrationResult {
@@ -70,8 +71,7 @@ class LegacyMigrationService {
   Future<List<LegacyMigrationResult>> run({String? weddingId}) async {
     final target = weddingId ?? LegacyScope.weddingId;
     if (target.isEmpty || target == LegacyScope.noWedding) {
-      throw StateError('Brak aktywnego wesela — nie wiadomo, komu przypisać '
-          'dane legacy. Wybierz wesele i spróbuj ponownie.');
+      throw StateError(AppText.t.err_noActiveWedding);
     }
     final results = <LegacyMigrationResult>[];
     for (final name in collections) {

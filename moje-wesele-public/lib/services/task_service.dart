@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'firestore_service.dart';
+import '../l10n/app_text.dart';
 
 /// Wybór powiązania dla jednej sekcji (Dostawca / Transport / Nocleg / Muzyka).
 /// `existingId` → powiąż z istniejącym elementem; `createNew` → utwórz nowy
@@ -248,7 +249,7 @@ class TaskService {
         'estimatedAmount': estimatedCost,
         'paid': 0,
         'paymentDate': '',
-        'note': 'Utworzono z zadania: $name',
+        'note': AppText.t.taskSvc_fromTask(name),
         'splitP1': 0,
         'splitP2': 0,
         'sidePanel': false,
@@ -332,7 +333,7 @@ class TaskService {
         'email': '',
         'price': 0,
         'paymentStatus': 'contacted',
-        'notes': name.isEmpty ? '' : 'Utworzono z zadania: $name',
+        'notes': name.isEmpty ? '' : AppText.t.taskSvc_fromTask(name),
         'mapUrl': '',
         'isBudgetLinked': false,
         'contractAmount': 0,
@@ -359,12 +360,12 @@ class TaskService {
         'pricePerNight': 0,
         'personsPerRoom': 1,
         'bookingLink': '',
-        'notes': name.isEmpty ? '' : 'Utworzono z zadania: $name',
+        'notes': name.isEmpty ? '' : AppText.t.taskSvc_fromTask(name),
         'inComplex': false,
       };
 
   Map<String, dynamic> _newSong(String name) => {
-        'title': name.isEmpty ? 'Utwór' : name,
+        'title': name.isEmpty ? AppText.t.taskSvc_song : name,
         'artist': '',
         'cover': '',
         'preview': '',

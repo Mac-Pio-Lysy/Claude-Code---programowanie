@@ -72,12 +72,27 @@ void main() {
     // Tłumacz, który pominie `{error}`, wyprodukuje komunikat bez treści
     // błędu — a kod i tak przekaże argument.
     final pl = rawOf(plPath);
-    // Tylko domknięte `{nazwa}`. Luźne `{` z konstrukcji ICU
-    // (`{count, plural, =0{Brak gości}}`) to treść formy, nie podstawienie.
     final placeholderPattern = RegExp(r'\{(\w+)\}');
 
-    Set<String> placeholders(String text) =>
-        placeholderPattern.allMatches(text).map((m) => m.group(1)!).toSet();
+    /// Nazwa liczebnika w ICU: `{count, plural, …}` → `count`.
+    final icuArg = RegExp(r'\{(\w+),\s*(?:plural|select|selectordinal)\s*,');
+
+    Set<String> placeholders(String text) {
+      // Z konstrukcji ICU liczy się WYŁĄCZNIE nazwa liczebnika. Treść form
+      // (`=1{godzina} few{godziny}`) to zwykły tekst — w każdym języku inny
+      // i w innej liczbie form (polski ma trzy, angielski dwie), więc całą
+      // konstrukcję wycinamy przed szukaniem zwykłych podstawień.
+      final args = icuArg.allMatches(text).map((m) => m.group(1)!).toSet();
+      var rest = text;
+      for (final m in icuArg.allMatches(text).toList().reversed) {
+        final end = _matchingBrace(rest, m.start);
+        if (end > m.start) rest = rest.replaceRange(m.start, end + 1, '');
+      }
+      return {
+        ...args,
+        ...placeholderPattern.allMatches(rest).map((m) => m.group(1)!),
+      };
+    }
 
     for (final path in otherLocales()) {
       final other = rawOf(path);
@@ -114,4 +129,17 @@ void main() {
       expect(empty, isEmpty, reason: 'Puste teksty w $path: ${empty.join(', ')}');
     }
   });
+}
+
+/// Indeks klamry domykającej konstrukcję ICU otwartą na [start].
+int _matchingBrace(String s, int start) {
+  var depth = 0;
+  for (var i = start; i < s.length; i++) {
+    if (s[i] == '{') depth++;
+    if (s[i] == '}') {
+      depth--;
+      if (depth == 0) return i;
+    }
+  }
+  return -1;
 }

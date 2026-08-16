@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app_colors.dart';
 import '../../services/table_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/app_text.dart';
 
 /// Modalny formularz dodawania stołu. Zwraca [TableDraft] przez `Navigator.pop`.
 class AddTableSheet extends StatefulWidget {
@@ -94,7 +95,7 @@ class _AddTableSheetState extends State<AddTableSheet> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                _label('Liczba miejsc'),
+                _label(AppText.t.common_seats),
                 Row(
                   children: [
                     _stepperButton(Icons.remove, () {

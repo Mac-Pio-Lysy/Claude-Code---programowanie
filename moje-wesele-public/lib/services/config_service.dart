@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/couple.dart';
 import '../models/currency.dart';
 import 'firestore_service.dart';
+import '../l10n/app_text.dart';
 
 /// Dane konfiguracji z formularza Ustawień.
 class AppConfigDraft {
@@ -69,9 +70,9 @@ class ConfigService {
     await _firestore.mainDoc.set({
       'appConfig': {
         'eventName':
-            d.eventName.isEmpty ? 'Ceremonia Weselna' : d.eventName,
+            d.eventName.isEmpty ? AppText.t.cfg_defaultEventName : d.eventName,
         'displayNames':
-            d.displayNames.isEmpty ? 'Patrycji i Piotra' : d.displayNames,
+            d.displayNames.isEmpty ? AppText.t.cfg_defaultPersons : d.displayNames,
         'ceremonyPlace': d.ceremonyPlace,
         'receptionPlace': d.receptionPlace,
         'menuOptions': d.menuOptions,
@@ -84,8 +85,8 @@ class ConfigService {
       'weddingTime': d.weddingTime.isEmpty ? '16:00' : d.weddingTime,
       'budgetData': {
         'coupleNames': [
-          d.person1.isEmpty ? 'Osoba 1' : d.person1,
-          d.person2.isEmpty ? 'Osoba 2' : d.person2,
+          d.person1.isEmpty ? CoupleLabels.placeholderNames[0] : d.person1,
+          d.person2.isEmpty ? CoupleLabels.placeholderNames[1] : d.person2,
         ],
         // Głębokie scalanie — reszta `budgetData` (ceny, menu dziecięce,
         // tryb liczenia dzieci) zostaje nietknięta.

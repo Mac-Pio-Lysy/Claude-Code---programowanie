@@ -159,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _grid() {
     if (_layout.isEmpty) {
-      return _emptyHint('Brak kafelków. Kliknij „Edytuj", aby dodać.');
+      return _emptyHint(AppText.t.dash_emptyTiles);
     }
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -198,7 +198,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return _DashTile(
             def: def,
             stat: DashStat(
-                count == null ? '…' : '$count', 'zdjęć i filmów'),
+                count == null ? '…' : '$count', AppText.t.dash_gallerySub),
             onTap: () => widget.onOpenSection(def.target),
           );
         },
@@ -435,11 +435,11 @@ class _CountdownTileState extends State<_CountdownTile> {
     final def = DashWidgets.byId('countdown')!;
     DashStat stat;
     if (target == null) {
-      stat = const DashStat('—', 'Ustaw datę w Ustawieniach');
+      stat = DashStat('—', AppText.t.dash_setDate);
     } else {
       final diff = target.difference(DateTime.now());
       if (diff.isNegative) {
-        stat = const DashStat('🎉', 'Już po ślubie!');
+        stat = DashStat('🎉', AppText.t.dash_afterWedding);
       } else {
         String p(int n) => n.toString().padLeft(2, '0');
         final days = diff.inDays;

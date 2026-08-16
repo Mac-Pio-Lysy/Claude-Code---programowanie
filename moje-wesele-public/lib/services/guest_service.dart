@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/couple.dart';
 import '../models/guest.dart' show CompanionRelation;
 import 'firestore_service.dart';
+import '../l10n/app_text.dart';
 
 /// Błąd reguły biznesowej listy gości — komunikat jest gotowy do pokazania
 /// użytkownikowi (UI wyświetla go w SnackBarze).
@@ -212,15 +213,12 @@ class GuestService {
 
     if (coupleCount(guests, exceptId: exceptId) >= CoupleLabels.maxCouple) {
       throw GuestRuleException(
-        'W kategorii „${CoupleLabels.current.coupleCategoryLabel}" mogą być '
-        'najwyżej ${CoupleLabels.maxCouple} osoby. Zmień kategorię tego gościa '
-        'albo popraw istniejący wpis Pary Młodej.',
+        AppText.t.guestSvc_coupleLimit(CoupleLabels.current.coupleCategoryLabel, CoupleLabels.maxCouple),
       );
     }
     if (hasCompanion) {
-      throw const GuestRuleException(
-        'Para Młoda nie ma osoby towarzyszącej — obie osoby dodaj jako osobne '
-        'wpisy Pary Młodej.',
+      throw GuestRuleException(
+        AppText.t.guestSvc_coupleNoCompanion,
       );
     }
   }

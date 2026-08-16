@@ -5,6 +5,8 @@ import '../../app_colors.dart';
 import '../../models/vehicle.dart';
 import '../../services/transport_service.dart';
 import '../../utils/format.dart';
+import '../../utils/app_format.dart';
+import '../../l10n/app_text.dart';
 
 /// Modalny formularz dodawania / edycji pojazdu.
 class VehicleFormSheet extends StatefulWidget {
@@ -113,18 +115,18 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(_isEdit ? 'Edytuj pojazd' : 'Dodaj pojazd',
+                  Text(_isEdit ? AppText.t.tr_editVehicle : AppText.t.tr_addVehicle,
                       style: GoogleFonts.playfairDisplay(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: AppColors.text)),
                   const SizedBox(height: 16),
-                  _label('Typ / nazwa pojazdu *'),
+                  _label(AppText.t.tr_typeRequired),
                   TextFormField(
                     controller: _type,
-                    decoration: _dec(hint: 'np. Pojazd Kuby, Bus wynajęty'),
+                    decoration: _dec(hint: AppText.t.tr_typeHint),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Podaj typ/nazwę'
+                        ? AppText.t.tr_needType
                         : null,
                   ),
                   const SizedBox(height: 8),
@@ -154,7 +156,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                   _label('Kierowca'),
                   TextField(
                       controller: _driver,
-                      decoration: _dec(hint: 'Imię kierowcy')),
+                      decoration: _dec(hint: AppText.t.tr_driverName)),
                   const SizedBox(height: 14),
                   Row(
                     children: [
@@ -162,7 +164,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _label('Liczba miejsc'),
+                            _label(AppText.t.common_seats),
                             Row(
                               children: [
                                 _stepper(Icons.remove, () {
@@ -189,7 +191,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _label('Godzina odjazdu'),
+                            _label(AppText.t.tr_departure),
                             InkWell(
                               onTap: _pickTime,
                               child: InputDecorator(
@@ -221,14 +223,14 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                   _label('Trasa'),
                   TextField(
                       controller: _route,
-                      decoration: _dec(hint: 'np. Kościół → Sala')),
+                      decoration: _dec(hint: AppText.t.tr_routeHint)),
                   const SizedBox(height: 14),
-                  _label('Koszt (zł)'),
+                  _label(AppText.t.tr_cost(AppFormat.currency.symbol)),
                   TextField(
                     controller: _cost,
                     keyboardType:
                         const TextInputType.numberWithOptions(decimal: true),
-                    decoration: _dec(hint: '0', suffix: 'zł'),
+                    decoration: _dec(hint: '0', suffix: AppFormat.currency.symbol),
                   ),
                   const SizedBox(height: 16),
                   Row(

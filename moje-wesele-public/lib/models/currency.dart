@@ -1,3 +1,5 @@
+import '../l10n/app_text.dart';
+
 /// Waluta budżetu — WYŁĄCZNIE etykieta symbolu przy kwotach.
 ///
 /// ⚠️ NIE PRZELICZA KURSÓW. Zmiana waluty nie rusza żadnej zapisanej liczby:
@@ -9,14 +11,14 @@
 /// płaci sali w złotówkach niezależnie od tego, w jakim języku gość ogląda
 /// stronę.
 enum Currency {
-  pln('PLN', 'zł', 'Złoty polski'),
-  eur('EUR', '€', 'Euro'),
-  usd('USD', '\$', 'Dolar amerykański'),
-  gbp('GBP', '£', 'Funt brytyjski'),
-  czk('CZK', 'Kč', 'Korona czeska'),
-  chf('CHF', 'CHF', 'Frank szwajcarski');
+  pln('PLN', 'zł'),
+  eur('EUR', '€'),
+  usd('USD', '\$'),
+  gbp('GBP', '£'),
+  czk('CZK', 'Kč'),
+  chf('CHF', 'CHF');
 
-  const Currency(this.code, this.symbol, this.label);
+  const Currency(this.code, this.symbol);
 
   /// Kod ISO zapisywany w danych (`PLN`, `EUR`…).
   final String code;
@@ -24,8 +26,16 @@ enum Currency {
   /// Symbol pokazywany przy kwocie.
   final String symbol;
 
-  /// Nazwa na liście wyboru.
-  final String label;
+  /// Nazwa na liście wyboru — TŁUMACZONA, więc getter, a nie pole enuma
+  /// (parametr konstruktora musiałby być stałą kompilacji).
+  String get label => switch (this) {
+        Currency.pln => AppText.t.currency_pln,
+        Currency.eur => AppText.t.currency_eur,
+        Currency.usd => AppText.t.currency_usd,
+        Currency.gbp => AppText.t.currency_gbp,
+        Currency.czk => AppText.t.currency_czk,
+        Currency.chf => AppText.t.currency_chf,
+      };
 
   /// Domyślna waluta — produkt startuje w Polsce.
   static const Currency fallback = Currency.pln;

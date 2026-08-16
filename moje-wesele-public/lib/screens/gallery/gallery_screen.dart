@@ -88,9 +88,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
             dividerColor: const Color(0xFFE2EAF7),
             labelStyle:
                 GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700),
-            tabs: const [
+            tabs: [
               Tab(text: 'Galeria'),
-              Tab(text: 'Strona dla gości'),
+              Tab(text: AppText.t.gp_guestPage),
             ],
           ),
           Expanded(
@@ -124,8 +124,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
                 GuestPageTab(
                   links: [
-                    ('📸 Galeria zdjęć i filmów', PublicPages.galeria(baseUrl)),
-                    ('🎵 Wybór muzyki', PublicPages.muzyka(baseUrl)),
+                    (AppText.t.gal_photoVideo, PublicPages.galeria(baseUrl)),
+                    (AppText.t.gal_musicChoice, PublicPages.muzyka(baseUrl)),
                   ],
                   intro:
                       AppText.t.gallery_txt1,
@@ -252,9 +252,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                       children: [
                         _typeChip('Wszystko', 'all'),
                         const SizedBox(width: 6),
-                        _typeChip('📷 Zdjęcia', 'image'),
+                        _typeChip(AppText.t.gal_photos, 'image'),
                         const SizedBox(width: 6),
-                        _typeChip('▶ Filmy', 'video'),
+                        _typeChip(AppText.t.gal_videos, 'video'),
                       ],
                     ),
                   ],
@@ -371,7 +371,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget _pdfSection(String baseUrl) {
     final format = pdfFormatFromLabel(_pdfFormat);
     return _card(
-      'Wydruki PDF',
+      AppText.t.gal_pdfPrints,
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -394,7 +394,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _pdfBtn('Galeria (QR)', () async {
+              _pdfBtn(AppText.t.gal_galleryQr, () async {
                 final bytes = await PdfService.gallery(
                     galleryUrl: PublicPages.galeria(baseUrl), format: format);
                 await PdfService.preview(bytes, 'galeria.pdf');
@@ -404,7 +404,7 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     events: _events, format: format);
                 await PdfService.preview(bytes, 'harmonogram.pdf');
               }),
-              _pdfBtn('Połączony', () async {
+              _pdfBtn(AppText.t.gal_combined, () async {
                 final bytes = await PdfService.combined(
                     galleryUrl: PublicPages.galeria(baseUrl),
                     events: _events,

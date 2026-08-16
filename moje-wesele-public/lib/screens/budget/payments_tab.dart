@@ -190,9 +190,9 @@ class _PaymentsSectionState extends State<PaymentsSection> {
       child: Row(
         children: [
           chip('Wszystkie', null),
-          chip('🏠 Sala', PaymentSource.sala),
-          chip('📋 Wydatki', PaymentSource.expenses),
-          chip('🏢 Dostawcy', PaymentSource.vendor),
+          chip(AppText.t.pay_venueTab, PaymentSource.sala),
+          chip(AppText.t.pay_expensesTab, PaymentSource.expenses),
+          chip(AppText.t.pay_vendorsTab, PaymentSource.vendor),
           chip(AppText.t.budget_tripShort, PaymentSource.honeymoon),
         ],
       ),
@@ -294,7 +294,7 @@ class _PaymentCard extends StatelessWidget {
               ),
               if (item.dueDate.isNotEmpty)
                 Text(
-                  '📅 ${AppFormat.dateShortFromIso(item.dueDate) ?? item.dueDate}',
+                  AppText.t.pay_dueDate(AppFormat.dateShortFromIso(item.dueDate) ?? item.dueDate),
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

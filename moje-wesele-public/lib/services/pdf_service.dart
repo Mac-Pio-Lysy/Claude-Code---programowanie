@@ -8,6 +8,7 @@ import '../models/advice.dart';
 import '../models/guestbook_entry.dart';
 import '../models/schedule_event.dart';
 import '../models/time_capsule_message.dart';
+import '../l10n/app_text.dart';
 
 /// Generowanie wydruków PDF (galeria/QR, harmonogram, połączony, bingo).
 /// Używa czcionki Roboto (Google Fonts) obsługującej polskie znaki.
@@ -30,13 +31,16 @@ class PdfService {
   static Future<Uint8List> qrCode({
     required String title,
     required String url,
-    String subtitle = 'Zeskanuj telefonem, aby otworzyć stronę dla gości.',
+    String? subtitle,
     PdfPageFormat format = PdfPageFormat.a4,
   }) async {
+    // Domyślna wartość parametru musi być stałą kompilacji, a tłumaczenie
+    // nią nie jest — dlatego rozwiązujemy je dopiero tutaj.
+    final subtitle_ = subtitle ?? AppText.t.pdf_qrHint;
     final doc = pw.Document(theme: await _theme());
     doc.addPage(pw.Page(
       pageFormat: format,
-      build: (ctx) => _qrPage(title: title, subtitle: subtitle, url: url),
+      build: (ctx) => _qrPage(title: title, subtitle: subtitle_, url: url),
     ));
     return doc.save();
   }
@@ -49,9 +53,9 @@ class PdfService {
     doc.addPage(pw.Page(
       pageFormat: format,
       build: (ctx) => _qrPage(
-        title: 'Galeria zdjęć z wesela',
+        title: AppText.t.pdf_galleryTitle,
         subtitle:
-            'Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia i filmy.',
+            AppText.t.pdf_galleryHintVideo,
         url: galleryUrl,
       ),
     ));
@@ -79,8 +83,8 @@ class PdfService {
     doc.addPage(pw.Page(
       pageFormat: format,
       build: (ctx) => _qrPage(
-        title: 'Galeria zdjęć z wesela',
-        subtitle: 'Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia.',
+        title: AppText.t.pdf_galleryTitle,
+        subtitle: AppText.t.pdf_galleryHint,
         url: galleryUrl,
       ),
     ));
@@ -133,7 +137,7 @@ class PdfService {
     return [
       pw.Header(
         level: 0,
-        child: pw.Text('Harmonogram dnia ślubu',
+        child: pw.Text(AppText.t.pdf_scheduleTitle,
             style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
       ),
       pw.SizedBox(height: 10),
@@ -156,7 +160,7 @@ class PdfService {
                         style: pw.TextStyle(
                             fontSize: 13, fontWeight: pw.FontWeight.bold)),
                     if (e.location.isNotEmpty)
-                      pw.Text('Miejsce: ${e.location}',
+                      pw.Text(AppText.t.pdf_place(e.location),
                           style: const pw.TextStyle(fontSize: 11)),
                     if (e.description.isNotEmpty)
                       pw.Text(e.description,
@@ -167,7 +171,7 @@ class PdfService {
             ],
           ),
         ),
-      if (events.isEmpty) pw.Text('Brak wydarzeń w harmonogramie.'),
+      if (events.isEmpty) pw.Text(AppText.t.pdf_scheduleEmpty),
     ];
   }
 
@@ -176,13 +180,16 @@ class PdfService {
   /// Pamiątkowy PDF z wpisami z księgi gości (do wydruku).
   static Future<Uint8List> guestbook({
     required List<GuestbookEntry> entries,
-    String title = 'Księga Gości',
+    String? title,
     PdfPageFormat format = PdfPageFormat.a4,
   }) async {
+    // Domyślna wartość parametru musi być stałą kompilacji, a tłumaczenie
+    // nią nie jest — dlatego rozwiązujemy je dopiero tutaj.
+    final title_ = title ?? AppText.t.pdf_guestbookTitle;
     final doc = pw.Document(theme: await _theme());
     doc.addPage(pw.MultiPage(
       pageFormat: format,
-      build: (ctx) => _guestbookContent(entries, title),
+      build: (ctx) => _guestbookContent(entries, title_),
     ));
     return doc.save();
   }
@@ -200,13 +207,13 @@ class PdfService {
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColor.fromInt(0xFF1040B0))),
           pw.SizedBox(height: 4),
-          pw.Text('Życzenia i wiadomości od gości',
+          pw.Text(AppText.t.pdf_guestbookSub,
               style: const pw.TextStyle(fontSize: 12)),
         ]),
       ),
       pw.SizedBox(height: 18),
       if (entries.isEmpty)
-        pw.Text('Brak wpisów w księdze gości.')
+        pw.Text(AppText.t.pdf_guestbookEmpty)
       else
         for (final e in entries)
           pw.Container(
@@ -225,7 +232,7 @@ class PdfService {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Expanded(
-                      child: pw.Text(e.name.isEmpty ? 'Gość' : e.name,
+                      child: pw.Text(e.name.isEmpty ? AppText.t.role_guest : e.name,
                           style: pw.TextStyle(
                               fontSize: 13,
                               fontWeight: pw.FontWeight.bold,
@@ -242,7 +249,7 @@ class PdfService {
                 if (e.hasPhoto)
                   pw.Padding(
                     padding: const pw.EdgeInsets.only(top: 5),
-                    child: pw.Text('📷 (zdjęcie dostępne online)',
+                    child: pw.Text(AppText.t.pdf_hasPhoto,
                         style: const pw.TextStyle(
                             fontSize: 8, color: PdfColors.grey600)),
                   ),
@@ -263,13 +270,16 @@ class PdfService {
   /// Pamiątkowy PDF z radami dla Pary Młodej (do wydruku / oprawienia).
   static Future<Uint8List> advices({
     required List<Advice> advices,
-    String title = 'Rady dla Pary Młodej',
+    String? title,
     PdfPageFormat format = PdfPageFormat.a4,
   }) async {
+    // Domyślna wartość parametru musi być stałą kompilacji, a tłumaczenie
+    // nią nie jest — dlatego rozwiązujemy je dopiero tutaj.
+    final title_ = title ?? AppText.t.pdf_advicesTitle;
     final doc = pw.Document(theme: await _theme());
     doc.addPage(pw.MultiPage(
       pageFormat: format,
-      build: (ctx) => _advicesContent(advices, title),
+      build: (ctx) => _advicesContent(advices, title_),
     ));
     return doc.save();
   }
@@ -286,13 +296,13 @@ class PdfService {
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColor.fromInt(0xFF1040B0))),
           pw.SizedBox(height: 4),
-          pw.Text('Złote myśli o małżeństwie od gości',
+          pw.Text(AppText.t.pdf_advicesSub,
               style: const pw.TextStyle(fontSize: 12)),
         ]),
       ),
       pw.SizedBox(height: 18),
       if (advices.isEmpty)
-        pw.Text('Brak rad.')
+        pw.Text(AppText.t.pdf_advicesEmpty)
       else
         for (final a in advices)
           pw.Container(
@@ -306,7 +316,7 @@ class PdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('„${a.message}"',
+                pw.Text(AppText.t.pdf_quoted(a.message),
                     style: pw.TextStyle(
                         fontSize: 13, fontStyle: pw.FontStyle.italic)),
                 pw.SizedBox(height: 6),
@@ -314,7 +324,7 @@ class PdfService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                        '— ${a.name.isEmpty ? 'Gość' : a.name} · ${a.category.label}',
+                        '— ${a.name.isEmpty ? AppText.t.role_guest : a.name} · ${a.category.label}',
                         style: pw.TextStyle(
                             fontSize: 11,
                             fontWeight: pw.FontWeight.bold,
@@ -336,13 +346,16 @@ class PdfService {
   /// Pamiątkowy PDF z otwartymi wiadomościami z kapsuły czasu.
   static Future<Uint8List> timeCapsule({
     required List<TimeCapsuleMessage> messages,
-    String title = 'Kapsuła czasu',
+    String? title,
     PdfPageFormat format = PdfPageFormat.a4,
   }) async {
+    // Domyślna wartość parametru musi być stałą kompilacji, a tłumaczenie
+    // nią nie jest — dlatego rozwiązujemy je dopiero tutaj.
+    final title_ = title ?? AppText.t.pdf_capsuleTitle;
     final doc = pw.Document(theme: await _theme());
     doc.addPage(pw.MultiPage(
       pageFormat: format,
-      build: (ctx) => _timeCapsuleContent(messages, title),
+      build: (ctx) => _timeCapsuleContent(messages, title_),
     ));
     return doc.save();
   }
@@ -360,13 +373,13 @@ class PdfService {
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColor.fromInt(0xFF1040B0))),
           pw.SizedBox(height: 4),
-          pw.Text('Otwarte wiadomości od gości',
+          pw.Text(AppText.t.pdf_capsuleSub,
               style: const pw.TextStyle(fontSize: 12)),
         ]),
       ),
       pw.SizedBox(height: 18),
       if (messages.isEmpty)
-        pw.Text('Brak otwartych wiadomości.')
+        pw.Text(AppText.t.pdf_capsuleEmpty)
       else
         for (final m in messages)
           pw.Container(
@@ -385,14 +398,14 @@ class PdfService {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Expanded(
-                      child: pw.Text(m.name.isEmpty ? 'Gość' : m.name,
+                      child: pw.Text(m.name.isEmpty ? AppText.t.role_guest : m.name,
                           style: pw.TextStyle(
                               fontSize: 13,
                               fontWeight: pw.FontWeight.bold,
                               color: PdfColor.fromInt(0xFF1A2744))),
                     ),
                     if (_dateLabel(m.openDateTime).isNotEmpty)
-                      pw.Text('otwarta ${_dateOnly(m.openDateTime)}',
+                      pw.Text(AppText.t.pdf_openedOn(_dateOnly(m.openDateTime)),
                           style: const pw.TextStyle(
                               fontSize: 9, color: PdfColors.grey700)),
                   ],
@@ -402,7 +415,7 @@ class PdfService {
                 if (m.hasPhoto)
                   pw.Padding(
                     padding: const pw.EdgeInsets.only(top: 5),
-                    child: pw.Text('📷 (zdjęcie dostępne online)',
+                    child: pw.Text(AppText.t.pdf_hasPhoto,
                         style: const pw.TextStyle(
                             fontSize: 8, color: PdfColors.grey600)),
                   ),
@@ -450,7 +463,7 @@ class PdfService {
     }
     return pw.Column(
       children: [
-        pw.Text('ŚLUBNE BINGO',
+        pw.Text(AppText.t.pdf_bingoTitle,
             style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 10),
         pw.Expanded(

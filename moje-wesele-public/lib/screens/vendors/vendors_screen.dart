@@ -15,6 +15,7 @@ import '../../widgets/filter_toggle_button.dart';
 import '../budget/budget_fields.dart';
 import 'vendor_form_sheet.dart';
 import '../../l10n/app_text.dart';
+import '../../utils/app_format.dart';
 
 /// Sekcja „Dostawcy" — lista z Firestore, powiązanie z budżetem, raty.
 class VendorsScreen extends StatefulWidget {
@@ -110,9 +111,8 @@ class _VendorsScreenState extends State<VendorsScreen> {
       builder: (context) => AlertDialog(
         title: Text(AppText.t.vendors_deleteTitle),
         content: Text(linked
-            ? 'Dostawca „${vendor.label}" jest powiązany z wpisem w budżecie. '
-                'Co zrobić z powiązanym wpisem?'
-            : 'Czy na pewno usunąć „${vendor.label}"?'),
+            ? AppText.t.vend_linkedBody(vendor.label)
+            : AppText.t.vend_deleteConfirm(vendor.label)),
         actions: [
           TextButton(
               onPressed: () => Navigator.of(context).pop('cancel'),
@@ -126,7 +126,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFC0392B)),
             onPressed: () => Navigator.of(context).pop('all'),
-            child: Text(linked ? 'Usuń oba' : AppText.t.common_delete),
+            child: Text(linked ? AppText.t.vend_deleteBoth : AppText.t.common_delete),
           ),
         ],
       ),
@@ -269,7 +269,7 @@ class _VendorsScreenState extends State<VendorsScreen> {
         ]),
         const SizedBox(height: 8),
         _chipRow([
-          _chip('Każdy status', _statusFilter == 'all',
+          _chip(AppText.t.vend_anyStatus, _statusFilter == 'all',
               () => setState(() => _statusFilter = 'all')),
           for (final s in VendorStatus.all)
             _chip(s.label, _statusFilter == s.value,
@@ -277,11 +277,11 @@ class _VendorsScreenState extends State<VendorsScreen> {
         ]),
         const SizedBox(height: 8),
         _chipRow([
-          _chip('Bez sortowania', _sort == 'none',
+          _chip(AppText.t.common_noSorting, _sort == 'none',
               () => setState(() => _sort = 'none')),
-          _chip('Wg nazwy (A–Z)', _sort == 'name',
+          _chip(AppText.t.vend_byName, _sort == 'name',
               () => setState(() => _sort = 'name')),
-          _chip('Wg statusu', _sort == 'status',
+          _chip(AppText.t.common_byStatus, _sort == 'status',
               () => setState(() => _sort = 'status')),
         ]),
       ],
@@ -388,7 +388,7 @@ class _VendorCardState extends State<_VendorCard> {
                     runSpacing: 6,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _badge('🏢 Dostawca', const Color(0xFFEEF3FF),
+                      _badge(AppText.t.vend_vendorChip, const Color(0xFFEEF3FF),
                           AppColors.accent),
                       _badge(v.displayCategory, const Color(0xFFF1F5F9),
                           AppColors.textLight),
@@ -652,7 +652,7 @@ class _InstallmentRow extends StatelessWidget {
                 flex: 3,
                 child: BudgetTextField(
                   initial: inst.label,
-                  hint: 'np. Zadatek',
+                  hint: AppText.t.vend_instalmentHint,
                   onSaved: (v) =>
                       service.updateInstallment(vendorId, _id, label: v),
                 ),
@@ -661,7 +661,7 @@ class _InstallmentRow extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: BudgetNumberField(
-                  suffix: 'zł',
+                  suffix: AppFormat.currency.symbol,
                   compact: true,
                   initial: inst.amount,
                   onSaved: (v) =>

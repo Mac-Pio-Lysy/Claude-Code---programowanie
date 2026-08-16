@@ -6,6 +6,7 @@ import '../layout/responsive.dart';
 import '../models/app_notification.dart';
 import '../navigation/app_sections.dart';
 import '../services/notification_service.dart';
+import '../l10n/app_text.dart';
 
 /// Żądanie przejścia do sekcji, wybrane w centrum powiadomień.
 class NotifJump {
@@ -39,8 +40,8 @@ class NotificationBell extends StatelessWidget {
       children: [
         IconButton(
           tooltip: count == 0
-              ? 'Powiadomienia'
-              : 'Powiadomienia ($count nieprzeczytane)',
+              ? AppText.t.w_notifications
+              : AppText.t.w_notificationsUnread(count),
           icon: Icon(
             count == 0 ? Icons.notifications_none : Icons.notifications,
             color: AppColors.accent,
@@ -172,13 +173,13 @@ class _NotificationCenterState extends State<NotificationCenter> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Powiadomienia',
+                Text(AppText.t.w_notifications,
                     style: GoogleFonts.playfairDisplay(
                         fontSize: 21,
                         fontWeight: FontWeight.w700,
                         color: AppColors.text)),
                 if (unread > 0)
-                  Text('$unread nieprzeczytanych',
+                  Text(AppText.t.w_unreadCount(unread),
                       style: GoogleFonts.inter(
                           fontSize: 12, color: AppColors.textLight)),
               ],
@@ -188,7 +189,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
             TextButton(
               onPressed: () => setState(_inbox.markAllRead),
               style: TextButton.styleFrom(foregroundColor: AppColors.accent),
-              child: const Text('Oznacz wszystkie'),
+              child: Text(AppText.t.w_markAll),
             ),
         ],
       ),
@@ -203,15 +204,14 @@ class _NotificationCenterState extends State<NotificationCenter> {
             children: [
               const Text('🔔', style: TextStyle(fontSize: 34)),
               const SizedBox(height: 10),
-              Text('Brak nowych powiadomień',
+              Text(AppText.t.w_noNotifications,
                   style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: AppColors.text)),
               const SizedBox(height: 4),
               Text(
-                'Damy znać, gdy pojawią się potwierdzenia gości, nowe zadania '
-                'albo zmiany w harmonogramie.',
+                AppText.t.w_noNotificationsBody,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                     fontSize: 12.5, height: 1.45, color: AppColors.textLight),
@@ -250,7 +250,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
                   Text(g.kind.emoji, style: const TextStyle(fontSize: 18)),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text('${g.label}: ${g.summary}',
+                    child: Text(AppText.t.w_groupSummary(g.label, g.summary),
                         style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -259,7 +259,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
                   Icon(open ? Icons.expand_less : Icons.expand_more,
                       size: 20, color: AppColors.textLight),
                   IconButton(
-                    tooltip: 'Przejdź do sekcji',
+                    tooltip: AppText.t.w_goToSection,
                     onPressed: () => _jumpGroup(g),
                     icon: const Icon(Icons.arrow_forward, size: 18),
                     color: AppColors.accent,
@@ -303,7 +303,7 @@ class _NotificationCenterState extends State<NotificationCenter> {
                 ),
               ),
               IconButton(
-                tooltip: 'Oznacz jako przeczytane',
+                tooltip: AppText.t.w_markRead,
                 onPressed: () => setState(() => _inbox.markRead(n.id)),
                 icon: const Icon(Icons.check, size: 17),
                 color: AppColors.textLight,
@@ -319,8 +319,8 @@ class _NotificationCenterState extends State<NotificationCenter> {
   /// Czas wykrycia: „przed chwilą", „12 min temu", „14:35".
   static String _timeLabel(DateTime at) {
     final diff = DateTime.now().difference(at);
-    if (diff.inMinutes < 1) return 'przed chwilą';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min temu';
+    if (diff.inMinutes < 1) return AppText.t.w_justNow;
+    if (diff.inMinutes < 60) return AppText.t.w_minutesAgo(diff.inMinutes);
     if (diff.inHours < 24) {
       final h = at.hour.toString().padLeft(2, '0');
       final m = at.minute.toString().padLeft(2, '0');

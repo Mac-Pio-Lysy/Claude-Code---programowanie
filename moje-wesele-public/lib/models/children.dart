@@ -1,3 +1,5 @@
+import '../l10n/app_text.dart';
+
 /// Ustalenie liczby dzieci na weselu — JEDNO miejsce dla kalkulacji sali,
 /// napojów i UI budżetu.
 ///
@@ -108,11 +110,10 @@ class ChildrenSettings {
     required bool childTableExists,
   }) {
     if (tableIsChildTable && !guestIsChild) {
-      return 'Przy stole dla dzieci posadzono osobę dorosłą — jeśli to '
-          'opiekun, wszystko gra.';
+      return AppText.t.children_adultAtKidsTable;
     }
     if (guestIsChild && !tableIsChildTable && childTableExists) {
-      return 'Dziecko przy zwykłym stole — jest też stół dla dzieci.';
+      return AppText.t.children_kidAtNormalTable;
     }
     return null;
   }

@@ -41,6 +41,7 @@ import 'settings/settings_screen.dart';
 import 'tasks/tasks_screen.dart';
 import 'transport/transport_screen.dart';
 import 'vendors/vendors_screen.dart';
+import '../l10n/app_text.dart';
 
 /// Główny ekran aplikacji po zalogowaniu.
 ///
@@ -367,8 +368,8 @@ class _MainNavigationState extends State<MainNavigation> {
             Expanded(
               child: Text(
                 canBio
-                    ? 'Czy chcesz logować się odciskiem palca?'
-                    : 'Czy chcesz zabezpieczyć aplikację?',
+                    ? AppText.t.nav_biometricTitle
+                    : AppText.t.nav_securityTitle,
                 style: GoogleFonts.playfairDisplay(
                     fontSize: 19,
                     fontWeight: FontWeight.w700,
@@ -379,25 +380,21 @@ class _MainNavigationState extends State<MainNavigation> {
         ),
         content: Text(
           canBio
-              ? 'Przy kolejnych otwarciach odblokujesz aplikację odciskiem '
-                  'palca. Ustawisz też zapasowy PIN lub wzór na wypadek, gdyby '
-                  'czytnik nie zadziałał. Konto Google pozostaje zalogowane.'
-              : 'To urządzenie nie ma czytnika biometrycznego. Możesz ustawić '
-                  'PIN lub wzór, aby odblokowywać aplikację przy kolejnych '
-                  'otwarciach.',
+              ? AppText.t.nav_biometricBody
+              : AppText.t.nav_securityBody,
           style: GoogleFonts.inter(
               fontSize: 13, height: 1.5, color: AppColors.textLight),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Nie teraz',
+            child: Text(AppText.t.nav_notNow,
                 style: GoogleFonts.inter(color: AppColors.textLight)),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-            child: const Text('Tak, włącz'),
+            child: Text(AppText.t.nav_enable),
           ),
         ],
       ),
@@ -414,7 +411,7 @@ class _MainNavigationState extends State<MainNavigation> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-            const SnackBar(content: Text('Zabezpieczenia włączone ✓')));
+            SnackBar(content: Text(AppText.t.sec_enabled)));
     }
   }
 
@@ -430,24 +427,23 @@ class _MainNavigationState extends State<MainNavigation> {
         builder: (context) => AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-          title: const Text('Wylogować się?'),
-          content: const Text(
-              'Czy wyłączyć też zabezpieczenia (odcisk palca / PIN) na tym '
-              'urządzeniu? Przydatne, gdy z aplikacji może korzystać inna osoba.'),
+          title: Text(AppText.t.nav_logoutTitle),
+          content: Text(
+              AppText.t.nav_logoutBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop('cancel'),
-              child: const Text('Anuluj'),
+              child: Text(AppText.t.common_cancel),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop('keep'),
-              child: const Text('Wyloguj, zachowaj'),
+              child: Text(AppText.t.nav_logoutKeep),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop('clear'),
               style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFC0392B)),
-              child: const Text('Wyloguj i wyłącz'),
+              child: Text(AppText.t.nav_logoutClear),
             ),
           ],
         ),
@@ -641,7 +637,7 @@ class _MainNavigationState extends State<MainNavigation> {
               bottom: 0,
               child: Center(
                 child: IconButton(
-                  tooltip: 'Pomoc',
+                  tooltip: AppText.t.settings_helpButton,
                   icon: const Icon(Icons.help_outline, color: AppColors.accent),
                   onPressed: () => HelpScreen.open(context, _variant),
                 ),
@@ -687,7 +683,7 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget _headerTitle(WeddingData? data) {
     final eventName = (data?.eventName?.trim().isNotEmpty ?? false)
         ? data!.eventName!.trim()
-        : 'Moje Wesele';
+        : AppText.t.nav_appName;
     final persons = data?.displayNames?.trim() ?? '';
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -864,7 +860,7 @@ class _MainNavigationState extends State<MainNavigation> {
               _dashRailIcon(selected: selected),
               const SizedBox(height: 6),
               Text(
-                'Dashboard',
+                AppText.t.section_dashboard,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 12,
@@ -990,7 +986,7 @@ class _MoreSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Więcej sekcji',
+                    AppText.t.nav_moreSections,
                     style: GoogleFonts.playfairDisplay(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -1002,7 +998,7 @@ class _MoreSheet extends StatelessWidget {
                   onPressed: () =>
                       Navigator.of(context).pop(_MoreResult(editBar: true)),
                   icon: const Icon(Icons.tune, size: 18),
-                  label: const Text('Konfiguruj pasek'),
+                  label: Text(AppText.t.nav_configureBar),
                 ),
               ],
             ),
@@ -1136,18 +1132,14 @@ class _BarEditSheetState extends State<_BarEditSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Konfiguruj dolny pasek',
+            Text(AppText.t.nav_configureBottomBar,
                 style: GoogleFonts.playfairDisplay(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: AppColors.text)),
             const SizedBox(height: 4),
             Text(
-              'Dashboard (środek) i „Więcej" (skrajnie prawy) są zawsze na '
-              'stałych miejscach. Wybierz liczbę pozostałych ikon, dotknij '
-              'ikonę zamiany (⇄), by wybrać inną sekcję, i przeciągnij za '
-              'uchwyt, by zmienić kolejność — pierwsza połowa trafi na lewo '
-              'od Dashboardu, reszta na prawo.',
+              AppText.t.nav_configureHint,
               style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
             ),
             const SizedBox(height: 12),
@@ -1155,10 +1147,10 @@ class _BarEditSheetState extends State<_BarEditSheet> {
               children: [
                 Expanded(
                     child: _countChip(
-                        '4 ikony', NavConfigService.compactSlots)),
+                        AppText.t.nav_icons4, NavConfigService.compactSlots)),
                 const SizedBox(width: 8),
                 Expanded(
-                    child: _countChip('6 ikon', NavConfigService.slots)),
+                    child: _countChip(AppText.t.nav_icons6, NavConfigService.slots)),
               ],
             ),
             const SizedBox(height: 12),
@@ -1203,7 +1195,7 @@ class _BarEditSheetState extends State<_BarEditSheet> {
                           onPressed: () => _replace(i),
                           icon: const Icon(Icons.swap_horiz, size: 20),
                           color: AppColors.accent,
-                          tooltip: 'Zmień sekcję',
+                          tooltip: AppText.t.nav_changeSection,
                         ),
                       ],
                     ),
@@ -1221,7 +1213,7 @@ class _BarEditSheetState extends State<_BarEditSheet> {
                       side: const BorderSide(color: Color(0xFFD7DEEC)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text('Anuluj'),
+                    child: Text(AppText.t.common_cancel),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1233,7 +1225,7 @@ class _BarEditSheetState extends State<_BarEditSheet> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    child: const Text('Zapisz'),
+                    child: Text(AppText.t.common_save),
                   ),
                 ),
               ],
@@ -1288,7 +1280,7 @@ class _UserMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final photoUrl = user?.photoURL;
     return PopupMenuButton<String>(
-      tooltip: 'Konto',
+      tooltip: AppText.t.gh_account,
       offset: const Offset(0, 48),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (value) {
@@ -1301,7 +1293,7 @@ class _UserMenu extends StatelessWidget {
           enabled: false,
           child: Text(
             // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-            user?.email ?? user?.displayName ?? 'Tryb testowy',
+            user?.email ?? user?.displayName ?? AppText.t.nav_testMode,
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
         ),
@@ -1313,7 +1305,7 @@ class _UserMenu extends StatelessWidget {
               children: [
                 const Icon(Icons.swap_horiz, size: 20),
                 const SizedBox(width: 10),
-                Text('Zmień wesele', style: GoogleFonts.inter(fontSize: 14)),
+                Text(AppText.t.gh_switchWedding, style: GoogleFonts.inter(fontSize: 14)),
               ],
             ),
           ),
@@ -1323,7 +1315,7 @@ class _UserMenu extends StatelessWidget {
             children: [
               const Icon(Icons.settings_outlined, size: 20),
               const SizedBox(width: 10),
-              Text('Ustawienia', style: GoogleFonts.inter(fontSize: 14)),
+              Text(AppText.t.settings_title, style: GoogleFonts.inter(fontSize: 14)),
             ],
           ),
         ),
@@ -1334,7 +1326,7 @@ class _UserMenu extends StatelessWidget {
               const Icon(Icons.logout, size: 20, color: Color(0xFFC0392B)),
               const SizedBox(width: 10),
               Text(
-                'Wyloguj',
+                AppText.t.settings_logoutButton,
                 style: GoogleFonts.inter(
                     fontSize: 14, color: const Color(0xFFC0392B)),
               ),

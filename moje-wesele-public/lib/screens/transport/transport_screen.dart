@@ -119,7 +119,7 @@ class _TransportScreenState extends State<TransportScreen> {
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white)),
                       ),
-                      title: Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName),
+                      title: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName),
                       onTap: () => Navigator.of(context).pop(g.id),
                     ),
                 ],
@@ -238,11 +238,11 @@ class _TransportScreenState extends State<TransportScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _stat('🚗', '$inVehicles', 'w pojazdach', AppColors.accent),
-          _stat('🚶', '$own', 'transport własny', const Color(0xFF059669)),
-          _stat('❓', '$unassigned', 'bez przydziału',
+          _stat('🚗', '$inVehicles', AppText.t.tr_inVehicles, AppColors.accent),
+          _stat('🚶', '$own', AppText.t.tr_ownTransport, const Color(0xFF059669)),
+          _stat('❓', '$unassigned', AppText.t.tr_unassigned,
               const Color(0xFFB45309)),
-          _stat('🚙', '${vehicles.length}', 'pojazdów',
+          _stat('🚙', '${vehicles.length}', AppText.t.tr_vehicles,
               const Color(0xFF7C3AED)),
         ],
       ),
@@ -345,7 +345,7 @@ class _TransportScreenState extends State<TransportScreen> {
               child: Text(
                 [
                   if (v.driver.isNotEmpty) '👤 ${v.driver}',
-                  if (v.route.isNotEmpty) '🛣 ${v.route}',
+                  if (v.route.isNotEmpty) AppText.t.tr_route(v.route),
                   if (v.departureTime.isNotEmpty) '🕐 ${v.departureTime}',
                 ].join('  ·  '),
                 style: GoogleFonts.inter(
@@ -358,14 +358,14 @@ class _TransportScreenState extends State<TransportScreen> {
             runSpacing: 6,
             children: [
               for (final gid in passengers)
-                _guestChip(byId[gid]?.fullName ?? 'Gość',
+                _guestChip(byId[gid]?.fullName ?? AppText.t.role_guest,
                     () => widget.service.assignGuestToVehicle(gid, null)),
               if (!v.isFull)
                 ActionChip(
                   avatar: const Icon(Icons.add, size: 16),
                   label: const Text('Przypisz'),
                   onPressed: () => _pickGuest(
-                    'Przypisz do: ${v.type}',
+                    AppText.t.tr_assignTo(v.type),
                     available,
                     (gid) => widget.service.assignGuestToVehicle(gid, v.id),
                   ),
@@ -402,7 +402,7 @@ class _TransportScreenState extends State<TransportScreen> {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () => _pickGuest(
-              'Dodaj do transportu własnego',
+              AppText.t.tr_addToOwn,
               unassigned,
               (gid) => widget.service.setGuestOwnTransport(gid, true),
             ),
@@ -438,7 +438,7 @@ class _TransportScreenState extends State<TransportScreen> {
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: const Color(0xFFDCE4F2)),
                     ),
-                    child: Text(g.fullName.isEmpty ? '(bez imienia)' : g.fullName,
+                    child: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
                         style: GoogleFonts.inter(
                             fontSize: 12, color: AppColors.text)),
                   ),
@@ -475,7 +475,7 @@ class _TransportScreenState extends State<TransportScreen> {
                               child: BudgetTextField(
                                 key: ValueKey('it-type-${it.id}'),
                                 initial: it.type,
-                                hint: 'Bolt / Taxi',
+                                hint: AppText.t.tr_boltTaxi,
                                 onSaved: (v) => widget.service
                                     .updateInternalTransport(it.id ?? 0,
                                         type: v),
@@ -487,7 +487,7 @@ class _TransportScreenState extends State<TransportScreen> {
                               child: BudgetTextField(
                                 key: ValueKey('it-info-${it.id}'),
                                 initial: it.info,
-                                hint: 'Info / kod / telefon',
+                                hint: AppText.t.tr_infoCodePhone,
                                 onSaved: (v) => widget.service
                                     .updateInternalTransport(it.id ?? 0,
                                         info: v),
@@ -538,7 +538,7 @@ class _TransportScreenState extends State<TransportScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(name.isEmpty ? 'Gość' : name,
+          Text(name.isEmpty ? AppText.t.role_guest : name,
               style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

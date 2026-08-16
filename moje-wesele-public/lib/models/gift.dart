@@ -1,3 +1,5 @@
+import '../l10n/app_text.dart';
+
 /// Prezent otrzymany `{id, from, description, value, thanked}`.
 class Gift {
   Gift(this.raw);
@@ -17,11 +19,12 @@ class GiftGuestCat {
   final String label;
   final String icon;
 
-  static const all = [
-    GiftGuestCat('guests', 'Goście', '🎁'),
-    GiftGuestCat('witnesses', 'Świadkowie', '🤝'),
-    GiftGuestCat('parents', 'Rodzice', '👪'),
-    GiftGuestCat('distinction', 'Wyróżnienie', '⭐'),
+  // Getter, nie stała: etykiety są tłumaczone.
+  static List<GiftGuestCat> get all => [
+    GiftGuestCat('guests', AppText.t.giftCat_guests, '🎁'),
+    GiftGuestCat('witnesses', AppText.t.giftCat_witnesses, '🤝'),
+    GiftGuestCat('parents', AppText.t.giftCat_parents, '👪'),
+    GiftGuestCat('distinction', AppText.t.giftCat_distinction, '⭐'),
   ];
 }
 

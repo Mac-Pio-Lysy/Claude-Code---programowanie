@@ -145,12 +145,12 @@ class BeverageTab extends StatelessWidget {
             children: [
               _stat(
                   s.personCount > 0 ? s.perBottles.toStringAsFixed(2) : '—',
-                  'butelek / os.'),
+                  AppText.t.bev_bottlesPerPerson),
               _stat(
                   s.personCount > 0 ? formatPlnZl(s.perCost) : '—',
                   s.personCount > 0
                       ? 'koszt / os. (${s.personCount.toStringAsFixed(0)} os.)'
-                      : 'koszt / os.'),
+                      : AppText.t.bev_costPerPerson),
             ],
           ),
           const SizedBox(height: 4),
@@ -324,7 +324,7 @@ class _BeverageRow extends StatelessWidget {
           const SizedBox(height: 6),
           BudgetTextField(
             initial: (item['name'] as String?) ?? '',
-            hint: 'Marka / nazwa (opcjonalnie)',
+            hint: AppText.t.bev_brand,
             onSaved: (v) => service.updateBeverage(kind, _id, name: v),
           ),
           const SizedBox(height: 6),
@@ -333,7 +333,7 @@ class _BeverageRow extends StatelessWidget {
             children: [
               Expanded(
                 child: BudgetNumberField(
-                  suffix: 'szt.',
+                  suffix: AppText.t.bev_pieces,
                   integer: true,
                   initial: bottles,
                   compact: true,

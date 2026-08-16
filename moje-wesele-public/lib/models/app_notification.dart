@@ -1,4 +1,5 @@
 import '../navigation/app_sections.dart';
+import '../l10n/app_text.dart';
 
 /// Rodzaj powiadomienia — decyduje o ikonie i grupowaniu w centrum.
 enum NotifKind {
@@ -32,7 +33,7 @@ enum NotifKind {
   /// Nagłówek grupy w centrum powiadomień.
   String get groupLabel => switch (this) {
         NotifKind.rsvp => 'Potwierdzenia',
-        NotifKind.guestAdded => 'Goście',
+        NotifKind.guestAdded => AppText.t.section_guests,
         NotifKind.taskAdded => 'Zadania',
         NotifKind.schedule => 'Harmonogram',
       };
@@ -88,7 +89,7 @@ class NotifGroup {
 
   /// Podsumowanie liczbowe z poprawną odmianą.
   String get summary => switch (count) {
-        1 => '1 nowe',
+        1 => AppText.t.notif_oneNew,
         _ when count % 10 >= 2 &&
                 count % 10 <= 4 &&
                 (count % 100 < 12 || count % 100 > 14) =>

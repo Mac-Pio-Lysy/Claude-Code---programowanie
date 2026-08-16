@@ -1,4 +1,5 @@
 import '../utils/warsaw_time.dart';
+import '../l10n/app_text.dart';
 
 /// Odliczanie do wesela (#24) — czysta logika, bez widgetów.
 ///
@@ -103,26 +104,18 @@ class WeddingCountdown {
   int get headlineValue => isFinalDay ? hours : days;
 
   /// Podpis pod główną liczbą, z poprawną odmianą.
-  String get headlineLabel =>
-      isFinalDay ? _plural(hours, 'godzina', 'godziny', 'godzin')
-                 : _plural(days, 'dzień', 'dni', 'dni');
+  ///
+  /// Odmianę robi ICU plural w plikach `.arb`, a nie ręczna funkcja — inaczej
+  /// każdy nowy język wymagałby dopisania własnych reguł w kodzie.
+  String get headlineLabel => isFinalDay
+      ? AppText.t.countdown_hours(hours)
+      : AppText.t.countdown_days(days);
 
   /// Doprecyzowanie pod spodem — `null`, gdy nie ma czego dodać.
   String? get detail {
     if (isPast || hasStarted) return null;
-    if (isFinalDay) {
-      return '$minutes ${_plural(minutes, 'minuta', 'minuty', 'minut')}';
-    }
+    if (isFinalDay) return AppText.t.countdown_minutesDetail(minutes);
     if (hours == 0) return null;
-    return 'i $hours ${_plural(hours, 'godzina', 'godziny', 'godzin')}';
-  }
-
-  /// Polska odmiana po liczebniku (1 / 2-4 / 5+, z wyjątkiem 12-14).
-  static String _plural(int n, String one, String few, String many) {
-    if (n == 1) return one;
-    final last = n % 10;
-    final last2 = n % 100;
-    if (last >= 2 && last <= 4 && (last2 < 12 || last2 > 14)) return few;
-    return many;
+    return AppText.t.countdown_hoursDetail(hours);
   }
 }

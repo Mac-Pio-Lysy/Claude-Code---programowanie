@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'couple.dart';
+import '../l10n/app_text.dart';
 
 /// Status zadania (kolumny Kanban).
 class TaskStatus {
@@ -10,15 +11,19 @@ class TaskStatus {
   final Color color;
   final String icon;
 
-  static const todo = TaskStatus('todo', 'Do zrobienia', Color(0xFFEF4444), '📋');
-  static const inProgress =
-      TaskStatus('inprogress', 'W trakcie', Color(0xFFF59E0B), '⏳');
-  static const done = TaskStatus('done', 'Zrobione', Color(0xFF10B981), '✅');
-  static const cancelled =
-      TaskStatus('cancelled', 'Anulowane', Color(0xFF94A3B8), '🚫');
+  // Gettery, nie stałe: `id` (wartość w bazie) zostaje, etykieta jest
+  // tłumaczona i musi powstawać po zmianie języka na nowo.
+  static TaskStatus get todo => TaskStatus(
+      'todo', AppText.t.taskStatus_todo, const Color(0xFFEF4444), '📋');
+  static TaskStatus get inProgress => TaskStatus('inprogress',
+      AppText.t.taskStatus_inprogress, const Color(0xFFF59E0B), '⏳');
+  static TaskStatus get done => TaskStatus(
+      'done', AppText.t.taskStatus_done, const Color(0xFF10B981), '✅');
+  static TaskStatus get cancelled => TaskStatus('cancelled',
+      AppText.t.taskStatus_cancelled, const Color(0xFF94A3B8), '🚫');
 
   /// Kolumny tablicy Kanban (KANBAN_COLS w wersji web).
-  static const List<TaskStatus> columns = [todo, inProgress, done, cancelled];
+  static List<TaskStatus> get columns => [todo, inProgress, done, cancelled];
 
   static TaskStatus byId(String? id) =>
       columns.firstWhere((s) => s.id == id, orElse: () => todo);
@@ -35,7 +40,7 @@ class TaskPerson {
   String get label => switch (id) {
         'bride' => CoupleLabels.current.person1,
         'groom' => CoupleLabels.current.person2,
-        _ => 'Oboje',
+        _ => AppText.t.taskPerson_both,
       };
 
   static const groom = TaskPerson('groom', Color(0xFF3B82F6));
@@ -56,11 +61,14 @@ class TaskPriority {
   final Color color;
   final String icon;
 
-  static const low = TaskPriority('low', 'Niski', Color(0xFF10B981), '🟢');
-  static const med = TaskPriority('med', 'Średni', Color(0xFFF59E0B), '🟡');
-  static const high = TaskPriority('high', 'Wysoki', Color(0xFFEF4444), '🔴');
+  static TaskPriority get low => TaskPriority(
+      'low', AppText.t.taskPriority_low, const Color(0xFF10B981), '🟢');
+  static TaskPriority get med => TaskPriority(
+      'med', AppText.t.taskPriority_med, const Color(0xFFF59E0B), '🟡');
+  static TaskPriority get high => TaskPriority(
+      'high', AppText.t.taskPriority_high, const Color(0xFFEF4444), '🔴');
 
-  static const List<TaskPriority> all = [low, med, high];
+  static List<TaskPriority> get all => [low, med, high];
 
   static TaskPriority byId(String? id) =>
       all.firstWhere((p) => p.id == id, orElse: () => med);

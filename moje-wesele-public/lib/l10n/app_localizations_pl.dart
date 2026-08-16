@@ -1871,9 +1871,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get accommodation_noHotel => 'Brak hotelu';
 
   @override
-  String get accommodation_statusHint => 'Status…';
-
-  @override
   String get accommodation_onSite => '🏰 W kompleksie';
 
   @override
@@ -2482,7 +2479,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String music_removeMomentBody(String label) {
-    return 'Moment „$label” zniknie z listy. Przypisane utwory NIE zostaną usunięte.';
+    return 'Moment „$label\" zniknie z listy. Przypisane utwory NIE zostaną usunięte — pokażą się jako „spoza listy\", możesz je przypisać ponownie lub odłączyć.';
   }
 
   @override
@@ -5583,4 +5580,2277 @@ class AppLocalizationsPl extends AppLocalizations {
   String help_nothingFound(String query) {
     return 'Nic nie znaleziono dla „$query\".\nSpróbuj innego słowa — np. „gość\", „stół\", „płatność\".';
   }
+
+  @override
+  String get coupleType_mixed => 'Kobieta i mężczyzna';
+
+  @override
+  String get coupleType_women => 'Dwie kobiety';
+
+  @override
+  String get coupleType_men => 'Dwóch mężczyzn';
+
+  @override
+  String get coupleType_neutral => 'Niebinarne / inne';
+
+  @override
+  String get coupleType_mixedHint => 'Panna Młoda i Pan Młody';
+
+  @override
+  String get coupleType_womenHint => 'Obie osoby jako Panny Młode';
+
+  @override
+  String get coupleType_menHint => 'Obie osoby jako Panowie Młodzi';
+
+  @override
+  String get coupleType_neutralHint => 'Neutralne etykiety: Osoba 1 i Osoba 2';
+
+  @override
+  String get couple_bride => 'Panna Młoda';
+
+  @override
+  String get couple_groom => 'Pan Młody';
+
+  @override
+  String get couple_brideEmoji => '👰 Panna Młoda';
+
+  @override
+  String get couple_groomEmoji => '🤵 Pan Młody';
+
+  @override
+  String couple_personNumbered(int index) {
+    return 'Osoba $index';
+  }
+
+  @override
+  String couple_brideNumbered(int index) {
+    return 'Panna Młoda $index';
+  }
+
+  @override
+  String couple_groomNumbered(int index) {
+    return 'Pan Młody $index';
+  }
+
+  @override
+  String couple_withEmoji(String emoji, String name) {
+    return '$emoji $name';
+  }
+
+  @override
+  String get couple_fromBride => 'Od Panny Młodej';
+
+  @override
+  String get couple_fromGroom => 'Od Pana Młodego';
+
+  @override
+  String couple_fromNamed(String person) {
+    return 'Od: $person';
+  }
+
+  @override
+  String get couple_witnessBride => 'Świadkowa';
+
+  @override
+  String get couple_witnessGroom => 'Świadek';
+
+  @override
+  String couple_witnessNamed(String person) {
+    return 'Świadek/Świadkowa ($person)';
+  }
+
+  @override
+  String get couple_witnessNone => 'Brak roli';
+
+  @override
+  String couple_personShort(int index) {
+    return 'osoba $index';
+  }
+
+  @override
+  String get couple_categoryMixed => 'Państwo Młodzi';
+
+  @override
+  String get couple_categoryWomen => 'Panny Młode';
+
+  @override
+  String get couple_categoryMen => 'Panowie Młodzi';
+
+  @override
+  String get couple_categoryNeutral => 'Para Młoda';
+
+  @override
+  String couple_joinNames(String first, String second) {
+    return '$first i $second';
+  }
+
+  @override
+  String get vehicle_rented => 'Auto wynajęte';
+
+  @override
+  String get vehicle_own => 'Auto własne';
+
+  @override
+  String get vehicle_parentsBride => 'Auto rodziców Panny Młodej';
+
+  @override
+  String get vehicle_parentsGroom => 'Auto rodziców Pana Młodego';
+
+  @override
+  String vehicle_parentsNamed(String person) {
+    return 'Auto rodziców ($person)';
+  }
+
+  @override
+  String get vehicle_bus => 'Bus';
+
+  @override
+  String get vehicle_taxi => 'Taxi/Uber';
+
+  @override
+  String get vehicle_other => 'Inne';
+
+  @override
+  String get quiz_favouriteFilmGroom => 'Ulubiony film Pana Młodego?';
+
+  @override
+  String quiz_favouriteFilmNamed(String person) {
+    return 'Ulubiony film ($person)?';
+  }
+
+  @override
+  String get musicMoment_firstDance => 'Pierwszy taniec';
+
+  @override
+  String get musicMoment_entrance => 'Wejście';
+
+  @override
+  String get musicMoment_games => 'Oczepiny';
+
+  @override
+  String get musicMoment_slow => 'Wolne';
+
+  @override
+  String get musicMoment_party => 'Imprezowe';
+
+  @override
+  String get musicMoment_other => 'Inne';
+
+  @override
+  String get specialMoment_firstDance => 'Pierwszy taniec';
+
+  @override
+  String get specialMoment_firstSong => 'Pierwszy utwór';
+
+  @override
+  String get specialMoment_coupleEntrance => 'Wejście Pary Młodej';
+
+  @override
+  String get specialMoment_cake => 'Tort';
+
+  @override
+  String get specialMoment_games => 'Oczepiny';
+
+  @override
+  String get specialMoment_lastDance => 'Ostatni taniec';
+
+  @override
+  String get specialMoment_toast => 'Toast';
+
+  @override
+  String get musicStatus_proposal => 'Propozycja';
+
+  @override
+  String get musicStatus_approved => 'Zatwierdzone';
+
+  @override
+  String get musicStatus_rejected => 'Odrzucone';
+
+  @override
+  String get musicStatus_dj => 'Do decyzji DJa';
+
+  @override
+  String get adviceCat_love => 'Miłość';
+
+  @override
+  String get adviceCat_daily => 'Codzienność';
+
+  @override
+  String get adviceCat_humor => 'Humor';
+
+  @override
+  String get adviceCat_wisdom => 'Mądrość życiowa';
+
+  @override
+  String get adviceCat_other => 'Inne';
+
+  @override
+  String get beverage_alcohol => 'Alkohol';
+
+  @override
+  String get beverage_soft => 'Napoje bezalkoholowe';
+
+  @override
+  String get giftCat_guests => 'Goście';
+
+  @override
+  String get giftCat_witnesses => 'Świadkowie';
+
+  @override
+  String get giftCat_parents => 'Rodzice';
+
+  @override
+  String get giftCat_distinction => 'Wyróżnienie';
+
+  @override
+  String get taskStatus_todo => 'Do zrobienia';
+
+  @override
+  String get taskStatus_inprogress => 'W trakcie';
+
+  @override
+  String get taskStatus_done => 'Zrobione';
+
+  @override
+  String get taskStatus_cancelled => 'Anulowane';
+
+  @override
+  String get taskPriority_low => 'Niski';
+
+  @override
+  String get taskPriority_med => 'Średni';
+
+  @override
+  String get taskPriority_high => 'Wysoki';
+
+  @override
+  String get taskPerson_both => 'Oboje';
+
+  @override
+  String get push_rsvp => 'Potwierdzenia gości (RSVP)';
+
+  @override
+  String get push_tasks => 'Nowe zadania';
+
+  @override
+  String get push_schedule => 'Zmiany w harmonogramie';
+
+  @override
+  String get push_memberJoined => 'Nowa osoba w weselu';
+
+  @override
+  String get push_deadlines => 'Zbliżające się terminy';
+
+  @override
+  String get push_rsvpHint =>
+      'Gdy gość potwierdzi obecność albo zmieni decyzję.';
+
+  @override
+  String get push_tasksHint => 'Gdy ktoś doda zadanie do listy.';
+
+  @override
+  String get push_scheduleHint =>
+      'Gdy pojawi się nowy punkt programu albo zmieni się godzina.';
+
+  @override
+  String get push_memberJoinedHint =>
+      'Gdy do wesela dołączy planer, współorganizator albo gość.';
+
+  @override
+  String get push_deadlinesHint =>
+      'Przypomnienie o płatności lub zadaniu z bliskim terminem.';
+
+  @override
+  String get gs_attending => 'Przyjdzie';
+
+  @override
+  String get gs_notAttending => 'Nie przyjdzie';
+
+  @override
+  String get gs_noAnswer => 'Brak odpowiedzi';
+
+  @override
+  String get gs_ownTransport => 'Własny';
+
+  @override
+  String get gs_organisedTransport => 'Zorganizowany';
+
+  @override
+  String get gs_roomReserved => 'Zarezerwowany';
+
+  @override
+  String get gs_roomPending => 'Do zarezerwowania';
+
+  @override
+  String get gs_roomSelf => 'Sam rezerwuje';
+
+  @override
+  String get gs_roomNeeded => 'Potrzebuje';
+
+  @override
+  String get gs_table => 'Stół';
+
+  @override
+  String get pay_sala => 'Sala';
+
+  @override
+  String get pay_expenses => 'Wydatki';
+
+  @override
+  String get pay_honeymoon => 'Podróż poślubna';
+
+  @override
+  String get pay_vendor => 'Dostawca';
+
+  @override
+  String get pay_generic => 'Płatność';
+
+  @override
+  String get pay_salaComputed => 'Koszt sali (obliczony)';
+
+  @override
+  String pay_vendorInstalment(String vendor) {
+    return 'Rata do dostawcy: $vendor';
+  }
+
+  @override
+  String notif_guestAdded(String name) {
+    return 'Dodano gościa: $name';
+  }
+
+  @override
+  String notif_guestAttending(String name) {
+    return '$name potwierdził(a) obecność';
+  }
+
+  @override
+  String notif_guestNotAttending(String name) {
+    return '$name nie przyjdzie';
+  }
+
+  @override
+  String notif_guestChanged(String name) {
+    return '$name — zmiana potwierdzenia';
+  }
+
+  @override
+  String get notif_taskAdded => 'Dodano zadanie';
+
+  @override
+  String notif_taskAddedNamed(String name) {
+    return 'Dodano zadanie: $name';
+  }
+
+  @override
+  String notif_scheduleAdded(String label, String time) {
+    return 'Harmonogram: $label o $time';
+  }
+
+  @override
+  String notif_scheduleChanged(String label) {
+    return 'Zmieniono w harmonogramie: $label';
+  }
+
+  @override
+  String get notif_guestNoName => 'Gość bez imienia';
+
+  @override
+  String get currency_pln => 'Złoty polski';
+
+  @override
+  String get currency_eur => 'Euro';
+
+  @override
+  String get currency_usd => 'Dolar amerykański';
+
+  @override
+  String get currency_gbp => 'Funt brytyjski';
+
+  @override
+  String get currency_czk => 'Korona czeska';
+
+  @override
+  String get currency_chf => 'Frank szwajcarski';
+
+  @override
+  String get children_adultAtKidsTable =>
+      'Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.';
+
+  @override
+  String get children_kidAtNormalTable =>
+      'Dziecko przy zwykłym stole — jest też stół dla dzieci.';
+
+  @override
+  String get auth_googleUnsupported =>
+      'Logowanie Google nie jest obsługiwane na tej platformie.';
+
+  @override
+  String get auth_noToken => 'Brak tokenu Google. Spróbuj ponownie.';
+
+  @override
+  String get auth_googleError => 'Błąd logowania Google.';
+
+  @override
+  String get auth_generic => 'Błąd logowania. Spróbuj ponownie.';
+
+  @override
+  String get auth_network => 'Błąd sieci — sprawdź połączenie z internetem.';
+
+  @override
+  String get auth_tooMany =>
+      'Zbyt wiele prób logowania. Poczekaj chwilę i spróbuj ponownie.';
+
+  @override
+  String get auth_disabled => 'To konto Google zostało wyłączone.';
+
+  @override
+  String get auth_notEnabled =>
+      'Logowanie przez Google nie jest włączone. Skontaktuj się z administratorem.';
+
+  @override
+  String get auth_popupBlocked =>
+      'Okno logowania zostało zablokowane przez przeglądarkę — zezwól na wyskakujące okienka i spróbuj ponownie.';
+
+  @override
+  String auth_codeError(String code) {
+    return 'Błąd logowania ($code). Spróbuj ponownie.';
+  }
+
+  @override
+  String get guestId_noUser => 'Logowanie anonimowe nie zwróciło użytkownika.';
+
+  @override
+  String get guestId_notConfigured =>
+      'Strona gości nie jest jeszcze w pełni skonfigurowana. Przeglądanie działa, ale wysyłanie wpisów może się nie udać.';
+
+  @override
+  String get guestId_offline =>
+      'Brak połączenia z internetem. Sprawdź sieć i odśwież stronę.';
+
+  @override
+  String get guestId_generic =>
+      'Nie udało się przygotować sesji gościa. Możesz przeglądać stronę, ale wysyłanie wpisów może nie zadziałać.';
+
+  @override
+  String guestSvc_coupleLimit(String category, int max) {
+    return 'W kategorii „$category\" mogą być najwyżej $max osoby. Zmień kategorię tego gościa albo popraw istniejący wpis Pary Młodej.';
+  }
+
+  @override
+  String get guestSvc_coupleNoCompanion =>
+      'Para Młoda nie ma osoby towarzyszącej — obie osoby dodaj jako osobne wpisy Pary Młodej.';
+
+  @override
+  String bingo_beAt(String name) {
+    return 'Bądź obecny/a na: $name';
+  }
+
+  @override
+  String get dash_countdown => 'Licznik do ślubu';
+
+  @override
+  String get dash_setDate => 'Ustaw datę w Ustawieniach';
+
+  @override
+  String get dash_today => 'To dziś!';
+
+  @override
+  String dash_daysLeft(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'dni do ślubu',
+      one: 'dzień do ślubu',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dash_guestsSub(int attending, int declined, int noRsvp) {
+    return '$attending potw. · $declined odmów · $noRsvp bez odp.';
+  }
+
+  @override
+  String dash_tablesSub(int assigned, int free) {
+    return '$assigned przypisanych · $free wolnych miejsc';
+  }
+
+  @override
+  String dash_budgetSub(String paid, String left) {
+    return 'Opłacono $paid · zostało $left';
+  }
+
+  @override
+  String get dash_noEvents => 'brak wydarzeń';
+
+  @override
+  String get dash_nextEvent => 'najbliższe wydarzenie';
+
+  @override
+  String dash_tasksSub(int todo, int inProgress) {
+    return '$todo do zrobienia · $inProgress w trakcie';
+  }
+
+  @override
+  String dash_transportSub(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gości bez transportu',
+      few: '$count gości bez transportu',
+      one: '1 gość bez transportu',
+      zero: 'wszyscy mają transport',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dash_roomsSub(int reserved) {
+    return '$reserved zarezerwowanych';
+  }
+
+  @override
+  String dash_giftsSub(String value, int thanked) {
+    return 'łącznie $value · $thanked z podziękowaniem';
+  }
+
+  @override
+  String dash_rsvpSub(int declined, int total) {
+    return '$declined odmów · $total odpowiedzi';
+  }
+
+  @override
+  String dash_bottles(String count) {
+    return '$count butelek';
+  }
+
+  @override
+  String dash_paymentsSub(int overdue, int soon) {
+    return '$overdue zaległych · $soon wkrótce';
+  }
+
+  @override
+  String dash_vendorsSub(int count) {
+    return '$count potwierdzonych';
+  }
+
+  @override
+  String get dash_gallerySub => 'zdjęć i filmów';
+
+  @override
+  String get pdf_qrHint => 'Zeskanuj telefonem, aby otworzyć stronę dla gości.';
+
+  @override
+  String get pdf_galleryTitle => 'Galeria zdjęć z wesela';
+
+  @override
+  String get pdf_galleryHintVideo =>
+      'Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia i filmy.';
+
+  @override
+  String get pdf_galleryHint =>
+      'Zeskanuj telefonem, aby dodać i obejrzeć wspólne zdjęcia.';
+
+  @override
+  String get pdf_scheduleTitle => 'Harmonogram dnia ślubu';
+
+  @override
+  String pdf_place(String place) {
+    return 'Miejsce: $place';
+  }
+
+  @override
+  String get pdf_scheduleEmpty => 'Brak wydarzeń w harmonogramie.';
+
+  @override
+  String get pdf_guestbookTitle => 'Księga Gości';
+
+  @override
+  String get pdf_guestbookSub => 'Życzenia i wiadomości od gości';
+
+  @override
+  String get pdf_guestbookEmpty => 'Brak wpisów w księdze gości.';
+
+  @override
+  String get pdf_hasPhoto => '📷 (zdjęcie dostępne online)';
+
+  @override
+  String get pdf_advicesTitle => 'Rady dla Pary Młodej';
+
+  @override
+  String get pdf_advicesSub => 'Złote myśli o małżeństwie od gości';
+
+  @override
+  String get pdf_advicesEmpty => 'Brak rad.';
+
+  @override
+  String pdf_quoted(String text) {
+    return '„$text\"';
+  }
+
+  @override
+  String pdf_adviceAuthor(String name, String category) {
+    return '— $name · $category';
+  }
+
+  @override
+  String get pdf_capsuleTitle => 'Kapsuła czasu';
+
+  @override
+  String get pdf_capsuleSub => 'Otwarte wiadomości od gości';
+
+  @override
+  String get pdf_capsuleEmpty => 'Brak otwartych wiadomości.';
+
+  @override
+  String pdf_openedOn(String date) {
+    return 'otwarta $date';
+  }
+
+  @override
+  String get pdf_bingoTitle => 'ŚLUBNE BINGO';
+
+  @override
+  String w_addedIn(String section) {
+    return 'Dodano w: $section';
+  }
+
+  @override
+  String get w_comingSoon => 'Wkrótce';
+
+  @override
+  String get w_comingSoonBody => 'Ta funkcja jest w przygotowaniu.';
+
+  @override
+  String get w_hideFilters => 'Ukryj filtry';
+
+  @override
+  String get w_showFilters => 'Pokaż filtry';
+
+  @override
+  String get w_more => 'Więcej';
+
+  @override
+  String get w_notifications => 'Powiadomienia';
+
+  @override
+  String w_notificationsUnread(int count) {
+    return 'Powiadomienia ($count nieprzeczytane)';
+  }
+
+  @override
+  String w_unreadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nieprzeczytanych',
+      few: '$count nieprzeczytane',
+      one: '1 nieprzeczytane',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get w_markAll => 'Oznacz wszystkie';
+
+  @override
+  String get w_noNotifications => 'Brak nowych powiadomień';
+
+  @override
+  String get w_noNotificationsBody =>
+      'Damy znać, gdy pojawią się potwierdzenia gości, nowe zadania albo zmiany w harmonogramie.';
+
+  @override
+  String w_groupSummary(String label, String summary) {
+    return '$label: $summary';
+  }
+
+  @override
+  String get w_goToSection => 'Przejdź do sekcji';
+
+  @override
+  String get w_markRead => 'Oznacz jako przeczytane';
+
+  @override
+  String get w_justNow => 'przed chwilą';
+
+  @override
+  String w_minutesAgo(int minutes) {
+    return '$minutes min temu';
+  }
+
+  @override
+  String get w_guestPage => 'Strona dla gości';
+
+  @override
+  String get w_linkCopied => 'Skopiowano link';
+
+  @override
+  String get w_download => 'Pobierz / udostępnij';
+
+  @override
+  String get w_weddingToday => 'To już dziś! 🎉';
+
+  @override
+  String get w_seeYouAtWedding => 'Do zobaczenia na weselu';
+
+  @override
+  String get w_timeToWedding => 'Do wesela zostało';
+
+  @override
+  String get nav_biometricTitle => 'Czy chcesz logować się odciskiem palca?';
+
+  @override
+  String get nav_securityTitle => 'Czy chcesz zabezpieczyć aplikację?';
+
+  @override
+  String get nav_biometricBody =>
+      'Przy kolejnych otwarciach odblokujesz aplikację odciskiem palca. Ustawisz też zapasowy PIN lub wzór na wypadek, gdyby czytnik nie zadziałał. Konto Google pozostaje zalogowane.';
+
+  @override
+  String get nav_securityBody =>
+      'To urządzenie nie ma czytnika biometrycznego. Możesz ustawić PIN lub wzór, aby odblokowywać aplikację przy kolejnych otwarciach.';
+
+  @override
+  String get nav_notNow => 'Nie teraz';
+
+  @override
+  String get nav_enable => 'Tak, włącz';
+
+  @override
+  String get nav_logoutTitle => 'Wylogować się?';
+
+  @override
+  String get nav_logoutBody =>
+      'Czy wyłączyć też zabezpieczenia (odcisk palca / PIN) na tym urządzeniu? Przydatne, gdy z aplikacji może korzystać inna osoba.';
+
+  @override
+  String get nav_logoutKeep => 'Wyloguj, zachowaj';
+
+  @override
+  String get nav_logoutClear => 'Wyloguj i wyłącz';
+
+  @override
+  String get nav_appName => 'Moje Wesele';
+
+  @override
+  String get nav_moreSections => 'Więcej sekcji';
+
+  @override
+  String get nav_configureBar => 'Konfiguruj pasek';
+
+  @override
+  String get nav_configureBottomBar => 'Konfiguruj dolny pasek';
+
+  @override
+  String get nav_configureHint =>
+      'Dashboard (środek) i „Więcej\" (skrajnie prawy) są zawsze na stałych miejscach. Wybierz liczbę pozostałych ikon, dotknij ikonę zamiany (⇄), by wybrać inną sekcję, i przeciągnij za uchwyt, by zmienić kolejność — pierwsza połowa trafi na lewo od Dashboardu, reszta na prawo.';
+
+  @override
+  String get nav_icons4 => '4 ikony';
+
+  @override
+  String get nav_icons6 => '6 ikon';
+
+  @override
+  String get nav_changeSection => 'Zmień sekcję';
+
+  @override
+  String get nav_testMode => 'Tryb testowy';
+
+  @override
+  String countdown_hours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'godzin',
+      few: 'godziny',
+      one: 'godzina',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdown_days(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dni',
+      one: 'dzień',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdown_minutesDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minut',
+      few: '$count minuty',
+      one: '$count minuta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String countdown_hoursDetail(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'i $count godzin',
+      few: 'i $count godziny',
+      one: 'i $count godzina',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String wheel_poolInfo(int count, String excluded) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gości',
+      few: '$count gości',
+      one: '1 gość',
+    );
+    return 'Losowanie spośród gości z listy. W puli: $_temp0 ($excluded pominięci).';
+  }
+
+  @override
+  String get gp_guestPage => 'Strona dla gości';
+
+  @override
+  String get gp_activeHint => 'Goście mogą teraz grać przez stronę / kod QR.';
+
+  @override
+  String get gp_enableHint => 'Włącz, aby goście mogli odpowiadać.';
+
+  @override
+  String get gp_loadResultsError =>
+      'Nie udało się wczytać wyników. Sprawdź połączenie.';
+
+  @override
+  String get gp_noResults =>
+      'Brak wyników. Udostępnij gościom kod QR, aby zagrali.';
+
+  @override
+  String get gp_participants => 'Uczestników';
+
+  @override
+  String get gp_avgScore => 'Śr. wynik';
+
+  @override
+  String gp_wrongOf(int wrong, int answered) {
+    return '$wrong/$answered błędnych';
+  }
+
+  @override
+  String get gp_questionText => 'Wpisz treść pytania';
+
+  @override
+  String get gp_emptyCorrect => 'Zaznaczona poprawna odpowiedź jest pusta';
+
+  @override
+  String get gp_answers => 'Odpowiedzi (zaznacz poprawną)';
+
+  @override
+  String gp_answerN(int index) {
+    return 'Odpowiedź $index';
+  }
+
+  @override
+  String get quiz_headerTitle => '🧠 Quiz o Parze Młodej';
+
+  @override
+  String get quiz_questions => 'Pytań';
+
+  @override
+  String get quiz_questionLabel => 'Treść pytania';
+
+  @override
+  String get quiz_questionHint => 'np. Gdzie się poznaliśmy?';
+
+  @override
+  String get tf_headerTitle => '🤔 Prawda czy Fałsz o Parze Młodej';
+
+  @override
+  String get tf_true => '✓ PRAWDA';
+
+  @override
+  String get tf_false => '✗ FAŁSZ';
+
+  @override
+  String tf_deleteConfirm(String text) {
+    return 'Czy na pewno usunąć „$text\"?';
+  }
+
+  @override
+  String get tf_confusing => '📊 Najbardziej mylące stwierdzenia';
+
+  @override
+  String get tf_statements => 'Stwierdzeń';
+
+  @override
+  String get tf_needText => 'Wpisz treść stwierdzenia';
+
+  @override
+  String get tf_textLabel => 'Treść stwierdzenia';
+
+  @override
+  String get tf_textHint => 'np. Para Młoda poznała się w pracy';
+
+  @override
+  String get tf_falseShort => 'Fałsz';
+
+  @override
+  String get tf_explanation => 'Wyjaśnienie (opcjonalnie)';
+
+  @override
+  String get tf_explanationHint => 'np. Poznali się przez wspólnych znajomych';
+
+  @override
+  String get pg_headerTitle => '📸 Zgadnij zdjęcie';
+
+  @override
+  String get pg_photos => 'Zdjęcia';
+
+  @override
+  String get pg_enableHint => 'Włącz, aby goście mogli zgadywać.';
+
+  @override
+  String get pg_needPhoto => 'Najpierw dodaj przynajmniej jedno zdjęcie.';
+
+  @override
+  String get pg_photosCount => 'Zdjęć';
+
+  @override
+  String pg_uploadError(String error) {
+    return 'Nie udało się wgrać zdjęcia: $error';
+  }
+
+  @override
+  String get pg_addPhotoFirst => 'Najpierw dodaj zdjęcie';
+
+  @override
+  String get pg_editPhoto => 'Edytuj zdjęcie';
+
+  @override
+  String get pg_addPhoto => 'Dodaj zdjęcie';
+
+  @override
+  String get pg_questionHint => 'np. Kto to z dzieciństwa?';
+
+  @override
+  String get pg_photo => 'Zdjęcie';
+
+  @override
+  String get pc_headerTitle => '📷 Foto-wyzwania';
+
+  @override
+  String get pc_activeHint =>
+      'Goście mogą teraz wykonywać wyzwania przez stronę / kod QR.';
+
+  @override
+  String get pc_enableHint => 'Włącz, aby goście mogli przesyłać zdjęcia.';
+
+  @override
+  String pc_deleteConfirm(String text) {
+    return 'Czy na pewno usunąć „$text\"? Przesłane zdjęcia pozostaną w galerii.';
+  }
+
+  @override
+  String get pc_loadPhotosError =>
+      'Nie udało się wczytać zdjęć. Sprawdź połączenie.';
+
+  @override
+  String get pc_deleted => 'Usunięte wyzwanie';
+
+  @override
+  String get pc_deletePhotoTitle => 'Usunąć zdjęcie?';
+
+  @override
+  String pc_deletePhotoBody(String name) {
+    return 'Czy na pewno usunąć zdjęcie od „$name\"?';
+  }
+
+  @override
+  String get pc_empty => 'Brak wykonanych wyzwań. Udostępnij gościom kod QR.';
+
+  @override
+  String get pc_photos => 'Zdjęć';
+
+  @override
+  String get pc_challenges => 'Wyzwań';
+
+  @override
+  String bingo_needPool(int count) {
+    return 'Potrzeba min. 24 pól w puli (jest $count).';
+  }
+
+  @override
+  String get bingo_title => 'Ślubne Bingo';
+
+  @override
+  String get bingo_headerTitle => '🎯 Ślubne Bingo';
+
+  @override
+  String get bingo_guestHint =>
+      'Strona z interaktywnym bingo dla gości. Pokaż im kod QR lub wyślij link, aby grali na telefonach.';
+
+  @override
+  String bingo_pool(int count) {
+    return 'Pula losowania: $count pól';
+  }
+
+  @override
+  String get bingo_preview => 'Losuj podgląd';
+
+  @override
+  String get bingo_previewBoard => 'Podgląd planszy';
+
+  @override
+  String get bingo_fromSchedule => 'Dołącz pola z harmonogramu';
+
+  @override
+  String get bingo_centerField => 'Środkowe pole planszy';
+
+  @override
+  String get bingo_coupleNames => 'Imiona Pary Młodej';
+
+  @override
+  String bingo_fieldsBase(int active, int total) {
+    return 'Baza pól ($active / $total aktywnych)';
+  }
+
+  @override
+  String get bingo_empty => 'Brak pól. Dodaj pierwsze powyżej.';
+
+  @override
+  String get bingo_newField => 'Treść pola…';
+
+  @override
+  String wheel_fields(int count) {
+    return 'Pola koła ($count)';
+  }
+
+  @override
+  String get wheel_removeOnPick => 'Usuń wylosowanego z puli';
+
+  @override
+  String get wheel_removeOnPickOn =>
+      'Wylosowane pola nie pojawią się ponownie (w tej sesji).';
+
+  @override
+  String get wheel_removeOnPickOff => 'Wylosowane pola zostają w puli.';
+
+  @override
+  String get wheel_fullscreen => 'Tryb prezentacji (pełny ekran)';
+
+  @override
+  String get wheel_fullscreenHint => 'Duże koło do pokazania na sali.';
+
+  @override
+  String get wheel_poolEmpty =>
+      'Pula jest pusta — dodaj pola lub zresetuj pulę.';
+
+  @override
+  String get wheel_poolReset => 'Pula przywrócona';
+
+  @override
+  String get wheel_noFields => 'Brak pól w puli';
+
+  @override
+  String get wheel_spinning => 'Kręcę…';
+
+  @override
+  String get wheel_pressSpin => 'Naciśnij „Zakręć!\"';
+
+  @override
+  String get wheel_spin => 'Zakręć!';
+
+  @override
+  String get wheel_reset => 'Resetuj pulę';
+
+  @override
+  String get wheel_history => '🕘 Historia losowań';
+
+  @override
+  String get wheelMode_nextDance => 'Kto tańczy następny';
+
+  @override
+  String get wheelMode_coupleTask => 'Zadanie dla Pary Młodej';
+
+  @override
+  String get wheelMode_custom => 'Własne koło';
+
+  @override
+  String get advices_loadError =>
+      'Nie udało się wczytać rad. Sprawdź połączenie.';
+
+  @override
+  String advices_deleteConfirm(String name) {
+    return 'Czy na pewno usunąć radę od „$name\"? Tej operacji nie można cofnąć.';
+  }
+
+  @override
+  String advices_pdfTitleNamed(String event) {
+    return 'Rady dla Pary Młodej — $event';
+  }
+
+  @override
+  String get guestbook_headerTitle => '💝 Księga gości';
+
+  @override
+  String get guestbook_loadError =>
+      'Nie udało się wczytać wpisów. Sprawdź połączenie z internetem.';
+
+  @override
+  String guestbook_wishCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'życzeń',
+      few: 'życzenia',
+      one: 'życzenie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guestbook_pdfTitleNamed(String event) {
+    return 'Księga Gości — $event';
+  }
+
+  @override
+  String get capsule_headerTitle => '⏳ Kapsuła czasu';
+
+  @override
+  String get capsule_messages => 'Wiadomości';
+
+  @override
+  String get capsule_loadError =>
+      'Nie udało się wczytać wiadomości. Sprawdź połączenie.';
+
+  @override
+  String get capsule_sealed => 'Zapieczętowane';
+
+  @override
+  String get capsule_nearest => 'Najbliższe';
+
+  @override
+  String get capsule_previewOn =>
+      'Podgląd wszystkich włączony (treści widoczne tylko dla Ciebie).';
+
+  @override
+  String get capsule_autoOpen =>
+      'Wiadomości otworzą się automatycznie w swojej dacie.';
+
+  @override
+  String get capsule_seal => 'Zapieczętuj';
+
+  @override
+  String capsule_previewUntil(String date) {
+    return '🔓 Podgląd — otworzy się $date';
+  }
+
+  @override
+  String get capsule_later => 'później';
+
+  @override
+  String capsule_pdfTitleNamed(String event) {
+    return 'Kapsuła czasu — $event';
+  }
+
+  @override
+  String get guestMap_headerTitle => '🗺️ Mapa gości';
+
+  @override
+  String get guestMap_loadError =>
+      'Nie udało się wczytać mapy. Sprawdź połączenie.';
+
+  @override
+  String get guestMap_guests => 'Gości';
+
+  @override
+  String get guestMap_cities => 'Miejscowości';
+
+  @override
+  String get guestMap_noCity => 'Brak miejscowości';
+
+  @override
+  String get guestMap_savedNoGeo =>
+      'Zapisano (nie udało się zlokalizować miejscowości)';
+
+  @override
+  String get guestMap_addedNoGeo =>
+      'Dodano (nie udało się zlokalizować miejscowości)';
+
+  @override
+  String guestMap_deleteConfirm(String name) {
+    return 'Czy na pewno usunąć „$name\"?';
+  }
+
+  @override
+  String get guestMap_addGuest => 'Dodaj gościa';
+
+  @override
+  String hotel_deleteConfirm(String name) {
+    return 'Czy na pewno usunąć „$name\"? Przypisania gości do tego hotelu zostaną wyczyszczone.';
+  }
+
+  @override
+  String get hotel_deleted => 'Usunięto hotel';
+
+  @override
+  String get hotel_noGuests =>
+      'Brak gości z zaznaczonym noclegiem.\nZaznacz „Nocleg\" przy gościu w sekcji Goście.';
+
+  @override
+  String get hotel_empty => 'Brak hoteli. Dodaj pierwszy poniżej.';
+
+  @override
+  String hotel_address(String address) {
+    return '📍 $address';
+  }
+
+  @override
+  String hotel_phone(String phone) {
+    return '📞 $phone';
+  }
+
+  @override
+  String hotel_perRoom(int count) {
+    return '👥 $count os./pokój';
+  }
+
+  @override
+  String hotel_guestCount(int count) {
+    return '🛏 gości: $count';
+  }
+
+  @override
+  String get hotel_nameHint => 'np. Hotel Pod Różą';
+
+  @override
+  String get hotel_needName => 'Podaj nazwę hotelu';
+
+  @override
+  String get hotel_personsPerRoom => 'Osób w pokoju';
+
+  @override
+  String get an_budgetChart => 'Budżet: planowany / orientacyjny / opłacony';
+
+  @override
+  String get an_expensesChart => 'Rozkład wydatków (kategorie)';
+
+  @override
+  String get an_paymentsChart => 'Postęp płatności w czasie';
+
+  @override
+  String get an_rsvpChart => 'Potwierdzenia gości';
+
+  @override
+  String get an_menuChart => 'Rozkład menu';
+
+  @override
+  String get an_dietChart => 'Rozkład diet';
+
+  @override
+  String get an_costPerGuest => 'Koszt / gość';
+
+  @override
+  String get an_byBudget => 'Wg budżetu';
+
+  @override
+  String get an_guests => 'Gości';
+
+  @override
+  String get an_paid => 'Opłacony';
+
+  @override
+  String get an_noExpenses => 'Brak wydatków.';
+
+  @override
+  String get an_noPayments => 'Brak danych o płatnościach z datą.';
+
+  @override
+  String get an_noGuests => 'Brak gości.';
+
+  @override
+  String get an_willAttend => 'Przyjdą';
+
+  @override
+  String get an_willNotAttend => 'Nie przyjdą';
+
+  @override
+  String get dash_emptyTiles => 'Brak kafelków. Kliknij „Edytuj\", aby dodać.';
+
+  @override
+  String get dash_afterWedding => 'Już po ślubie!';
+
+  @override
+  String get gal_photoVideo => '📸 Galeria zdjęć i filmów';
+
+  @override
+  String get gal_musicChoice => '🎵 Wybór muzyki';
+
+  @override
+  String get gal_photos => '📷 Zdjęcia';
+
+  @override
+  String get gal_combined => 'Połączony';
+
+  @override
+  String get gifts_forGuests => 'Dla gości';
+
+  @override
+  String get gifts_count => 'Prezentów';
+
+  @override
+  String get gifts_totalValue => 'Łączna wartość';
+
+  @override
+  String get gifts_favoursCount => 'Upominków';
+
+  @override
+  String get gifts_totalCost => 'Łączny koszt';
+
+  @override
+  String gifts_totalCostFor(String count) {
+    return 'Łączny koszt ($count os.)';
+  }
+
+  @override
+  String get gifts_recalcToReal => 'Przelicz na gości rzeczywistych';
+
+  @override
+  String get gifts_addProposal => 'Dodaj propozycję';
+
+  @override
+  String get gifts_proposalHint => 'Tytuł propozycji…';
+
+  @override
+  String get rsvpAll_qr => '📋 Potwierdzenia (RSVP)';
+
+  @override
+  String get rsvpAll_entries => 'Wpisów';
+
+  @override
+  String get rsvpAll_manual => '✍ Ręczny';
+
+  @override
+  String get rsvp_attendingShort => '✓ Przyjdzie';
+
+  @override
+  String get rsvp_qrTitle => 'Kod QR potwierdzeń';
+
+  @override
+  String rsvp_attendingCount(int count) {
+    return '✓ Przyjdą ($count)';
+  }
+
+  @override
+  String rsvp_notAttendingCount(int count) {
+    return '✗ Nie przyjdą ($count)';
+  }
+
+  @override
+  String get music_headerTitle => '🎵 Muzyka — propozycje gości';
+
+  @override
+  String get music_needTitle => 'Podaj tytuł utworu';
+
+  @override
+  String get music_exportTitle => 'Tytuł';
+
+  @override
+  String get music_exportSpecial => 'Utwór specjalny';
+
+  @override
+  String get music_exportFromGuest => 'Od gościa';
+
+  @override
+  String get music_importHelp =>
+      'Wklej listę utworów. Obsługiwane formaty:\n• CSV: Tytuł;Wykonawca;Status (separator średnik)\n• Tekst: \"- Tytuł — Wykonawca\" (po jednym w linii)\nStatus rozpoznawany ze słów: „zatwierdzone\", „odrzucone\", „dj\".';
+
+  @override
+  String get tr_ownTransport => 'transport własny';
+
+  @override
+  String get tr_unassigned => 'bez przydziału';
+
+  @override
+  String get tr_vehicles => 'pojazdów';
+
+  @override
+  String tr_route(String route) {
+    return '🛣 $route';
+  }
+
+  @override
+  String get tr_addToOwn => 'Dodaj do transportu własnego';
+
+  @override
+  String get tr_typeHint => 'np. Pojazd Kuby, Bus wynajęty';
+
+  @override
+  String get tr_needType => 'Podaj typ/nazwę';
+
+  @override
+  String get tr_driverName => 'Imię kierowcy';
+
+  @override
+  String get tr_routeHint => 'np. Kościół → Sala';
+
+  @override
+  String tr_cost(String currency) {
+    return 'Koszt ($currency)';
+  }
+
+  @override
+  String get vf_editVendor => 'Edytuj dostawcę';
+
+  @override
+  String get vf_addVendor => 'Dodaj dostawcę';
+
+  @override
+  String get vf_customCategory => 'Własna kategoria';
+
+  @override
+  String get vf_needCompany => 'Podaj nazwę firmy';
+
+  @override
+  String get vf_fullName => 'Imię i nazwisko';
+
+  @override
+  String vf_price(String currency) {
+    return 'Cena ($currency)';
+  }
+
+  @override
+  String get vf_paymentStatus => 'Status płatności';
+
+  @override
+  String vf_contractAmount(String currency) {
+    return 'Kwota umowy / szac. koszt ($currency)';
+  }
+
+  @override
+  String get vf_budgetCategory => 'Kategoria budżetowa';
+
+  @override
+  String vend_linkedBody(String vendor) {
+    return 'Dostawca „$vendor\" jest powiązany z wpisem w budżecie. Co zrobić z powiązanym wpisem?';
+  }
+
+  @override
+  String vend_deleteConfirm(String vendor) {
+    return 'Czy na pewno usunąć „$vendor\"?';
+  }
+
+  @override
+  String get vend_deleteBoth => 'Usuń oba';
+
+  @override
+  String get vend_anyStatus => 'Każdy status';
+
+  @override
+  String get vend_byName => 'Wg nazwy (A–Z)';
+
+  @override
+  String get task_transport => '🚗 Transport';
+
+  @override
+  String get task_gift => '🎁 Prezent';
+
+  @override
+  String task_goToSection(String section) {
+    return '→ $section';
+  }
+
+  @override
+  String sched_location(String location) {
+    return '📍 $location';
+  }
+
+  @override
+  String get pay_expensesTab => '📋 Wydatki';
+
+  @override
+  String pay_dueDate(String date) {
+    return '📅 $date';
+  }
+
+  @override
+  String get lock_unlock => 'Odblokuj, aby kontynuować';
+
+  @override
+  String get lock_touchToScan => 'Dotknij, aby zeskanować odcisk palca';
+
+  @override
+  String lock_useBackup(String type) {
+    return 'Użyj $type';
+  }
+
+  @override
+  String get lock_drawPattern => 'Narysuj wzór odblokowania';
+
+  @override
+  String lock_wrongBackup(String type, int left) {
+    return 'Błędny $type — pozostało prób: $left';
+  }
+
+  @override
+  String get lock_useFingerprint => 'Użyj odcisku palca';
+
+  @override
+  String get lock_forgot => 'Nie pamiętasz? Zaloguj przez Google';
+
+  @override
+  String get setup_confirmBiometric =>
+      'Potwierdź odcisk palca, aby włączyć logowanie biometryczne';
+
+  @override
+  String get setup_biometricFailed =>
+      'Nie udało się potwierdzić odcisku palca. Czy ustawić samo zabezpieczenie zapasowe (PIN lub wzór)?';
+
+  @override
+  String get setup_setPin => 'Ustaw PIN/wzór';
+
+  @override
+  String get setup_repeatPin => 'Powtórz kod PIN';
+
+  @override
+  String get setup_repeatPattern => 'Powtórz wzór, aby potwierdzić';
+
+  @override
+  String get setup_pinMismatch => 'Kody PIN się różnią — spróbuj ponownie';
+
+  @override
+  String get setup_patternMismatch => 'Wzory się różnią — spróbuj ponownie';
+
+  @override
+  String get setup_pinBackupHint =>
+      'PIN/wzór posłuży, gdy odcisk palca nie zadziała (np. mokry palec).';
+
+  @override
+  String get setup_unlockHint =>
+      'To zabezpieczenie odblokuje aplikację przy kolejnych otwarciach.';
+
+  @override
+  String get setup_pattern => 'Wzór graficzny';
+
+  @override
+  String get setup_connectDots => 'Połącz co najmniej 4 punkty';
+
+  @override
+  String get setup_patternTooShort =>
+      'Wzór jest za krótki — połącz min. 4 punkty';
+
+  @override
+  String get login_subtitle =>
+      'Zaloguj się lub załóż konto swoim kontem Google';
+
+  @override
+  String get login_secure => '🔒 Bezpieczne logowanie — bez osobnego hasła';
+
+  @override
+  String get login_google => 'Zaloguj się przez Google';
+
+  @override
+  String get welcome_testMode => 'Tryb testowy — wejście bez logowania';
+
+  @override
+  String get welcome_enter => 'Wejdź do aplikacji';
+
+  @override
+  String get auth_cancelled => 'Anulowano logowanie.';
+
+  @override
+  String get wsum_owner => 'Właściciel';
+
+  @override
+  String get wsum_collab => 'Współpraca';
+
+  @override
+  String get hotel_added => 'Dodano hotel';
+
+  @override
+  String get hotel_needsRoom => 'Potrzebuje noclegu';
+
+  @override
+  String get common_noName => '(bez imienia)';
+
+  @override
+  String get hotel_edit => 'Edytuj hotel';
+
+  @override
+  String get hotel_add => 'Dodaj hotel';
+
+  @override
+  String get hotel_nameRequired => 'Nazwa hotelu *';
+
+  @override
+  String get hotel_streetCity => 'Ulica, miasto';
+
+  @override
+  String get hotel_pricePerNight => 'Cena za os./noc';
+
+  @override
+  String get hotel_bookingLink => 'Link do rezerwacji';
+
+  @override
+  String get an_byEstimate => 'Wg orientacyjnego';
+
+  @override
+  String get an_estimateShort => 'Orientac.';
+
+  @override
+  String get an_noMenu => 'Bez menu';
+
+  @override
+  String get an_noMenuData => 'Brak danych o menu.';
+
+  @override
+  String get an_noDietData => 'Brak danych o dietach.';
+
+  @override
+  String get bingo_generator => 'Generator plansz';
+
+  @override
+  String get bingo_boardCount => 'Liczba plansz:';
+
+  @override
+  String get bingo_newFieldHint => 'Nowe pole bingo…';
+
+  @override
+  String get bev_bottlesPerPerson => 'butelek / os.';
+
+  @override
+  String get bev_costPerPerson => 'koszt / os.';
+
+  @override
+  String get bev_brand => 'Marka / nazwa (opcjonalnie)';
+
+  @override
+  String get bev_pieces => 'szt.';
+
+  @override
+  String get bs_plannedPlusReserve => 'Planowany + rezerwa';
+
+  @override
+  String get bs_ofWhichVenue => 'w tym sala';
+
+  @override
+  String get bs_reserveUsed => 'Wykorzystana rezerwa';
+
+  @override
+  String get ef_edit => 'Edytuj wydatek';
+
+  @override
+  String get ef_add => 'Dodaj wydatek';
+
+  @override
+  String get ef_nameHint => 'np. Atrakcje dla dzieci';
+
+  @override
+  String get ef_estimate => 'Kwota orientacyjna';
+
+  @override
+  String get vf_companyName => 'Nazwa firmy';
+
+  @override
+  String get vf_companyHint => 'np. Studio Foto';
+
+  @override
+  String get vf_contactPerson => 'Osoba kontaktowa';
+
+  @override
+  String get vf_vendorCategory => 'Kategoria dostawcy';
+
+  @override
+  String get common_email => 'E-mail';
+
+  @override
+  String get sala_cateringBase => 'Baza cateringu';
+
+  @override
+  String get sala_cateringExtras => 'Dodatki cateringu';
+
+  @override
+  String get sala_inCosts => 'W kosztach';
+
+  @override
+  String get sala_menuExtras => 'Dodatki do menu';
+
+  @override
+  String get sala_separateCatering => 'Catering (oddzielny)';
+
+  @override
+  String get sala_venueTotal => 'Razem sala';
+
+  @override
+  String get sala_staffNameHint => 'Nazwa (np. Kelnerzy)';
+
+  @override
+  String get gal_videos => '▶ Filmy';
+
+  @override
+  String get gal_pdfPrints => 'Wydruki PDF';
+
+  @override
+  String get gal_galleryQr => 'Galeria (QR)';
+
+  @override
+  String get pc_needChallenge => 'Najpierw dodaj przynajmniej jedno wyzwanie.';
+
+  @override
+  String get pc_editChallenge => 'Edytuj wyzwanie';
+
+  @override
+  String get gp_needTwoAnswers => 'Podaj przynajmniej 2 odpowiedzi';
+
+  @override
+  String get quiz_needQuestion => 'Najpierw dodaj przynajmniej jedno pytanie.';
+
+  @override
+  String get gp_noAnswers => 'brak odpowiedzi';
+
+  @override
+  String get quiz_editQuestion => 'Edytuj pytanie';
+
+  @override
+  String get tf_needStatement =>
+      'Najpierw dodaj przynajmniej jedno stwierdzenie.';
+
+  @override
+  String get tf_editStatement => 'Edytuj stwierdzenie';
+
+  @override
+  String get tf_isItTrue => 'Czy to prawda?';
+
+  @override
+  String get wheel_mode => 'Tryb losowania';
+
+  @override
+  String get wheel_addField => 'Dodaj pole';
+
+  @override
+  String get wheel_addHint => 'Dodaj pola przyciskiem +.';
+
+  @override
+  String wheel_fieldN(int index) {
+    return 'Pole $index';
+  }
+
+  @override
+  String get wheel_drawn => '🎉 Wylosowano';
+
+  @override
+  String wheel_inPool(int count) {
+    return 'W puli: $count';
+  }
+
+  @override
+  String get gifts_addGift => 'Dodaj prezent';
+
+  @override
+  String get gifts_fromWho => 'Od kogo…';
+
+  @override
+  String get gifts_giftDesc => 'Opis prezentu…';
+
+  @override
+  String get gifts_recalcAll => 'Przelicz na rzeczywistych + wirtualnych';
+
+  @override
+  String get gifts_favourHint => 'Upominek…';
+
+  @override
+  String get common_descriptionHint => 'Opis…';
+
+  @override
+  String get gc_seatHint => 'np. miejsce przy rodzinie';
+
+  @override
+  String get gc_allergyHint => 'np. orzechy, gluten';
+
+  @override
+  String get gc_extraInfo => 'Dodatkowe informacje…';
+
+  @override
+  String get advices_emptyCategory => 'Brak rad w tej kategorii.';
+
+  @override
+  String get advices_autoplay => 'Auto-pokaz';
+
+  @override
+  String get guestMap_onMap => 'Na mapie';
+
+  @override
+  String get guestMap_savedEntry => 'Zapisano wpis';
+
+  @override
+  String get guestMap_addedEntry => 'Dodano wpis';
+
+  @override
+  String get guestMap_editEntry => 'Edytuj wpis';
+
+  @override
+  String get capsule_opened => '💌 Otwarta';
+
+  @override
+  String get lock_locked => 'Aplikacja zablokowana';
+
+  @override
+  String lock_welcomeBack(String name) {
+    return 'Witaj ponownie, $name';
+  }
+
+  @override
+  String get lock_enterPin => 'Wpisz kod PIN';
+
+  @override
+  String get setup_biometricUnconfirmed => 'Biometria niepotwierdzona';
+
+  @override
+  String get setup_chooseBackup => 'Wybierz zabezpieczenie zapasowe';
+
+  @override
+  String get setup_setPinCode => 'Ustaw kod PIN (4 cyfry)';
+
+  @override
+  String get setup_changeBackup => 'Zmiana zabezpieczenia';
+
+  @override
+  String get setup_lockConfig => 'Konfiguracja blokady';
+
+  @override
+  String get setup_pinCode => 'Kod PIN';
+
+  @override
+  String get setup_fourDigits => '4 cyfry';
+
+  @override
+  String get login_signingIn => 'Logowanie…';
+
+  @override
+  String get music_specialFilter => '⭐ Specjalne';
+
+  @override
+  String get music_genre => 'Gatunek / gust';
+
+  @override
+  String get music_specialMoment => '⭐ Moment specjalny';
+
+  @override
+  String get music_notSpecial => '— nie jest specjalny —';
+
+  @override
+  String get music_partyMoment => 'Moment imprezy';
+
+  @override
+  String get music_exportHeader => 'LISTA PIOSENEK NA WESELE';
+
+  @override
+  String get music_exportSpecialHeader =>
+      '### ⭐ UTWORY SPECJALNE — KLUCZOWE MOMENTY';
+
+  @override
+  String get music_exportAllHeader =>
+      '### WSZYSTKIE UTWORY (wg momentu imprezy)';
+
+  @override
+  String get room_freeSeats => 'Wolne miejsca';
+
+  @override
+  String get rsvpAll_tabEntries => 'Wpisy RSVP';
+
+  @override
+  String get rsvpAll_tabQr => 'Kody QR i linki';
+
+  @override
+  String get rsvp_notAttendingShort => '✗ Nie przyjdzie';
+
+  @override
+  String get rsvp_noStatus => 'Brak statusu';
+
+  @override
+  String get rsvp_fromForm => '🌐 Z formularza';
+
+  @override
+  String rsvp_noReplyCount(int count) {
+    return 'Brak odpowiedzi ($count)';
+  }
+
+  @override
+  String get sched_editEvent => 'Edytuj wydarzenie';
+
+  @override
+  String get sched_addEvent => 'Dodaj wydarzenie';
+
+  @override
+  String get common_nameRequired => 'Nazwa *';
+
+  @override
+  String get sched_placeHint => 'np. Sala weselna';
+
+  @override
+  String get common_responsible => 'Osoba odpowiedzialna';
+
+  @override
+  String get sched_responsibleHint => 'np. Oboje';
+
+  @override
+  String get sched_mapLink => 'Link do lokalizacji';
+
+  @override
+  String get sched_eventAdded => 'Dodano wydarzenie';
+
+  @override
+  String get common_noNameNeutral => '(bez nazwy)';
+
+  @override
+  String get common_seats => 'Liczba miejsc';
+
+  @override
+  String get task_edit => 'Edytuj zadanie';
+
+  @override
+  String get task_add => 'Dodaj zadanie';
+
+  @override
+  String get task_goal => 'Cel / zdarzenie (opcjonalnie)';
+
+  @override
+  String get task_goalName => 'Nazwa celu';
+
+  @override
+  String get task_goalHint => 'np. Znalezienie fotografa';
+
+  @override
+  String get task_hideExtra => 'Ukryj dodatkowe opcje';
+
+  @override
+  String get task_accommodation => '🏨 Nocleg';
+
+  @override
+  String get task_music => '🎵 Muzyka';
+
+  @override
+  String get task_allStatuses => 'Wszystkie statusy';
+
+  @override
+  String get common_noSorting => 'Bez sortowania';
+
+  @override
+  String get task_byDue => 'Wg terminu';
+
+  @override
+  String get task_byPriority => 'Wg priorytetu';
+
+  @override
+  String get common_byStatus => 'Wg statusu';
+
+  @override
+  String get tr_inVehicles => 'w pojazdach';
+
+  @override
+  String tr_assignTo(String vehicle) {
+    return 'Przypisz do: $vehicle';
+  }
+
+  @override
+  String get tr_boltTaxi => 'Bolt / Taxi';
+
+  @override
+  String get tr_infoCodePhone => 'Info / kod / telefon';
+
+  @override
+  String get tr_editVehicle => 'Edytuj pojazd';
+
+  @override
+  String get tr_addVehicle => 'Dodaj pojazd';
+
+  @override
+  String get tr_typeRequired => 'Typ / nazwa pojazdu *';
+
+  @override
+  String get tr_departure => 'Godzina odjazdu';
+
+  @override
+  String get vf_customCategoryHint => 'np. Animator';
+
+  @override
+  String get vf_companyRequired => 'Nazwa firmy *';
+
+  @override
+  String get vf_mapsLink => 'Link do Google Maps';
+
+  @override
+  String get vend_vendorChip => '🏢 Dostawca';
+
+  @override
+  String get vend_instalmentHint => 'np. Zadatek';
+
+  @override
+  String get welcome_tagline => 'PANEL ORGANIZACJI WESELA';
+
+  @override
+  String get layout_forcePhone => 'Wymuś telefon';
+
+  @override
+  String get layout_forceTablet => 'Wymuś tablet';
+
+  @override
+  String get layout_autoHint => 'Układ dobiera się do szerokości ekranu';
+
+  @override
+  String get layout_phoneHint => 'Zawsze dolny pasek nawigacji';
+
+  @override
+  String get layout_tabletHint => 'Zawsze boczna nawigacja i szersze siatki';
+
+  @override
+  String get common_statusHint => 'Status…';
+
+  @override
+  String get gs_companion => 'osoba towarzysząca';
+
+  @override
+  String get gs_accompanies => 'towarzyszy gościowi';
+
+  @override
+  String get notif_programmeItem => 'punkt programu';
+
+  @override
+  String taskSvc_fromTask(String name) {
+    return 'Utworzono z zadania: $name';
+  }
+
+  @override
+  String vendSvc_vendor(String label) {
+    return 'Dostawca: $label';
+  }
+
+  @override
+  String wedSvc_weddingId(String id) {
+    return 'Wesele $id';
+  }
+
+  @override
+  String get vendStatus_contacted => 'Skontaktowano';
+
+  @override
+  String get vendStatus_confirmed => 'Potwierdzony';
+
+  @override
+  String get vendStatus_cancelled => 'Anulowany';
+
+  @override
+  String get quizEx_q1 => 'Gdzie się poznaliśmy?';
+
+  @override
+  String get quizEx_q1a1 => 'W pracy';
+
+  @override
+  String get quizEx_q1a2 => 'Na studiach';
+
+  @override
+  String get quizEx_q1a3 => 'Przez znajomych';
+
+  @override
+  String get quizEx_q1a4 => 'W wakacje';
+
+  @override
+  String get quizEx_q3 => 'Gdzie była nasza pierwsza randka?';
+
+  @override
+  String get quizEx_q3a1 => 'W kinie';
+
+  @override
+  String get quizEx_q3a2 => 'W restauracji';
+
+  @override
+  String get quizEx_q3a3 => 'Na spacerze';
+
+  @override
+  String get quizEx_q3a4 => 'W kawiarni';
+
+  @override
+  String get quizEx_q4 => 'Kto się pierwszy oświadczył?';
+
+  @override
+  String get tfEx_1 => 'Para Młoda poznała się w pracy';
+
+  @override
+  String get tfEx_1e => 'Poznali się przez wspólnych znajomych.';
+
+  @override
+  String get tfEx_2 => 'Pierwsza randka była w kinie';
+
+  @override
+  String get tfEx_2e => 'Pierwsza randka była w kawiarni.';
+
+  @override
+  String get tfEx_3 => 'Oświadczyny odbyły się za granicą';
+
+  @override
+  String get tfEx_3e => 'Oświadczyny odbyły się podczas wspólnego wyjazdu.';
+
+  @override
+  String get pcEx_1 => 'Zrób selfie z Parą Młodą';
+
+  @override
+  String get pcEx_2 => 'Sfotografuj najpiękniejszy toast';
+
+  @override
+  String get pcEx_3 => 'Znajdź i sfotografuj najstarszego gościa';
+
+  @override
+  String get pcEx_4 => 'Zdjęcie z parkietu';
+
+  @override
+  String get pcEx_5 => 'Grupowe zdjęcie Twojego stolika';
+
+  @override
+  String get pcEx_6 => 'Uchwyć pierwszy taniec';
+
+  @override
+  String tableSvc_defaultName(int number) {
+    return 'Stół $number';
+  }
+
+  @override
+  String get cfg_defaultEventName => 'Ceremonia Weselna';
+
+  @override
+  String get cfg_defaultPersons => 'Patrycji i Piotra';
+
+  @override
+  String get taskSvc_song => 'Utwór';
+
+  @override
+  String get err_noActiveWedding =>
+      'Brak aktywnego wesela — nie wiadomo, komu przypisać dane. Wybierz wesele i spróbuj ponownie.';
+
+  @override
+  String get err_weddingDocMissing => 'Dokument wesela nie istnieje';
+
+  @override
+  String get common_optionalHint => 'Opcjonalnie…';
+
+  @override
+  String get common_phoneHint => 'np. 600 100 200';
+
+  @override
+  String get common_emailHint => 'kontakt@firma.pl';
+
+  @override
+  String get qr_schedule => '📅 Harmonogram';
+
+  @override
+  String get qr_music => '🎵 Muzyka';
+
+  @override
+  String get qr_bingo => '🎲 Ślubne Bingo';
+
+  @override
+  String get qr_guestbook => '💝 Księga gości';
+
+  @override
+  String get qr_quiz => '🧠 Quiz o Parze Młodej';
+
+  @override
+  String get qr_advices => '💌 Rady dla Pary Młodej';
+
+  @override
+  String get qr_trueFalse => '🤔 Prawda czy Fałsz';
+
+  @override
+  String get qr_photoGuess => '📸 Zgadnij zdjęcie';
+
+  @override
+  String get qr_capsule => '⏳ Kapsuła czasu';
+
+  @override
+  String get qr_guestMap => '🗺️ Mapa gości';
+
+  @override
+  String get qr_photoChallenge => '📷 Foto-wyzwania';
+
+  @override
+  String get pay_venueTab => '🏠 Sala';
+
+  @override
+  String get pay_vendorsTab => '🏢 Dostawcy';
+
+  @override
+  String get hm_variantName => 'Nazwa wariantu';
+
+  @override
+  String get hm_offerLink => 'Link do oferty (https://…)';
+
+  @override
+  String get common_linkHint => 'Link (https://…)';
+
+  @override
+  String bingo_generatePdf(int count, String format) {
+    return 'Generuj PDF ($count plansz, $format)';
+  }
+
+  @override
+  String get common_personsShort => 'os.';
+
+  @override
+  String get notif_oneNew => '1 nowe';
+
+  @override
+  String get wheelEx_toast => 'Kto wznosi toast';
+
+  @override
+  String get wheelEx_gamesTask => 'Zadanie na oczepiny';
+
+  @override
+  String get wheelEx_veilKiss => 'Pocałunek przez welon';
+
+  @override
+  String get wheelEx_blindDance => 'Wspólny taniec z zawiązanymi oczami';
+
+  @override
+  String get wheelEx_singSong => 'Odśpiewajcie ulubioną piosenkę';
+
+  @override
+  String get wheelEx_feedCake => 'Nakarmcie się nawzajem tortem';
+
+  @override
+  String get wheelEx_longKiss => 'Pocałunek dłuższy niż 10 sekund';
+
+  @override
+  String get wheelEx_compliment => 'Powiedzcie sobie komplement';
+
+  @override
+  String get wheelEx_bouquetToss => 'Rzut bukietem';
+
+  @override
+  String get wheelEx_tieToss => 'Rzut muszką / krawatem';
+
+  @override
+  String get wheelEx_chairDance => 'Taniec z krzesłami';
+
+  @override
+  String get wheelEx_bestDance => 'Konkurs na najlepszy taniec';
+
+  @override
+  String get wheelEx_charades => 'Kalambury weselne';
+
+  @override
+  String get wheelEx_nextCouple => 'Wybór następnej pary do ślubu';
+
+  @override
+  String get quizEx_film3 => 'Forrest Gump';
+
+  @override
+  String get quizEx_film4 => 'Skazani na Shawshank';
 }

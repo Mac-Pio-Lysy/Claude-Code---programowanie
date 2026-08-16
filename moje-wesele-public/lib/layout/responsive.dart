@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../l10n/app_text.dart';
 
 /// Tryb wyświetlania wybrany przez użytkownika w Ustawieniach.
 enum DisplayMode {
@@ -14,14 +15,14 @@ enum DisplayMode {
 
   String get label => switch (this) {
         DisplayMode.auto => 'Automatyczny',
-        DisplayMode.phone => 'Wymuś telefon',
-        DisplayMode.tablet => 'Wymuś tablet',
+        DisplayMode.phone => AppText.t.layout_forcePhone,
+        DisplayMode.tablet => AppText.t.layout_forceTablet,
       };
 
   String get hint => switch (this) {
-        DisplayMode.auto => 'Układ dobiera się do szerokości ekranu',
-        DisplayMode.phone => 'Zawsze dolny pasek nawigacji',
-        DisplayMode.tablet => 'Zawsze boczna nawigacja i szersze siatki',
+        DisplayMode.auto => AppText.t.layout_autoHint,
+        DisplayMode.phone => AppText.t.layout_phoneHint,
+        DisplayMode.tablet => AppText.t.layout_tabletHint,
       };
 }
 
