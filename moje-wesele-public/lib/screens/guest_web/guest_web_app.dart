@@ -20,6 +20,7 @@ import '../../onboarding/onboarding_steps.dart' show OnbVariant;
 import '../../services/cloudinary_service.dart';
 import '../../services/deezer_service.dart';
 import '../../services/guest_identity.dart';
+import '../../services/guest_session.dart';
 import '../../services/guest_space_service.dart';
 import '../../utils/warsaw_time.dart';
 import '../../utils/app_format.dart';
@@ -36,6 +37,28 @@ class GuestWebApp extends StatelessWidget {
   final String token;
 
   @override
+  Widget build(BuildContext context) => GuestRootApp(
+        home: (context) => GuestWebHome(token: token, showHelp: true),
+      );
+}
+
+/// Korzeń aplikacji gościa — wspólny dla OBU wejść do strefy:
+/// wspólnego linku (`?t=TOKEN`) i kodu paczki (`?i=KOD`).
+///
+/// Jedna strefa, dwoje drzwi: kod paczki dokłada wybór tożsamości PRZED
+/// wejściem, ale sama strefa, mirror i reguły treści są te same.
+///
+/// ⚠️ NIE dodawać `const` przed budowanym dzieckiem — stała jest kanonizowana,
+/// więc builder zwracałby ten sam obiekt i Flutter pominąłby przebudowę po
+/// zmianie języka (błąd #20).
+class GuestRootApp extends StatelessWidget {
+  const GuestRootApp({super.key, required this.home});
+
+  /// Budowniczy ekranu startowego — wołany pod `MaterialApp`, więc ma już
+  /// rozwiązany język i zastosowane `AppText`.
+  final Widget Function(BuildContext context) home;
+
+  @override
   Widget build(BuildContext context) {
     final base = ThemeData(
       colorScheme: ColorScheme.fromSeed(
@@ -44,12 +67,8 @@ class GuestWebApp extends StatelessWidget {
       ),
       useMaterial3: true,
     );
-    // Ten sam układ co w `MojeWeseleApp`: nasłuch języka w KORZENIU, żeby
-    // globus w nagłówku przebudował całą strefę gości od razu.
-    //
-    // ⚠️ NIE dodawać `const` przed GuestWebHome — stała jest kanonizowana,
-    // więc builder zwracałby ten sam obiekt i Flutter pominąłby przebudowę
-    // (błąd #20).
+    // Nasłuch języka w KORZENIU, żeby globus w nagłówku przebudował całą
+    // strefę gości od razu — ten sam układ co w `MojeWeseleApp`.
     return ValueListenableBuilder<Locale?>(
       valueListenable: LocaleController.locale,
       builder: (context, locale, _) {
@@ -61,15 +80,15 @@ class GuestWebApp extends StatelessWidget {
           // podążać za językiem, a `title` jest stałe.
           onGenerateTitle: (context) => AppLocalizations.of(context).gw_appTitle,
           debugShowCheckedModeBanner: false,
-          theme:
-              base.copyWith(textTheme: GoogleFonts.interTextTheme(base.textTheme)),
+          theme: base.copyWith(
+              textTheme: GoogleFonts.interTextTheme(base.textTheme)),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           locale: locale,
           localeResolutionCallback: LocaleController.resolve,
           home: Builder(builder: (context) {
             AppText.apply(AppLocalizations.of(context));
-            return GuestWebHome(token: token, showHelp: true);
+            return home(context);
           }),
         );
       },
@@ -78,9 +97,20 @@ class GuestWebApp extends StatelessWidget {
 }
 
 class GuestWebHome extends StatefulWidget {
-  const GuestWebHome({super.key, required this.token, this.showHelp = false});
+  const GuestWebHome({
+    super.key,
+    required this.token,
+    this.showHelp = false,
+    this.onForgetIdentity,
+  });
 
   final String token;
+
+  /// Kasuje zapamiętaną tożsamość z kodu paczki („to nie ja").
+  ///
+  /// `null` przy wejściu wspólnym linkiem — nie ma wtedy czego zapominać,
+  /// więc pozycja w menu się nie pokazuje.
+  final VoidCallback? onForgetIdentity;
 
   /// Czy pokazać własny przycisk „Pomoc".
   ///
@@ -220,6 +250,13 @@ class _GuestWebHomeState extends State<GuestWebHome> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            if (widget.onForgetIdentity != null)
+              TextButton.icon(
+                onPressed: widget.onForgetIdentity,
+                icon: const Icon(Icons.switch_account_outlined, size: 18),
+                label: Text(AppText.t.id_notMeMenu),
+                style: TextButton.styleFrom(foregroundColor: AppColors.accent),
+              ),
             if (widget.showHelp) ...[
               const GuestLanguageButton(),
               TextButton.icon(
@@ -792,7 +829,7 @@ class _MessageWallPage extends StatefulWidget {
 }
 
 class _MessageWallPageState extends State<_MessageWallPage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _msgCtrl = TextEditingController();
   bool _sending = false;
 
@@ -946,7 +983,7 @@ class _GuestMapPage extends StatefulWidget {
 }
 
 class _GuestMapPageState extends State<_GuestMapPage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _cityCtrl = TextEditingController();
   final _greetCtrl = TextEditingController();
   bool _sending = false;
@@ -1095,7 +1132,7 @@ class _TimeCapsulePage extends StatefulWidget {
 }
 
 class _TimeCapsulePageState extends State<_TimeCapsulePage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _msgCtrl = TextEditingController();
   bool _sending = false;
   bool _sent = false;
@@ -1196,7 +1233,7 @@ class _RsvpPage extends StatefulWidget {
 }
 
 class _RsvpPageState extends State<_RsvpPage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _dietCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   bool _attending = true;

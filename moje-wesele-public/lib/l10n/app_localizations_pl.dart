@@ -8108,4 +8108,82 @@ class AppLocalizationsPl extends AppLocalizations {
   String inv_error(String error) {
     return 'Nie udało się: $error';
   }
+
+  @override
+  String get id_title => 'Kim jesteś?';
+
+  @override
+  String get id_lead =>
+      'Rozpoznaliśmy Twoje zaproszenie. Wybierz siebie z listy — dzięki temu Para Młoda będzie wiedziała, od kogo są Twoje wpisy.';
+
+  @override
+  String get id_leadSingle =>
+      'Rozpoznaliśmy Twoje zaproszenie. Potwierdź, że to Ty.';
+
+  @override
+  String get id_companion => 'Jestem osobą towarzyszącą';
+
+  @override
+  String get id_companionHint =>
+      'Zaproszenie obejmuje osobę, której imienia jeszcze nie ma';
+
+  @override
+  String get id_notMine => 'To nie moje zaproszenie';
+
+  @override
+  String get id_notMineHint =>
+      'Wejdź jako gość bez przypisania — Para Młoda to uzupełni';
+
+  @override
+  String get id_yourName => 'Twoje imię';
+
+  @override
+  String get id_yourNameHint => 'Jak mamy Cię podpisywać?';
+
+  @override
+  String get id_lastNameOptional => 'Nazwisko lub pseudonim (opcjonalnie)';
+
+  @override
+  String get id_needName => 'Podaj imię, żebyśmy wiedzieli, kto to.';
+
+  @override
+  String get id_continue => 'Dalej';
+
+  @override
+  String get id_enter => 'Wejdź do strefy gości';
+
+  @override
+  String get id_privacy =>
+      'Twoje imię widzi Para Młoda. Inni goście zobaczą tylko to, czym sam się podpiszesz przy wpisach.';
+
+  @override
+  String get id_notMeMenu => 'To nie ja — zmień osobę';
+
+  @override
+  String get id_switched => 'Wybierz siebie jeszcze raz';
+
+  @override
+  String get id_invalidTitle => 'Nieprawidłowe zaproszenie';
+
+  @override
+  String get id_invalidBody =>
+      'Ten kod nie należy do żadnego wesela. Sprawdź, czy link jest kompletny, albo poproś Parę Młodą o nowy.';
+
+  @override
+  String get id_revokedTitle => 'To zaproszenie jest już nieaktualne';
+
+  @override
+  String get id_revokedBody =>
+      'Para Młoda unieważniła ten kod. Poproś ją o nowe zaproszenie — albo skorzystaj ze wspólnego linku do strony gości, jeśli go masz.';
+
+  @override
+  String get id_notReadyTitle => 'Strona gości nie jest jeszcze gotowa';
+
+  @override
+  String get id_notReadyBody =>
+      'Zaproszenie jest prawidłowe, ale Para Młoda nie przygotowała jeszcze strony dla gości. Zajrzyj później.';
+
+  @override
+  String get id_claimFailed =>
+      'Nie udało się zapisać wyboru — wchodzisz dalej, ale Para Młoda może nie powiązać Twoich wpisów z zaproszeniem.';
 }

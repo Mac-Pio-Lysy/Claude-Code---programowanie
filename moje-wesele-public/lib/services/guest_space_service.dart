@@ -15,8 +15,11 @@ class GuestSpaceService {
   final String token;
   final FirebaseFirestore _db;
 
+  /// Nazwa kolekcji publicznych stref gości.
+  static const String collectionName = 'guestSpaces';
+
   DocumentReference<Map<String, dynamic>> get _space =>
-      _db.collection('guestSpaces').doc(token);
+      _db.collection(collectionName).doc(token);
 
   /// Strumień mirrora (dane dla gości). `null`, gdy token nieprawidłowy.
   Stream<Map<String, dynamic>?> watchSpace() =>

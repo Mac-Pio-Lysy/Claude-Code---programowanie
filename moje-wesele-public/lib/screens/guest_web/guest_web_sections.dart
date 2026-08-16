@@ -57,7 +57,7 @@ class _GalleryPage extends StatefulWidget {
 }
 
 class _GalleryPageState extends State<_GalleryPage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _captionCtrl = TextEditingController();
   final _picker = ImagePicker();
   final _cloudinary = CloudinaryService();
@@ -302,7 +302,7 @@ class _MusicPage extends StatefulWidget {
 }
 
 class _MusicPageState extends State<_MusicPage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _searchCtrl = TextEditingController();
   final _titleCtrl = TextEditingController();
   final _artistCtrl = TextEditingController();
@@ -538,7 +538,7 @@ class _ChoiceGamePage extends StatefulWidget {
 }
 
 class _ChoiceGamePageState extends State<_ChoiceGamePage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final Map<String, int> _picked = {};
   bool _sending = false;
   bool _done = false;
@@ -785,7 +785,7 @@ class _TrueFalseGamePage extends StatefulWidget {
 }
 
 class _TrueFalseGamePageState extends State<_TrueFalseGamePage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final Map<String, bool> _picked = {};
   bool _sending = false;
   bool _done = false;
@@ -1053,7 +1053,7 @@ class _PhotoChallengePage extends StatefulWidget {
 }
 
 class _PhotoChallengePageState extends State<_PhotoChallengePage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _picker = ImagePicker();
   final _cloudinary = CloudinaryService();
   int? _busyTask;
@@ -1247,7 +1247,7 @@ class _BingoPage extends StatefulWidget {
 }
 
 class _BingoPageState extends State<_BingoPage> {
-  final _nameCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final Set<int> _marked = {};
   late final List<String> _board;
   late final int _cols;

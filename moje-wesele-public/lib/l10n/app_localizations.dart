@@ -14136,6 +14136,144 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się: {error}'**
   String inv_error(String error);
+
+  /// No description provided for @id_title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kim jesteś?'**
+  String get id_title;
+
+  /// No description provided for @id_lead.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozpoznaliśmy Twoje zaproszenie. Wybierz siebie z listy — dzięki temu Para Młoda będzie wiedziała, od kogo są Twoje wpisy.'**
+  String get id_lead;
+
+  /// No description provided for @id_leadSingle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozpoznaliśmy Twoje zaproszenie. Potwierdź, że to Ty.'**
+  String get id_leadSingle;
+
+  /// No description provided for @id_companion.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jestem osobą towarzyszącą'**
+  String get id_companion;
+
+  /// No description provided for @id_companionHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszenie obejmuje osobę, której imienia jeszcze nie ma'**
+  String get id_companionHint;
+
+  /// No description provided for @id_notMine.
+  ///
+  /// In pl, this message translates to:
+  /// **'To nie moje zaproszenie'**
+  String get id_notMine;
+
+  /// Wejście bez przypisania — trafia do sekcji „do przypisania" (etap 5).
+  ///
+  /// In pl, this message translates to:
+  /// **'Wejdź jako gość bez przypisania — Para Młoda to uzupełni'**
+  String get id_notMineHint;
+
+  /// No description provided for @id_yourName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twoje imię'**
+  String get id_yourName;
+
+  /// No description provided for @id_yourNameHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jak mamy Cię podpisywać?'**
+  String get id_yourNameHint;
+
+  /// No description provided for @id_lastNameOptional.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwisko lub pseudonim (opcjonalnie)'**
+  String get id_lastNameOptional;
+
+  /// No description provided for @id_needName.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj imię, żebyśmy wiedzieli, kto to.'**
+  String get id_needName;
+
+  /// No description provided for @id_continue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dalej'**
+  String get id_continue;
+
+  /// No description provided for @id_enter.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wejdź do strefy gości'**
+  String get id_enter;
+
+  /// Uczciwe postawienie sprawy dla gościa: organizator zna tożsamość, inni goście widzą tylko podpis przy wpisie.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twoje imię widzi Para Młoda. Inni goście zobaczą tylko to, czym sam się podpiszesz przy wpisach.'**
+  String get id_privacy;
+
+  /// No description provided for @id_notMeMenu.
+  ///
+  /// In pl, this message translates to:
+  /// **'To nie ja — zmień osobę'**
+  String get id_notMeMenu;
+
+  /// No description provided for @id_switched.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz siebie jeszcze raz'**
+  String get id_switched;
+
+  /// No description provided for @id_invalidTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieprawidłowe zaproszenie'**
+  String get id_invalidTitle;
+
+  /// No description provided for @id_invalidBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ten kod nie należy do żadnego wesela. Sprawdź, czy link jest kompletny, albo poproś Parę Młodą o nowy.'**
+  String get id_invalidBody;
+
+  /// No description provided for @id_revokedTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'To zaproszenie jest już nieaktualne'**
+  String get id_revokedTitle;
+
+  /// No description provided for @id_revokedBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Para Młoda unieważniła ten kod. Poproś ją o nowe zaproszenie — albo skorzystaj ze wspólnego linku do strony gości, jeśli go masz.'**
+  String get id_revokedBody;
+
+  /// No description provided for @id_notReadyTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strona gości nie jest jeszcze gotowa'**
+  String get id_notReadyTitle;
+
+  /// No description provided for @id_notReadyBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszenie jest prawidłowe, ale Para Młoda nie przygotowała jeszcze strony dla gości. Zajrzyj później.'**
+  String get id_notReadyBody;
+
+  /// No description provided for @id_claimFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się zapisać wyboru — wchodzisz dalej, ale Para Młoda może nie powiązać Twoich wpisów z zaproszeniem.'**
+  String get id_claimFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -5050,5 +5050,34 @@
         "type": "String"
       }
     }
-  }
+  },
+  "id_title": "Kim jesteś?",
+  "id_lead": "Rozpoznaliśmy Twoje zaproszenie. Wybierz siebie z listy — dzięki temu Para Młoda będzie wiedziała, od kogo są Twoje wpisy.",
+  "id_leadSingle": "Rozpoznaliśmy Twoje zaproszenie. Potwierdź, że to Ty.",
+  "id_companion": "Jestem osobą towarzyszącą",
+  "id_companionHint": "Zaproszenie obejmuje osobę, której imienia jeszcze nie ma",
+  "id_notMine": "To nie moje zaproszenie",
+  "id_notMineHint": "Wejdź jako gość bez przypisania — Para Młoda to uzupełni",
+  "@id_notMineHint": {
+    "description": "Wejście bez przypisania — trafia do sekcji „do przypisania\" (etap 5)."
+  },
+  "id_yourName": "Twoje imię",
+  "id_yourNameHint": "Jak mamy Cię podpisywać?",
+  "id_lastNameOptional": "Nazwisko lub pseudonim (opcjonalnie)",
+  "id_needName": "Podaj imię, żebyśmy wiedzieli, kto to.",
+  "id_continue": "Dalej",
+  "id_enter": "Wejdź do strefy gości",
+  "id_privacy": "Twoje imię widzi Para Młoda. Inni goście zobaczą tylko to, czym sam się podpiszesz przy wpisach.",
+  "@id_privacy": {
+    "description": "Uczciwe postawienie sprawy dla gościa: organizator zna tożsamość, inni goście widzą tylko podpis przy wpisie."
+  },
+  "id_notMeMenu": "To nie ja — zmień osobę",
+  "id_switched": "Wybierz siebie jeszcze raz",
+  "id_invalidTitle": "Nieprawidłowe zaproszenie",
+  "id_invalidBody": "Ten kod nie należy do żadnego wesela. Sprawdź, czy link jest kompletny, albo poproś Parę Młodą o nowy.",
+  "id_revokedTitle": "To zaproszenie jest już nieaktualne",
+  "id_revokedBody": "Para Młoda unieważniła ten kod. Poproś ją o nowe zaproszenie — albo skorzystaj ze wspólnego linku do strony gości, jeśli go masz.",
+  "id_notReadyTitle": "Strona gości nie jest jeszcze gotowa",
+  "id_notReadyBody": "Zaproszenie jest prawidłowe, ale Para Młoda nie przygotowała jeszcze strony dla gości. Zajrzyj później.",
+  "id_claimFailed": "Nie udało się zapisać wyboru — wchodzisz dalej, ale Para Młoda może nie powiązać Twoich wpisów z zaproszeniem."
 }

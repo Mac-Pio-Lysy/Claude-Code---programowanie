@@ -8083,4 +8083,82 @@ class AppLocalizationsEn extends AppLocalizations {
   String inv_error(String error) {
     return 'Failed: $error';
   }
+
+  @override
+  String get id_title => 'Who are you?';
+
+  @override
+  String get id_lead =>
+      'We recognised your invitation. Pick yourself from the list — that way the couple will know who your entries came from.';
+
+  @override
+  String get id_leadSingle =>
+      'We recognised your invitation. Just confirm it\'s you.';
+
+  @override
+  String get id_companion => 'I\'m a companion';
+
+  @override
+  String get id_companionHint =>
+      'The invitation includes someone whose name isn\'t filled in yet';
+
+  @override
+  String get id_notMine => 'This isn\'t my invitation';
+
+  @override
+  String get id_notMineHint =>
+      'Enter as an unassigned guest — the couple will sort it out';
+
+  @override
+  String get id_yourName => 'Your first name';
+
+  @override
+  String get id_yourNameHint => 'How should we sign your entries?';
+
+  @override
+  String get id_lastNameOptional => 'Surname or nickname (optional)';
+
+  @override
+  String get id_needName => 'Enter your name so we know who this is.';
+
+  @override
+  String get id_continue => 'Continue';
+
+  @override
+  String get id_enter => 'Enter the guest zone';
+
+  @override
+  String get id_privacy =>
+      'The couple see your name. Other guests only see what you sign your entries with yourself.';
+
+  @override
+  String get id_notMeMenu => 'Not me — change person';
+
+  @override
+  String get id_switched => 'Pick yourself again';
+
+  @override
+  String get id_invalidTitle => 'Invalid invitation';
+
+  @override
+  String get id_invalidBody =>
+      'This code doesn\'t belong to any wedding. Check that the link is complete, or ask the couple for a new one.';
+
+  @override
+  String get id_revokedTitle => 'This invitation is out of date';
+
+  @override
+  String get id_revokedBody =>
+      'The couple revoked this code. Ask them for a new invitation — or use the shared guest page link if you have it.';
+
+  @override
+  String get id_notReadyTitle => 'The guest page isn\'t ready yet';
+
+  @override
+  String get id_notReadyBody =>
+      'Your invitation is valid, but the couple haven\'t prepared the guest page yet. Check back later.';
+
+  @override
+  String get id_claimFailed =>
+      'Couldn\'t save your choice — you can carry on, but the couple may not link your entries to this invitation.';
 }

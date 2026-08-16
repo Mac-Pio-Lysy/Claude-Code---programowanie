@@ -12,6 +12,7 @@ import 'firebase_options.dart';
 import 'layout/responsive.dart';
 import 'utils/app_format.dart';
 import 'screens/guest_web/guest_web_app.dart';
+import 'screens/guest_web/invite_entry_app.dart';
 import 'widgets/auth_gate.dart';
 
 Future<void> main() async {
@@ -24,26 +25,34 @@ Future<void> main() async {
   // językiem innym niż systemowy rzuca wyjątkiem przy pierwszym użyciu.
   await initializeDateFormatting();
 
-  // TRYB GOŚCIA WEB: gdy w adresie jest token (?t=...), pokazujemy stronę gości
-  // BEZ logowania (dla danego wesela). W pozostałych przypadkach — normalna
-  // aplikacja organizatora (logowanie → panel).
-  final guestToken = _detectGuestToken();
-  if (guestToken != null) {
+  // TRYB GOŚCIA WEB — dwa wejścia do TEJ SAMEJ strefy:
+  //   ?i=KOD    kod paczki: najpierw wybór tożsamości, potem strefa,
+  //   ?t=TOKEN  wspólny link: prosto do strefy, jak dotąd.
+  //
+  // Kolejność ma znaczenie: kod paczki sprawdzamy PIERWSZY, bo niesie więcej
+  // (rozpoznaje gościa), a token i tak wyciągniemy z jego dokumentu. Wspólny
+  // link działa RÓWNOLEGLE i bez żadnych zmian — także w trybie
+  // indywidualnym, dla gości bez zaproszenia z kodem.
+  final inviteCode = _detectParam('i');
+  final guestToken = _detectParam('t');
+  if (inviteCode != null || guestToken != null) {
     // Gość nie ma konta, więc jego wybór języka wisi pod wspólnym kluczem
     // `locale_guest`. Wczytujemy PRZED `runApp`, żeby strona nie mrugnęła
     // najpierw domyślnym językiem.
     await LocaleController.loadGuest();
-    runApp(GuestWebApp(token: guestToken));
+    runApp(inviteCode != null
+        ? InviteEntryApp(code: inviteCode)
+        : GuestWebApp(token: guestToken!));
     return;
   }
   runApp(const MojeWeseleApp());
 }
 
-/// Wykrywa token gościa z URL (tylko web). Obsługuje `?t=TOKEN`.
-String? _detectGuestToken() {
+/// Odczytuje parametr z adresu (tylko web). Pusty → `null`.
+String? _detectParam(String name) {
   if (!kIsWeb) return null;
-  final t = Uri.base.queryParameters['t']?.trim();
-  return (t != null && t.isNotEmpty) ? t : null;
+  final v = Uri.base.queryParameters[name]?.trim();
+  return (v != null && v.isNotEmpty) ? v : null;
 }
 
 class MojeWeseleApp extends StatelessWidget {
