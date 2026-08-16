@@ -7895,4 +7895,217 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get invite_codeGroupHint =>
       'Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać.';
+
+  @override
+  String get settings_invitesCard => 'Zaproszenia dla gości';
+
+  @override
+  String get settings_invitesHint =>
+      'Wybierz, czy goście dostają jeden wspólny link, czy każde zaproszenie ma własny kod QR. Kod per zaproszenie pozwala rozpoznać, kto co dodał.';
+
+  @override
+  String get settings_invitesOpen => 'Ustaw zaproszenia';
+
+  @override
+  String get inv_title => 'Zaproszenia dla gości';
+
+  @override
+  String get inv_modeHeader => 'TRYB ZAPRASZANIA';
+
+  @override
+  String get inv_modeShared => 'Wspólny link dla wszystkich';
+
+  @override
+  String get inv_modeSharedHint =>
+      'Jeden link i kod QR dla całego wesela. Goście są anonimowi — widzisz, co dodali, ale nie kto to był.';
+
+  @override
+  String get inv_modeIndividual => 'Kod dla każdego zaproszenia';
+
+  @override
+  String get inv_modeIndividualHint =>
+      'Dodatkowo każda paczka zaproszeniowa dostaje własny kod QR. Gość wybiera z listy, kim jest, więc widzisz, kto co dodał.';
+
+  @override
+  String get inv_sharedStaysTitle => 'Wspólny link działa dalej';
+
+  @override
+  String get inv_sharedStaysBody =>
+      'Kod indywidualny NIE zastępuje wspólnego — dokłada się do niego. Wspólny link zostaje na stołach i dla gości, którzy zgubili zaproszenie.';
+
+  @override
+  String get inv_notProofTitle => 'To rozpoznanie, nie weryfikacja tożsamości';
+
+  @override
+  String get inv_notProofBody =>
+      'Kod jest wydrukowany na zaproszeniu, więc każdy, kto go zobaczy, może wybrać dowolną osobę z tej paczki. Traktuj wynik jako „prawdopodobnie Anna\", a nie dowód. Do niczego wiążącego się nie nadaje.';
+
+  @override
+  String get inv_saved => 'Zapisano tryb zaproszeń';
+
+  @override
+  String get inv_packagesHeader => 'PACZKI ZAPROSZENIOWE';
+
+  @override
+  String get inv_statPackages => 'Zaproszeń';
+
+  @override
+  String get inv_statPeople => 'Osób';
+
+  @override
+  String get inv_statMulti => 'Wieloosobowych';
+
+  @override
+  String get inv_statPending => 'Bez imienia';
+
+  @override
+  String get inv_previewHint =>
+      'Tak podzielą się zaproszenia. Paczkę tworzy gość wraz ze swoimi osobami towarzyszącymi — zmienisz ją, zmieniając powiązania na liście gości.';
+
+  @override
+  String get inv_empty =>
+      'Brak gości. Dodaj pierwszych gości, a zaproszenia ułożą się same.';
+
+  @override
+  String inv_packageSize(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count osób',
+      few: '$count osoby',
+      one: '1 osoba',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inv_pendingBadge => 'imię do uzupełnienia';
+
+  @override
+  String get inv_mainBadge => 'adresat';
+
+  @override
+  String get inv_noName => '(imię nieuzupełnione)';
+
+  @override
+  String get inv_codesLater =>
+      'Wydruk kodów dołożymy w kolejnym kroku — na razie sprawdź, czy podział na zaproszenia i kody się zgadzają.';
+
+  @override
+  String get inv_codesHeader => 'KODY ZAPROSZEŃ';
+
+  @override
+  String get inv_generate => 'Wygeneruj brakujące kody';
+
+  @override
+  String inv_generating(int done, int total) {
+    return 'Generuję kody… $done z $total';
+  }
+
+  @override
+  String inv_generated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Wygenerowano $count kodów',
+      few: 'Wygenerowano $count kody',
+      one: 'Wygenerowano 1 kod',
+      zero: 'Wszystkie paczki mają już kod',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inv_noCode => 'brak kodu';
+
+  @override
+  String get inv_codeRevoked => 'unieważniony';
+
+  @override
+  String get inv_codeStale => 'skład się zmienił';
+
+  @override
+  String get inv_copyCode => 'Kopiuj kod';
+
+  @override
+  String get inv_regenerate => 'Nowy kod';
+
+  @override
+  String get inv_revoke => 'Unieważnij';
+
+  @override
+  String get inv_restore => 'Przywróć';
+
+  @override
+  String inv_codeCopied(String code) {
+    return 'Skopiowano kod: $code';
+  }
+
+  @override
+  String get inv_regenerateTitle => 'Wystawić nowy kod?';
+
+  @override
+  String get inv_regenerateBody =>
+      'Dotychczasowy kod tej paczki przestanie działać. Jeśli zaproszenie jest już wydrukowane, kod QR na nim stanie się bezużyteczny — trzeba będzie przekazać nowy.';
+
+  @override
+  String get inv_regenerated => 'Wystawiono nowy kod';
+
+  @override
+  String get inv_revokeTitle => 'Unieważnić kod?';
+
+  @override
+  String get inv_revokeBody =>
+      'Gość skanujący to zaproszenie zobaczy komunikat, że kod jest nieaktualny. Możesz go później przywrócić.';
+
+  @override
+  String get inv_revoked => 'Kod unieważniony';
+
+  @override
+  String get inv_restored => 'Kod przywrócony';
+
+  @override
+  String inv_staleTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kody nieaktualne dla $count paczek',
+      few: 'Kody nieaktualne dla $count paczek',
+      one: 'Kod nieaktualny dla 1 paczki',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inv_staleBody =>
+      'Skład tych zaproszeń zmienił się po wygenerowaniu kodu. Odświeżamy go automatycznie, więc gość zobaczy aktualne imiona — ale jeśli zaproszenie jest już wydrukowane, skład na papierze się nie zgadza.';
+
+  @override
+  String inv_synced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Odświeżono skład $count paczek',
+      few: 'Odświeżono skład $count paczek',
+      one: 'Odświeżono skład 1 paczki',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inv_syncFailed(int count) {
+    return 'Nie udało się odświeżyć $count paczek. Sprawdź połączenie i uprawnienia.';
+  }
+
+  @override
+  String get inv_rulesNeededTitle => 'Kody wymagają wdrożenia reguł';
+
+  @override
+  String get inv_rulesNeededBody =>
+      'Zapis kodów zaproszeń działa dopiero po wdrożeniu reguły „inviteCodes\". Do tego czasu generowanie zakończy się błędem uprawnień.';
+
+  @override
+  String inv_error(String error) {
+    return 'Nie udało się: $error';
+  }
 }

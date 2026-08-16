@@ -25,6 +25,7 @@ import '../../utils/app_format.dart';
 import '../../utils/format.dart';
 import 'guest_interactions_screen.dart';
 import 'guest_visibility_screen.dart';
+import 'invitations_screen.dart';
 import 'notification_settings_screen.dart';
 import 'people_access_screen.dart';
 import 'security_settings_screen.dart';
@@ -289,6 +290,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _helpCard(),
               const SizedBox(height: 12),
               _guestVisibilityCard(),
+              const SizedBox(height: 12),
+              _invitationsCard(),
               const SizedBox(height: 12),
               _joinCodeCard(),
               const SizedBox(height: 12),
@@ -1354,6 +1357,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  /// Tryb zapraszania gości (wspólny link / kod per zaproszenie).
+  ///
+  /// Sąsiaduje z „Zaproszenie dla gości" i „Link i QR dla gości", bo dotyczy
+  /// tego samego: jak gość trafia do swojej strefy.
+  Widget _invitationsCard() {
+    return _card(
+      AppText.t.settings_invitesCard,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppText.t.settings_invitesHint,
+            style: GoogleFonts.inter(
+                fontSize: 13, height: 1.45, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => InvitationsScreen(
+                    raw: widget.data?.raw ?? const {},
+                    config: widget.config,
+                  ),
+                ),
+              ),
+              icon: const Icon(Icons.qr_code_2, size: 18),
+              label: Text(AppText.t.settings_invitesOpen),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,0 +1,738 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../app_colors.dart';
+import '../../l10n/app_text.dart';
+import '../../models/guest.dart';
+import '../../models/invite_package.dart';
+import '../../models/join_code.dart';
+import '../../services/config_service.dart';
+import '../../services/invite_code_service.dart';
+
+/// Ekran „Zaproszenia dla gości" — wybór trybu i podgląd paczek.
+///
+/// ETAPY 1–2: podział na paczki, przełącznik trybu i kody per paczka.
+/// Wydruk i ścieżka gościa dochodzą w kolejnych etapach — ekran mówi o tym
+/// wprost, żeby nikt nie szukał przycisku, którego jeszcze nie ma.
+///
+/// Paczki są WYLICZANE z listy gości przy każdym otwarciu (patrz
+/// [InvitePackage]), więc ten ekran nie ma własnych danych do zapisania poza
+/// jednym polem `appConfig.inviteMode`.
+class InvitationsScreen extends StatefulWidget {
+  const InvitationsScreen({
+    super.key,
+    required this.raw,
+    required this.config,
+    this.codeService,
+  });
+
+  /// Surowy dokument wesela — źródło listy gości i bieżącego trybu.
+  final Map<String, dynamic> raw;
+
+  final ConfigService config;
+
+  /// Wstrzykiwalny serwis kodów (testy). Domyślnie tworzony wewnętrznie.
+  final InviteCodeService? codeService;
+
+  @override
+  State<InvitationsScreen> createState() => _InvitationsScreenState();
+}
+
+class _InvitationsScreenState extends State<InvitationsScreen> {
+  late String _mode = InviteMode.fromRaw(widget.raw);
+  bool _saving = false;
+
+  late final InviteCodeService _codes = widget.codeService ?? InviteCodeService();
+
+  /// Prywatny indeks kodów. Trzymany w stanie, bo po każdej operacji
+  /// odświeżamy go lokalnie — ekran dostaje `raw` jako zdjęcie z chwili
+  /// wejścia i nie odświeża się sam.
+  late Map<int, PackageCode> _index = InviteCodeService.indexOf(widget.raw);
+
+  /// Trwa generowanie / synchronizacja (blokuje przyciski).
+  bool _busy = false;
+  String? _progress;
+
+  List<InvitePackage> get _packages =>
+      InvitePackage.buildAll(widget.raw['guests'] is List
+          ? widget.raw['guests'] as List
+          : const []);
+
+  @override
+  void initState() {
+    super.initState();
+    // Odświeżenie składu paczek, które rozjechały się z listą gości.
+    // Zapisuje TYLKO zmienione, więc wejście bez zmian nie kosztuje zapisu.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncRosters());
+  }
+
+  Future<void> _syncRosters() async {
+    if (_mode != InviteMode.individual) return;
+    final stale = InviteCodeService.staleOf(_packages, _index);
+    if (stale.isEmpty) return;
+    try {
+      final r = await _codes.syncRosters(_packages, _rawWithIndex());
+      if (!mounted || !r.anythingDone) return;
+      setState(() {
+        for (final p in stale) {
+          final c = _index[p.id];
+          if (c != null) {
+            _index[p.id] = PackageCode(
+              packageId: p.id,
+              code: c.code,
+              revoked: c.revoked,
+              roster: p.rosterFingerprint,
+            );
+          }
+        }
+      });
+      if (r.updated > 0) _toast(AppText.t.inv_synced(r.updated));
+      if (r.failed > 0) _toast(AppText.t.inv_syncFailed(r.failed));
+    } catch (_) {
+      // Cisza: brak reguł albo sieci nie może blokować przeglądania paczek.
+    }
+  }
+
+  /// `raw` z aktualnym indeksem — serwis czyta z niego stan kodów.
+  Map<String, dynamic> _rawWithIndex() => {
+        ...widget.raw,
+        InviteCodeService.indexField: {
+          for (final e in _index.entries) '${e.key}': e.value.toMap(),
+        },
+      };
+
+  Future<void> _generateMissing() async {
+    setState(() => _busy = true);
+    try {
+      final count = await _codes.generateMissing(
+        _packages,
+        _rawWithIndex(),
+        onProgress: (done, total) => setState(
+            () => _progress = AppText.t.inv_generating(done, total)),
+      );
+      await _reloadIndex();
+      if (mounted) _toast(AppText.t.inv_generated(count));
+    } catch (e) {
+      if (mounted) _toast(AppText.t.inv_error('$e'));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _progress = null;
+        });
+      }
+    }
+  }
+
+  Future<void> _regenerate(InvitePackage p) async {
+    final ok = await _confirm(
+      AppText.t.inv_regenerateTitle,
+      AppText.t.inv_regenerateBody,
+    );
+    if (ok != true) return;
+    setState(() => _busy = true);
+    try {
+      await _codes.regenerate(p, _rawWithIndex());
+      await _reloadIndex();
+      if (mounted) _toast(AppText.t.inv_regenerated);
+    } catch (e) {
+      if (mounted) _toast(AppText.t.inv_error('$e'));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _toggleRevoked(InvitePackage p, bool revoked) async {
+    if (revoked) {
+      final ok = await _confirm(
+        AppText.t.inv_revokeTitle,
+        AppText.t.inv_revokeBody,
+      );
+      if (ok != true) return;
+    }
+    setState(() => _busy = true);
+    try {
+      await _codes.setRevoked(p, _rawWithIndex(), revoked: revoked);
+      await _reloadIndex();
+      if (mounted) {
+        _toast(revoked ? AppText.t.inv_revoked : AppText.t.inv_restored);
+      }
+    } catch (e) {
+      if (mounted) _toast(AppText.t.inv_error('$e'));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Ponowny odczyt indeksu z dokumentu wesela — po zapisie serwisu.
+  Future<void> _reloadIndex() async {
+    final fresh = await _codes.readIndex();
+    if (mounted) setState(() => _index = fresh);
+  }
+
+  Future<bool?> _confirm(String title, String body) => showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: Text(title,
+              style: GoogleFonts.playfairDisplay(
+                  fontSize: 18, fontWeight: FontWeight.w700)),
+          content: Text(body,
+              style: GoogleFonts.inter(fontSize: 13.5, height: 1.45)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(AppText.t.common_cancel),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(AppText.t.common_confirm),
+            ),
+          ],
+        ),
+      );
+
+  Future<void> _setMode(String mode) async {
+    if (mode == _mode || _saving) return;
+    setState(() {
+      _mode = mode;
+      _saving = true;
+    });
+    try {
+      await widget.config.saveInviteMode(mode);
+      if (mounted) _toast(AppText.t.inv_saved);
+    } catch (e) {
+      if (mounted) _toast(AppText.t.common_saveErrorToast('$e'));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  void _toast(String msg) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(msg)));
+
+  @override
+  Widget build(BuildContext context) {
+    final packages = _packages;
+    final stats = InvitePackage.statsOf(packages);
+    final individual = _mode == InviteMode.individual;
+
+    return Scaffold(
+      backgroundColor: AppColors.bgGradient.last,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0.5,
+        title: Text(
+          AppText.t.inv_title,
+          style: GoogleFonts.playfairDisplay(
+              fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.text),
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 0.45, 1.0],
+            colors: AppColors.bgGradient,
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+            children: [
+              _sectionLabel(AppText.t.inv_modeHeader),
+              const SizedBox(height: 8),
+              _modeTile(
+                mode: InviteMode.shared,
+                icon: Icons.public,
+                title: AppText.t.inv_modeShared,
+                hint: AppText.t.inv_modeSharedHint,
+              ),
+              const SizedBox(height: 8),
+              _modeTile(
+                mode: InviteMode.individual,
+                icon: Icons.qr_code_2,
+                title: AppText.t.inv_modeIndividual,
+                hint: AppText.t.inv_modeIndividualHint,
+              ),
+              // Oba ostrzeżenia pokazujemy TYLKO w trybie indywidualnym —
+              // w trybie wspólnym nie dotyczą niczego i byłyby szumem.
+              if (individual) ...[
+                const SizedBox(height: 12),
+                _note(
+                  icon: Icons.link,
+                  title: AppText.t.inv_sharedStaysTitle,
+                  body: AppText.t.inv_sharedStaysBody,
+                  color: const Color(0xFF1040B0),
+                  background: const Color(0xFFF1F5FF),
+                  border: const Color(0xFFD6E0F5),
+                ),
+                const SizedBox(height: 8),
+                // ⚠️ Świadomie mocny ton: kod jedzie wydrukowany na
+                // zaproszeniu, więc rozpoznanie gościa jest wygodą, nie
+                // dowodem tożsamości. Organizator musi to wiedzieć, zanim
+                // oprze na tym jakąkolwiek decyzję.
+                _note(
+                  icon: Icons.info_outline,
+                  title: AppText.t.inv_notProofTitle,
+                  body: AppText.t.inv_notProofBody,
+                  color: const Color(0xFFB45309),
+                  background: const Color(0xFFFFF7ED),
+                  border: const Color(0xFFFCD9A6),
+                ),
+              ],
+              if (individual) ...[
+                const SizedBox(height: 20),
+                _sectionLabel(AppText.t.inv_codesHeader),
+                const SizedBox(height: 8),
+                _codesCard(packages),
+              ],
+              const SizedBox(height: 20),
+              _sectionLabel(AppText.t.inv_packagesHeader),
+              const SizedBox(height: 8),
+              _statsCard(stats),
+              const SizedBox(height: 10),
+              Text(
+                AppText.t.inv_previewHint,
+                style: GoogleFonts.inter(
+                    fontSize: 12, height: 1.45, color: AppColors.textLight),
+              ),
+              const SizedBox(height: 12),
+              if (packages.isEmpty)
+                _emptyCard()
+              else
+                for (final p in packages) ...[
+                  _packageCard(p, showCode: individual),
+                  const SizedBox(height: 8),
+                ],
+              const SizedBox(height: 12),
+              Text(
+                AppText.t.inv_codesLater,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textLight),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) => Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(
+          text,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.1,
+            color: AppColors.textLight,
+          ),
+        ),
+      );
+
+  Widget _modeTile({
+    required String mode,
+    required IconData icon,
+    required String title,
+    required String hint,
+  }) {
+    final selected = _mode == mode;
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: _saving ? null : () => _setMode(mode),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? AppColors.accent : const Color(0xFFE2EAF7),
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                size: 20,
+                color: selected ? AppColors.accent : AppColors.textLight,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(icon, size: 18, color: AppColors.accent),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hint,
+                      style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          height: 1.4,
+                          color: AppColors.textLight),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _note({
+    required IconData icon,
+    required String title,
+    required String body,
+    required Color color,
+    required Color background,
+    required Color border,
+  }) =>
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.inter(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: color),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    body,
+                    style: GoogleFonts.inter(
+                        fontSize: 12, height: 1.45, color: color),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _statsCard(PackageStats s) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2EAF7)),
+        ),
+        child: Row(
+          children: [
+            _stat('${s.packages}', AppText.t.inv_statPackages),
+            _stat('${s.people}', AppText.t.inv_statPeople),
+            _stat('${s.multi}', AppText.t.inv_statMulti),
+            _stat('${s.pendingNames}', AppText.t.inv_statPending,
+                alert: s.pendingNames > 0),
+          ],
+        ),
+      );
+
+  Widget _stat(String value, String label, {bool alert = false}) => Expanded(
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: alert ? const Color(0xFFB45309) : AppColors.accent,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style:
+                  GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+          ],
+        ),
+      );
+
+  Widget _emptyCard() => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2EAF7)),
+        ),
+        child: Text(
+          AppText.t.inv_empty,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(
+              fontSize: 13, height: 1.45, color: AppColors.textLight),
+        ),
+      );
+
+  /// Panel operacji na kodach: generowanie brakujących, znacznik nieaktualnych
+  /// i przypomnienie o regule, bez której zapis się nie uda.
+  Widget _codesCard(List<InvitePackage> packages) {
+    final missing =
+        packages.where((p) => !_index.containsKey(p.id)).length;
+    final stale = InviteCodeService.staleOf(packages, _index);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _note(
+          icon: Icons.gpp_maybe_outlined,
+          title: AppText.t.inv_rulesNeededTitle,
+          body: AppText.t.inv_rulesNeededBody,
+          color: const Color(0xFF6B7A90),
+          background: const Color(0xFFF4F6FA),
+          border: const Color(0xFFDCE4F2),
+        ),
+        if (stale.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _note(
+            icon: Icons.sync_problem_outlined,
+            title: AppText.t.inv_staleTitle(stale.length),
+            body: AppText.t.inv_staleBody,
+            color: const Color(0xFFB45309),
+            background: const Color(0xFFFFF7ED),
+            border: const Color(0xFFFCD9A6),
+          ),
+        ],
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: (_busy || missing == 0 || packages.isEmpty)
+                ? null
+                : _generateMissing,
+            icon: _busy
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.qr_code_2, size: 18),
+            label: Text(_progress ?? AppText.t.inv_generate),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Wiersz z kodem paczki i akcjami.
+  Widget _codeRow(InvitePackage p) {
+    final c = _index[p.id];
+    final stale = c != null && c.roster != p.rosterFingerprint;
+
+    if (c == null) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          AppText.t.inv_noCode,
+          style: GoogleFonts.inter(
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
+              color: AppColors.textLight),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        const Divider(height: 1),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                JoinCode.format(c.code),
+                style: GoogleFonts.robotoMono(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                  color: c.revoked ? AppColors.textLight : AppColors.accent,
+                  decoration:
+                      c.revoked ? TextDecoration.lineThrough : null,
+                ),
+              ),
+            ),
+            if (c.revoked)
+              _badge(AppText.t.inv_codeRevoked, AppColors.textLight,
+                  const Color(0xFFF1F3F7))
+            else if (stale)
+              _badge(AppText.t.inv_codeStale, const Color(0xFFB45309),
+                  const Color(0xFFFFF7ED)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 4,
+          children: [
+            _codeAction(Icons.copy, AppText.t.inv_copyCode, () {
+              final pretty = JoinCode.format(c.code);
+              Clipboard.setData(ClipboardData(text: pretty));
+              _toast(AppText.t.inv_codeCopied(pretty));
+            }),
+            _codeAction(Icons.autorenew, AppText.t.inv_regenerate,
+                _busy ? null : () => _regenerate(p)),
+            if (c.revoked)
+              _codeAction(Icons.lock_open, AppText.t.inv_restore,
+                  _busy ? null : () => _toggleRevoked(p, false))
+            else
+              _codeAction(Icons.block, AppText.t.inv_revoke,
+                  _busy ? null : () => _toggleRevoked(p, true)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _codeAction(IconData icon, String label, VoidCallback? onTap) =>
+      TextButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon, size: 15),
+        label: Text(label, style: GoogleFonts.inter(fontSize: 12)),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.accent,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          minimumSize: const Size(0, 32),
+          visualDensity: VisualDensity.compact,
+        ),
+      );
+
+  Widget _packageCard(InvitePackage p, {bool showCode = false}) => Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2EAF7)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.accent.withValues(alpha: 0.10),
+                  ),
+                  child: Text(
+                    '${p.size}',
+                    style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.accent),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    AppText.t.inv_packageSize(p.size),
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: AppColors.textLight),
+                  ),
+                ),
+                if (p.hasPendingNames)
+                  _badge(AppText.t.inv_pendingBadge,
+                      const Color(0xFFB45309), const Color(0xFFFFF7ED)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            for (final g in p.everyone) _memberRow(g, isMain: g == p.main),
+            if (showCode) _codeRow(p),
+          ],
+        ),
+      );
+
+  Widget _memberRow(Guest g, {required bool isMain}) => Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          children: [
+            Icon(
+              isMain ? Icons.mail_outline : Icons.subdirectory_arrow_right,
+              size: 16,
+              color: isMain ? AppColors.accent : AppColors.textLight,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                g.namePending || g.fullName.isEmpty
+                    ? AppText.t.inv_noName
+                    : g.fullName,
+                style: GoogleFonts.inter(
+                  fontSize: 13.5,
+                  fontWeight: isMain ? FontWeight.w600 : FontWeight.w400,
+                  fontStyle: g.namePending ? FontStyle.italic : FontStyle.normal,
+                  color: g.namePending ? AppColors.textLight : AppColors.text,
+                ),
+              ),
+            ),
+            if (isMain)
+              _badge(AppText.t.inv_mainBadge, AppColors.accent,
+                  AppColors.accent.withValues(alpha: 0.10)),
+          ],
+        ),
+      );
+
+  Widget _badge(String text, Color color, Color background) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.inter(
+              fontSize: 10.5, fontWeight: FontWeight.w600, color: color),
+        ),
+      );
+}

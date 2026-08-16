@@ -4929,5 +4929,126 @@
       }
     }
   },
-  "invite_codeGroupHint": "Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać."
+  "invite_codeGroupHint": "Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać.",
+  "settings_invitesCard": "Zaproszenia dla gości",
+  "settings_invitesHint": "Wybierz, czy goście dostają jeden wspólny link, czy każde zaproszenie ma własny kod QR. Kod per zaproszenie pozwala rozpoznać, kto co dodał.",
+  "settings_invitesOpen": "Ustaw zaproszenia",
+  "inv_title": "Zaproszenia dla gości",
+  "inv_modeHeader": "TRYB ZAPRASZANIA",
+  "inv_modeShared": "Wspólny link dla wszystkich",
+  "inv_modeSharedHint": "Jeden link i kod QR dla całego wesela. Goście są anonimowi — widzisz, co dodali, ale nie kto to był.",
+  "inv_modeIndividual": "Kod dla każdego zaproszenia",
+  "inv_modeIndividualHint": "Dodatkowo każda paczka zaproszeniowa dostaje własny kod QR. Gość wybiera z listy, kim jest, więc widzisz, kto co dodał.",
+  "inv_sharedStaysTitle": "Wspólny link działa dalej",
+  "inv_sharedStaysBody": "Kod indywidualny NIE zastępuje wspólnego — dokłada się do niego. Wspólny link zostaje na stołach i dla gości, którzy zgubili zaproszenie.",
+  "@inv_sharedStaysBody": {
+    "description": "Kluczowe: tryb indywidualny DOKŁADA kody, nie zastępuje wspólnego linku."
+  },
+  "inv_notProofTitle": "To rozpoznanie, nie weryfikacja tożsamości",
+  "inv_notProofBody": "Kod jest wydrukowany na zaproszeniu, więc każdy, kto go zobaczy, może wybrać dowolną osobę z tej paczki. Traktuj wynik jako „prawdopodobnie Anna\", a nie dowód. Do niczego wiążącego się nie nadaje.",
+  "@inv_notProofBody": {
+    "description": "Ostrzeżenie dla organizatora — ma studzić zaufanie do kodu. Zachowaj stanowczy ton."
+  },
+  "inv_saved": "Zapisano tryb zaproszeń",
+  "inv_packagesHeader": "PACZKI ZAPROSZENIOWE",
+  "inv_statPackages": "Zaproszeń",
+  "inv_statPeople": "Osób",
+  "inv_statMulti": "Wieloosobowych",
+  "inv_statPending": "Bez imienia",
+  "inv_previewHint": "Tak podzielą się zaproszenia. Paczkę tworzy gość wraz ze swoimi osobami towarzyszącymi — zmienisz ją, zmieniając powiązania na liście gości.",
+  "inv_empty": "Brak gości. Dodaj pierwszych gości, a zaproszenia ułożą się same.",
+  "inv_packageSize": "{count, plural, =1{1 osoba} few{{count} osoby} other{{count} osób}}",
+  "@inv_packageSize": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_pendingBadge": "imię do uzupełnienia",
+  "inv_mainBadge": "adresat",
+  "inv_noName": "(imię nieuzupełnione)",
+  "inv_codesLater": "Wydruk kodów dołożymy w kolejnym kroku — na razie sprawdź, czy podział na zaproszenia i kody się zgadzają.",
+  "inv_codesHeader": "KODY ZAPROSZEŃ",
+  "inv_generate": "Wygeneruj brakujące kody",
+  "inv_generating": "Generuję kody… {done} z {total}",
+  "@inv_generating": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_generated": "{count, plural, =0{Wszystkie paczki mają już kod} =1{Wygenerowano 1 kod} few{Wygenerowano {count} kody} other{Wygenerowano {count} kodów}}",
+  "@inv_generated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_noCode": "brak kodu",
+  "inv_codeRevoked": "unieważniony",
+  "inv_codeStale": "skład się zmienił",
+  "inv_copyCode": "Kopiuj kod",
+  "inv_regenerate": "Nowy kod",
+  "inv_revoke": "Unieważnij",
+  "inv_restore": "Przywróć",
+  "inv_codeCopied": "Skopiowano kod: {code}",
+  "@inv_codeCopied": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "inv_regenerateTitle": "Wystawić nowy kod?",
+  "inv_regenerateBody": "Dotychczasowy kod tej paczki przestanie działać. Jeśli zaproszenie jest już wydrukowane, kod QR na nim stanie się bezużyteczny — trzeba będzie przekazać nowy.",
+  "@inv_regenerateBody": {
+    "description": "Ostrzeżenie przed wystawieniem nowego kodu — stary QR na wydrukowanym zaproszeniu przestaje działać."
+  },
+  "inv_regenerated": "Wystawiono nowy kod",
+  "inv_revokeTitle": "Unieważnić kod?",
+  "inv_revokeBody": "Gość skanujący to zaproszenie zobaczy komunikat, że kod jest nieaktualny. Możesz go później przywrócić.",
+  "inv_revoked": "Kod unieważniony",
+  "inv_restored": "Kod przywrócony",
+  "inv_staleTitle": "{count, plural, =1{Kod nieaktualny dla 1 paczki} few{Kody nieaktualne dla {count} paczek} other{Kody nieaktualne dla {count} paczek}}",
+  "@inv_staleTitle": {
+    "description": "Znacznik: opublikowany skład paczki rozjechał się z listą gości.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_staleBody": "Skład tych zaproszeń zmienił się po wygenerowaniu kodu. Odświeżamy go automatycznie, więc gość zobaczy aktualne imiona — ale jeśli zaproszenie jest już wydrukowane, skład na papierze się nie zgadza.",
+  "inv_synced": "{count, plural, =1{Odświeżono skład 1 paczki} few{Odświeżono skład {count} paczek} other{Odświeżono skład {count} paczek}}",
+  "@inv_synced": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_syncFailed": "Nie udało się odświeżyć {count} paczek. Sprawdź połączenie i uprawnienia.",
+  "@inv_syncFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_rulesNeededTitle": "Kody wymagają wdrożenia reguł",
+  "inv_rulesNeededBody": "Zapis kodów zaproszeń działa dopiero po wdrożeniu reguły „inviteCodes\". Do tego czasu generowanie zakończy się błędem uprawnień.",
+  "inv_error": "Nie udało się: {error}",
+  "@inv_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

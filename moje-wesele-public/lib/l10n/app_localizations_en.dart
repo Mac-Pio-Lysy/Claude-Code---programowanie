@@ -7873,4 +7873,214 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get invite_codeGroupHint =>
       'We show the code in groups of four — the dashes are only for readability, guests don\'t have to type them.';
+
+  @override
+  String get settings_invitesCard => 'Guest invitations';
+
+  @override
+  String get settings_invitesHint =>
+      'Choose whether guests get one shared link, or every invitation gets its own QR code. A code per invitation lets you tell who added what.';
+
+  @override
+  String get settings_invitesOpen => 'Set up invitations';
+
+  @override
+  String get inv_title => 'Guest invitations';
+
+  @override
+  String get inv_modeHeader => 'INVITATION MODE';
+
+  @override
+  String get inv_modeShared => 'One shared link for everyone';
+
+  @override
+  String get inv_modeSharedHint =>
+      'A single link and QR code for the whole wedding. Guests stay anonymous — you see what they added, but not who they were.';
+
+  @override
+  String get inv_modeIndividual => 'A code for each invitation';
+
+  @override
+  String get inv_modeIndividualHint =>
+      'Each invitation package additionally gets its own QR code. The guest picks who they are from a list, so you can tell who added what.';
+
+  @override
+  String get inv_sharedStaysTitle => 'The shared link keeps working';
+
+  @override
+  String get inv_sharedStaysBody =>
+      'An individual code does NOT replace the shared one — it adds to it. The shared link stays on the tables and for guests who lost their invitation.';
+
+  @override
+  String get inv_notProofTitle =>
+      'This is recognition, not identity verification';
+
+  @override
+  String get inv_notProofBody =>
+      'The code is printed on the invitation, so anyone who sees it can pick any person from that package. Treat the result as „probably Anna\", not as proof. It isn\'t suitable for anything binding.';
+
+  @override
+  String get inv_saved => 'Invitation mode saved';
+
+  @override
+  String get inv_packagesHeader => 'INVITATION PACKAGES';
+
+  @override
+  String get inv_statPackages => 'Invitations';
+
+  @override
+  String get inv_statPeople => 'People';
+
+  @override
+  String get inv_statMulti => 'Multi-person';
+
+  @override
+  String get inv_statPending => 'Without a name';
+
+  @override
+  String get inv_previewHint =>
+      'This is how the invitations will be split. A package is a guest together with their companions — change it by changing the links on the guest list.';
+
+  @override
+  String get inv_empty =>
+      'No guests yet. Add your first guests and the invitations will group themselves.';
+
+  @override
+  String inv_packageSize(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '1 person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inv_pendingBadge => 'name to be filled in';
+
+  @override
+  String get inv_mainBadge => 'addressee';
+
+  @override
+  String get inv_noName => '(name not filled in)';
+
+  @override
+  String get inv_codesLater =>
+      'Printing comes in the next step — for now, check that the split into invitations and the codes look right.';
+
+  @override
+  String get inv_codesHeader => 'INVITATION CODES';
+
+  @override
+  String get inv_generate => 'Generate missing codes';
+
+  @override
+  String inv_generating(int done, int total) {
+    return 'Generating codes… $done of $total';
+  }
+
+  @override
+  String inv_generated(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count codes generated',
+      one: '1 code generated',
+      zero: 'Every package already has a code',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inv_noCode => 'no code';
+
+  @override
+  String get inv_codeRevoked => 'revoked';
+
+  @override
+  String get inv_codeStale => 'composition changed';
+
+  @override
+  String get inv_copyCode => 'Copy code';
+
+  @override
+  String get inv_regenerate => 'New code';
+
+  @override
+  String get inv_revoke => 'Revoke';
+
+  @override
+  String get inv_restore => 'Restore';
+
+  @override
+  String inv_codeCopied(String code) {
+    return 'Code copied: $code';
+  }
+
+  @override
+  String get inv_regenerateTitle => 'Issue a new code?';
+
+  @override
+  String get inv_regenerateBody =>
+      'This package\'s current code will stop working. If the invitation is already printed, the QR code on it becomes useless — you\'ll have to pass on the new one.';
+
+  @override
+  String get inv_regenerated => 'New code issued';
+
+  @override
+  String get inv_revokeTitle => 'Revoke the code?';
+
+  @override
+  String get inv_revokeBody =>
+      'A guest scanning this invitation will see a message that the code is out of date. You can restore it later.';
+
+  @override
+  String get inv_revoked => 'Code revoked';
+
+  @override
+  String get inv_restored => 'Code restored';
+
+  @override
+  String inv_staleTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Codes out of date for $count packages',
+      one: 'Code out of date for 1 package',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get inv_staleBody =>
+      'The composition of these invitations changed after the code was generated. We refresh it automatically, so the guest sees current names — but if the invitation is already printed, the paper no longer matches.';
+
+  @override
+  String inv_synced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Refreshed $count packages',
+      one: 'Refreshed 1 package',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String inv_syncFailed(int count) {
+    return 'Couldn\'t refresh $count packages. Check your connection and permissions.';
+  }
+
+  @override
+  String get inv_rulesNeededTitle => 'Codes require the rules to be deployed';
+
+  @override
+  String get inv_rulesNeededBody =>
+      'Saving invitation codes only works once the „inviteCodes\" rule is deployed. Until then, generating will fail with a permissions error.';
+
+  @override
+  String inv_error(String error) {
+    return 'Failed: $error';
+  }
 }

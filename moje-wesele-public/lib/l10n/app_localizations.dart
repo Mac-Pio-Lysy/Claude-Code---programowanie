@@ -13824,6 +13824,318 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Kod pokazujemy w grupach po cztery znaki — myślniki są tylko dla czytelności, gość nie musi ich wpisywać.'**
   String get invite_codeGroupHint;
+
+  /// No description provided for @settings_invitesCard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszenia dla gości'**
+  String get settings_invitesCard;
+
+  /// No description provided for @settings_invitesHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz, czy goście dostają jeden wspólny link, czy każde zaproszenie ma własny kod QR. Kod per zaproszenie pozwala rozpoznać, kto co dodał.'**
+  String get settings_invitesHint;
+
+  /// No description provided for @settings_invitesOpen.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ustaw zaproszenia'**
+  String get settings_invitesOpen;
+
+  /// No description provided for @inv_title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszenia dla gości'**
+  String get inv_title;
+
+  /// No description provided for @inv_modeHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'TRYB ZAPRASZANIA'**
+  String get inv_modeHeader;
+
+  /// No description provided for @inv_modeShared.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wspólny link dla wszystkich'**
+  String get inv_modeShared;
+
+  /// No description provided for @inv_modeSharedHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jeden link i kod QR dla całego wesela. Goście są anonimowi — widzisz, co dodali, ale nie kto to był.'**
+  String get inv_modeSharedHint;
+
+  /// No description provided for @inv_modeIndividual.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod dla każdego zaproszenia'**
+  String get inv_modeIndividual;
+
+  /// No description provided for @inv_modeIndividualHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodatkowo każda paczka zaproszeniowa dostaje własny kod QR. Gość wybiera z listy, kim jest, więc widzisz, kto co dodał.'**
+  String get inv_modeIndividualHint;
+
+  /// No description provided for @inv_sharedStaysTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wspólny link działa dalej'**
+  String get inv_sharedStaysTitle;
+
+  /// Kluczowe: tryb indywidualny DOKŁADA kody, nie zastępuje wspólnego linku.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod indywidualny NIE zastępuje wspólnego — dokłada się do niego. Wspólny link zostaje na stołach i dla gości, którzy zgubili zaproszenie.'**
+  String get inv_sharedStaysBody;
+
+  /// No description provided for @inv_notProofTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'To rozpoznanie, nie weryfikacja tożsamości'**
+  String get inv_notProofTitle;
+
+  /// Ostrzeżenie dla organizatora — ma studzić zaufanie do kodu. Zachowaj stanowczy ton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod jest wydrukowany na zaproszeniu, więc każdy, kto go zobaczy, może wybrać dowolną osobę z tej paczki. Traktuj wynik jako „prawdopodobnie Anna\", a nie dowód. Do niczego wiążącego się nie nadaje.'**
+  String get inv_notProofBody;
+
+  /// No description provided for @inv_saved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapisano tryb zaproszeń'**
+  String get inv_saved;
+
+  /// No description provided for @inv_packagesHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'PACZKI ZAPROSZENIOWE'**
+  String get inv_packagesHeader;
+
+  /// No description provided for @inv_statPackages.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszeń'**
+  String get inv_statPackages;
+
+  /// No description provided for @inv_statPeople.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osób'**
+  String get inv_statPeople;
+
+  /// No description provided for @inv_statMulti.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wieloosobowych'**
+  String get inv_statMulti;
+
+  /// No description provided for @inv_statPending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bez imienia'**
+  String get inv_statPending;
+
+  /// No description provided for @inv_previewHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tak podzielą się zaproszenia. Paczkę tworzy gość wraz ze swoimi osobami towarzyszącymi — zmienisz ją, zmieniając powiązania na liście gości.'**
+  String get inv_previewHint;
+
+  /// No description provided for @inv_empty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak gości. Dodaj pierwszych gości, a zaproszenia ułożą się same.'**
+  String get inv_empty;
+
+  /// No description provided for @inv_packageSize.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{1 osoba} few{{count} osoby} other{{count} osób}}'**
+  String inv_packageSize(int count);
+
+  /// No description provided for @inv_pendingBadge.
+  ///
+  /// In pl, this message translates to:
+  /// **'imię do uzupełnienia'**
+  String get inv_pendingBadge;
+
+  /// No description provided for @inv_mainBadge.
+  ///
+  /// In pl, this message translates to:
+  /// **'adresat'**
+  String get inv_mainBadge;
+
+  /// No description provided for @inv_noName.
+  ///
+  /// In pl, this message translates to:
+  /// **'(imię nieuzupełnione)'**
+  String get inv_noName;
+
+  /// No description provided for @inv_codesLater.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wydruk kodów dołożymy w kolejnym kroku — na razie sprawdź, czy podział na zaproszenia i kody się zgadzają.'**
+  String get inv_codesLater;
+
+  /// No description provided for @inv_codesHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'KODY ZAPROSZEŃ'**
+  String get inv_codesHeader;
+
+  /// No description provided for @inv_generate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wygeneruj brakujące kody'**
+  String get inv_generate;
+
+  /// No description provided for @inv_generating.
+  ///
+  /// In pl, this message translates to:
+  /// **'Generuję kody… {done} z {total}'**
+  String inv_generating(int done, int total);
+
+  /// No description provided for @inv_generated.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =0{Wszystkie paczki mają już kod} =1{Wygenerowano 1 kod} few{Wygenerowano {count} kody} other{Wygenerowano {count} kodów}}'**
+  String inv_generated(int count);
+
+  /// No description provided for @inv_noCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'brak kodu'**
+  String get inv_noCode;
+
+  /// No description provided for @inv_codeRevoked.
+  ///
+  /// In pl, this message translates to:
+  /// **'unieważniony'**
+  String get inv_codeRevoked;
+
+  /// No description provided for @inv_codeStale.
+  ///
+  /// In pl, this message translates to:
+  /// **'skład się zmienił'**
+  String get inv_codeStale;
+
+  /// No description provided for @inv_copyCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kopiuj kod'**
+  String get inv_copyCode;
+
+  /// No description provided for @inv_regenerate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowy kod'**
+  String get inv_regenerate;
+
+  /// No description provided for @inv_revoke.
+  ///
+  /// In pl, this message translates to:
+  /// **'Unieważnij'**
+  String get inv_revoke;
+
+  /// No description provided for @inv_restore.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przywróć'**
+  String get inv_restore;
+
+  /// No description provided for @inv_codeCopied.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skopiowano kod: {code}'**
+  String inv_codeCopied(String code);
+
+  /// No description provided for @inv_regenerateTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wystawić nowy kod?'**
+  String get inv_regenerateTitle;
+
+  /// Ostrzeżenie przed wystawieniem nowego kodu — stary QR na wydrukowanym zaproszeniu przestaje działać.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dotychczasowy kod tej paczki przestanie działać. Jeśli zaproszenie jest już wydrukowane, kod QR na nim stanie się bezużyteczny — trzeba będzie przekazać nowy.'**
+  String get inv_regenerateBody;
+
+  /// No description provided for @inv_regenerated.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wystawiono nowy kod'**
+  String get inv_regenerated;
+
+  /// No description provided for @inv_revokeTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Unieważnić kod?'**
+  String get inv_revokeTitle;
+
+  /// No description provided for @inv_revokeBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gość skanujący to zaproszenie zobaczy komunikat, że kod jest nieaktualny. Możesz go później przywrócić.'**
+  String get inv_revokeBody;
+
+  /// No description provided for @inv_revoked.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod unieważniony'**
+  String get inv_revoked;
+
+  /// No description provided for @inv_restored.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kod przywrócony'**
+  String get inv_restored;
+
+  /// Znacznik: opublikowany skład paczki rozjechał się z listą gości.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{Kod nieaktualny dla 1 paczki} few{Kody nieaktualne dla {count} paczek} other{Kody nieaktualne dla {count} paczek}}'**
+  String inv_staleTitle(int count);
+
+  /// No description provided for @inv_staleBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Skład tych zaproszeń zmienił się po wygenerowaniu kodu. Odświeżamy go automatycznie, więc gość zobaczy aktualne imiona — ale jeśli zaproszenie jest już wydrukowane, skład na papierze się nie zgadza.'**
+  String get inv_staleBody;
+
+  /// No description provided for @inv_synced.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{Odświeżono skład 1 paczki} few{Odświeżono skład {count} paczek} other{Odświeżono skład {count} paczek}}'**
+  String inv_synced(int count);
+
+  /// No description provided for @inv_syncFailed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się odświeżyć {count} paczek. Sprawdź połączenie i uprawnienia.'**
+  String inv_syncFailed(int count);
+
+  /// No description provided for @inv_rulesNeededTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kody wymagają wdrożenia reguł'**
+  String get inv_rulesNeededTitle;
+
+  /// No description provided for @inv_rulesNeededBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapis kodów zaproszeń działa dopiero po wdrożeniu reguły „inviteCodes\". Do tego czasu generowanie zakończy się błędem uprawnień.'**
+  String get inv_rulesNeededBody;
+
+  /// No description provided for @inv_error.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie udało się: {error}'**
+  String inv_error(String error);
 }
 
 class _AppLocalizationsDelegate

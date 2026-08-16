@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/couple.dart';
 import '../models/currency.dart';
+import '../models/invite_package.dart';
 import 'firestore_service.dart';
 import '../l10n/app_text.dart';
 
@@ -119,6 +120,18 @@ class ConfigService {
   /// (patrz [Currency]).
   Future<void> saveCurrency(Currency currency) => _firestore.mainDoc.set({
         'appConfig': {'currency': currency.code},
+      }, SetOptions(merge: true));
+
+  /// Zapisuje tryb zapraszania gości (`appConfig.inviteMode`).
+  ///
+  /// Osobna metoda, jak [saveCurrency]: tryb ustawia się na własnym ekranie,
+  /// a nie w formularzu Konfiguracji, więc nie ma powodu przepuszczać go przez
+  /// [AppConfigDraft]. Zapis scalający — reszta `appConfig` zostaje nietknięta.
+  Future<void> saveInviteMode(String mode) => _firestore.mainDoc.set({
+        'appConfig': {
+          'inviteMode':
+              InviteMode.all.contains(mode) ? mode : InviteMode.shared,
+        },
       }, SetOptions(merge: true));
 
   /// Pełny dokument danych (do eksportu).

@@ -231,6 +231,19 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == id;
     }
 
+    // Zgłoszenie foto-wyzwania ma ID złożone: "{uid}__{idWyzwania}" — jedno
+    // zdjęcie na wyzwanie na gościa. Format musi być zgodny z
+    // `GuestSpaceService.photoChallengeId` po stronie klienta.
+    //
+    // Sprawdzamy JEDNO I DRUGIE: że prefiks to własny `uid` (nie da się pisać
+    // pod cudzym) i że `challengeId` w treści zgadza się z ID dokumentu (nie da
+    // się obejść limitu, podając w polu inne wyzwanie niż w ścieżce).
+    function isSelfChallenge(id) {
+      return request.auth != null
+        && id == request.auth.uid + '__'
+             + string(request.resource.data.challengeId);
+    }
+
     // ── Walidacja wpisów gościa (5b) — dozwolone pola + limity rozmiaru ──────
     function _s(v, lo, hi) { return v is string && v.size() >= lo && v.size() <= hi; }
     // Timestamp klienta musi być BLISKI czasu serwera (audyt 5b, naprawa #3).
@@ -444,34 +457,51 @@ service cloud.firestore {
         allow update, delete: if orgOf(token);              // moderacja
       }
       match /photoChallenges/{id} {
-        allow read:   if true;                              // publiczny
-        allow create: if tokenReal(token) && vPhotoChallenge();
-        allow update, delete: if orgOf(token);
+        // Odczyt zostaje PUBLICZNY — to wspólna ściana zdjęć, jak galeria.
+        // Ukrycie jej przed gośćmi odebrałoby sekcji sens, a zdjęcia i tak
+        // muszą pochodzić z naszego Cloudinary i podlegają moderacji.
+        allow read:   if true;
+        allow create: if tokenReal(token) && isSelfChallenge(id)
+                         && vPhotoChallenge();
+        allow update: if (isSelfChallenge(id) && vPhotoChallenge())
+                         || orgOf(token);
+        allow delete: if orgOf(token);
       }
       match /musicProposals/{id} {
         allow read:   if orgOf(token);                      // TYLKO organizator
         allow create: if tokenReal(token) && vMusic();
         allow update, delete: if orgOf(token);              // + zmiana statusu
       }
+      // Wyniki gier: organizator widzi wszystkie, gość WYŁĄCZNIE swój.
+      // `list` zamknięte dla gościa — inaczej jednym zapytaniem poznałby
+      // wyniki wszystkich uczestników. Powtórka nadpisuje własny wpis.
       match /quizResults/{id} {
-        allow read:   if orgOf(token);                      // TYLKO organizator
-        allow create: if tokenReal(token) && vGameResult();
-        allow update, delete: if orgOf(token);
+        allow get:    if isSelf(id) || orgOf(token);
+        allow list:   if orgOf(token);
+        allow create: if tokenReal(token) && isSelf(id) && vGameResult();
+        allow update: if (isSelf(id) && vGameResult()) || orgOf(token);
+        allow delete: if orgOf(token);
       }
       match /trueFalseResults/{id} {
-        allow read:   if orgOf(token);                      // TYLKO organizator
-        allow create: if tokenReal(token) && vGameResult();
-        allow update, delete: if orgOf(token);
+        allow get:    if isSelf(id) || orgOf(token);
+        allow list:   if orgOf(token);
+        allow create: if tokenReal(token) && isSelf(id) && vGameResult();
+        allow update: if (isSelf(id) && vGameResult()) || orgOf(token);
+        allow delete: if orgOf(token);
       }
       match /photoGuessResults/{id} {
-        allow read:   if orgOf(token);                      // TYLKO organizator
-        allow create: if tokenReal(token) && vGameResult();
-        allow update, delete: if orgOf(token);
+        allow get:    if isSelf(id) || orgOf(token);
+        allow list:   if orgOf(token);
+        allow create: if tokenReal(token) && isSelf(id) && vGameResult();
+        allow update: if (isSelf(id) && vGameResult()) || orgOf(token);
+        allow delete: if orgOf(token);
       }
       match /bingoResults/{id} {
-        allow read:   if orgOf(token);                      // TYLKO organizator
-        allow create: if tokenReal(token) && vBingo();
-        allow update, delete: if orgOf(token);
+        allow get:    if isSelf(id) || orgOf(token);
+        allow list:   if orgOf(token);
+        allow create: if tokenReal(token) && isSelf(id) && vBingo();
+        allow update: if (isSelf(id) && vBingo()) || orgOf(token);
+        allow delete: if orgOf(token);
       }
 
       // Każda INNA podkolekcja pozostaje domyślnie zablokowana (brak match).

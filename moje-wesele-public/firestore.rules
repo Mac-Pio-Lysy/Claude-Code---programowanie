@@ -214,6 +214,36 @@ service cloud.firestore {
       allow delete: if ownerIndexDelete();
     }
 
+    // ── R1: kody paczek zaproszeniowych (zaproszenia indywidualne) ──────────
+    // `inviteCodes/{KOD}` → { weddingId, guestToken, packageId, members[],
+    // memberIds[], revoked, updatedAt }. Gość skanuje QR z zaproszenia i musi
+    // odczytać skład paczki BEZ logowania — stąd `get: true`, dokładnie jak
+    // przy `weddingCodes`.
+    //
+    // `list: false` jest tu KRYTYCZNE i pilnuje dwóch rzeczy naraz:
+    //   • nie da się pobrać kodów wszystkich wesel (to samo, co przy
+    //     weddingCodes/roleInvites),
+    //   • nie da się zebrać IMION gości. To jedyne miejsce, w którym dane
+    //     osobowe z listy gości wychodzą poza chroniony dokument wesela,
+    //     więc muszą być osiągalne wyłącznie po znajomości 12-znakowego kodu.
+    //
+    // Zakres tego, co widzi posiadacz kodu, ogranicza KLIENT: do `members`
+    // trafiają same imiona (nazwisko tylko przy powtórzeniu w tej samej
+    // paczce), nigdy telefon, dieta, kategoria ani stół. Reguły nie
+    // weryfikują kształtu `members` — zapis i tak ma wyłącznie owner, a
+    // walidacja pól kosztowałaby przy każdej synchronizacji rosteru.
+    //
+    // Zapis: WYŁĄCZNIE owner, przez te same funkcje co pozostałe indeksy
+    // publiczne. `weddingId` niezmienne po utworzeniu — kod raz przypisany
+    // do wesela nie może zostać przepięty na inne.
+    match /inviteCodes/{code} {
+      allow get:    if true;         // gość czyta skład swojej paczki
+      allow list:   if false;
+      allow create: if ownerIndexCreate();
+      allow update: if ownerIndexUpdate();
+      allow delete: if ownerIndexDelete();
+    }
+
     // ── Strona gości po TOKENIE (kroki 5a/5b) ───────────────────────────────
     // Rozwiązuje weddingId z tokenu WEWNĄTRZ reguł (get() pomija reguły odczytu).
     function tokenWedding(t) {
