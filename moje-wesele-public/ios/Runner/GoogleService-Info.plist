@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>221816723659-a7l89j7clgr2df7b8810adv75a7atrdo.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.221816723659-a7l89j7clgr2df7b8810adv75a7atrdo</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>221816723659-c6d76add4bf0smpoof6d6dudhsl6jhf7.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAxQVTZkolTUNFwKPEp3Q4m3Y4PhmD234E</string>
+	<key>GCM_SENDER_ID</key>
+	<string>221816723659</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.ceremonia.mojeWesele</string>
+	<key>PROJECT_ID</key>
+	<string>wedding-planner-pub</string>
+	<key>STORAGE_BUCKET</key>
+	<string>wedding-planner-pub.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:221816723659:ios:5d45e59bf37ae8148de34e</string>
+</dict>
+</plist>

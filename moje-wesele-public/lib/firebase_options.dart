@@ -23,20 +23,11 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -65,5 +56,36 @@ class DefaultFirebaseOptions {
     messagingSenderId: '221816723659',
     projectId: 'wedding-planner-pub',
     storageBucket: 'wedding-planner-pub.firebasestorage.app',
+  );
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyAxQVTZkolTUNFwKPEp3Q4m3Y4PhmD234E',
+    appId: '1:221816723659:ios:5d45e59bf37ae8148de34e',
+    messagingSenderId: '221816723659',
+    projectId: 'wedding-planner-pub',
+    storageBucket: 'wedding-planner-pub.firebasestorage.app',
+    androidClientId: '221816723659-c6d76add4bf0smpoof6d6dudhsl6jhf7.apps.googleusercontent.com',
+    iosClientId: '221816723659-a7l89j7clgr2df7b8810adv75a7atrdo.apps.googleusercontent.com',
+    iosBundleId: 'com.ceremonia.mojeWesele',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyAxQVTZkolTUNFwKPEp3Q4m3Y4PhmD234E',
+    appId: '1:221816723659:ios:5d45e59bf37ae8148de34e',
+    messagingSenderId: '221816723659',
+    projectId: 'wedding-planner-pub',
+    storageBucket: 'wedding-planner-pub.firebasestorage.app',
+    androidClientId: '221816723659-c6d76add4bf0smpoof6d6dudhsl6jhf7.apps.googleusercontent.com',
+    iosClientId: '221816723659-a7l89j7clgr2df7b8810adv75a7atrdo.apps.googleusercontent.com',
+    iosBundleId: 'com.ceremonia.mojeWesele',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyAdV_WKKXo82Wedxq_DLu8lKve3JGSRJ8I',
+    appId: '1:221816723659:web:d45598e2370a4dd88de34e',
+    messagingSenderId: '221816723659',
+    projectId: 'wedding-planner-pub',
+    authDomain: 'wedding-planner-pub.firebaseapp.com',
+    storageBucket: 'wedding-planner-pub.firebasestorage.app',
+    measurementId: 'G-JJF0T3W91T',
   );
 }
