@@ -9,7 +9,9 @@ void main() {
   testWidgets('Ekran logowania pokazuje nazwę, przycisk Google i zachętę do rejestracji',
       (tester) async {
     await tester.pumpWidget(
-      MaterialApp(home: LoginScreen(onGoogleSignIn: () {})),
+      MaterialApp(
+        home: LoginScreen(onGoogleSignIn: () {}, onEmailAuth: () {}),
+      ),
     );
 
     expect(find.text('Moje Wesele'), findsOneWidget);

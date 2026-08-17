@@ -6017,6 +6017,26 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get auth_emailInUse =>
+      'Konto z tym adresem e-mail już istnieje. Zaloguj się lub użyj innego adresu.';
+
+  @override
+  String get auth_weakPassword =>
+      'Hasło jest zbyt słabe — użyj co najmniej 6 znaków.';
+
+  @override
+  String get auth_invalidEmail => 'Nieprawidłowy adres e-mail.';
+
+  @override
+  String get auth_userNotFound => 'Nie znaleziono konta z tym adresem e-mail.';
+
+  @override
+  String get auth_wrongPassword => 'Nieprawidłowe hasło.';
+
+  @override
+  String get auth_invalidCredential => 'Nieprawidłowy e-mail lub hasło.';
+
+  @override
   String get guestId_noUser => 'Logowanie anonimowe nie zwróciło użytkownika.';
 
   @override
@@ -7150,13 +7170,19 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get login_subtitle =>
-      'Zaloguj się lub załóż konto swoim kontem Google';
+      'Zaloguj się lub załóż konto, aby zarządzać swoim weselem';
 
   @override
-  String get login_secure => '🔒 Bezpieczne logowanie — bez osobnego hasła';
+  String get login_secure => '🔒 Bezpieczne logowanie';
 
   @override
   String get login_google => 'Zaloguj się przez Google';
+
+  @override
+  String get login_or => 'lub';
+
+  @override
+  String get login_emailButton => 'Zaloguj się e-mailem';
 
   @override
   String get welcome_testMode => 'Tryb testowy — wejście bez logowania';
@@ -8186,4 +8212,83 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get id_claimFailed =>
       'Nie udało się zapisać wyboru — wchodzisz dalej, ale Para Młoda może nie powiązać Twoich wpisów z zaproszeniem.';
+
+  @override
+  String get emailAuth_titleSignIn => 'Zaloguj się';
+
+  @override
+  String get emailAuth_titleRegister => 'Załóż konto';
+
+  @override
+  String get emailAuth_titleReset => 'Resetuj hasło';
+
+  @override
+  String get emailAuth_emailLabel => 'Adres e-mail';
+
+  @override
+  String get emailAuth_emailHint => 'np. jan@przyklad.pl';
+
+  @override
+  String get emailAuth_passwordLabel => 'Hasło';
+
+  @override
+  String get emailAuth_confirmPasswordLabel => 'Powtórz hasło';
+
+  @override
+  String get emailAuth_submitSignIn => 'Zaloguj się';
+
+  @override
+  String get emailAuth_submitRegister => 'Załóż konto';
+
+  @override
+  String get emailAuth_submitReset => 'Wyślij link resetujący';
+
+  @override
+  String get emailAuth_switchToRegister => 'Nie masz konta? Załóż je';
+
+  @override
+  String get emailAuth_switchToSignIn => 'Masz już konto? Zaloguj się';
+
+  @override
+  String get emailAuth_forgotPassword => 'Zapomniałeś hasła?';
+
+  @override
+  String get emailAuth_backToSignIn => 'Wróć do logowania';
+
+  @override
+  String get emailAuth_resetIntro =>
+      'Podaj adres e-mail, na który wyślemy link do zresetowania hasła.';
+
+  @override
+  String get emailAuth_resetSentMessage =>
+      'Wysłaliśmy link resetujący hasło na podany adres e-mail.';
+
+  @override
+  String get emailAuth_verificationNote =>
+      'Po założeniu konta wyślemy e-mail weryfikacyjny na podany adres.';
+
+  @override
+  String get emailAuth_errorEmailRequired => 'Podaj adres e-mail.';
+
+  @override
+  String get emailAuth_errorEmailInvalid => 'Podaj poprawny adres e-mail.';
+
+  @override
+  String get emailAuth_errorPasswordRequired => 'Podaj hasło.';
+
+  @override
+  String get emailAuth_errorPasswordTooShort =>
+      'Hasło musi mieć co najmniej 6 znaków.';
+
+  @override
+  String get emailAuth_errorPasswordMismatch => 'Hasła nie są takie same.';
+
+  @override
+  String get emailAuth_showPassword => 'Pokaż hasło';
+
+  @override
+  String get emailAuth_hidePassword => 'Ukryj hasło';
+
+  @override
+  String get emailAuth_backButton => 'Wstecz';
 }

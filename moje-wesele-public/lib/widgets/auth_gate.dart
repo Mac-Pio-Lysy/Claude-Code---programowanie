@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../app_colors.dart';
+import '../screens/email_auth_screen.dart';
 import '../screens/guest/guest_home_screen.dart';
 import '../screens/lock/lock_screen.dart';
 import '../screens/login_screen.dart';
@@ -234,9 +235,82 @@ class _AuthGateState extends State<AuthGate> {
         return AppText.t.auth_notEnabled;
       case 'popup-blocked':
         return AppText.t.auth_popupBlocked;
+      case 'email-already-in-use':
+        return AppText.t.auth_emailInUse;
+      case 'weak-password':
+        return AppText.t.auth_weakPassword;
+      case 'invalid-email':
+        return AppText.t.auth_invalidEmail;
+      case 'user-not-found':
+        return AppText.t.auth_userNotFound;
+      case 'wrong-password':
+        return AppText.t.auth_wrongPassword;
+      // Nowsze wersje Firebase SDK zwracają ten kod zamiast osobnych
+      // 'wrong-password'/'user-not-found' przy błędnym logowaniu — dla
+      // bezpieczeństwa nie zdradzamy, czy to hasło, czy nieistniejące konto.
+      case 'invalid-credential':
+        return AppText.t.auth_invalidCredential;
       default:
         return AppText.t.auth_codeError(e.code);
     }
+  }
+
+  /// Logowanie e-mailem i hasłem — jak [_handleSignIn], ale zwraca komunikat
+  /// błędu zamiast go zapisywać w stanie (ekran e-mail wyświetla go sam).
+  /// Sukces obsłuży nasłuch `authStateChanges` → [_onAuthChanged], tak samo
+  /// jak po Google.
+  Future<String?> _handleEmailSignIn(String email, String password) async {
+    _interactiveSignIn = true;
+    try {
+      await _authService.signInWithEmail(email, password);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      _interactiveSignIn = false;
+      return _errorMessage(e);
+    } catch (_) {
+      _interactiveSignIn = false;
+      return AppText.t.auth_generic;
+    }
+  }
+
+  /// Rejestracja e-mailem i hasłem — osobne konto od Google, bez łączenia.
+  Future<String?> _handleEmailRegister(String email, String password) async {
+    _interactiveSignIn = true;
+    try {
+      await _authService.registerWithEmail(email, password);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      _interactiveSignIn = false;
+      return _errorMessage(e);
+    } catch (_) {
+      _interactiveSignIn = false;
+      return AppText.t.auth_generic;
+    }
+  }
+
+  /// Reset hasła (mail resetujący) — nie loguje, więc nie dotyka
+  /// `_interactiveSignIn`.
+  Future<String?> _handleResetPassword(String email) async {
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      return _errorMessage(e);
+    } catch (_) {
+      return AppText.t.auth_generic;
+    }
+  }
+
+  void _openEmailAuth() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EmailAuthScreen(
+          onSignIn: _handleEmailSignIn,
+          onRegister: _handleEmailRegister,
+          onResetPassword: _handleResetPassword,
+        ),
+      ),
+    );
   }
 
   /// Wybór między ekranem „Twoje wesela" a panelem głównym aktywnego wesela.
@@ -306,6 +380,7 @@ class _AuthGateState extends State<AuthGate> {
     }
     return LoginScreen(
       onGoogleSignIn: _handleSignIn,
+      onEmailAuth: _openEmailAuth,
       isLoading: _signingIn,
       errorMessage: _error,
     );

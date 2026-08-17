@@ -106,6 +106,33 @@ class AuthService {
     }
   }
 
+  /// Rejestracja e-mailem i hasłem — osobne konto od logowania Google
+  /// (świadomie NIE łączymy kont). Po założeniu konta best-effort wysyłamy
+  /// e-mail weryfikacyjny; niepowodzenie wysyłki nie przerywa rejestracji.
+  Future<UserCredential> registerWithEmail(
+    String email,
+    String password,
+  ) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    try {
+      await credential.user?.sendEmailVerification();
+    } catch (_) {
+      // Best-effort — rejestracja i tak się powiodła.
+    }
+    return credential;
+  }
+
+  /// Logowanie e-mailem i hasłem.
+  Future<UserCredential> signInWithEmail(String email, String password) =>
+      _auth.signInWithEmailAndPassword(email: email, password: password);
+
+  /// Wysyłka maila do resetu hasła (konto e-mail/hasło).
+  Future<void> sendPasswordResetEmail(String email) =>
+      _auth.sendPasswordResetEmail(email: email);
+
   // ─────────────────────────────────────────────────────────────────────────
   // TRYB TESTOWY - przywrócić logowanie przed wydaniem
   // Logowanie anonimowe. Pozwala uzyskać prawdziwego użytkownika Firebase

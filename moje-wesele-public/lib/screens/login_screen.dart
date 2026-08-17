@@ -16,11 +16,16 @@ class LoginScreen extends StatelessWidget {
   const LoginScreen({
     super.key,
     required this.onGoogleSignIn,
+    required this.onEmailAuth,
     this.isLoading = false,
     this.errorMessage,
   });
 
   final VoidCallback onGoogleSignIn;
+
+  /// Przechodzi do ekranu logowania/rejestracji e-mailem ([EmailAuthScreen]).
+  final VoidCallback onEmailAuth;
+
   final bool isLoading;
   final String? errorMessage;
 
@@ -110,6 +115,12 @@ class LoginScreen extends StatelessWidget {
           _GoogleSignInButton(
             isLoading: isLoading,
             onPressed: isLoading ? null : onGoogleSignIn,
+          ),
+
+          // Separator „lub" i wejście do logowania/rejestracji e-mailem
+          const _OrDivider(),
+          _EmailSignInButton(
+            onPressed: isLoading ? null : onEmailAuth,
           ),
 
           // Komunikat błędu / braku dostępu
@@ -316,6 +327,84 @@ class _GoogleSignInButton extends StatelessWidget {
                 Flexible(
                   child: Text(
                     isLoading ? AppText.t.login_signingIn : AppText.t.login_google,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Separator „lub" między przyciskiem Google a wejściem do logowania e-mailem.
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          Expanded(child: Container(height: 1, color: const Color(0xFFE2EAF7))),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              AppText.t.login_or,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFA0AEC0),
+              ),
+            ),
+          ),
+          Expanded(child: Container(height: 1, color: const Color(0xFFE2EAF7))),
+        ],
+      ),
+    );
+  }
+}
+
+/// Przycisk wejścia do logowania/rejestracji e-mailem.
+class _EmailSignInButton extends StatelessWidget {
+  const _EmailSignInButton({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: onPressed == null ? 0.6 : 1.0,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFDCE4F2), width: 2),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.mail_outline_rounded,
+                    size: 20, color: AppColors.accent),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    AppText.t.login_emailButton,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 15,

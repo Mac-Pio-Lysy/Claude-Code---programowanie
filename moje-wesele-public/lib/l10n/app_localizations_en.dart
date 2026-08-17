@@ -6009,6 +6009,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get auth_emailInUse =>
+      'An account with this email already exists. Sign in or use a different address.';
+
+  @override
+  String get auth_weakPassword =>
+      'The password is too weak — use at least 6 characters.';
+
+  @override
+  String get auth_invalidEmail => 'Invalid email address.';
+
+  @override
+  String get auth_userNotFound => 'No account found with this email address.';
+
+  @override
+  String get auth_wrongPassword => 'Incorrect password.';
+
+  @override
+  String get auth_invalidCredential => 'Incorrect email or password.';
+
+  @override
   String get guestId_noUser => 'Anonymous sign-in returned no user.';
 
   @override
@@ -7131,13 +7151,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'The pattern is too short — connect at least 4 dots';
 
   @override
-  String get login_subtitle => 'Sign in or create an account with Google';
+  String get login_subtitle =>
+      'Sign in or create an account to manage your wedding';
 
   @override
-  String get login_secure => '🔒 Secure sign-in — no separate password';
+  String get login_secure => '🔒 Secure sign-in';
 
   @override
   String get login_google => 'Sign in with Google';
+
+  @override
+  String get login_or => 'or';
+
+  @override
+  String get login_emailButton => 'Sign in with email';
 
   @override
   String get welcome_testMode => 'Test mode — enter without signing in';
@@ -8161,4 +8188,83 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get id_claimFailed =>
       'Couldn\'t save your choice — you can carry on, but the couple may not link your entries to this invitation.';
+
+  @override
+  String get emailAuth_titleSignIn => 'Sign in';
+
+  @override
+  String get emailAuth_titleRegister => 'Create account';
+
+  @override
+  String get emailAuth_titleReset => 'Reset password';
+
+  @override
+  String get emailAuth_emailLabel => 'Email address';
+
+  @override
+  String get emailAuth_emailHint => 'e.g. jan@example.com';
+
+  @override
+  String get emailAuth_passwordLabel => 'Password';
+
+  @override
+  String get emailAuth_confirmPasswordLabel => 'Confirm password';
+
+  @override
+  String get emailAuth_submitSignIn => 'Sign in';
+
+  @override
+  String get emailAuth_submitRegister => 'Create account';
+
+  @override
+  String get emailAuth_submitReset => 'Send reset link';
+
+  @override
+  String get emailAuth_switchToRegister => 'Don\'t have an account? Create one';
+
+  @override
+  String get emailAuth_switchToSignIn => 'Already have an account? Sign in';
+
+  @override
+  String get emailAuth_forgotPassword => 'Forgot your password?';
+
+  @override
+  String get emailAuth_backToSignIn => 'Back to sign in';
+
+  @override
+  String get emailAuth_resetIntro =>
+      'Enter the email address where we\'ll send a password reset link.';
+
+  @override
+  String get emailAuth_resetSentMessage =>
+      'We\'ve sent a password reset link to that email address.';
+
+  @override
+  String get emailAuth_verificationNote =>
+      'After creating your account, we\'ll send a verification email to that address.';
+
+  @override
+  String get emailAuth_errorEmailRequired => 'Enter an email address.';
+
+  @override
+  String get emailAuth_errorEmailInvalid => 'Enter a valid email address.';
+
+  @override
+  String get emailAuth_errorPasswordRequired => 'Enter a password.';
+
+  @override
+  String get emailAuth_errorPasswordTooShort =>
+      'Password must be at least 6 characters.';
+
+  @override
+  String get emailAuth_errorPasswordMismatch => 'Passwords do not match.';
+
+  @override
+  String get emailAuth_showPassword => 'Show password';
+
+  @override
+  String get emailAuth_hidePassword => 'Hide password';
+
+  @override
+  String get emailAuth_backButton => 'Back';
 }

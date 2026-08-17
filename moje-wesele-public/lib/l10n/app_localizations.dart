@@ -10579,6 +10579,42 @@ abstract class AppLocalizations {
   /// **'Błąd logowania ({code}). Spróbuj ponownie.'**
   String auth_codeError(String code);
 
+  /// No description provided for @auth_emailInUse.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konto z tym adresem e-mail już istnieje. Zaloguj się lub użyj innego adresu.'**
+  String get auth_emailInUse;
+
+  /// No description provided for @auth_weakPassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Hasło jest zbyt słabe — użyj co najmniej 6 znaków.'**
+  String get auth_weakPassword;
+
+  /// No description provided for @auth_invalidEmail.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieprawidłowy adres e-mail.'**
+  String get auth_invalidEmail;
+
+  /// No description provided for @auth_userNotFound.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleziono konta z tym adresem e-mail.'**
+  String get auth_userNotFound;
+
+  /// No description provided for @auth_wrongPassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieprawidłowe hasło.'**
+  String get auth_wrongPassword;
+
+  /// No description provided for @auth_invalidCredential.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nieprawidłowy e-mail lub hasło.'**
+  String get auth_invalidCredential;
+
   /// No description provided for @guestId_noUser.
   ///
   /// In pl, this message translates to:
@@ -12400,13 +12436,13 @@ abstract class AppLocalizations {
   /// No description provided for @login_subtitle.
   ///
   /// In pl, this message translates to:
-  /// **'Zaloguj się lub załóż konto swoim kontem Google'**
+  /// **'Zaloguj się lub załóż konto, aby zarządzać swoim weselem'**
   String get login_subtitle;
 
   /// No description provided for @login_secure.
   ///
   /// In pl, this message translates to:
-  /// **'🔒 Bezpieczne logowanie — bez osobnego hasła'**
+  /// **'🔒 Bezpieczne logowanie'**
   String get login_secure;
 
   /// No description provided for @login_google.
@@ -12414,6 +12450,18 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Zaloguj się przez Google'**
   String get login_google;
+
+  /// No description provided for @login_or.
+  ///
+  /// In pl, this message translates to:
+  /// **'lub'**
+  String get login_or;
+
+  /// No description provided for @login_emailButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się e-mailem'**
+  String get login_emailButton;
 
   /// No description provided for @welcome_testMode.
   ///
@@ -14274,6 +14322,156 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Nie udało się zapisać wyboru — wchodzisz dalej, ale Para Młoda może nie powiązać Twoich wpisów z zaproszeniem.'**
   String get id_claimFailed;
+
+  /// No description provided for @emailAuth_titleSignIn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się'**
+  String get emailAuth_titleSignIn;
+
+  /// No description provided for @emailAuth_titleRegister.
+  ///
+  /// In pl, this message translates to:
+  /// **'Załóż konto'**
+  String get emailAuth_titleRegister;
+
+  /// No description provided for @emailAuth_titleReset.
+  ///
+  /// In pl, this message translates to:
+  /// **'Resetuj hasło'**
+  String get emailAuth_titleReset;
+
+  /// No description provided for @emailAuth_emailLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Adres e-mail'**
+  String get emailAuth_emailLabel;
+
+  /// No description provided for @emailAuth_emailHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'np. jan@przyklad.pl'**
+  String get emailAuth_emailHint;
+
+  /// No description provided for @emailAuth_passwordLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Hasło'**
+  String get emailAuth_passwordLabel;
+
+  /// No description provided for @emailAuth_confirmPasswordLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Powtórz hasło'**
+  String get emailAuth_confirmPasswordLabel;
+
+  /// No description provided for @emailAuth_submitSignIn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaloguj się'**
+  String get emailAuth_submitSignIn;
+
+  /// No description provided for @emailAuth_submitRegister.
+  ///
+  /// In pl, this message translates to:
+  /// **'Załóż konto'**
+  String get emailAuth_submitRegister;
+
+  /// No description provided for @emailAuth_submitReset.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyślij link resetujący'**
+  String get emailAuth_submitReset;
+
+  /// No description provided for @emailAuth_switchToRegister.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie masz konta? Załóż je'**
+  String get emailAuth_switchToRegister;
+
+  /// No description provided for @emailAuth_switchToSignIn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Masz już konto? Zaloguj się'**
+  String get emailAuth_switchToSignIn;
+
+  /// No description provided for @emailAuth_forgotPassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zapomniałeś hasła?'**
+  String get emailAuth_forgotPassword;
+
+  /// No description provided for @emailAuth_backToSignIn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wróć do logowania'**
+  String get emailAuth_backToSignIn;
+
+  /// No description provided for @emailAuth_resetIntro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj adres e-mail, na który wyślemy link do zresetowania hasła.'**
+  String get emailAuth_resetIntro;
+
+  /// No description provided for @emailAuth_resetSentMessage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wysłaliśmy link resetujący hasło na podany adres e-mail.'**
+  String get emailAuth_resetSentMessage;
+
+  /// No description provided for @emailAuth_verificationNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Po założeniu konta wyślemy e-mail weryfikacyjny na podany adres.'**
+  String get emailAuth_verificationNote;
+
+  /// No description provided for @emailAuth_errorEmailRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj adres e-mail.'**
+  String get emailAuth_errorEmailRequired;
+
+  /// No description provided for @emailAuth_errorEmailInvalid.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj poprawny adres e-mail.'**
+  String get emailAuth_errorEmailInvalid;
+
+  /// No description provided for @emailAuth_errorPasswordRequired.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podaj hasło.'**
+  String get emailAuth_errorPasswordRequired;
+
+  /// No description provided for @emailAuth_errorPasswordTooShort.
+  ///
+  /// In pl, this message translates to:
+  /// **'Hasło musi mieć co najmniej 6 znaków.'**
+  String get emailAuth_errorPasswordTooShort;
+
+  /// No description provided for @emailAuth_errorPasswordMismatch.
+  ///
+  /// In pl, this message translates to:
+  /// **'Hasła nie są takie same.'**
+  String get emailAuth_errorPasswordMismatch;
+
+  /// No description provided for @emailAuth_showPassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokaż hasło'**
+  String get emailAuth_showPassword;
+
+  /// No description provided for @emailAuth_hidePassword.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ukryj hasło'**
+  String get emailAuth_hidePassword;
+
+  /// No description provided for @emailAuth_backButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wstecz'**
+  String get emailAuth_backButton;
 }
 
 class _AppLocalizationsDelegate
