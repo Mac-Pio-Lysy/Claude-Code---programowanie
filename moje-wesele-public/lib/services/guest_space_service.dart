@@ -235,6 +235,17 @@ class GuestSpaceService {
   Stream<List<Map<String, dynamic>>> watchCollection(String coll) =>
       _watch(coll);
 
+  /// Tożsamości z paczek (etap 5, „do przypisania") bez wskazanego gościa.
+  ///
+  /// NIE korzysta z [_watch] — te dokumenty mają `claimedAt`, nie `timestamp`,
+  /// więc `orderBy('timestamp')` po cichu pominąłby je wszystkie (Firestore
+  /// wyklucza z wyniku dokumenty bez pola użytego w `orderBy`).
+  Stream<List<Map<String, dynamic>>> watchUnassignedIdentities() => _coll(
+          'identities')
+      .where('guestId', isNull: true)
+      .snapshots()
+      .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+
   /// Usuwa wpis (moderacja organizatora).
   Future<void> deleteEntry(String coll, String id) =>
       _coll(coll).doc(id).delete();

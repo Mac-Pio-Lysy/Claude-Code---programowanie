@@ -302,6 +302,17 @@ class _SectionCard extends StatelessWidget {
   final ValueChanged<SectionVisibility> onChanged;
   final Future<String?> Function(String? current) onPickDate;
 
+  /// Sekcje z wpisami PODPISANYMI imieniem gościa — tylko tu przełącznik ma
+  /// sens (etap 8). Pozostałe sekcje (RSVP, harmonogram, muzyka, kapsuła,
+  /// gry) albo są organizatorskie, albo nie mają autorskiego wpisu do ukrycia.
+  bool get _showsAuthorNames => const {
+        'guestbook',
+        'advice',
+        'guestMap',
+        'gallery',
+        'photoChallenge',
+      }.contains(def.key);
+
   @override
   Widget build(BuildContext context) {
     final dimmed = !masterEnabled;
@@ -369,6 +380,25 @@ class _SectionCard extends StatelessWidget {
                       },
                       onClear: () => onChanged(value.copyWith(clearTo: true)),
                     ),
+                  ),
+                ],
+              ),
+            ],
+            if (_showsAuthorNames && value.enabled && masterEnabled) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      AppText.t.vis_showAuthorNames,
+                      style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.text),
+                    ),
+                  ),
+                  Switch(
+                    value: value.showAuthorNames,
+                    activeThumbColor: AppColors.accent,
+                    onChanged: (v) =>
+                        onChanged(value.copyWith(showAuthorNames: v)),
                   ),
                 ],
               ),

@@ -7894,4 +7894,161 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emailAuth_backButton => 'Back';
+
+  @override
+  String get unassigned_title => 'To assign';
+
+  @override
+  String get unassigned_hint =>
+      'Below are guests who entered with a package code but couldn\'t be matched to a specific person on the guest list. Assign them to an existing person, create a new one, or reject the entry.';
+
+  @override
+  String get unassigned_empty =>
+      'No entries waiting to be assigned. This is where guests end up after clicking \"this isn\'t my invitation\" or typing a name that didn\'t match anyone waiting on the list.';
+
+  @override
+  String unassigned_badge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count identities to assign',
+      one: '1 identity to assign',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unassigned_fromCode(String code) {
+    return 'From invitation: $code';
+  }
+
+  @override
+  String get unassigned_sourcePicked => 'picked from the list';
+
+  @override
+  String get unassigned_sourceTyped => 'typed a different name';
+
+  @override
+  String get unassigned_hasRsvpYes => '✓ Confirmed attendance';
+
+  @override
+  String get unassigned_hasRsvpNo => '✗ Declined';
+
+  @override
+  String get unassigned_hasMapEntry => '📍 Added a guest map entry';
+
+  @override
+  String unassigned_assignTo(String name) {
+    return 'This is $name';
+  }
+
+  @override
+  String get unassigned_createGuest => 'New guest';
+
+  @override
+  String get unassigned_reject => 'Reject';
+
+  @override
+  String get unassigned_rejectTitle => 'Reject this entry?';
+
+  @override
+  String get unassigned_rejectBody =>
+      'The entry disappears from \"To assign\". If the same browser comes back with the same code, it may appear again.';
+
+  @override
+  String get unassigned_assigned => 'Assigned to a guest.';
+
+  @override
+  String get unassigned_created => 'Created a new guest and assigned them.';
+
+  @override
+  String get unassigned_rejected => 'Rejected.';
+
+  @override
+  String unassigned_error(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get unassigned_inviterMissing =>
+      'Couldn\'t find this package\'s main guest.';
+
+  @override
+  String get common_and => 'and';
+
+  @override
+  String get notif_companionGroup => 'Plus one';
+
+  @override
+  String get notif_companionReminderGeneric =>
+      'You\'re invited with a plus one. Keep that in mind when you RSVP.';
+
+  @override
+  String notif_companionReminder(String names) {
+    return 'You\'re invited with a plus one ($names). Keep that in mind when you RSVP.';
+  }
+
+  @override
+  String get vis_showAuthorNames => 'Show author names';
+
+  @override
+  String get inv_printHeader => 'PRINT INVITATIONS';
+
+  @override
+  String get inv_printRangeLabel => 'Range';
+
+  @override
+  String get inv_printRangeAll => 'All';
+
+  @override
+  String inv_printRangeSelected(int count) {
+    return 'Selected ($count)';
+  }
+
+  @override
+  String inv_printRangeMissing(int count) {
+    return 'No code yet ($count)';
+  }
+
+  @override
+  String get inv_printFormatLabel => 'Format';
+
+  @override
+  String get inv_printPerPageLabel => 'Cards per sheet';
+
+  @override
+  String get inv_printPerPageOne => 'full page';
+
+  @override
+  String get inv_printPerPageTwo => '2 per sheet';
+
+  @override
+  String get inv_printPerPageFour => '4 per sheet';
+
+  @override
+  String get inv_printGenerate => 'Generate PDF';
+
+  @override
+  String get inv_printNothingSelected => 'No packages selected for printing.';
+
+  @override
+  String get inv_printNoCodes =>
+      'None of the selected packages have a code yet — generate one first.';
+
+  @override
+  String inv_printSkipped(int count) {
+    return 'Skipped $count packages without a code — generate codes for them and print again.';
+  }
+
+  @override
+  String get inv_printFileName => 'individual-invitations';
+
+  @override
+  String pdf_individualFor(String names) {
+    return 'Invitation for: $names';
+  }
+
+  @override
+  String get pdf_individualScanHint =>
+      'Scan the QR code with your phone to enter your guest zone';
 }

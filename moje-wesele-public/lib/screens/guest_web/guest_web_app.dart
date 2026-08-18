@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app_colors.dart';
+import '../../models/app_notification.dart';
 import '../../models/notification_snapshot.dart';
 import '../../models/wedding_countdown.dart';
 import '../../services/notification_service.dart';
@@ -102,6 +103,7 @@ class GuestWebHome extends StatefulWidget {
     required this.token,
     this.showHelp = false,
     this.onForgetIdentity,
+    this.companionNames,
   });
 
   final String token;
@@ -111,6 +113,15 @@ class GuestWebHome extends StatefulWidget {
   /// `null` przy wejściu wspólnym linkiem — nie ma wtedy czego zapominać,
   /// więc pozycja w menu się nie pokazuje.
   final VoidCallback? onForgetIdentity;
+
+  /// Etap 7 — przypomnienie o osobie towarzyszącej, wyłącznie przy wejściu
+  /// kodem paczki dla >1-osobowej paczki (`null` = nie dotyczy, np. wejście
+  /// wspólnym linkiem albo paczka jednoosobowa).
+  ///
+  /// Lista MOŻE być pusta — paczka jest wieloosobowa, ale reszta osób jeszcze
+  /// nie ma podanych imion („osoba towarzysząca do potwierdzenia"); wtedy
+  /// dzwoneczek dostaje ogólne przypomnienie bez imion.
+  final List<String>? companionNames;
 
   /// Czy pokazać własny przycisk „Pomoc".
   ///
@@ -149,10 +160,36 @@ class _GuestWebHomeState extends State<GuestWebHome> {
     super.initState();
     _ensureIdentity();
     _restoreReadNotifications();
+    _seedCompanionReminder();
   }
 
   Future<void> _restoreReadNotifications() async {
     _inbox.restoreRead(await _notifications.loadReadIds());
+  }
+
+  /// Etap 7 — jednorazowe przypomnienie o osobie towarzyszącej, dosiane od
+  /// razu w pamięci (nie przez [NotificationDetector] — to nie jest diff
+  /// względem poprzedniego stanu Firestore, tylko fakt znany już w chwili
+  /// wejścia kodem paczki, patrz [GuestWebHome.companionNames]).
+  ///
+  /// `initState` woła się raz na cały czas życia tego ekranu, więc to się nie
+  /// powtórzy przy każdej przebudowie — a deterministyczne `id` (oparte na
+  /// tokenie) i tak by to zduplikowało, gdyby się powtórzyło.
+  void _seedCompanionReminder() {
+    final names = widget.companionNames;
+    if (names == null) return;
+    final withNames = names.where((n) => n.trim().isNotEmpty).toList();
+    final text = withNames.isEmpty
+        ? AppText.t.notif_companionReminderGeneric
+        : AppText.t.notif_companionReminder(withNames.join(', '));
+    setState(() => _inbox.add([
+          AppNotification(
+            id: 'companion:${widget.token}',
+            kind: NotifKind.companionReminder,
+            text: text,
+            at: DateTime.now(),
+          ),
+        ]));
   }
 
   /// Sprawdza zmiany w harmonogramie po każdym snapshotcie z mirrora.
@@ -548,6 +585,9 @@ class _GuestWebHomeState extends State<GuestWebHome> {
   }
 
   void _openSection(GuestSectionDef s, Map<String, dynamic> space) {
+    // Etap 8 — czy wpisy tej sekcji pokazują imię autora, czy ogólne „gość".
+    final showAuthorNames =
+        GuestVisibility.fromRaw(space).sectionFor(s.key).showAuthorNames;
     Widget page;
     switch (s.key) {
       case 'guestbook':
@@ -558,6 +598,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           onSubmit: (name, msg) =>
               _service.addGuestbookEntry(name: name, message: msg),
           stream: _service.watchGuestbook(),
+          showAuthorNames: showAuthorNames,
         );
       case 'advice':
         page = _MessageWallPage(
@@ -566,9 +607,10 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           emptyText: AppText.t.gw_adviceEmpty,
           onSubmit: (name, msg) => _service.addAdvice(name: name, message: msg),
           stream: _service.watchAdvice(),
+          showAuthorNames: showAuthorNames,
         );
       case 'guestMap':
-        page = _GuestMapPage(service: _service);
+        page = _GuestMapPage(service: _service, showAuthorNames: showAuthorNames);
       case 'timeCapsule':
         page = _TimeCapsulePage(service: _service);
       case 'rsvp':
@@ -581,7 +623,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
         );
       // ── 5b-part-2 ──
       case 'gallery':
-        page = _GalleryPage(service: _service);
+        page = _GalleryPage(service: _service, showAuthorNames: showAuthorNames);
       case 'music':
         page = _MusicPage(service: _service);
       case 'quiz':
@@ -610,6 +652,7 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           service: _service,
           tasks: _mapsFrom(space['photoChallengeTasks']),
           active: space['photoChallengesActive'] == true,
+          showAuthorNames: showAuthorNames,
         );
       case 'bingo':
         page = _BingoPage(
@@ -816,6 +859,7 @@ class _MessageWallPage extends StatefulWidget {
     required this.emptyText,
     required this.onSubmit,
     required this.stream,
+    required this.showAuthorNames,
   });
 
   final String hint;
@@ -823,6 +867,9 @@ class _MessageWallPage extends StatefulWidget {
   final String emptyText;
   final Future<void> Function(String name, String message) onSubmit;
   final Stream<List<Map<String, dynamic>>> stream;
+
+  /// Etap 8 — `false` pokazuje „gość" zamiast imienia autora wpisu.
+  final bool showAuthorNames;
 
   @override
   State<_MessageWallPage> createState() => _MessageWallPageState();
@@ -907,7 +954,9 @@ class _MessageWallPageState extends State<_MessageWallPage> {
                 itemCount: entries.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, i) => _entryCard(
-                  (entries[i]['name'] as String?) ?? AppText.t.gw_guest,
+                  widget.showAuthorNames
+                      ? (entries[i]['name'] as String?) ?? AppText.t.gw_guest
+                      : AppText.t.gw_guest,
                   (entries[i]['message'] as String?) ?? '',
                 ),
               );
@@ -975,8 +1024,11 @@ class _SubmitButton extends StatelessWidget {
 
 /// Mapa gości — imię + miasto + pozdrowienie, PUBLICZNA lista.
 class _GuestMapPage extends StatefulWidget {
-  const _GuestMapPage({required this.service});
+  const _GuestMapPage({required this.service, required this.showAuthorNames});
   final GuestSpaceService service;
+
+  /// Etap 8 — `false` pokazuje „gość" zamiast imienia autora wpisu.
+  final bool showAuthorNames;
 
   @override
   State<_GuestMapPage> createState() => _GuestMapPageState();
@@ -1105,7 +1157,9 @@ class _GuestMapPageState extends State<_GuestMapPage> {
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final e = entries[i];
-                  final name = (e['name'] as String?) ?? AppText.t.gw_guest;
+                  final name = widget.showAuthorNames
+                      ? (e['name'] as String?) ?? AppText.t.gw_guest
+                      : AppText.t.gw_guest;
                   final city = (e['city'] as String?) ?? '';
                   final greet = (e['greeting'] as String?) ?? '';
                   return _entryCard(

@@ -103,6 +103,7 @@ class SectionVisibility {
     this.from,
     this.to,
     this.outOfRange = OutOfRangeMode.message,
+    this.showAuthorNames = true,
   });
 
   /// Czy sekcja jest w ogóle włączona dla gości.
@@ -117,6 +118,16 @@ class SectionVisibility {
   /// 'message' | 'hide' — co widzi gość, gdy poza zakresem/wyłączone.
   final String outOfRange;
 
+  /// Czy wpisy gości pokazują imię autora (etap 8, indywidualne
+  /// zaproszenia). DOMYŚLNIE włączone — ukrycie imion zabija sens księgi
+  /// gości, mapy i rad (ustalone w analizie 0.1). Gdy wyłączone, wpisy
+  /// pokazują ogólne „gość" zamiast imienia.
+  ///
+  /// ⚠️ To OSOBNA sprawa od tożsamości z paczki zaproszeniowej ([identities])
+  /// — ta jest i tak widoczna wyłącznie dla organizatora. Ten przełącznik
+  /// dotyczy tego, co WIDZĄ INNI GOŚCIE pod cudzym wpisem.
+  final bool showAuthorNames;
+
   SectionVisibility copyWith({
     bool? enabled,
     String? from,
@@ -124,12 +135,14 @@ class SectionVisibility {
     bool clearFrom = false,
     bool clearTo = false,
     String? outOfRange,
+    bool? showAuthorNames,
   }) =>
       SectionVisibility(
         enabled: enabled ?? this.enabled,
         from: clearFrom ? null : (from ?? this.from),
         to: clearTo ? null : (to ?? this.to),
         outOfRange: outOfRange ?? this.outOfRange,
+        showAuthorNames: showAuthorNames ?? this.showAuthorNames,
       );
 
   factory SectionVisibility.fromMap(Map<String, dynamic> m) => SectionVisibility(
@@ -139,6 +152,8 @@ class SectionVisibility {
         outOfRange: m['outOfRange'] == OutOfRangeMode.hide
             ? OutOfRangeMode.hide
             : OutOfRangeMode.message,
+        showAuthorNames:
+            m['showAuthorNames'] is bool ? m['showAuthorNames'] as bool : true,
       );
 
   Map<String, dynamic> toMap() => {
@@ -146,6 +161,7 @@ class SectionVisibility {
         'from': from,
         'to': to,
         'outOfRange': outOfRange,
+        'showAuthorNames': showAuthorNames,
       };
 
   static String? _cleanDate(dynamic v) =>

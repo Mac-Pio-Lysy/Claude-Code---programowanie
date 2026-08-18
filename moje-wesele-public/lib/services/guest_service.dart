@@ -353,6 +353,67 @@ class GuestService {
     );
   }
 
+  /// Tworzy osobę towarzyszącą [inviterId] i zwraca jej nowe `id`.
+  ///
+  /// Wariant [createCompanionFor] do użycia tam, gdzie wołający MUSI od razu
+  /// znać nowe `id` (np. żeby powiązać je z tożsamością z paczki, etap 5) —
+  /// [createCompanionFor] tego nie zwraca i dodatkowo pomija zapis, gdy
+  /// zapraszający ma już powiązaną osobę towarzyszącą (naprawa starych
+  /// danych), co tutaj byłoby błędne: „do przypisania" może dokładać KOLEJNE
+  /// osoby do tej samej paczki.
+  Future<int> createCompanionWithId(
+    int inviterId, {
+    required String firstName,
+    required String lastName,
+  }) async {
+    final data = await _firestore.readData() ?? <String, dynamic>{};
+    final guests = _mapList(data['guests']);
+    final idx = guests.indexWhere((g) => _idOf(g) == inviterId);
+    if (idx == -1) {
+      throw GuestRuleException(AppText.t.unassigned_inviterMissing);
+    }
+    final inviter = guests[idx];
+
+    checkCoupleRules(
+      guests,
+      category: (inviter['category'] as String?) ?? '',
+      hasCompanion: true,
+      exceptId: inviterId,
+    );
+
+    var nextId = _nextGuestId(data, guests);
+    final newId = nextId++;
+
+    final draft = GuestDraft(
+      firstName: '',
+      lastName: '',
+      invitedBy: inviter['invitedBy'] as String?,
+      category: (inviter['category'] as String?) ?? '',
+      gender: 'N',
+      witness: null,
+      menuChoice: '',
+      hasCompanion: true,
+      companionFirstName: firstName,
+      companionLastName: lastName,
+      needsAccommodation: false,
+    );
+
+    guests.add(buildCompanionRecord(
+      id: newId,
+      draft: draft,
+      inviterId: inviterId,
+      inviterLastName: (inviter['lastName'] as String?) ?? '',
+      inviterCategory: (inviter['category'] as String?) ?? '',
+      inviterInvitedBy: inviter['invitedBy'] as String?,
+    ));
+
+    await _firestore.mainDoc.set(
+      {'guests': guests, 'nextGuestId': nextId},
+      SetOptions(merge: true),
+    );
+    return newId;
+  }
+
   /// Aktualizuje istniejącego gościa, zachowując pozostałe pola.
   Future<void> updateGuest(int id, GuestDraft draft) async {
     final data = await _firestore.readData() ?? <String, dynamic>{};

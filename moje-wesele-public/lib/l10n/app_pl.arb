@@ -4842,5 +4842,110 @@
   "emailAuth_errorPasswordMismatch": "Hasła nie są takie same.",
   "emailAuth_showPassword": "Pokaż hasło",
   "emailAuth_hidePassword": "Ukryj hasło",
-  "emailAuth_backButton": "Wstecz"
+  "emailAuth_backButton": "Wstecz",
+  "unassigned_title": "Do przypisania",
+  "unassigned_hint": "Poniżej goście, którzy weszli kodem paczki, ale nie udało się ich jednoznacznie dopasować do listy gości. Przypisz do istniejącej osoby, utwórz nową, albo odrzuć zgłoszenie.",
+  "unassigned_empty": "Brak zgłoszeń czekających na przypisanie. Tu trafiają goście, którzy kliknęli „to nie moje zaproszenie” albo wpisali imię, którego nie było na liście oczekujących.",
+  "unassigned_badge": "{count, plural, =1{1 tożsamość do przypisania} few{{count} tożsamości do przypisania} other{{count} tożsamości do przypisania}}",
+  "@unassigned_badge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "unassigned_fromCode": "Z zaproszenia: {code}",
+  "@unassigned_fromCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "unassigned_sourcePicked": "wybrał(a) z listy",
+  "unassigned_sourceTyped": "wpisał(a) inne imię",
+  "unassigned_hasRsvpYes": "✓ Potwierdził(a) obecność",
+  "unassigned_hasRsvpNo": "✗ Odwołał(a) obecność",
+  "unassigned_hasMapEntry": "📍 Wpisał(a) się na mapę gości",
+  "unassigned_assignTo": "To {name}",
+  "@unassigned_assignTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "unassigned_createGuest": "Nowy gość",
+  "unassigned_reject": "Odrzuć",
+  "unassigned_rejectTitle": "Odrzucić zgłoszenie?",
+  "unassigned_rejectBody": "Wpis zniknie z listy „Do przypisania”. Jeśli ta sama przeglądarka wejdzie ponownie tym samym kodem, może pojawić się jeszcze raz.",
+  "unassigned_assigned": "Przypisano do gościa.",
+  "unassigned_created": "Utworzono nowego gościa i przypisano.",
+  "unassigned_rejected": "Odrzucono.",
+  "unassigned_error": "Błąd: {error}",
+  "@unassigned_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "unassigned_inviterMissing": "Nie znaleziono gościa głównego tej paczki.",
+  "common_and": "i",
+  "notif_companionGroup": "Osoba towarzysząca",
+  "notif_companionReminderGeneric": "Jesteś zaproszony/a z osobą towarzyszącą. Pamiętaj o tym przy potwierdzaniu obecności.",
+  "notif_companionReminder": "Jesteś zaproszony/a z osobą towarzyszącą ({names}). Pamiętaj o tym przy potwierdzaniu obecności.",
+  "@notif_companionReminder": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "vis_showAuthorNames": "Pokazuj imiona autorów",
+  "inv_printHeader": "WYDRUK ZAPROSZEŃ",
+  "inv_printRangeLabel": "Zakres",
+  "inv_printRangeAll": "Wszystkie",
+  "inv_printRangeSelected": "Zaznaczone ({count})",
+  "@inv_printRangeSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_printRangeMissing": "Bez kodu ({count})",
+  "@inv_printRangeMissing": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_printFormatLabel": "Format",
+  "inv_printPerPageLabel": "Kart na arkuszu",
+  "inv_printPerPageOne": "cała strona",
+  "inv_printPerPageTwo": "2 na arkuszu",
+  "inv_printPerPageFour": "4 na arkuszu",
+  "inv_printGenerate": "Generuj PDF",
+  "inv_printNothingSelected": "Nie wybrano żadnej paczki do wydruku.",
+  "inv_printNoCodes": "Żadna z wybranych paczek nie ma jeszcze kodu — najpierw go wygeneruj.",
+  "inv_printSkipped": "Pominięto {count} paczek bez kodu — wygeneruj im kody i wydrukuj ponownie.",
+  "@inv_printSkipped": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "inv_printFileName": "zaproszenia-indywidualne",
+  "pdf_individualFor": "Zaproszenie dla: {names}",
+  "@pdf_individualFor": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "pdf_individualScanHint": "Zeskanuj kod QR telefonem, żeby wejść do swojej strefy gościa"
 }

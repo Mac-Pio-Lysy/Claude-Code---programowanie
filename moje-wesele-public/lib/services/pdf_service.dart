@@ -4,8 +4,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../config/public_urls.dart';
 import '../models/advice.dart';
 import '../models/guestbook_entry.dart';
+import '../models/join_code.dart';
 import '../models/schedule_event.dart';
 import '../models/time_capsule_message.dart';
 import '../l10n/app_text.dart';
@@ -369,6 +371,200 @@ class PdfService {
       if (events.isEmpty) pw.Text(AppText.t.pdf_scheduleEmpty),
     ];
   }
+
+  // ── INDYWIDUALNE ZAPROSZENIA (etap 6) ────────────────────────────────
+
+  /// Wydruk zaproszeń per paczka — jeden PDF, wiele stron.
+  ///
+  /// [format] A6/A5 → jedna karta na stronę (pętla `addPage`, jak [bingo]).
+  /// [format] A4 z [perPage] 2 lub 4 → siatka kart na arkuszu z liniami
+  /// cięcia, żeby dało się je rozciąć po wydruku.
+  ///
+  /// QR prowadzi na `<baseUrl>/?i=<KOD>` (patrz `PublicPages.inviteEntry`) —
+  /// zeskanowanie wpuszcza gościa prosto do wyboru tożsamości, bez ręcznego
+  /// wpisywania kodu.
+  static Future<Uint8List> individualInvitations({
+    required List<({String code, String names})> packages,
+    required String baseUrl,
+    required String eventName,
+    required String persons,
+    PdfPageFormat format = PdfPageFormat.a6,
+    int perPage = 1,
+    void Function(int done, int total)? onProgress,
+  }) async {
+    final doc = pw.Document(theme: await _theme());
+    final total = packages.length;
+    var done = 0;
+
+    if (perPage <= 1) {
+      for (final p in packages) {
+        doc.addPage(pw.Page(
+          pageFormat: format,
+          margin: const pw.EdgeInsets.all(20),
+          build: (ctx) => _individualCard(
+            code: p.code,
+            names: p.names,
+            url: PublicPages.inviteEntry(baseUrl, p.code),
+            eventName: eventName,
+            persons: persons,
+          ),
+        ));
+        done++;
+        onProgress?.call(done, total);
+        // Oddaje sterowanie pętli zdarzeń, żeby pasek postępu zdążył się
+        // przerysować — bez tego cała pętla (czysto synchroniczna) wykonałaby
+        // się między jedną klatką a drugą i pasek „przeskoczyłby" od razu na 100%.
+        await Future<void>.delayed(Duration.zero);
+      }
+    } else {
+      for (var i = 0; i < packages.length; i += perPage) {
+        final chunk = packages.sublist(
+            i, i + perPage > packages.length ? packages.length : i + perPage);
+        doc.addPage(pw.Page(
+          pageFormat: format,
+          margin: const pw.EdgeInsets.all(14),
+          build: (ctx) => _invitationGrid(
+            chunk,
+            perPage: perPage,
+            baseUrl: baseUrl,
+            eventName: eventName,
+            persons: persons,
+          ),
+        ));
+        done += chunk.length;
+        onProgress?.call(done, total);
+        await Future<void>.delayed(Duration.zero);
+      }
+    }
+    return doc.save();
+  }
+
+  /// Karta jednej paczki (A6/A5, cała strona).
+  static pw.Widget _individualCard({
+    required String code,
+    required String names,
+    required String url,
+    required String eventName,
+    required String persons,
+  }) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(border: pw.Border.all(color: _accent, width: 1.4)),
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Container(
+        decoration: pw.BoxDecoration(border: pw.Border.all(color: _accent, width: 0.5)),
+        padding: const pw.EdgeInsets.fromLTRB(18, 20, 18, 18),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          mainAxisAlignment: pw.MainAxisAlignment.center,
+          children: [
+            pw.Text('❦', style: pw.TextStyle(fontSize: 15, color: _accent)),
+            pw.SizedBox(height: 6),
+            if (eventName.trim().isNotEmpty)
+              pw.Text(eventName.trim(),
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(
+                      fontSize: 16, fontWeight: pw.FontWeight.bold, color: _ink)),
+            if (persons.trim().isNotEmpty) ...[
+              pw.SizedBox(height: 2),
+              pw.Text(persons.trim(),
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(fontSize: 10.5, color: _accent)),
+            ],
+            pw.SizedBox(height: 10),
+            pw.Container(height: 0.7, width: 80, color: _accent),
+            pw.SizedBox(height: 10),
+            pw.Text(AppText.t.pdf_individualFor(names),
+                textAlign: pw.TextAlign.center,
+                style: pw.TextStyle(
+                    fontSize: 13, fontWeight: pw.FontWeight.bold, color: _ink)),
+            pw.SizedBox(height: 12),
+            pw.BarcodeWidget(
+              barcode: pw.Barcode.qrCode(),
+              data: url,
+              width: 100,
+              height: 100,
+              color: _accent,
+            ),
+            pw.SizedBox(height: 6),
+            pw.Text(AppText.t.pdf_individualScanHint,
+                textAlign: pw.TextAlign.center,
+                style: const pw.TextStyle(fontSize: 8, color: _muted)),
+            pw.SizedBox(height: 6),
+            pw.Text(JoinCode.format(code),
+                style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 1.2,
+                    color: _accent)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Siatka 2 lub 4 kart na arkuszu A4, z liniami cięcia.
+  static pw.Widget _invitationGrid(
+    List<({String code, String names})> chunk, {
+    required int perPage,
+    required String baseUrl,
+    required String eventName,
+    required String persons,
+  }) {
+    pw.Widget cell(({String code, String names})? p) => pw.Expanded(
+          child: p == null
+              ? pw.SizedBox()
+              : pw.Padding(
+                  padding: const pw.EdgeInsets.all(6),
+                  child: _individualCard(
+                    code: p.code,
+                    names: p.names,
+                    url: PublicPages.inviteEntry(baseUrl, p.code),
+                    eventName: eventName,
+                    persons: persons,
+                  ),
+                ),
+        );
+
+    final padded = List<({String code, String names})?>.from(chunk);
+    while (padded.length < perPage) {
+      padded.add(null);
+    }
+
+    pw.Widget row(List<pw.Widget> children) => pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: children,
+        );
+
+    if (perPage == 2) {
+      return row([cell(padded[0]), _cutLine(vertical: true), cell(padded[1])]);
+    }
+    // perPage == 4: siatka 2×2.
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+      children: [
+        pw.Expanded(
+          child: row([cell(padded[0]), _cutLine(vertical: true), cell(padded[1])]),
+        ),
+        _cutLine(vertical: false),
+        pw.Expanded(
+          child: row([cell(padded[2]), _cutLine(vertical: true), cell(padded[3])]),
+        ),
+      ],
+    );
+  }
+
+  /// Cienka linia cięcia między kartami na arkuszu A4.
+  ///
+  /// Zwykła cienka linia, nie przerywana: `pdf`/`printing` nie mają wbudowanej
+  /// przerywanej ramki, a odtworzenie jej z osobnych kresek wymagałoby znać z
+  /// góry dostępną wysokość/szerokość (zależy od formatu strony i nie da się
+  /// tu jej policzyć). `CrossAxisAlignment.stretch` na rodzicu rozciąga tę
+  /// linię dokładnie na całą dostępną przestrzeń niezależnie od formatu.
+  static pw.Widget _cutLine({required bool vertical}) => pw.Container(
+        width: vertical ? 0.75 : null,
+        height: vertical ? null : 0.75,
+        color: const PdfColor.fromInt(0xFFB9C3D6),
+      );
 
   // ── KSIĘGA GOŚCI ─────────────────────────────────────────────────────
 

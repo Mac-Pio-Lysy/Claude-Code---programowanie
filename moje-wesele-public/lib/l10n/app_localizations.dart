@@ -13866,6 +13866,258 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Wstecz'**
   String get emailAuth_backButton;
+
+  /// No description provided for @unassigned_title.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do przypisania'**
+  String get unassigned_title;
+
+  /// No description provided for @unassigned_hint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Poniżej goście, którzy weszli kodem paczki, ale nie udało się ich jednoznacznie dopasować do listy gości. Przypisz do istniejącej osoby, utwórz nową, albo odrzuć zgłoszenie.'**
+  String get unassigned_hint;
+
+  /// No description provided for @unassigned_empty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak zgłoszeń czekających na przypisanie. Tu trafiają goście, którzy kliknęli „to nie moje zaproszenie” albo wpisali imię, którego nie było na liście oczekujących.'**
+  String get unassigned_empty;
+
+  /// No description provided for @unassigned_badge.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count, plural, =1{1 tożsamość do przypisania} few{{count} tożsamości do przypisania} other{{count} tożsamości do przypisania}}'**
+  String unassigned_badge(int count);
+
+  /// No description provided for @unassigned_fromCode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Z zaproszenia: {code}'**
+  String unassigned_fromCode(String code);
+
+  /// No description provided for @unassigned_sourcePicked.
+  ///
+  /// In pl, this message translates to:
+  /// **'wybrał(a) z listy'**
+  String get unassigned_sourcePicked;
+
+  /// No description provided for @unassigned_sourceTyped.
+  ///
+  /// In pl, this message translates to:
+  /// **'wpisał(a) inne imię'**
+  String get unassigned_sourceTyped;
+
+  /// No description provided for @unassigned_hasRsvpYes.
+  ///
+  /// In pl, this message translates to:
+  /// **'✓ Potwierdził(a) obecność'**
+  String get unassigned_hasRsvpYes;
+
+  /// No description provided for @unassigned_hasRsvpNo.
+  ///
+  /// In pl, this message translates to:
+  /// **'✗ Odwołał(a) obecność'**
+  String get unassigned_hasRsvpNo;
+
+  /// No description provided for @unassigned_hasMapEntry.
+  ///
+  /// In pl, this message translates to:
+  /// **'📍 Wpisał(a) się na mapę gości'**
+  String get unassigned_hasMapEntry;
+
+  /// No description provided for @unassigned_assignTo.
+  ///
+  /// In pl, this message translates to:
+  /// **'To {name}'**
+  String unassigned_assignTo(String name);
+
+  /// No description provided for @unassigned_createGuest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowy gość'**
+  String get unassigned_createGuest;
+
+  /// No description provided for @unassigned_reject.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odrzuć'**
+  String get unassigned_reject;
+
+  /// No description provided for @unassigned_rejectTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odrzucić zgłoszenie?'**
+  String get unassigned_rejectTitle;
+
+  /// No description provided for @unassigned_rejectBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wpis zniknie z listy „Do przypisania”. Jeśli ta sama przeglądarka wejdzie ponownie tym samym kodem, może pojawić się jeszcze raz.'**
+  String get unassigned_rejectBody;
+
+  /// No description provided for @unassigned_assigned.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypisano do gościa.'**
+  String get unassigned_assigned;
+
+  /// No description provided for @unassigned_created.
+  ///
+  /// In pl, this message translates to:
+  /// **'Utworzono nowego gościa i przypisano.'**
+  String get unassigned_created;
+
+  /// No description provided for @unassigned_rejected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Odrzucono.'**
+  String get unassigned_rejected;
+
+  /// No description provided for @unassigned_error.
+  ///
+  /// In pl, this message translates to:
+  /// **'Błąd: {error}'**
+  String unassigned_error(String error);
+
+  /// No description provided for @unassigned_inviterMissing.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie znaleziono gościa głównego tej paczki.'**
+  String get unassigned_inviterMissing;
+
+  /// No description provided for @common_and.
+  ///
+  /// In pl, this message translates to:
+  /// **'i'**
+  String get common_and;
+
+  /// No description provided for @notif_companionGroup.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osoba towarzysząca'**
+  String get notif_companionGroup;
+
+  /// No description provided for @notif_companionReminderGeneric.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jesteś zaproszony/a z osobą towarzyszącą. Pamiętaj o tym przy potwierdzaniu obecności.'**
+  String get notif_companionReminderGeneric;
+
+  /// No description provided for @notif_companionReminder.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jesteś zaproszony/a z osobą towarzyszącą ({names}). Pamiętaj o tym przy potwierdzaniu obecności.'**
+  String notif_companionReminder(String names);
+
+  /// No description provided for @vis_showAuthorNames.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pokazuj imiona autorów'**
+  String get vis_showAuthorNames;
+
+  /// No description provided for @inv_printHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'WYDRUK ZAPROSZEŃ'**
+  String get inv_printHeader;
+
+  /// No description provided for @inv_printRangeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zakres'**
+  String get inv_printRangeLabel;
+
+  /// No description provided for @inv_printRangeAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wszystkie'**
+  String get inv_printRangeAll;
+
+  /// No description provided for @inv_printRangeSelected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznaczone ({count})'**
+  String inv_printRangeSelected(int count);
+
+  /// No description provided for @inv_printRangeMissing.
+  ///
+  /// In pl, this message translates to:
+  /// **'Bez kodu ({count})'**
+  String inv_printRangeMissing(int count);
+
+  /// No description provided for @inv_printFormatLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Format'**
+  String get inv_printFormatLabel;
+
+  /// No description provided for @inv_printPerPageLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kart na arkuszu'**
+  String get inv_printPerPageLabel;
+
+  /// No description provided for @inv_printPerPageOne.
+  ///
+  /// In pl, this message translates to:
+  /// **'cała strona'**
+  String get inv_printPerPageOne;
+
+  /// No description provided for @inv_printPerPageTwo.
+  ///
+  /// In pl, this message translates to:
+  /// **'2 na arkuszu'**
+  String get inv_printPerPageTwo;
+
+  /// No description provided for @inv_printPerPageFour.
+  ///
+  /// In pl, this message translates to:
+  /// **'4 na arkuszu'**
+  String get inv_printPerPageFour;
+
+  /// No description provided for @inv_printGenerate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Generuj PDF'**
+  String get inv_printGenerate;
+
+  /// No description provided for @inv_printNothingSelected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie wybrano żadnej paczki do wydruku.'**
+  String get inv_printNothingSelected;
+
+  /// No description provided for @inv_printNoCodes.
+  ///
+  /// In pl, this message translates to:
+  /// **'Żadna z wybranych paczek nie ma jeszcze kodu — najpierw go wygeneruj.'**
+  String get inv_printNoCodes;
+
+  /// No description provided for @inv_printSkipped.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pominięto {count} paczek bez kodu — wygeneruj im kody i wydrukuj ponownie.'**
+  String inv_printSkipped(int count);
+
+  /// No description provided for @inv_printFileName.
+  ///
+  /// In pl, this message translates to:
+  /// **'zaproszenia-indywidualne'**
+  String get inv_printFileName;
+
+  /// No description provided for @pdf_individualFor.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszenie dla: {names}'**
+  String pdf_individualFor(String names);
+
+  /// No description provided for @pdf_individualScanHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zeskanuj kod QR telefonem, żeby wejść do swojej strefy gościa'**
+  String get pdf_individualScanHint;
 }
 
 class _AppLocalizationsDelegate

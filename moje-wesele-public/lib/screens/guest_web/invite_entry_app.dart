@@ -91,6 +91,22 @@ class _InviteEntryScreenState extends State<InviteEntryScreen> {
     }
   }
 
+  /// Imiona pozostałych osób z paczki — `null`, gdy przypomnienie o osobie
+  /// towarzyszącej się nie należy (etap 7).
+  ///
+  /// Świadomie WYŁĄCZNIE dla tożsamości wskazującej konkretną osobę
+  /// ([PackageIdentity.isAssigned]) — przy „to nie moje zaproszenie" nie
+  /// wiadomo nawet, czy to w ogóle ta paczka, więc przypominanie o kimś
+  /// byłoby zgadywanką.
+  List<String>? _companionNames(InviteCodeDoc doc, PackageIdentity identity) {
+    if (!identity.isAssigned || doc.members.length < 2) return null;
+    return [
+      for (final m in doc.members)
+        if (m.guestId != identity.guestId && !m.namePending && m.name.isNotEmpty)
+          m.name,
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -123,7 +139,8 @@ class _InviteEntryScreenState extends State<InviteEntryScreen> {
       );
     }
 
-    if (_identity == null) {
+    final identity = _identity;
+    if (identity == null) {
       return IdentityPickerScreen(doc: doc, onPicked: _onPicked);
     }
 
@@ -132,6 +149,7 @@ class _InviteEntryScreenState extends State<InviteEntryScreen> {
       token: doc.guestToken,
       showHelp: true,
       onForgetIdentity: _forget,
+      companionNames: _companionNames(doc, identity),
     );
   }
 }

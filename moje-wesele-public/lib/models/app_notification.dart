@@ -13,7 +13,14 @@ enum NotifKind {
   taskAdded,
 
   /// Nowy albo zmieniony punkt harmonogramu.
-  schedule;
+  schedule,
+
+  /// Gość przejął tożsamość z paczki >1-osobowej — przypomnienie o osobie
+  /// towarzyszącej (etap 7, indywidualne zaproszenia). WYŁĄCZNIE po stronie
+  /// gościa — strefa gościa i tak ignoruje [section]/[subTab] przy kliknięciu
+  /// („Gość nie ma dokąd »przejść«", `GuestWebHome._openNotifications`), więc
+  /// ten wpis nigdy nie trafia do centrum powiadomień ORGANIZATORA.
+  companionReminder;
 
   /// Sekcja, do której prowadzi kliknięcie.
   AppSection get section => switch (this) {
@@ -21,6 +28,7 @@ enum NotifKind {
         NotifKind.guestAdded => AppSection.guests,
         NotifKind.taskAdded => AppSection.tasks,
         NotifKind.schedule => AppSection.schedule,
+        NotifKind.companionReminder => AppSection.schedule,
       };
 
   /// Podzakładka docelowa (`null` = sekcja główna).
@@ -36,6 +44,7 @@ enum NotifKind {
         NotifKind.guestAdded => AppText.t.section_guests,
         NotifKind.taskAdded => 'Zadania',
         NotifKind.schedule => 'Harmonogram',
+        NotifKind.companionReminder => AppText.t.notif_companionGroup,
       };
 
   String get emoji => switch (this) {
@@ -43,6 +52,7 @@ enum NotifKind {
         NotifKind.guestAdded => '👤',
         NotifKind.taskAdded => '✅',
         NotifKind.schedule => '🕒',
+        NotifKind.companionReminder => '👥',
       };
 }
 

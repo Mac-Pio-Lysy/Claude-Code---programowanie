@@ -49,8 +49,11 @@ List<Map<String, dynamic>> _mapsFrom(dynamic raw) => [
 // ───────────────────────────────────────────────────────────────────────────
 
 class _GalleryPage extends StatefulWidget {
-  const _GalleryPage({required this.service});
+  const _GalleryPage({required this.service, required this.showAuthorNames});
   final GuestSpaceService service;
+
+  /// Etap 8 — `false` pokazuje „gość" zamiast imienia autora zdjęcia.
+  final bool showAuthorNames;
 
   @override
   State<_GalleryPage> createState() => _GalleryPageState();
@@ -156,7 +159,9 @@ class _GalleryPageState extends State<_GalleryPage> {
 
   Widget _photoTile(Map<String, dynamic> item) {
     final url = (item['photoUrl'] as String?) ?? '';
-    final name = (item['name'] as String?) ?? AppText.t.gw_guest;
+    final name = widget.showAuthorNames
+        ? (item['name'] as String?) ?? AppText.t.gw_guest
+        : AppText.t.gw_guest;
     final caption = (item['caption'] as String?) ?? '';
     return GestureDetector(
       onTap: url.isEmpty ? null : () => _openFull(url, name, caption),
@@ -1042,11 +1047,15 @@ class _PhotoChallengePage extends StatefulWidget {
     required this.service,
     required this.tasks,
     required this.active,
+    required this.showAuthorNames,
   });
 
   final GuestSpaceService service;
   final List<Map<String, dynamic>> tasks;
   final bool active;
+
+  /// Etap 8 — `false` pokazuje „gość" zamiast imienia autora zgłoszenia.
+  final bool showAuthorNames;
 
   @override
   State<_PhotoChallengePage> createState() => _PhotoChallengePageState();
@@ -1152,17 +1161,44 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
               itemCount: items.length,
               itemBuilder: (context, i) {
                 final url = (items[i]['photoUrl'] as String?) ?? '';
+                final name = widget.showAuthorNames
+                    ? (items[i]['name'] as String?) ?? AppText.t.gw_guest
+                    : AppText.t.gw_guest;
                 return ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: url.isEmpty
-                      ? const ColoredBox(color: Color(0xFFF1F5FC))
-                      : Image.network(url,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const ColoredBox(
-                                color: Color(0xFFF1F5FC),
-                                child: Icon(Icons.broken_image_outlined,
-                                    color: AppColors.textLight),
-                              )),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      url.isEmpty
+                          ? const ColoredBox(color: Color(0xFFF1F5FC))
+                          : Image.network(url,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => const ColoredBox(
+                                    color: Color(0xFFF1F5FC),
+                                    child: Icon(Icons.broken_image_outlined,
+                                        color: AppColors.textLight),
+                                  )),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 3),
+                          color: const Color(0x99000000),
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             );

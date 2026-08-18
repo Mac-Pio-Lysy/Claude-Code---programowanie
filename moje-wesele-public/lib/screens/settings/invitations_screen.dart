@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pdf/pdf.dart';
 
 import '../../app_colors.dart';
+import '../../config/public_urls.dart';
 import '../../l10n/app_text.dart';
 import '../../models/guest.dart';
 import '../../models/invite_package.dart';
 import '../../models/join_code.dart';
 import '../../services/config_service.dart';
+import '../../services/guest_space_service.dart';
 import '../../services/invite_code_service.dart';
+import '../../services/pdf_service.dart';
+import 'unassigned_identities_screen.dart';
 
 /// Ekran „Zaproszenia dla gości" — wybór trybu i podgląd paczek.
 ///
@@ -45,10 +50,36 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
 
   late final InviteCodeService _codes = widget.codeService ?? InviteCodeService();
 
+  /// Token strefy gości — `null`/pusty, dopóki wesele go jeszcze nie ma
+  /// (zanim organizator włączy stronę dla gości).
+  String get _guestToken => (widget.raw['guestToken'] as String?)?.trim() ?? '';
+
+  late final GuestSpaceService? _guestSpace =
+      _guestToken.isEmpty ? null : GuestSpaceService(token: _guestToken);
+
   /// Prywatny indeks kodów. Trzymany w stanie, bo po każdej operacji
   /// odświeżamy go lokalnie — ekran dostaje `raw` jako zdjęcie z chwili
   /// wejścia i nie odświeża się sam.
   late Map<int, PackageCode> _index = InviteCodeService.indexOf(widget.raw);
+
+  // ── Wydruk zaproszeń per paczka (etap 6) ──────────────────────────────
+  static const Map<String, PdfPageFormat> _printFormats = {
+    'A6': PdfPageFormat.a6,
+    'A5': PdfPageFormat.a5,
+    'A4': PdfPageFormat.a4,
+  };
+  String _printFormat = 'A6';
+
+  /// Ile kart na arkuszu — ma znaczenie tylko dla formatu A4.
+  int _perPage = 1;
+
+  /// Zakres wydruku: wszystkie / zaznaczone / bez wygenerowanego kodu.
+  String _printRange = 'all';
+  final Set<int> _selectedForPrint = {};
+  bool _printing = false;
+
+  /// `null` = brak paska (jeszcze nie liczymy), `0..1` = postęp.
+  double? _printProgress;
 
   /// Trwa generowanie / synchronizacja (blokuje przyciski).
   bool _busy = false;
@@ -171,6 +202,105 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     if (mounted) setState(() => _index = fresh);
   }
 
+  /// Paczki wybrane do wydruku wg aktualnego zakresu.
+  List<InvitePackage> _printTargets(List<InvitePackage> packages) =>
+      switch (_printRange) {
+        'selected' =>
+          packages.where((p) => _selectedForPrint.contains(p.id)).toList(),
+        'missing' => packages.where((p) => !_index.containsKey(p.id)).toList(),
+        _ => packages,
+      };
+
+  Future<void> _printInvitations() async {
+    final packages = _packages;
+    var targets = _printTargets(packages);
+    if (targets.isEmpty) {
+      _toast(AppText.t.inv_printNothingSelected);
+      return;
+    }
+
+    setState(() {
+      _printing = true;
+      _printProgress = null;
+    });
+    try {
+      // Zakres „bez kodu" najpierw dogenerowuje kody dokładnie tym paczkom —
+      // bez kodu nie ma czego zakodować w QR.
+      if (_printRange == 'missing') {
+        await _codes.generateMissing(
+          targets,
+          _rawWithIndex(),
+          onProgress: (done, total) =>
+              setState(() => _progress = AppText.t.inv_generating(done, total)),
+        );
+        await _reloadIndex();
+        setState(() => _progress = null);
+        // Po dogenerowaniu kodów `targets` (obliczone przed chwilą) wskazują
+        // wciąż te same paczki — kody teraz już istnieją w `_index`.
+      }
+
+      final toPrint = <({String code, String names})>[];
+      for (final p in targets) {
+        final c = _index[p.id];
+        if (c == null || c.code.isEmpty || c.revoked) continue;
+        toPrint.add((
+          code: c.code,
+          names: _joinNames(p.everyone.map((g) => g.fullName).toList()),
+        ));
+      }
+      if (toPrint.isEmpty) {
+        if (mounted) _toast(AppText.t.inv_printNoCodes);
+        return;
+      }
+      final skipped = targets.length - toPrint.length;
+
+      final cfg = widget.raw['appConfig'];
+      final eventName =
+          (cfg is Map ? cfg['eventName'] as String? : null)?.trim() ?? '';
+      final persons =
+          (cfg is Map ? cfg['displayNames'] as String? : null)?.trim() ?? '';
+      final baseUrl = PublicPages.baseUrl(widget.raw);
+
+      final bytes = await PdfService.individualInvitations(
+        packages: toPrint,
+        baseUrl: baseUrl,
+        eventName: eventName,
+        persons: persons,
+        format: _printFormats[_printFormat] ?? PdfPageFormat.a6,
+        perPage: _printFormat == 'A4' ? _perPage : 1,
+        onProgress: (done, total) => setState(
+            () => _printProgress = total == 0 ? null : done / total),
+      );
+      await PdfService.preview(bytes, AppText.t.inv_printFileName);
+      // Zakres „bez kodu" dogenerował kody wszystkim swoim celom, więc tam
+      // pominięcia nie mają prawa wystąpić — komunikat tylko dla „wszystkie"
+      // / „zaznaczone", gdzie część paczek mogła nie mieć jeszcze kodu.
+      if (mounted && skipped > 0 && _printRange != 'missing') {
+        _toast(AppText.t.inv_printSkipped(skipped));
+      }
+    } catch (e) {
+      if (mounted) _toast(AppText.t.inv_error('$e'));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _printing = false;
+          _printProgress = null;
+        });
+      }
+    }
+  }
+
+  /// „Anna, Wojtek i Kasia" — imiona paczki do zdania na karcie.
+  String _joinNames(List<String> names) {
+    final clean = [
+      for (final n in names)
+        if (n.trim().isNotEmpty) n.trim()
+    ];
+    if (clean.isEmpty) return '';
+    if (clean.length == 1) return clean.first;
+    return '${clean.sublist(0, clean.length - 1).join(', ')} ${AppText.t.common_and} ${clean.last}';
+  }
+
   Future<bool?> _confirm(String title, String body) => showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -219,6 +349,7 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     final packages = _packages;
     final stats = InvitePackage.statsOf(packages);
     final individual = _mode == InviteMode.individual;
+    final guestSpace = _guestSpace;
 
     return Scaffold(
       backgroundColor: AppColors.bgGradient.last,
@@ -293,6 +424,16 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                 const SizedBox(height: 8),
                 _codesCard(packages),
               ],
+              if (individual && guestSpace != null) ...[
+                const SizedBox(height: 12),
+                _unassignedCard(guestSpace),
+              ],
+              if (individual && packages.isNotEmpty) ...[
+                const SizedBox(height: 20),
+                _sectionLabel(AppText.t.inv_printHeader),
+                const SizedBox(height: 8),
+                _printCard(packages),
+              ],
               const SizedBox(height: 20),
               _sectionLabel(AppText.t.inv_packagesHeader),
               const SizedBox(height: 8),
@@ -308,7 +449,19 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
                 _emptyCard()
               else
                 for (final p in packages) ...[
-                  _packageCard(p, showCode: individual),
+                  _packageCard(
+                    p,
+                    showCode: individual,
+                    selectable: individual && _printRange == 'selected',
+                    selected: _selectedForPrint.contains(p.id),
+                    onSelect: (v) => setState(() {
+                      if (v) {
+                        _selectedForPrint.add(p.id);
+                      } else {
+                        _selectedForPrint.remove(p.id);
+                      }
+                    }),
+                  ),
                   const SizedBox(height: 8),
                 ],
               const SizedBox(height: 12),
@@ -562,6 +715,167 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
     );
   }
 
+  /// Karta „Do przypisania" (etap 5) — link do tożsamości z paczek, dla
+  /// których gość nie trafił w konkretny rekord. Pokazuje się tylko, gdy
+  /// jest choć jedna taka tożsamość — inaczej byłaby szumem na ekranie,
+  /// który organizator otwiera głównie po kody.
+  Widget _unassignedCard(GuestSpaceService space) =>
+      StreamBuilder<List<Map<String, dynamic>>>(
+        stream: space.watchUnassignedIdentities(),
+        builder: (context, snapshot) {
+          final count = snapshot.data?.length ?? 0;
+          if (count == 0) return const SizedBox.shrink();
+          return Material(
+            color: const Color(0xFFFFF7ED),
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) =>
+                    UnassignedIdentitiesScreen(guestToken: _guestToken),
+              )),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFCD9A6)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.person_search,
+                        size: 20, color: Color(0xFFB45309)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        AppText.t.unassigned_badge(count),
+                        style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFB45309)),
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right,
+                        size: 20, color: Color(0xFFB45309)),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+  /// Karta wydruku zaproszeń per paczka (etap 6): zakres, format, pasek
+  /// postępu przy większej liczbie paczek.
+  Widget _printCard(List<InvitePackage> packages) {
+    final missingCount =
+        packages.where((p) => !_index.containsKey(p.id)).length;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(AppText.t.inv_printRangeLabel,
+              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            _rangeChip('all', AppText.t.inv_printRangeAll),
+            _rangeChip('selected',
+                AppText.t.inv_printRangeSelected(_selectedForPrint.length)),
+            _rangeChip(
+                'missing', AppText.t.inv_printRangeMissing(missingCount)),
+          ]),
+          const SizedBox(height: 14),
+          Text(AppText.t.inv_printFormatLabel,
+              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            for (final f in _printFormats.keys) _formatChip(f),
+          ]),
+          if (_printFormat == 'A4') ...[
+            const SizedBox(height: 10),
+            Text(AppText.t.inv_printPerPageLabel,
+                style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight)),
+            const SizedBox(height: 6),
+            Wrap(spacing: 6, children: [
+              _perPageChip(1, AppText.t.inv_printPerPageOne),
+              _perPageChip(2, AppText.t.inv_printPerPageTwo),
+              _perPageChip(4, AppText.t.inv_printPerPageFour),
+            ]),
+          ],
+          const SizedBox(height: 14),
+          if (_printProgress != null) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: _printProgress,
+                minHeight: 6,
+                backgroundColor: const Color(0xFFE2EAF7),
+                color: AppColors.accent,
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _printing ? null : _printInvitations,
+              icon: _printing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.print_outlined, size: 18),
+              label: Text(AppText.t.inv_printGenerate),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _rangeChip(String value, String label) => ChoiceChip(
+        label: Text(label),
+        selected: _printRange == value,
+        onSelected: _printing ? null : (_) => setState(() => _printRange = value),
+        labelStyle: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: _printRange == value ? AppColors.accent : AppColors.textLight),
+        selectedColor: AppColors.accent.withValues(alpha: 0.12),
+      );
+
+  Widget _formatChip(String f) => ChoiceChip(
+        label: Text(f),
+        selected: _printFormat == f,
+        onSelected: _printing ? null : (_) => setState(() => _printFormat = f),
+        labelStyle: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: _printFormat == f ? AppColors.accent : AppColors.textLight),
+        selectedColor: AppColors.accent.withValues(alpha: 0.12),
+      );
+
+  Widget _perPageChip(int n, String label) => ChoiceChip(
+        label: Text(label),
+        selected: _perPage == n,
+        onSelected: _printing ? null : (_) => setState(() => _perPage = n),
+        labelStyle: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: _perPage == n ? AppColors.accent : AppColors.textLight),
+        selectedColor: AppColors.accent.withValues(alpha: 0.12),
+      );
+
   /// Wiersz z kodem paczki i akcjami.
   Widget _codeRow(InvitePackage p) {
     final c = _index[p.id];
@@ -645,18 +959,37 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
         ),
       );
 
-  Widget _packageCard(InvitePackage p, {bool showCode = false}) => Container(
+  Widget _packageCard(
+    InvitePackage p, {
+    bool showCode = false,
+    bool selectable = false,
+    bool selected = false,
+    ValueChanged<bool>? onSelect,
+  }) =>
+      Container(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2EAF7)),
+          border: Border.all(
+              color: selectable && selected
+                  ? AppColors.accent
+                  : const Color(0xFFE2EAF7),
+              width: selectable && selected ? 1.4 : 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
+                if (selectable) ...[
+                  Checkbox(
+                    value: selected,
+                    activeColor: AppColors.accent,
+                    onChanged: (v) => onSelect?.call(v ?? false),
+                  ),
+                  const SizedBox(width: 2),
+                ],
                 Container(
                   width: 34,
                   height: 34,

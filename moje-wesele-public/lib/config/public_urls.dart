@@ -16,6 +16,15 @@ class PublicPages {
     return base;
   }
 
+  /// Wejście do strefy gości kodem paczki (indywidualne zaproszenia, etap 6).
+  ///
+  /// ⚠️ Inaczej niż pozostałe adresy w tym pliku: te NIE prowadzą do
+  /// statycznych stron `*.html`, tylko do korzenia samej aplikacji Flutter
+  /// web — `main.dart` czyta stamtąd parametr `?i=` i sam decyduje, co
+  /// pokazać (patrz `_detectParam` w `main.dart`). Ta sama domena co reszta
+  /// (`appConfig.publicBaseUrl`), inna ścieżka.
+  static String inviteEntry(String base, String code) => '$base/?i=$code';
+
   static String galeria(String base) => '$base/galeria.html';
   static String harmonogram(String base) => '$base/harmonogram.html';
   static String rsvp(String base) => '$base/rsvp.html';

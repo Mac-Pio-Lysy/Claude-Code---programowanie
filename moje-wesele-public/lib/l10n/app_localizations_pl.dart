@@ -7915,4 +7915,163 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get emailAuth_backButton => 'Wstecz';
+
+  @override
+  String get unassigned_title => 'Do przypisania';
+
+  @override
+  String get unassigned_hint =>
+      'Poniżej goście, którzy weszli kodem paczki, ale nie udało się ich jednoznacznie dopasować do listy gości. Przypisz do istniejącej osoby, utwórz nową, albo odrzuć zgłoszenie.';
+
+  @override
+  String get unassigned_empty =>
+      'Brak zgłoszeń czekających na przypisanie. Tu trafiają goście, którzy kliknęli „to nie moje zaproszenie” albo wpisali imię, którego nie było na liście oczekujących.';
+
+  @override
+  String unassigned_badge(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tożsamości do przypisania',
+      few: '$count tożsamości do przypisania',
+      one: '1 tożsamość do przypisania',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String unassigned_fromCode(String code) {
+    return 'Z zaproszenia: $code';
+  }
+
+  @override
+  String get unassigned_sourcePicked => 'wybrał(a) z listy';
+
+  @override
+  String get unassigned_sourceTyped => 'wpisał(a) inne imię';
+
+  @override
+  String get unassigned_hasRsvpYes => '✓ Potwierdził(a) obecność';
+
+  @override
+  String get unassigned_hasRsvpNo => '✗ Odwołał(a) obecność';
+
+  @override
+  String get unassigned_hasMapEntry => '📍 Wpisał(a) się na mapę gości';
+
+  @override
+  String unassigned_assignTo(String name) {
+    return 'To $name';
+  }
+
+  @override
+  String get unassigned_createGuest => 'Nowy gość';
+
+  @override
+  String get unassigned_reject => 'Odrzuć';
+
+  @override
+  String get unassigned_rejectTitle => 'Odrzucić zgłoszenie?';
+
+  @override
+  String get unassigned_rejectBody =>
+      'Wpis zniknie z listy „Do przypisania”. Jeśli ta sama przeglądarka wejdzie ponownie tym samym kodem, może pojawić się jeszcze raz.';
+
+  @override
+  String get unassigned_assigned => 'Przypisano do gościa.';
+
+  @override
+  String get unassigned_created => 'Utworzono nowego gościa i przypisano.';
+
+  @override
+  String get unassigned_rejected => 'Odrzucono.';
+
+  @override
+  String unassigned_error(String error) {
+    return 'Błąd: $error';
+  }
+
+  @override
+  String get unassigned_inviterMissing =>
+      'Nie znaleziono gościa głównego tej paczki.';
+
+  @override
+  String get common_and => 'i';
+
+  @override
+  String get notif_companionGroup => 'Osoba towarzysząca';
+
+  @override
+  String get notif_companionReminderGeneric =>
+      'Jesteś zaproszony/a z osobą towarzyszącą. Pamiętaj o tym przy potwierdzaniu obecności.';
+
+  @override
+  String notif_companionReminder(String names) {
+    return 'Jesteś zaproszony/a z osobą towarzyszącą ($names). Pamiętaj o tym przy potwierdzaniu obecności.';
+  }
+
+  @override
+  String get vis_showAuthorNames => 'Pokazuj imiona autorów';
+
+  @override
+  String get inv_printHeader => 'WYDRUK ZAPROSZEŃ';
+
+  @override
+  String get inv_printRangeLabel => 'Zakres';
+
+  @override
+  String get inv_printRangeAll => 'Wszystkie';
+
+  @override
+  String inv_printRangeSelected(int count) {
+    return 'Zaznaczone ($count)';
+  }
+
+  @override
+  String inv_printRangeMissing(int count) {
+    return 'Bez kodu ($count)';
+  }
+
+  @override
+  String get inv_printFormatLabel => 'Format';
+
+  @override
+  String get inv_printPerPageLabel => 'Kart na arkuszu';
+
+  @override
+  String get inv_printPerPageOne => 'cała strona';
+
+  @override
+  String get inv_printPerPageTwo => '2 na arkuszu';
+
+  @override
+  String get inv_printPerPageFour => '4 na arkuszu';
+
+  @override
+  String get inv_printGenerate => 'Generuj PDF';
+
+  @override
+  String get inv_printNothingSelected =>
+      'Nie wybrano żadnej paczki do wydruku.';
+
+  @override
+  String get inv_printNoCodes =>
+      'Żadna z wybranych paczek nie ma jeszcze kodu — najpierw go wygeneruj.';
+
+  @override
+  String inv_printSkipped(int count) {
+    return 'Pominięto $count paczek bez kodu — wygeneruj im kody i wydrukuj ponownie.';
+  }
+
+  @override
+  String get inv_printFileName => 'zaproszenia-indywidualne';
+
+  @override
+  String pdf_individualFor(String names) {
+    return 'Zaproszenie dla: $names';
+  }
+
+  @override
+  String get pdf_individualScanHint =>
+      'Zeskanuj kod QR telefonem, żeby wejść do swojej strefy gościa';
 }
