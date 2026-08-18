@@ -10,28 +10,10 @@ import '../screens/lock/lock_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/main_navigation.dart';
 import '../screens/weddings/weddings_list_screen.dart';
-import '../screens/welcome_screen.dart';
 import '../services/active_wedding.dart';
 import '../services/app_lock_service.dart';
 import '../services/auth_service.dart';
 import '../l10n/app_text.dart';
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PRZEŁĄCZNIK TEST/PROD (ETAP 4a: logowanie WŁĄCZONE — domyślnie false)
-//
-// Gdy `bypassLogin == true`, aplikacja POMIJA ekran logowania Google i blokadę
-// biometryczną/PIN, wchodząc od razu do listy wesel (z testowym uid). Przydatne
-// przy pracy nad wyglądem bez ciągłego logowania.
-//
-// Gdy `bypassLogin == false` (produkcyjnie), działa normalne logowanie Google:
-//   • brak sesji           → ekran logowania,
-//   • po zalogowaniu       → „Twoje wesela" → panel wybranego wesela,
-//   • wylogowanie          → powrót do ekranu logowania.
-//
-// Rejestracja jest OTWARTA — dawna lista dozwolonych maili jest wyłączona
-// (zakomentowana tu i w AuthService).
-const bool bypassLogin = false; // przełącznik test/prod
-// ═══════════════════════════════════════════════════════════════════════════
 
 /// Bramka autoryzacji — decyduje, który ekran pokazać w zależności od
 /// stanu logowania. Odpowiednik `onAuthStateChanged` z zrodlo-web/auth.js:
@@ -70,9 +52,6 @@ class _AuthGateState extends State<AuthGate> {
   /// pomijamy ekran blokady (tożsamość już potwierdzona).
   bool _interactiveSignIn = false;
 
-  /// TRYB TESTOWY: czy użytkownik przeszedł ekran tytułowy do aplikacji.
-  bool _entered = false;
-
   /// Aktywne wesele (multi-wedding). `null` → pokazujemy ekran „Twoje wesela".
   /// Ustawiane po wyborze wesela z listy, czyszczone przy „Zmień wesele".
   String? _activeWeddingId;
@@ -80,10 +59,6 @@ class _AuthGateState extends State<AuthGate> {
   /// Rola użytkownika w aktywnym weselu ('owner'/'planner'/'collaborator'/
   /// 'guest'). Decyduje o interfejsie: gość dostaje uproszczony panel.
   String _activeRole = 'owner';
-
-  /// Identyfikator używany do danych — uid zalogowanego użytkownika lub
-  /// zastępczy w trybie bez logowania (bypassLogin).
-  String get _dataUid => _user?.uid ?? 'tryb-testowy';
 
   /// Ustawia aktywne wesele (globalnie i w stanie) — wybór z listy.
   void _openWedding(String weddingId, String role) {
@@ -104,15 +79,6 @@ class _AuthGateState extends State<AuthGate> {
   void initState() {
     super.initState();
     _sub = _authService.authStateChanges().listen(_onAuthChanged);
-
-    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-    // Best-effort: bez zapamiętanej sesji próbujemy zalogować anonimowo w tle,
-    // aby Firestore działał. Panel i tak pokaże się od razu (patrz build()),
-    // więc ewentualna porażka (anonimowe wyłączone w projekcie) niczego nie
-    // blokuje — po prostu dane z Firestore mogą być wtedy niedostępne.
-    if (bypassLogin && _authService.currentUser == null) {
-      _authService.signInAnonymously().then((_) {}, onError: (_) {});
-    }
   }
 
   @override
@@ -122,21 +88,6 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   Future<void> _onAuthChanged(User? user) async {
-    // ───────────────────────────────────────────────────────────────────────
-    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-    // W trybie testowym panel jest pokazywany OD RAZU w build() — niezależnie
-    // od FirebaseAuth. Tu tylko aktualizujemy `_user`, gdy pojawi się realna
-    // (lub anonimowa) sesja, żeby Firestore dostał prawdziwy uid.
-    if (bypassLogin) {
-      if (!mounted) return;
-      setState(() {
-        _user = user;
-        _initializing = false;
-      });
-      return;
-    }
-    // ───────────────────────────────────────────────────────────────────────
-
     // Brak zalogowanego użytkownika
     if (user == null) {
       ActiveWedding.clear();
@@ -314,13 +265,12 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   /// Wybór między ekranem „Twoje wesela" a panelem głównym aktywnego wesela.
-  /// Wspólne dla trybu testowego (bypassLogin) i normalnego logowania.
-  Widget _weddingsOrApp(User? user) {
+  Widget _weddingsOrApp(User user) {
     if (_activeWeddingId == null) {
       return WeddingsListScreen(
-        userId: _dataUid,
-        displayName: user?.displayName,
-        email: user?.email,
+        userId: user.uid,
+        displayName: user.displayName,
+        email: user.email,
         onOpen: _openWedding,
         onSignOut: () => _authService.signOut(),
       );
@@ -346,21 +296,6 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    // ───────────────────────────────────────────────────────────────────────
-    // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-    // Panel pokazywany OD RAZU, całkowicie z pominięciem ekranu logowania,
-    // sprawdzania FirebaseAuth i blokady PIN/biometrii. `_user` może być null
-    // (dopóki ewentualne logowanie anonimowe w tle nie ustawi realnej sesji).
-    if (bypassLogin) {
-      // Najpierw elegancki ekran tytułowy (docelowo logowanie/rejestracja),
-      // potem — po „Wejdź" — ekran „Twoje wesela", a po wyborze — panel główny.
-      if (!_entered) {
-        return WelcomeScreen(onEnter: () => setState(() => _entered = true));
-      }
-      return _weddingsOrApp(_user);
-    }
-    // ───────────────────────────────────────────────────────────────────────
-
     if (_initializing) {
       return const _SplashLoader();
     }

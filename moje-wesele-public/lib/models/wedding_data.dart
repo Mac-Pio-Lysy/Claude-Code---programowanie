@@ -103,7 +103,8 @@ class WeddingData {
       eventName: eventName,
       displayNames: displayNames,
       witnessCount: witnessCount,
-      weddingDate: _parseDate(map['weddingDate']),
+      weddingDate: AppFormat.parseIso(
+          map['weddingDate'] is String ? map['weddingDate'] as String : null),
       budgetTotal: total is num ? total : 0,
       raw: map,
     );
@@ -113,18 +114,4 @@ class WeddingData {
   static List<dynamic> _asList(dynamic value) =>
       value is List ? value : const [];
 
-  /// Parsowanie daty ślubu z formatu "YYYY-MM-DD".
-  static DateTime? _parseDate(dynamic value) {
-    if (value is String && value.isNotEmpty) {
-      final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(value);
-      if (m != null) {
-        return DateTime(
-          int.parse(m.group(1)!),
-          int.parse(m.group(2)!),
-          int.parse(m.group(3)!),
-        );
-      }
-    }
-    return null;
-  }
 }

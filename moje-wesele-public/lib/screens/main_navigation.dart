@@ -63,9 +63,6 @@ class MainNavigation extends StatefulWidget {
     FirestoreService? firestoreService,
   }) : firestore = firestoreService ?? FirestoreService(weddingId: weddingId);
 
-  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-  // `user` może być null, gdy działamy z pominięciem logowania (bypassLogin).
-  // Docelowo (po przywróceniu logowania) tu zawsze będzie prawdziwy User.
   final User? user;
 
   /// ID aktywnego wesela (multi-wedding) — wyznacza dokument `weddings/{id}`.
@@ -88,10 +85,8 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-  // Identyfikator używany do per-użytkownikowej konfiguracji (pasek nawigacji,
-  // onboarding). Gdy brak zalogowanego użytkownika (bypassLogin), używamy
-  // zastępczego uid, żeby aplikacja działała bez FirebaseAuth.
+  /// Identyfikator używany do per-użytkownikowej konfiguracji (pasek
+  /// nawigacji, onboarding).
   String get _uid => widget.user?.uid ?? 'tryb-testowy';
 
   late final NavConfigService _navConfig;
@@ -1266,9 +1261,6 @@ class _UserMenu extends StatelessWidget {
     this.onSwitchWedding,
   });
 
-  // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-  // `user` bywa null w trybie bez logowania — menu pokazuje wtedy etykietę
-  // zastępczą, ale nadal działa (Ustawienia, „Wyloguj").
   final User? user;
   final VoidCallback onSettings;
   final VoidCallback onSignOut;
@@ -1292,8 +1284,7 @@ class _UserMenu extends StatelessWidget {
         PopupMenuItem(
           enabled: false,
           child: Text(
-            // TRYB TESTOWY - przywrócić logowanie przed wydaniem
-            user?.email ?? user?.displayName ?? AppText.t.nav_testMode,
+            user?.email ?? user?.displayName ?? '',
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
         ),
@@ -1353,7 +1344,6 @@ class _UserMenu extends StatelessWidget {
   }
 
   static String _initials(User? user) {
-    // TRYB TESTOWY - przywrócić logowanie przed wydaniem: obsługa braku usera.
     final source = (user?.displayName?.trim().isNotEmpty ?? false)
         ? user!.displayName!.trim()
         : (user?.email ?? '?');

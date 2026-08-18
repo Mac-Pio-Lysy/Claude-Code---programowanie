@@ -1,4 +1,5 @@
 import '../l10n/app_text.dart';
+import '../utils/app_format.dart';
 import 'couple.dart';
 
 /// Stan członkostwa niezależny od języka — do kolorowania i porównań.
@@ -63,7 +64,7 @@ class Membership {
   /// Czy dostęp planera wygasł względem [today] (data w Warszawie).
   bool isExpiredOn(DateTime today) {
     if (role != 'planner') return false;
-    final exp = _parse(expiresAt);
+    final exp = AppFormat.parseIso(expiresAt);
     if (exp == null) return false;
     final d = DateTime(today.year, today.month, today.day);
     return d.isAfter(exp); // po dacie ważności (włącznie z dniem = jeszcze OK)
@@ -129,12 +130,4 @@ class Membership {
 
   static String? _cleanDate(dynamic v) =>
       (v is String && v.trim().isNotEmpty) ? v.trim() : null;
-
-  static DateTime? _parse(String? s) {
-    if (s == null) return null;
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(s);
-    if (m == null) return null;
-    return DateTime(
-        int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
-  }
 }

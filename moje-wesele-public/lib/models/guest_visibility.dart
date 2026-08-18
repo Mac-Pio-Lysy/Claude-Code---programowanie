@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_text.dart';
+import '../utils/app_format.dart';
 
 /// Ustawienia widoczności sekcji dla GOŚCI (strony publiczne) w czasie.
 ///
@@ -218,11 +219,5 @@ class GuestVisibility {
     return VisibilityState.visible;
   }
 
-  static DateTime? _parse(String? s) {
-    if (s == null) return null;
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(s);
-    if (m == null) return null;
-    return DateTime(
-        int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
-  }
+  static DateTime? _parse(String? s) => AppFormat.parseIso(s);
 }

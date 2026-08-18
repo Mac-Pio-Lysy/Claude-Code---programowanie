@@ -80,7 +80,7 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
 
   Future<String?> _pickDate(String? current) async {
     final now = warsawToday();
-    final initial = _parse(current) ?? now;
+    final initial = AppFormat.parseIso(current) ?? now;
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -281,13 +281,6 @@ class _GuestVisibilityScreenState extends State<GuestVisibilityScreen> {
     );
   }
 
-  static DateTime? _parse(String? s) {
-    if (s == null) return null;
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(s);
-    if (m == null) return null;
-    return DateTime(
-        int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
-  }
 }
 
 /// Karta pojedynczej sekcji: przełącznik, daty OD/DO, zachowanie poza zakresem

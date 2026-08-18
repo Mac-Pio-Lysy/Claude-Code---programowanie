@@ -1,4 +1,5 @@
 import '../l10n/app_text.dart';
+import '../utils/app_format.dart';
 /// Skrócone dane wesela do listy „Twoje wesela".
 ///
 /// Budowane z dokumentu `weddings/{id}` + roli z odpowiedniego członkostwa.
@@ -88,17 +89,6 @@ class WeddingSummary {
     );
   }
 
-  static DateTime? _parseDate(dynamic value) {
-    if (value is String && value.isNotEmpty) {
-      final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(value);
-      if (m != null) {
-        return DateTime(
-          int.parse(m.group(1)!),
-          int.parse(m.group(2)!),
-          int.parse(m.group(3)!),
-        );
-      }
-    }
-    return null;
-  }
+  static DateTime? _parseDate(dynamic value) =>
+      AppFormat.parseIso(value is String ? value : null);
 }

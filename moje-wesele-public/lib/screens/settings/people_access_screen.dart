@@ -182,8 +182,8 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
 
   Future<void> _editExpiry(Membership m) async {
     final now = warsawToday();
-    final initial = _parse(m.expiresAt) ?? DateTime(now.year, now.month, now.day)
-        .add(const Duration(days: 30));
+    final initial = AppFormat.parseIso(m.expiresAt) ??
+        DateTime(now.year, now.month, now.day).add(const Duration(days: 30));
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -500,14 +500,6 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
         'guest' => AppText.t.role_guest,
         _ => role,
       };
-
-  static DateTime? _parse(String? s) {
-    if (s == null) return null;
-    final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(s);
-    if (m == null) return null;
-    return DateTime(
-        int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!));
-  }
 
   static String _dateLabel(String? date) =>
       AppFormat.dateLongFromIso(date) ?? '—';

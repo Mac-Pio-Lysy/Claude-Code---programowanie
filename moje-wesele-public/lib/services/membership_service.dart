@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/membership.dart';
+import '../utils/app_format.dart';
 
 /// Operacje na powiązaniach użytkownik ↔ wesele (kolekcja `memberships`).
 ///
@@ -122,10 +123,8 @@ class MembershipService {
 /// `expiresAt` (reguła: `request.time < expiresAtTs`). Uwaga: granica liczona
 /// w UTC (ok. 01:00–02:00 czasu polskiego — nieznacznie „na korzyść" osoby).
 Timestamp? expiresAtTimestamp(String? ymd) {
-  if (ymd == null) return null;
-  final m = RegExp(r'^(\d{4})-(\d{2})-(\d{2})').firstMatch(ymd);
-  if (m == null) return null;
-  final next = DateTime.utc(
-      int.parse(m.group(1)!), int.parse(m.group(2)!), int.parse(m.group(3)!) + 1);
+  final parsed = AppFormat.parseIso(ymd);
+  if (parsed == null) return null;
+  final next = DateTime.utc(parsed.year, parsed.month, parsed.day + 1);
   return Timestamp.fromDate(next);
 }

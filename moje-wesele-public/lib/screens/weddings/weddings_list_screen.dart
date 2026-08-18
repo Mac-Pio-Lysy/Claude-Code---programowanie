@@ -26,7 +26,7 @@ class WeddingsListScreen extends StatefulWidget {
     this.onSignOut,
   });
 
-  /// Identyfikator użytkownika (uid lub testowy w trybie bypassLogin).
+  /// Identyfikator zalogowanego użytkownika (uid).
   final String userId;
 
   /// Wywoływane po wyborze wesela — przekazuje `weddingId` i rolę użytkownika

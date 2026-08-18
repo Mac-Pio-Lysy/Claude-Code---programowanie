@@ -24,8 +24,6 @@
   "common_back": "Wstecz",
   "common_next": "Dalej",
   "common_done": "Gotowe",
-  "common_yes": "Tak",
-  "common_no": "Nie",
   "common_search": "Szukaj",
   "common_none": "—",
   "@common_none": {
@@ -45,7 +43,6 @@
       }
     }
   },
-  "common_deleteConfirmTitle": "Na pewno usunąć?",
   "common_guestCount": "{count, plural, =0{Brak gości} =1{1 gość} few{{count} gości} other{{count} gości}}",
   "@common_guestCount": {
     "description": "Licznik gości z polską odmianą. ICU plural obsługuje formy 1 / 2-4 / 5+ w każdym języku, bez ręcznych funkcji odmiany.",
@@ -86,18 +83,11 @@
   },
   "common_confirm": "Potwierdź",
   "common_retry": "Spróbuj ponownie",
-  "common_loading": "Wczytywanie…",
   "common_copy": "Kopiuj",
-  "common_share": "Udostępnij",
   "common_open": "Otwórz",
   "common_select": "Wybierz",
   "common_all": "Wszyscy",
-  "common_optional": "opcjonalnie",
-  "@common_optional": {
-    "description": "Dopisek przy etykiecie pola nieobowiązkowego."
-  },
   "common_deleteConfirmBody": "Tej operacji nie da się cofnąć.",
-  "common_deletedToast": "Usunięto",
   "common_deleteErrorToast": "Błąd usuwania: {error}",
   "@common_deleteErrorToast": {
     "description": "Komunikat błędu usuwania.",
@@ -109,25 +99,7 @@
     }
   },
   "common_copiedToast": "Skopiowano",
-  "common_offlineToast": "Brak połączenia — zmiany zapiszą się po odzyskaniu sieci.",
-  "validation_required": "To pole jest wymagane",
-  "validation_invalidNumber": "Podaj poprawną liczbę",
-  "validation_invalidEmail": "Podaj poprawny adres e-mail",
-  "validation_tooShort": "Za krótkie — minimum {min} znaki",
-  "@validation_tooShort": {
-    "description": "Walidacja długości; {min} to minimalna liczba znaków.",
-    "placeholders": {
-      "min": {
-        "type": "int",
-        "example": "3"
-      }
-    }
-  },
-  "date_notSet": "Data do ustalenia",
   "date_pickDate": "Wybierz datę",
-  "date_pickTime": "Wybierz godzinę",
-  "date_today": "Dzisiaj",
-  "date_tomorrow": "Jutro",
   "guests_categoryWitnesses": "Świadkowie",
   "guests_categoryParents": "Rodzice",
   "guests_categoryFamily": "Rodzina",
@@ -288,59 +260,26 @@
   "guests_showFilters": "Pokaż filtry",
   "guests_hideFilters": "Ukryj filtry",
   "guests_detailInvitedBy": "Zaproszony przez",
-  "guests_allSeated": "Wszyscy goście są już przypisani.",
   "tables_defaultName": "Stół",
   "@tables_defaultName": {
     "description": "Nazwa zastepcza stolu bez nazwy. UWAGA: nowe stoly dostaja nazwe zapisywana w bazie - to tylko etykieta zapasowa przy odczycie."
   },
-  "tables_title": "Plan stołów",
   "tables_addButton": "Dodaj stół",
   "tables_addedToast": "Dodano stół",
   "tables_addTitle": "Nowy stół",
   "tables_name": "Nazwa stołu",
-  "tables_nameHint": "np. Stół 1",
   "tables_shape": "Kształt",
-  "tables_shapeRound": "Okrągły",
-  "tables_shapeRect": "Prostokątny",
-  "tables_seats": "Liczba miejsc",
   "tables_honorSwitch": "⭐ Stół Pary Młodej (honorowy)",
   "tables_honorHint": "Używa układu prostokątnego",
   "tables_childSwitch": "🧒 Stół dla dzieci",
   "tables_childHint": "Osobny stół dla najmłodszych gości",
-  "tables_deleteTitle": "Usunąć stół?",
-  "tables_deleteBody": "Goście przypisani do tego stołu wrócą na listę nieprzypisanych.",
-  "tables_deletedToast": "Usunięto stół",
   "tables_full": "Stół jest pełny!",
-  "tables_seatsUsed": "{used}/{total} miejsc",
-  "@tables_seatsUsed": {
-    "placeholders": {
-      "used": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "tables_assignGuest": "Posadź gościa",
-  "tables_unassign": "Zwolnij miejsce",
-  "tables_emptyState": "Nie masz jeszcze stołów. Dodaj pierwszy.",
   "tables_statTables": "Stoły",
-  "tables_statSeats": "Miejsca",
-  "tables_statFree": "Wolne",
-  "tables_hintAdultAtChildTable": "Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.",
-  "tables_hintChildAtRegularTable": "Dziecko przy zwykłym stole — jest też stół dla dzieci.",
   "roomplan_title": "Plan sali",
-  "roomplan_editMode": "Tryb edycji",
-  "roomplan_gridOn": "Siatka",
   "roomplan_fullscreen": "Pełny ekran",
-  "roomplan_addTable": "Dodaj stół",
   "roomplan_addElement": "Dodaj element",
-  "roomplan_unassignedGuests": "Nieprzypisani goście",
-  "roomplan_roomSize": "Wymiary sali",
   "roomplan_widthMeters": "Szerokość (m)",
   "roomplan_lengthMeters": "Długość (m)",
-  "roomplan_savedToast": "Zapisano plan sali",
   "guests_namePendingBadge": "✎ imię do potwierdzenia",
   "guests_companionFirstNameHint": "Imię",
   "guests_badgeSeatedAt": "✓ {table}",
@@ -389,79 +328,12 @@
       }
     }
   },
-  "tables_seatsShort": "{used}/{total}",
-  "@tables_seatsShort": {
-    "placeholders": {
-      "used": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
-  "tables_guestPickerTitle": "Wybierz gościa",
-  "tables_tapSeatToAssign": "Dotknij miejsca, aby posadzić gościa",
-  "tables_honorBadge": "⭐ Honorowy",
-  "tables_childBadge": "🧒 Dla dzieci",
-  "tables_seatFree": "Wolne",
-  "tables_addFirst": "Dodaj pierwszy stół",
-  "tables_summary": "{tables, plural, =1{1 stół} few{{tables} stoły} other{{tables} stołów}}",
-  "@tables_summary": {
-    "description": "Licznik stolow z odmiana ICU.",
-    "placeholders": {
-      "tables": {
-        "type": "int"
-      }
-    }
-  },
-  "tables_seatsSummary": "{seats, plural, =1{1 miejsce} few{{seats} miejsca} other{{seats} miejsc}}",
-  "@tables_seatsSummary": {
-    "description": "Licznik miejsc z odmiana ICU.",
-    "placeholders": {
-      "seats": {
-        "type": "int"
-      }
-    }
-  },
   "roomplan_elementTable": "Stół",
-  "roomplan_elementStage": "Scena",
-  "roomplan_elementBar": "Bar",
-  "roomplan_elementDanceFloor": "Parkiet",
-  "roomplan_elementEntrance": "Wejście",
-  "roomplan_elementOther": "Inne",
-  "roomplan_deleteElement": "Usunąć element?",
-  "roomplan_elementName": "Nazwa elementu",
-  "roomplan_staff": "Obsługa",
-  "roomplan_persons": "Liczba osób",
-  "roomplan_includeInCost": "Wliczaj do kosztów",
-  "roomplan_dragHint": "Przytrzymaj i przeciągnij, aby przesunąć",
-  "roomplan_exitFullscreen": "Zamknij pełny ekran",
   "tables_nameHintOptional": "np. Stół 1 (opcjonalnie)",
   "tables_shapeRoundIcon": "⚪ Okrągły",
   "tables_shapeRectIcon": "▭ Prostokątny",
-  "tables_deleteBodyNamed": "Czy na pewno usunąć stół „{name}”? Przypisani goście wrócą do nieprzypisanych.",
-  "@tables_deleteBodyNamed": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "tables_removeFromTable": "Usuń ze stołu",
-  "tables_unassignedHeader": "Nieprzypisani goście ({count})",
-  "@tables_unassignedHeader": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "tables_dragHint": "Przeciągnij (przytrzymaj) gościa na stół lub użyj „Przypisz”.",
-  "tables_allSeatedCheer": "🎉 Wszyscy goście mają miejsce!",
   "tables_assignGuestAction": "Przypisz gościa",
   "tables_deleteTable": "Usuń stół",
-  "tables_emptyStateHint": "Brak stołów. Dodaj pierwszy stół przyciskiem powyżej.",
   "tables_statGuests": "Goście",
   "roomplan_zoomIn": "Przybliż",
   "roomplan_widthShort": "Szerokość",
@@ -513,7 +385,6 @@
       }
     }
   },
-  "roomplan_elementSize": "Rozmiar elementu",
   "budget_title": "Budżet",
   "budget_tabSummary": "Podsumowanie",
   "budget_tabVenue": "Sala",
@@ -560,7 +431,6 @@
   "budget_expensesEmptyFiltered": "Brak wydatków spełniających kryteria filtrów.",
   "budget_collapse": "zwiń",
   "budget_expand": "rozwiń",
-  "budget_quickAddHint": "Kliknij, aby dodać gotowy wydatek — listę zmienisz w Ustawieniach.",
   "budget_customItem": "Własna pozycja",
   "budget_customName": "Własna nazwa",
   "budget_paid": "Opłacono",
@@ -673,7 +543,6 @@
   "budget_childMenuOff": "Dzieci liczone jak dorośli (cena za osobę).",
   "budget_childMenuPrice": "Cena za dziecko (menu)",
   "budget_childMenuCost": "Koszt menu dziecięcego",
-  "budget_cateringSeparate": "Catering od innej firmy",
   "budget_cateringSeparateHint": "Catering od innej firmy niż sala — liczony osobno, po cenie za osobę (te same przeliczenia liczby osób co sala).",
   "budget_cateringPricePerPerson": "Cena cateringu za osobę",
   "budget_noAddons": "Brak dodatków. Dodaj przyciskiem +.",
@@ -825,7 +694,6 @@
     }
   },
   "budget_variantNone": "brak wyboru",
-  "budget_reserveSettings": "Ustawienia budżetu",
   "budget_expensesQuickAdd": "Kliknij, aby dodać gotowy wydatek — listę zmienisz w Ustawieniach.",
   "budget_statusPaidShort": "Opłacone",
   "schedule_title": "📅 Harmonogram dnia ślubu",
@@ -1016,17 +884,6 @@
       }
     }
   },
-  "tables_seatsOf": "{used}/{total} miejsc",
-  "@tables_seatsOf": {
-    "placeholders": {
-      "used": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    }
-  },
   "vendors_title": "Dostawcy",
   "vendors_addButton": "Dodaj dostawcę",
   "vendors_addedToast": "Dodano dostawcę",
@@ -1052,17 +909,6 @@
   },
   "vendors_installments": "💵 Raty / płatności",
   "vendors_noInstallments": "Brak rat.",
-  "vendors_paidRemaining": "Zapłacono: {paid} · Pozostało: {remaining}",
-  "@vendors_paidRemaining": {
-    "placeholders": {
-      "paid": {
-        "type": "String"
-      },
-      "remaining": {
-        "type": "String"
-      }
-    }
-  },
   "vendors_toPay": "Do zapłaty",
   "vendors_paid": "Zapłacona",
   "vendors_linkBudget": "💰 Powiąż z budżetem",
@@ -1100,14 +946,6 @@
   "transport_showInSchedule": "Pokaż gościom w harmonogramie",
   "accommodation_title": "Noclegi",
   "accommodation_deleteHotelTitle": "Usunąć hotel?",
-  "accommodation_deleteHotelBody": "Czy na pewno usunąć „{name}”?",
-  "@accommodation_deleteHotelBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "accommodation_guestsNeeding": "Goście potrzebujący noclegu",
   "accommodation_hotels": "Hotele i miejsca noclegowe",
   "accommodation_addHotel": "Dodaj hotel",
@@ -1137,8 +975,6 @@
   "rsvp_title": "Potwierdzenia",
   "rsvp_allTitle": "Wszystkie RSVP",
   "rsvp_allHint": "Lista wszystkich odpowiedzi oraz kody QR i linki dla gości.",
-  "rsvp_allEmpty": "Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.",
-  "rsvp_qrHint": "Wszystkie kody QR i linki do stron dla gości w jednym miejscu.",
   "rsvp_qrError": "Błąd generowania QR: {error}",
   "@rsvp_qrError": {
     "placeholders": {
@@ -1160,7 +996,6 @@
   "rsvp_clearAll": "Wyczyść wszystkie",
   "rsvp_clear": "Wyczyść",
   "rsvp_clearAllTitle": "Wyczyścić wszystkie potwierdzenia?",
-  "rsvp_empty": "Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).",
   "rsvp_unmatched": "Nierozpoznane potwierdzenia ({count})",
   "@rsvp_unmatched": {
     "placeholders": {
@@ -1238,18 +1073,9 @@
   "tf_saved": "Zapisano stwierdzenie",
   "tf_added": "Dodano stwierdzenie",
   "tf_deleteTitle": "Usunąć stwierdzenie?",
-  "tf_deleteBody": "Czy na pewno usunąć „{text}”?",
-  "@tf_deleteBody": {
-    "placeholders": {
-      "text": {
-        "type": "String"
-      }
-    }
-  },
   "tf_deleted": "Usunięto stwierdzenie",
   "photoGuess_add": "Dodaj zdjęcie z pytaniem",
   "photoGuess_empty": "Brak zdjęć",
-  "photoGuess_emptyHint": "Dodaj stare zdjęcia (np. z dzieciństwa) i pytania, które goście będą zgadywać.",
   "photoGuess_saved": "Zapisano zdjęcie",
   "photoGuess_added": "Dodano zdjęcie",
   "photoGuess_deleteTitle": "Usunąć zdjęcie?",
@@ -1273,29 +1099,12 @@
   "photoChallenge_saved": "Zapisano wyzwanie",
   "photoChallenge_added": "Dodano wyzwanie",
   "photoChallenge_deleteTitle": "Usunąć wyzwanie?",
-  "photoChallenge_deleteBody": "Czy na pewno usunąć „{text}”? Przesłane zdjęcia zostaną usunięte razem z wyzwaniem.",
-  "@photoChallenge_deleteBody": {
-    "placeholders": {
-      "text": {
-        "type": "String"
-      }
-    }
-  },
   "photoChallenge_deleted": "Usunięto wyzwanie",
   "photoChallenge_points": "⭐ {points} pkt",
   "@photoChallenge_points": {
     "placeholders": {
       "points": {
         "type": "int"
-      }
-    }
-  },
-  "photoChallenge_deletePhotoTitle": "Usunąć zdjęcie?",
-  "photoChallenge_deletePhotoBody": "Czy na pewno usunąć zdjęcie od „{name}”?",
-  "@photoChallenge_deletePhotoBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
       }
     }
   },
@@ -1415,21 +1224,10 @@
   "capsule_hasPhoto": "📷 zawiera zdjęcie",
   "capsule_deleteMessage": "Usuń wiadomość",
   "capsule_openAllTitle": "Otworzyć wszystko teraz?",
-  "capsule_openAllBody": "Zobaczysz treść także zapieczętowanych wiadomości, zanim nadejdzie ich termin.",
   "capsule_openAll": "Otwórz wszystko",
   "capsule_deleteTitle": "Usunąć wiadomość?",
   "capsule_deleted": "Usunięto wiadomość",
   "guestMap_addManually": "Dodaj gościa ręcznie",
-  "guestMap_empty": "Brak zlokalizowanych gości. Pinezki pojawią się po dodaniu miejscowości do wpisów.",
-  "guestMap_farthest": "Najdalszy gość: {name}",
-  "@guestMap_farthest": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "guestMap_setVenueHint": "Aby policzyć dystans najdalszego gościa, ustaw „Miejsce wesela” w Konfiguracji.",
   "guestMap_kmFromVenue": "{km} km od miejsca wesela",
   "@guestMap_kmFromVenue": {
     "placeholders": {
@@ -1488,7 +1286,6 @@
   },
   "music_allMoments": "Wszystkie momenty",
   "music_fromGuest": "👤 od gościa",
-  "music_momentsHint": "Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.",
   "music_addOwnMoment": "Dodaj własny moment",
   "music_outsideList": "spoza listy",
   "music_removeMoment": "Usuń moment z listy",
@@ -1554,34 +1351,6 @@
   "music_searchInDeezer": "Szukaj w Deezer…",
   "music_nothingFound": "Nic nie znaleziono (możesz dodać ręcznie poniżej).",
   "music_orAddManually": "…lub dodaj ręcznie",
-  "guestMap_deleteBody": "Czy na pewno usunąć „{name}”?",
-  "@guestMap_deleteBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "guestbook_deleteBody": "Czy na pewno usunąć wpis od „{name}”?",
-  "@guestbook_deleteBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "capsule_deleteBody": "Czy na pewno usunąć wiadomość od „{name}”?",
-  "@capsule_deleteBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "music_momentsHintFull": "Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.",
-  "rsvp_allEmptyFull": "Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.",
-  "rsvp_qrHintFull": "Wszystkie kody QR i linki do stron dla gości w jednym miejscu.",
-  "rsvp_emptyFull": "Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).",
   "guestMap_txt1": "Strona, na której goście zaznaczają, skąd przyjeżdżają. Pokaż im kod QR lub wyślij link.",
   "guestMap_txt2": "Brak wpisów. Udostępnij gościom kod QR z zakładki „Strona dla gości\".",
   "guestMap_txt3": "Brak zlokalizowanych gości. Pinezki pojawią się po wpisach gości lub ręcznym dodaniu z miejscowością.",
@@ -3740,14 +3509,6 @@
       }
     }
   },
-  "notif_scheduleChanged": "Zmieniono w harmonogramie: {label}",
-  "@notif_scheduleChanged": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "notif_guestNoName": "Gość bez imienia",
   "currency_pln": "Złoty polski",
   "currency_eur": "Euro",
@@ -3965,17 +3726,6 @@
       }
     }
   },
-  "pdf_adviceAuthor": "— {name} · {category}",
-  "@pdf_adviceAuthor": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      },
-      "category": {
-        "type": "String"
-      }
-    }
-  },
   "pdf_capsuleTitle": "Kapsuła czasu",
   "pdf_capsuleSub": "Otwarte wiadomości od gości",
   "pdf_capsuleEmpty": "Brak otwartych wiadomości.",
@@ -3997,8 +3747,6 @@
       }
     }
   },
-  "w_comingSoon": "Wkrótce",
-  "w_comingSoonBody": "Ta funkcja jest w przygotowaniu.",
   "w_hideFilters": "Ukryj filtry",
   "w_showFilters": "Pokaż filtry",
   "w_more": "Więcej",
@@ -4071,7 +3819,6 @@
   "nav_icons4": "4 ikony",
   "nav_icons6": "6 ikon",
   "nav_changeSection": "Zmień sekcję",
-  "nav_testMode": "Tryb testowy",
   "countdown_hours": "{count, plural, =1{godzina} few{godziny} other{godzin}}",
   "@countdown_hours": {
     "description": "Podpis pod liczbą na liczniku — sama liczba stoi nad podpisem, więc w treści jej nie powtarzamy.",
@@ -4202,14 +3949,6 @@
   "pc_loadPhotosError": "Nie udało się wczytać zdjęć. Sprawdź połączenie.",
   "pc_deleted": "Usunięte wyzwanie",
   "pc_deletePhotoTitle": "Usunąć zdjęcie?",
-  "pc_deletePhotoBody": "Czy na pewno usunąć zdjęcie od „{name}\"?",
-  "@pc_deletePhotoBody": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "pc_empty": "Brak wykonanych wyzwań. Udostępnij gościom kod QR.",
   "pc_photos": "Zdjęć",
   "pc_challenges": "Wyzwań",
@@ -4345,14 +4084,6 @@
   "guestMap_noCity": "Brak miejscowości",
   "guestMap_savedNoGeo": "Zapisano (nie udało się zlokalizować miejscowości)",
   "guestMap_addedNoGeo": "Dodano (nie udało się zlokalizować miejscowości)",
-  "guestMap_deleteConfirm": "Czy na pewno usunąć „{name}\"?",
-  "@guestMap_deleteConfirm": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "guestMap_addGuest": "Dodaj gościa",
   "hotel_deleteConfirm": "Czy na pewno usunąć „{name}\"? Przypisania gości do tego hotelu zostaną wyczyszczone.",
   "@hotel_deleteConfirm": {
@@ -4600,8 +4331,6 @@
   "login_google": "Zaloguj się przez Google",
   "login_or": "lub",
   "login_emailButton": "Zaloguj się e-mailem",
-  "welcome_testMode": "Tryb testowy — wejście bez logowania",
-  "welcome_enter": "Wejdź do aplikacji",
   "auth_cancelled": "Anulowano logowanie.",
   "wsum_owner": "Właściciel",
   "wsum_collab": "Współpraca",
@@ -4776,7 +4505,6 @@
   "vf_mapsLink": "Link do Google Maps",
   "vend_vendorChip": "🏢 Dostawca",
   "vend_instalmentHint": "np. Zadatek",
-  "welcome_tagline": "PANEL ORGANIZACJI WESELA",
   "layout_forcePhone": "Wymuś telefon",
   "layout_forceTablet": "Wymuś tablet",
   "layout_autoHint": "Układ dobiera się do szerokości ekranu",
@@ -5077,14 +4805,12 @@
   "id_yourNameHint": "Jak mamy Cię podpisywać?",
   "id_lastNameOptional": "Nazwisko lub pseudonim (opcjonalnie)",
   "id_needName": "Podaj imię, żebyśmy wiedzieli, kto to.",
-  "id_continue": "Dalej",
   "id_enter": "Wejdź do strefy gości",
   "id_privacy": "Twoje imię widzi Para Młoda. Inni goście zobaczą tylko to, czym sam się podpiszesz przy wpisach.",
   "@id_privacy": {
     "description": "Uczciwe postawienie sprawy dla gościa: organizator zna tożsamość, inni goście widzą tylko podpis przy wpisie."
   },
   "id_notMeMenu": "To nie ja — zmień osobę",
-  "id_switched": "Wybierz siebie jeszcze raz",
   "id_invalidTitle": "Nieprawidłowe zaproszenie",
   "id_invalidBody": "Ten kod nie należy do żadnego wesela. Sprawdź, czy link jest kompletny, albo poproś Parę Młodą o nowy.",
   "id_revokedTitle": "To zaproszenie jest już nieaktualne",

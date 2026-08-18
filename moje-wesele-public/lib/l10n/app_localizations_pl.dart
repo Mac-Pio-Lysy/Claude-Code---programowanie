@@ -36,12 +36,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get common_done => 'Gotowe';
 
   @override
-  String get common_yes => 'Tak';
-
-  @override
-  String get common_no => 'Nie';
-
-  @override
   String get common_search => 'Szukaj';
 
   @override
@@ -54,9 +48,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String common_saveErrorToast(String error) {
     return 'Błąd zapisu: $error';
   }
-
-  @override
-  String get common_deleteConfirmTitle => 'Na pewno usunąć?';
 
   @override
   String common_guestCount(int count) {
@@ -128,13 +119,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get common_retry => 'Spróbuj ponownie';
 
   @override
-  String get common_loading => 'Wczytywanie…';
-
-  @override
   String get common_copy => 'Kopiuj';
-
-  @override
-  String get common_share => 'Udostępnij';
 
   @override
   String get common_open => 'Otwórz';
@@ -146,13 +131,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get common_all => 'Wszyscy';
 
   @override
-  String get common_optional => 'opcjonalnie';
-
-  @override
   String get common_deleteConfirmBody => 'Tej operacji nie da się cofnąć.';
-
-  @override
-  String get common_deletedToast => 'Usunięto';
 
   @override
   String common_deleteErrorToast(String error) {
@@ -163,37 +142,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get common_copiedToast => 'Skopiowano';
 
   @override
-  String get common_offlineToast =>
-      'Brak połączenia — zmiany zapiszą się po odzyskaniu sieci.';
-
-  @override
-  String get validation_required => 'To pole jest wymagane';
-
-  @override
-  String get validation_invalidNumber => 'Podaj poprawną liczbę';
-
-  @override
-  String get validation_invalidEmail => 'Podaj poprawny adres e-mail';
-
-  @override
-  String validation_tooShort(int min) {
-    return 'Za krótkie — minimum $min znaki';
-  }
-
-  @override
-  String get date_notSet => 'Data do ustalenia';
-
-  @override
   String get date_pickDate => 'Wybierz datę';
-
-  @override
-  String get date_pickTime => 'Wybierz godzinę';
-
-  @override
-  String get date_today => 'Dzisiaj';
-
-  @override
-  String get date_tomorrow => 'Jutro';
 
   @override
   String get guests_categoryWitnesses => 'Świadkowie';
@@ -509,13 +458,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get guests_detailInvitedBy => 'Zaproszony przez';
 
   @override
-  String get guests_allSeated => 'Wszyscy goście są już przypisani.';
-
-  @override
   String get tables_defaultName => 'Stół';
-
-  @override
-  String get tables_title => 'Plan stołów';
 
   @override
   String get tables_addButton => 'Dodaj stół';
@@ -530,19 +473,7 @@ class AppLocalizationsPl extends AppLocalizations {
   String get tables_name => 'Nazwa stołu';
 
   @override
-  String get tables_nameHint => 'np. Stół 1';
-
-  @override
   String get tables_shape => 'Kształt';
-
-  @override
-  String get tables_shapeRound => 'Okrągły';
-
-  @override
-  String get tables_shapeRect => 'Prostokątny';
-
-  @override
-  String get tables_seats => 'Liczba miejsc';
 
   @override
   String get tables_honorSwitch => '⭐ Stół Pary Młodej (honorowy)';
@@ -557,81 +488,25 @@ class AppLocalizationsPl extends AppLocalizations {
   String get tables_childHint => 'Osobny stół dla najmłodszych gości';
 
   @override
-  String get tables_deleteTitle => 'Usunąć stół?';
-
-  @override
-  String get tables_deleteBody =>
-      'Goście przypisani do tego stołu wrócą na listę nieprzypisanych.';
-
-  @override
-  String get tables_deletedToast => 'Usunięto stół';
-
-  @override
   String get tables_full => 'Stół jest pełny!';
-
-  @override
-  String tables_seatsUsed(int used, int total) {
-    return '$used/$total miejsc';
-  }
-
-  @override
-  String get tables_assignGuest => 'Posadź gościa';
-
-  @override
-  String get tables_unassign => 'Zwolnij miejsce';
-
-  @override
-  String get tables_emptyState => 'Nie masz jeszcze stołów. Dodaj pierwszy.';
 
   @override
   String get tables_statTables => 'Stoły';
 
   @override
-  String get tables_statSeats => 'Miejsca';
-
-  @override
-  String get tables_statFree => 'Wolne';
-
-  @override
-  String get tables_hintAdultAtChildTable =>
-      'Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.';
-
-  @override
-  String get tables_hintChildAtRegularTable =>
-      'Dziecko przy zwykłym stole — jest też stół dla dzieci.';
-
-  @override
   String get roomplan_title => 'Plan sali';
-
-  @override
-  String get roomplan_editMode => 'Tryb edycji';
-
-  @override
-  String get roomplan_gridOn => 'Siatka';
 
   @override
   String get roomplan_fullscreen => 'Pełny ekran';
 
   @override
-  String get roomplan_addTable => 'Dodaj stół';
-
-  @override
   String get roomplan_addElement => 'Dodaj element';
-
-  @override
-  String get roomplan_unassignedGuests => 'Nieprzypisani goście';
-
-  @override
-  String get roomplan_roomSize => 'Wymiary sali';
 
   @override
   String get roomplan_widthMeters => 'Szerokość (m)';
 
   @override
   String get roomplan_lengthMeters => 'Długość (m)';
-
-  @override
-  String get roomplan_savedToast => 'Zapisano plan sali';
 
   @override
   String get guests_namePendingBadge => '✎ imię do potwierdzenia';
@@ -675,90 +550,7 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String tables_seatsShort(int used, int total) {
-    return '$used/$total';
-  }
-
-  @override
-  String get tables_guestPickerTitle => 'Wybierz gościa';
-
-  @override
-  String get tables_tapSeatToAssign => 'Dotknij miejsca, aby posadzić gościa';
-
-  @override
-  String get tables_honorBadge => '⭐ Honorowy';
-
-  @override
-  String get tables_childBadge => '🧒 Dla dzieci';
-
-  @override
-  String get tables_seatFree => 'Wolne';
-
-  @override
-  String get tables_addFirst => 'Dodaj pierwszy stół';
-
-  @override
-  String tables_summary(int tables) {
-    String _temp0 = intl.Intl.pluralLogic(
-      tables,
-      locale: localeName,
-      other: '$tables stołów',
-      few: '$tables stoły',
-      one: '1 stół',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String tables_seatsSummary(int seats) {
-    String _temp0 = intl.Intl.pluralLogic(
-      seats,
-      locale: localeName,
-      other: '$seats miejsc',
-      few: '$seats miejsca',
-      one: '1 miejsce',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String get roomplan_elementTable => 'Stół';
-
-  @override
-  String get roomplan_elementStage => 'Scena';
-
-  @override
-  String get roomplan_elementBar => 'Bar';
-
-  @override
-  String get roomplan_elementDanceFloor => 'Parkiet';
-
-  @override
-  String get roomplan_elementEntrance => 'Wejście';
-
-  @override
-  String get roomplan_elementOther => 'Inne';
-
-  @override
-  String get roomplan_deleteElement => 'Usunąć element?';
-
-  @override
-  String get roomplan_elementName => 'Nazwa elementu';
-
-  @override
-  String get roomplan_staff => 'Obsługa';
-
-  @override
-  String get roomplan_persons => 'Liczba osób';
-
-  @override
-  String get roomplan_includeInCost => 'Wliczaj do kosztów';
-
-  @override
-  String get roomplan_dragHint => 'Przytrzymaj i przeciągnij, aby przesunąć';
-
-  @override
-  String get roomplan_exitFullscreen => 'Zamknij pełny ekran';
 
   @override
   String get tables_nameHintOptional => 'np. Stół 1 (opcjonalnie)';
@@ -770,34 +562,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get tables_shapeRectIcon => '▭ Prostokątny';
 
   @override
-  String tables_deleteBodyNamed(String name) {
-    return 'Czy na pewno usunąć stół „$name”? Przypisani goście wrócą do nieprzypisanych.';
-  }
-
-  @override
-  String get tables_removeFromTable => 'Usuń ze stołu';
-
-  @override
-  String tables_unassignedHeader(int count) {
-    return 'Nieprzypisani goście ($count)';
-  }
-
-  @override
-  String get tables_dragHint =>
-      'Przeciągnij (przytrzymaj) gościa na stół lub użyj „Przypisz”.';
-
-  @override
-  String get tables_allSeatedCheer => '🎉 Wszyscy goście mają miejsce!';
-
-  @override
   String get tables_assignGuestAction => 'Przypisz gościa';
 
   @override
   String get tables_deleteTable => 'Usuń stół';
-
-  @override
-  String get tables_emptyStateHint =>
-      'Brak stołów. Dodaj pierwszy stół przyciskiem powyżej.';
 
   @override
   String get tables_statGuests => 'Goście';
@@ -867,9 +635,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String roomplan_addedElement(String name) {
     return 'Dodano element: $name';
   }
-
-  @override
-  String get roomplan_elementSize => 'Rozmiar elementu';
 
   @override
   String get budget_title => 'Budżet';
@@ -954,10 +719,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get budget_expand => 'rozwiń';
-
-  @override
-  String get budget_quickAddHint =>
-      'Kliknij, aby dodać gotowy wydatek — listę zmienisz w Ustawieniach.';
 
   @override
   String get budget_customItem => 'Własna pozycja';
@@ -1170,9 +931,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get budget_childMenuCost => 'Koszt menu dziecięcego';
-
-  @override
-  String get budget_cateringSeparate => 'Catering od innej firmy';
 
   @override
   String get budget_cateringSeparateHint =>
@@ -1421,9 +1179,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get budget_variantNone => 'brak wyboru';
-
-  @override
-  String get budget_reserveSettings => 'Ustawienia budżetu';
 
   @override
   String get budget_expensesQuickAdd =>
@@ -1742,11 +1497,6 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String tables_seatsOf(int used, int total) {
-    return '$used/$total miejsc';
-  }
-
-  @override
   String get vendors_title => 'Dostawcy';
 
   @override
@@ -1782,11 +1532,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get vendors_noInstallments => 'Brak rat.';
-
-  @override
-  String vendors_paidRemaining(String paid, String remaining) {
-    return 'Zapłacono: $paid · Pozostało: $remaining';
-  }
 
   @override
   String get vendors_toPay => 'Do zapłaty';
@@ -1854,11 +1599,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get accommodation_deleteHotelTitle => 'Usunąć hotel?';
 
   @override
-  String accommodation_deleteHotelBody(String name) {
-    return 'Czy na pewno usunąć „$name”?';
-  }
-
-  @override
   String get accommodation_guestsNeeding => 'Goście potrzebujący noclegu';
 
   @override
@@ -1915,14 +1655,6 @@ class AppLocalizationsPl extends AppLocalizations {
       'Lista wszystkich odpowiedzi oraz kody QR i linki dla gości.';
 
   @override
-  String get rsvp_allEmpty =>
-      'Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.';
-
-  @override
-  String get rsvp_qrHint =>
-      'Wszystkie kody QR i linki do stron dla gości w jednym miejscu.';
-
-  @override
   String rsvp_qrError(String error) {
     return 'Błąd generowania QR: $error';
   }
@@ -1946,10 +1678,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get rsvp_clearAllTitle => 'Wyczyścić wszystkie potwierdzenia?';
-
-  @override
-  String get rsvp_empty =>
-      'Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).';
 
   @override
   String rsvp_unmatched(int count) {
@@ -2072,11 +1800,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get tf_deleteTitle => 'Usunąć stwierdzenie?';
 
   @override
-  String tf_deleteBody(String text) {
-    return 'Czy na pewno usunąć „$text”?';
-  }
-
-  @override
   String get tf_deleted => 'Usunięto stwierdzenie';
 
   @override
@@ -2084,10 +1807,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get photoGuess_empty => 'Brak zdjęć';
-
-  @override
-  String get photoGuess_emptyHint =>
-      'Dodaj stare zdjęcia (np. z dzieciństwa) i pytania, które goście będą zgadywać.';
 
   @override
   String get photoGuess_saved => 'Zapisano zdjęcie';
@@ -2141,24 +1860,11 @@ class AppLocalizationsPl extends AppLocalizations {
   String get photoChallenge_deleteTitle => 'Usunąć wyzwanie?';
 
   @override
-  String photoChallenge_deleteBody(String text) {
-    return 'Czy na pewno usunąć „$text”? Przesłane zdjęcia zostaną usunięte razem z wyzwaniem.';
-  }
-
-  @override
   String get photoChallenge_deleted => 'Usunięto wyzwanie';
 
   @override
   String photoChallenge_points(int points) {
     return '⭐ $points pkt';
-  }
-
-  @override
-  String get photoChallenge_deletePhotoTitle => 'Usunąć zdjęcie?';
-
-  @override
-  String photoChallenge_deletePhotoBody(String name) {
-    return 'Czy na pewno usunąć zdjęcie od „$name”?';
   }
 
   @override
@@ -2323,10 +2029,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get capsule_openAllTitle => 'Otworzyć wszystko teraz?';
 
   @override
-  String get capsule_openAllBody =>
-      'Zobaczysz treść także zapieczętowanych wiadomości, zanim nadejdzie ich termin.';
-
-  @override
   String get capsule_openAll => 'Otwórz wszystko';
 
   @override
@@ -2337,19 +2039,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get guestMap_addManually => 'Dodaj gościa ręcznie';
-
-  @override
-  String get guestMap_empty =>
-      'Brak zlokalizowanych gości. Pinezki pojawią się po dodaniu miejscowości do wpisów.';
-
-  @override
-  String guestMap_farthest(String name) {
-    return 'Najdalszy gość: $name';
-  }
-
-  @override
-  String get guestMap_setVenueHint =>
-      'Aby policzyć dystans najdalszego gościa, ustaw „Miejsce wesela” w Konfiguracji.';
 
   @override
   String guestMap_kmFromVenue(int km) {
@@ -2431,10 +2120,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get music_fromGuest => '👤 od gościa';
-
-  @override
-  String get music_momentsHint =>
-      'Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.';
 
   @override
   String get music_addOwnMoment => 'Dodaj własny moment';
@@ -2537,37 +2222,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get music_orAddManually => '…lub dodaj ręcznie';
-
-  @override
-  String guestMap_deleteBody(String name) {
-    return 'Czy na pewno usunąć „$name”?';
-  }
-
-  @override
-  String guestbook_deleteBody(String name) {
-    return 'Czy na pewno usunąć wpis od „$name”?';
-  }
-
-  @override
-  String capsule_deleteBody(String name) {
-    return 'Czy na pewno usunąć wiadomość od „$name”?';
-  }
-
-  @override
-  String get music_momentsHintFull =>
-      'Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.';
-
-  @override
-  String get rsvp_allEmptyFull =>
-      'Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.';
-
-  @override
-  String get rsvp_qrHintFull =>
-      'Wszystkie kody QR i linki do stron dla gości w jednym miejscu.';
-
-  @override
-  String get rsvp_emptyFull =>
-      'Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).';
 
   @override
   String get guestMap_txt1 =>
@@ -5953,11 +5607,6 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String notif_scheduleChanged(String label) {
-    return 'Zmieniono w harmonogramie: $label';
-  }
-
-  @override
   String get notif_guestNoName => 'Gość bez imienia';
 
   @override
@@ -6215,11 +5864,6 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
-  String pdf_adviceAuthor(String name, String category) {
-    return '— $name · $category';
-  }
-
-  @override
   String get pdf_capsuleTitle => 'Kapsuła czasu';
 
   @override
@@ -6240,12 +5884,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String w_addedIn(String section) {
     return 'Dodano w: $section';
   }
-
-  @override
-  String get w_comingSoon => 'Wkrótce';
-
-  @override
-  String get w_comingSoonBody => 'Ta funkcja jest w przygotowaniu.';
 
   @override
   String get w_hideFilters => 'Ukryj filtry';
@@ -6380,9 +6018,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get nav_changeSection => 'Zmień sekcję';
-
-  @override
-  String get nav_testMode => 'Tryb testowy';
 
   @override
   String countdown_hours(int count) {
@@ -6596,11 +6231,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get pc_deletePhotoTitle => 'Usunąć zdjęcie?';
 
   @override
-  String pc_deletePhotoBody(String name) {
-    return 'Czy na pewno usunąć zdjęcie od „$name\"?';
-  }
-
-  @override
   String get pc_empty => 'Brak wykonanych wyzwań. Udostępnij gościom kod QR.';
 
   @override
@@ -6811,11 +6441,6 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get guestMap_addedNoGeo =>
       'Dodano (nie udało się zlokalizować miejscowości)';
-
-  @override
-  String guestMap_deleteConfirm(String name) {
-    return 'Czy na pewno usunąć „$name\"?';
-  }
 
   @override
   String get guestMap_addGuest => 'Dodaj gościa';
@@ -7189,12 +6814,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get login_emailButton => 'Zaloguj się e-mailem';
-
-  @override
-  String get welcome_testMode => 'Tryb testowy — wejście bez logowania';
-
-  @override
-  String get welcome_enter => 'Wejdź do aplikacji';
 
   @override
   String get auth_cancelled => 'Anulowano logowanie.';
@@ -7625,9 +7244,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get vend_instalmentHint => 'np. Zadatek';
-
-  @override
-  String get welcome_tagline => 'PANEL ORGANIZACJI WESELA';
 
   @override
   String get layout_forcePhone => 'Wymuś telefon';
@@ -8187,9 +7803,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get id_needName => 'Podaj imię, żebyśmy wiedzieli, kto to.';
 
   @override
-  String get id_continue => 'Dalej';
-
-  @override
   String get id_enter => 'Wejdź do strefy gości';
 
   @override
@@ -8198,9 +7811,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get id_notMeMenu => 'To nie ja — zmień osobę';
-
-  @override
-  String get id_switched => 'Wybierz siebie jeszcze raz';
 
   @override
   String get id_invalidTitle => 'Nieprawidłowe zaproszenie';

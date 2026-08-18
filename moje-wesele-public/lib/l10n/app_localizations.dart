@@ -152,18 +152,6 @@ abstract class AppLocalizations {
   /// **'Gotowe'**
   String get common_done;
 
-  /// No description provided for @common_yes.
-  ///
-  /// In pl, this message translates to:
-  /// **'Tak'**
-  String get common_yes;
-
-  /// No description provided for @common_no.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nie'**
-  String get common_no;
-
   /// No description provided for @common_search.
   ///
   /// In pl, this message translates to:
@@ -187,12 +175,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Błąd zapisu: {error}'**
   String common_saveErrorToast(String error);
-
-  /// No description provided for @common_deleteConfirmTitle.
-  ///
-  /// In pl, this message translates to:
-  /// **'Na pewno usunąć?'**
-  String get common_deleteConfirmTitle;
 
   /// Licznik gości z polską odmianą. ICU plural obsługuje formy 1 / 2-4 / 5+ w każdym języku, bez ręcznych funkcji odmiany.
   ///
@@ -308,23 +290,11 @@ abstract class AppLocalizations {
   /// **'Spróbuj ponownie'**
   String get common_retry;
 
-  /// No description provided for @common_loading.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wczytywanie…'**
-  String get common_loading;
-
   /// No description provided for @common_copy.
   ///
   /// In pl, this message translates to:
   /// **'Kopiuj'**
   String get common_copy;
-
-  /// No description provided for @common_share.
-  ///
-  /// In pl, this message translates to:
-  /// **'Udostępnij'**
-  String get common_share;
 
   /// No description provided for @common_open.
   ///
@@ -344,23 +314,11 @@ abstract class AppLocalizations {
   /// **'Wszyscy'**
   String get common_all;
 
-  /// Dopisek przy etykiecie pola nieobowiązkowego.
-  ///
-  /// In pl, this message translates to:
-  /// **'opcjonalnie'**
-  String get common_optional;
-
   /// No description provided for @common_deleteConfirmBody.
   ///
   /// In pl, this message translates to:
   /// **'Tej operacji nie da się cofnąć.'**
   String get common_deleteConfirmBody;
-
-  /// No description provided for @common_deletedToast.
-  ///
-  /// In pl, this message translates to:
-  /// **'Usunięto'**
-  String get common_deletedToast;
 
   /// Komunikat błędu usuwania.
   ///
@@ -374,65 +332,11 @@ abstract class AppLocalizations {
   /// **'Skopiowano'**
   String get common_copiedToast;
 
-  /// No description provided for @common_offlineToast.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak połączenia — zmiany zapiszą się po odzyskaniu sieci.'**
-  String get common_offlineToast;
-
-  /// No description provided for @validation_required.
-  ///
-  /// In pl, this message translates to:
-  /// **'To pole jest wymagane'**
-  String get validation_required;
-
-  /// No description provided for @validation_invalidNumber.
-  ///
-  /// In pl, this message translates to:
-  /// **'Podaj poprawną liczbę'**
-  String get validation_invalidNumber;
-
-  /// No description provided for @validation_invalidEmail.
-  ///
-  /// In pl, this message translates to:
-  /// **'Podaj poprawny adres e-mail'**
-  String get validation_invalidEmail;
-
-  /// Walidacja długości; {min} to minimalna liczba znaków.
-  ///
-  /// In pl, this message translates to:
-  /// **'Za krótkie — minimum {min} znaki'**
-  String validation_tooShort(int min);
-
-  /// No description provided for @date_notSet.
-  ///
-  /// In pl, this message translates to:
-  /// **'Data do ustalenia'**
-  String get date_notSet;
-
   /// No description provided for @date_pickDate.
   ///
   /// In pl, this message translates to:
   /// **'Wybierz datę'**
   String get date_pickDate;
-
-  /// No description provided for @date_pickTime.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wybierz godzinę'**
-  String get date_pickTime;
-
-  /// No description provided for @date_today.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dzisiaj'**
-  String get date_today;
-
-  /// No description provided for @date_tomorrow.
-  ///
-  /// In pl, this message translates to:
-  /// **'Jutro'**
-  String get date_tomorrow;
 
   /// No description provided for @guests_categoryWitnesses.
   ///
@@ -1022,23 +926,11 @@ abstract class AppLocalizations {
   /// **'Zaproszony przez'**
   String get guests_detailInvitedBy;
 
-  /// No description provided for @guests_allSeated.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wszyscy goście są już przypisani.'**
-  String get guests_allSeated;
-
   /// Nazwa zastepcza stolu bez nazwy. UWAGA: nowe stoly dostaja nazwe zapisywana w bazie - to tylko etykieta zapasowa przy odczycie.
   ///
   /// In pl, this message translates to:
   /// **'Stół'**
   String get tables_defaultName;
-
-  /// No description provided for @tables_title.
-  ///
-  /// In pl, this message translates to:
-  /// **'Plan stołów'**
-  String get tables_title;
 
   /// No description provided for @tables_addButton.
   ///
@@ -1064,35 +956,11 @@ abstract class AppLocalizations {
   /// **'Nazwa stołu'**
   String get tables_name;
 
-  /// No description provided for @tables_nameHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'np. Stół 1'**
-  String get tables_nameHint;
-
   /// No description provided for @tables_shape.
   ///
   /// In pl, this message translates to:
   /// **'Kształt'**
   String get tables_shape;
-
-  /// No description provided for @tables_shapeRound.
-  ///
-  /// In pl, this message translates to:
-  /// **'Okrągły'**
-  String get tables_shapeRound;
-
-  /// No description provided for @tables_shapeRect.
-  ///
-  /// In pl, this message translates to:
-  /// **'Prostokątny'**
-  String get tables_shapeRect;
-
-  /// No description provided for @tables_seats.
-  ///
-  /// In pl, this message translates to:
-  /// **'Liczba miejsc'**
-  String get tables_seats;
 
   /// No description provided for @tables_honorSwitch.
   ///
@@ -1118,53 +986,11 @@ abstract class AppLocalizations {
   /// **'Osobny stół dla najmłodszych gości'**
   String get tables_childHint;
 
-  /// No description provided for @tables_deleteTitle.
-  ///
-  /// In pl, this message translates to:
-  /// **'Usunąć stół?'**
-  String get tables_deleteTitle;
-
-  /// No description provided for @tables_deleteBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Goście przypisani do tego stołu wrócą na listę nieprzypisanych.'**
-  String get tables_deleteBody;
-
-  /// No description provided for @tables_deletedToast.
-  ///
-  /// In pl, this message translates to:
-  /// **'Usunięto stół'**
-  String get tables_deletedToast;
-
   /// No description provided for @tables_full.
   ///
   /// In pl, this message translates to:
   /// **'Stół jest pełny!'**
   String get tables_full;
-
-  /// No description provided for @tables_seatsUsed.
-  ///
-  /// In pl, this message translates to:
-  /// **'{used}/{total} miejsc'**
-  String tables_seatsUsed(int used, int total);
-
-  /// No description provided for @tables_assignGuest.
-  ///
-  /// In pl, this message translates to:
-  /// **'Posadź gościa'**
-  String get tables_assignGuest;
-
-  /// No description provided for @tables_unassign.
-  ///
-  /// In pl, this message translates to:
-  /// **'Zwolnij miejsce'**
-  String get tables_unassign;
-
-  /// No description provided for @tables_emptyState.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nie masz jeszcze stołów. Dodaj pierwszy.'**
-  String get tables_emptyState;
 
   /// No description provided for @tables_statTables.
   ///
@@ -1172,47 +998,11 @@ abstract class AppLocalizations {
   /// **'Stoły'**
   String get tables_statTables;
 
-  /// No description provided for @tables_statSeats.
-  ///
-  /// In pl, this message translates to:
-  /// **'Miejsca'**
-  String get tables_statSeats;
-
-  /// No description provided for @tables_statFree.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wolne'**
-  String get tables_statFree;
-
-  /// No description provided for @tables_hintAdultAtChildTable.
-  ///
-  /// In pl, this message translates to:
-  /// **'Przy stole dla dzieci posadzono osobę dorosłą — jeśli to opiekun, wszystko gra.'**
-  String get tables_hintAdultAtChildTable;
-
-  /// No description provided for @tables_hintChildAtRegularTable.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dziecko przy zwykłym stole — jest też stół dla dzieci.'**
-  String get tables_hintChildAtRegularTable;
-
   /// No description provided for @roomplan_title.
   ///
   /// In pl, this message translates to:
   /// **'Plan sali'**
   String get roomplan_title;
-
-  /// No description provided for @roomplan_editMode.
-  ///
-  /// In pl, this message translates to:
-  /// **'Tryb edycji'**
-  String get roomplan_editMode;
-
-  /// No description provided for @roomplan_gridOn.
-  ///
-  /// In pl, this message translates to:
-  /// **'Siatka'**
-  String get roomplan_gridOn;
 
   /// No description provided for @roomplan_fullscreen.
   ///
@@ -1220,29 +1010,11 @@ abstract class AppLocalizations {
   /// **'Pełny ekran'**
   String get roomplan_fullscreen;
 
-  /// No description provided for @roomplan_addTable.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dodaj stół'**
-  String get roomplan_addTable;
-
   /// No description provided for @roomplan_addElement.
   ///
   /// In pl, this message translates to:
   /// **'Dodaj element'**
   String get roomplan_addElement;
-
-  /// No description provided for @roomplan_unassignedGuests.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nieprzypisani goście'**
-  String get roomplan_unassignedGuests;
-
-  /// No description provided for @roomplan_roomSize.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wymiary sali'**
-  String get roomplan_roomSize;
 
   /// No description provided for @roomplan_widthMeters.
   ///
@@ -1255,12 +1027,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Długość (m)'**
   String get roomplan_lengthMeters;
-
-  /// No description provided for @roomplan_savedToast.
-  ///
-  /// In pl, this message translates to:
-  /// **'Zapisano plan sali'**
-  String get roomplan_savedToast;
 
   /// No description provided for @guests_namePendingBadge.
   ///
@@ -1322,137 +1088,11 @@ abstract class AppLocalizations {
   /// **'{count}×'**
   String guests_menuTimes(int count);
 
-  /// No description provided for @tables_seatsShort.
-  ///
-  /// In pl, this message translates to:
-  /// **'{used}/{total}'**
-  String tables_seatsShort(int used, int total);
-
-  /// No description provided for @tables_guestPickerTitle.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wybierz gościa'**
-  String get tables_guestPickerTitle;
-
-  /// No description provided for @tables_tapSeatToAssign.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dotknij miejsca, aby posadzić gościa'**
-  String get tables_tapSeatToAssign;
-
-  /// No description provided for @tables_honorBadge.
-  ///
-  /// In pl, this message translates to:
-  /// **'⭐ Honorowy'**
-  String get tables_honorBadge;
-
-  /// No description provided for @tables_childBadge.
-  ///
-  /// In pl, this message translates to:
-  /// **'🧒 Dla dzieci'**
-  String get tables_childBadge;
-
-  /// No description provided for @tables_seatFree.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wolne'**
-  String get tables_seatFree;
-
-  /// No description provided for @tables_addFirst.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dodaj pierwszy stół'**
-  String get tables_addFirst;
-
-  /// Licznik stolow z odmiana ICU.
-  ///
-  /// In pl, this message translates to:
-  /// **'{tables, plural, =1{1 stół} few{{tables} stoły} other{{tables} stołów}}'**
-  String tables_summary(int tables);
-
-  /// Licznik miejsc z odmiana ICU.
-  ///
-  /// In pl, this message translates to:
-  /// **'{seats, plural, =1{1 miejsce} few{{seats} miejsca} other{{seats} miejsc}}'**
-  String tables_seatsSummary(int seats);
-
   /// No description provided for @roomplan_elementTable.
   ///
   /// In pl, this message translates to:
   /// **'Stół'**
   String get roomplan_elementTable;
-
-  /// No description provided for @roomplan_elementStage.
-  ///
-  /// In pl, this message translates to:
-  /// **'Scena'**
-  String get roomplan_elementStage;
-
-  /// No description provided for @roomplan_elementBar.
-  ///
-  /// In pl, this message translates to:
-  /// **'Bar'**
-  String get roomplan_elementBar;
-
-  /// No description provided for @roomplan_elementDanceFloor.
-  ///
-  /// In pl, this message translates to:
-  /// **'Parkiet'**
-  String get roomplan_elementDanceFloor;
-
-  /// No description provided for @roomplan_elementEntrance.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wejście'**
-  String get roomplan_elementEntrance;
-
-  /// No description provided for @roomplan_elementOther.
-  ///
-  /// In pl, this message translates to:
-  /// **'Inne'**
-  String get roomplan_elementOther;
-
-  /// No description provided for @roomplan_deleteElement.
-  ///
-  /// In pl, this message translates to:
-  /// **'Usunąć element?'**
-  String get roomplan_deleteElement;
-
-  /// No description provided for @roomplan_elementName.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nazwa elementu'**
-  String get roomplan_elementName;
-
-  /// No description provided for @roomplan_staff.
-  ///
-  /// In pl, this message translates to:
-  /// **'Obsługa'**
-  String get roomplan_staff;
-
-  /// No description provided for @roomplan_persons.
-  ///
-  /// In pl, this message translates to:
-  /// **'Liczba osób'**
-  String get roomplan_persons;
-
-  /// No description provided for @roomplan_includeInCost.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wliczaj do kosztów'**
-  String get roomplan_includeInCost;
-
-  /// No description provided for @roomplan_dragHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Przytrzymaj i przeciągnij, aby przesunąć'**
-  String get roomplan_dragHint;
-
-  /// No description provided for @roomplan_exitFullscreen.
-  ///
-  /// In pl, this message translates to:
-  /// **'Zamknij pełny ekran'**
-  String get roomplan_exitFullscreen;
 
   /// No description provided for @tables_nameHintOptional.
   ///
@@ -1472,36 +1112,6 @@ abstract class AppLocalizations {
   /// **'▭ Prostokątny'**
   String get tables_shapeRectIcon;
 
-  /// No description provided for @tables_deleteBodyNamed.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć stół „{name}”? Przypisani goście wrócą do nieprzypisanych.'**
-  String tables_deleteBodyNamed(String name);
-
-  /// No description provided for @tables_removeFromTable.
-  ///
-  /// In pl, this message translates to:
-  /// **'Usuń ze stołu'**
-  String get tables_removeFromTable;
-
-  /// No description provided for @tables_unassignedHeader.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nieprzypisani goście ({count})'**
-  String tables_unassignedHeader(int count);
-
-  /// No description provided for @tables_dragHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Przeciągnij (przytrzymaj) gościa na stół lub użyj „Przypisz”.'**
-  String get tables_dragHint;
-
-  /// No description provided for @tables_allSeatedCheer.
-  ///
-  /// In pl, this message translates to:
-  /// **'🎉 Wszyscy goście mają miejsce!'**
-  String get tables_allSeatedCheer;
-
   /// No description provided for @tables_assignGuestAction.
   ///
   /// In pl, this message translates to:
@@ -1513,12 +1123,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Usuń stół'**
   String get tables_deleteTable;
-
-  /// No description provided for @tables_emptyStateHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak stołów. Dodaj pierwszy stół przyciskiem powyżej.'**
-  String get tables_emptyStateHint;
 
   /// No description provided for @tables_statGuests.
   ///
@@ -1639,12 +1243,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dodano element: {name}'**
   String roomplan_addedElement(String name);
-
-  /// No description provided for @roomplan_elementSize.
-  ///
-  /// In pl, this message translates to:
-  /// **'Rozmiar elementu'**
-  String get roomplan_elementSize;
 
   /// No description provided for @budget_title.
   ///
@@ -1795,12 +1393,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'rozwiń'**
   String get budget_expand;
-
-  /// No description provided for @budget_quickAddHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Kliknij, aby dodać gotowy wydatek — listę zmienisz w Ustawieniach.'**
-  String get budget_quickAddHint;
 
   /// No description provided for @budget_customItem.
   ///
@@ -2185,12 +1777,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Koszt menu dziecięcego'**
   String get budget_childMenuCost;
-
-  /// No description provided for @budget_cateringSeparate.
-  ///
-  /// In pl, this message translates to:
-  /// **'Catering od innej firmy'**
-  String get budget_cateringSeparate;
 
   /// No description provided for @budget_cateringSeparateHint.
   ///
@@ -2635,12 +2221,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'brak wyboru'**
   String get budget_variantNone;
-
-  /// No description provided for @budget_reserveSettings.
-  ///
-  /// In pl, this message translates to:
-  /// **'Ustawienia budżetu'**
-  String get budget_reserveSettings;
 
   /// No description provided for @budget_expensesQuickAdd.
   ///
@@ -3212,12 +2792,6 @@ abstract class AppLocalizations {
   /// **'Przypisz do: {table}'**
   String tables_assignTo(String table);
 
-  /// No description provided for @tables_seatsOf.
-  ///
-  /// In pl, this message translates to:
-  /// **'{used}/{total} miejsc'**
-  String tables_seatsOf(int used, int total);
-
   /// No description provided for @vendors_title.
   ///
   /// In pl, this message translates to:
@@ -3283,12 +2857,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Brak rat.'**
   String get vendors_noInstallments;
-
-  /// No description provided for @vendors_paidRemaining.
-  ///
-  /// In pl, this message translates to:
-  /// **'Zapłacono: {paid} · Pozostało: {remaining}'**
-  String vendors_paidRemaining(String paid, String remaining);
 
   /// No description provided for @vendors_toPay.
   ///
@@ -3410,12 +2978,6 @@ abstract class AppLocalizations {
   /// **'Usunąć hotel?'**
   String get accommodation_deleteHotelTitle;
 
-  /// No description provided for @accommodation_deleteHotelBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć „{name}”?'**
-  String accommodation_deleteHotelBody(String name);
-
   /// No description provided for @accommodation_guestsNeeding.
   ///
   /// In pl, this message translates to:
@@ -3516,18 +3078,6 @@ abstract class AppLocalizations {
   /// **'Lista wszystkich odpowiedzi oraz kody QR i linki dla gości.'**
   String get rsvp_allHint;
 
-  /// No description provided for @rsvp_allEmpty.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.'**
-  String get rsvp_allEmpty;
-
-  /// No description provided for @rsvp_qrHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wszystkie kody QR i linki do stron dla gości w jednym miejscu.'**
-  String get rsvp_qrHint;
-
   /// No description provided for @rsvp_qrError.
   ///
   /// In pl, this message translates to:
@@ -3569,12 +3119,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Wyczyścić wszystkie potwierdzenia?'**
   String get rsvp_clearAllTitle;
-
-  /// No description provided for @rsvp_empty.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).'**
-  String get rsvp_empty;
 
   /// No description provided for @rsvp_unmatched.
   ///
@@ -3792,12 +3336,6 @@ abstract class AppLocalizations {
   /// **'Usunąć stwierdzenie?'**
   String get tf_deleteTitle;
 
-  /// No description provided for @tf_deleteBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć „{text}”?'**
-  String tf_deleteBody(String text);
-
   /// No description provided for @tf_deleted.
   ///
   /// In pl, this message translates to:
@@ -3815,12 +3353,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Brak zdjęć'**
   String get photoGuess_empty;
-
-  /// No description provided for @photoGuess_emptyHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dodaj stare zdjęcia (np. z dzieciństwa) i pytania, które goście będą zgadywać.'**
-  String get photoGuess_emptyHint;
 
   /// No description provided for @photoGuess_saved.
   ///
@@ -3918,12 +3450,6 @@ abstract class AppLocalizations {
   /// **'Usunąć wyzwanie?'**
   String get photoChallenge_deleteTitle;
 
-  /// No description provided for @photoChallenge_deleteBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć „{text}”? Przesłane zdjęcia zostaną usunięte razem z wyzwaniem.'**
-  String photoChallenge_deleteBody(String text);
-
   /// No description provided for @photoChallenge_deleted.
   ///
   /// In pl, this message translates to:
@@ -3935,18 +3461,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'⭐ {points} pkt'**
   String photoChallenge_points(int points);
-
-  /// No description provided for @photoChallenge_deletePhotoTitle.
-  ///
-  /// In pl, this message translates to:
-  /// **'Usunąć zdjęcie?'**
-  String get photoChallenge_deletePhotoTitle;
-
-  /// No description provided for @photoChallenge_deletePhotoBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć zdjęcie od „{name}”?'**
-  String photoChallenge_deletePhotoBody(String name);
 
   /// No description provided for @photoChallenge_photoDeleted.
   ///
@@ -4230,12 +3744,6 @@ abstract class AppLocalizations {
   /// **'Otworzyć wszystko teraz?'**
   String get capsule_openAllTitle;
 
-  /// No description provided for @capsule_openAllBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Zobaczysz treść także zapieczętowanych wiadomości, zanim nadejdzie ich termin.'**
-  String get capsule_openAllBody;
-
   /// No description provided for @capsule_openAll.
   ///
   /// In pl, this message translates to:
@@ -4259,24 +3767,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dodaj gościa ręcznie'**
   String get guestMap_addManually;
-
-  /// No description provided for @guestMap_empty.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak zlokalizowanych gości. Pinezki pojawią się po dodaniu miejscowości do wpisów.'**
-  String get guestMap_empty;
-
-  /// No description provided for @guestMap_farthest.
-  ///
-  /// In pl, this message translates to:
-  /// **'Najdalszy gość: {name}'**
-  String guestMap_farthest(String name);
-
-  /// No description provided for @guestMap_setVenueHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Aby policzyć dystans najdalszego gościa, ustaw „Miejsce wesela” w Konfiguracji.'**
-  String get guestMap_setVenueHint;
 
   /// No description provided for @guestMap_kmFromVenue.
   ///
@@ -4415,12 +3905,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'👤 od gościa'**
   String get music_fromGuest;
-
-  /// No description provided for @music_momentsHint.
-  ///
-  /// In pl, this message translates to:
-  /// **'Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.'**
-  String get music_momentsHint;
 
   /// No description provided for @music_addOwnMoment.
   ///
@@ -4601,48 +4085,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'…lub dodaj ręcznie'**
   String get music_orAddManually;
-
-  /// No description provided for @guestMap_deleteBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć „{name}”?'**
-  String guestMap_deleteBody(String name);
-
-  /// No description provided for @guestbook_deleteBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć wpis od „{name}”?'**
-  String guestbook_deleteBody(String name);
-
-  /// No description provided for @capsule_deleteBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć wiadomość od „{name}”?'**
-  String capsule_deleteBody(String name);
-
-  /// No description provided for @music_momentsHintFull.
-  ///
-  /// In pl, this message translates to:
-  /// **'Utwory do kluczowych momentów wesela. Przeciągnij, by ustawić kolejność.'**
-  String get music_momentsHintFull;
-
-  /// No description provided for @rsvp_allEmptyFull.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak wpisów RSVP. Pojawią się tutaj, gdy goście zaczną potwierdzać obecność.'**
-  String get rsvp_allEmptyFull;
-
-  /// No description provided for @rsvp_qrHintFull.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wszystkie kody QR i linki do stron dla gości w jednym miejscu.'**
-  String get rsvp_qrHintFull;
-
-  /// No description provided for @rsvp_emptyFull.
-  ///
-  /// In pl, this message translates to:
-  /// **'Brak potwierdzeń. Udostępnij gościom kod QR (na dole tej strony).'**
-  String get rsvp_emptyFull;
 
   /// No description provided for @guestMap_txt1.
   ///
@@ -10471,12 +9913,6 @@ abstract class AppLocalizations {
   /// **'Harmonogram: {label} o {time}'**
   String notif_scheduleAdded(String label, String time);
 
-  /// No description provided for @notif_scheduleChanged.
-  ///
-  /// In pl, this message translates to:
-  /// **'Zmieniono w harmonogramie: {label}'**
-  String notif_scheduleChanged(String label);
-
   /// No description provided for @notif_guestNoName.
   ///
   /// In pl, this message translates to:
@@ -10867,12 +10303,6 @@ abstract class AppLocalizations {
   /// **'„{text}\"'**
   String pdf_quoted(String text);
 
-  /// No description provided for @pdf_adviceAuthor.
-  ///
-  /// In pl, this message translates to:
-  /// **'— {name} · {category}'**
-  String pdf_adviceAuthor(String name, String category);
-
   /// No description provided for @pdf_capsuleTitle.
   ///
   /// In pl, this message translates to:
@@ -10908,18 +10338,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dodano w: {section}'**
   String w_addedIn(String section);
-
-  /// No description provided for @w_comingSoon.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wkrótce'**
-  String get w_comingSoon;
-
-  /// No description provided for @w_comingSoonBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Ta funkcja jest w przygotowaniu.'**
-  String get w_comingSoonBody;
 
   /// No description provided for @w_hideFilters.
   ///
@@ -11148,12 +10566,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Zmień sekcję'**
   String get nav_changeSection;
-
-  /// No description provided for @nav_testMode.
-  ///
-  /// In pl, this message translates to:
-  /// **'Tryb testowy'**
-  String get nav_testMode;
 
   /// Podpis pod liczbą na liczniku — sama liczba stoi nad podpisem, więc w treści jej nie powtarzamy.
   ///
@@ -11460,12 +10872,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Usunąć zdjęcie?'**
   String get pc_deletePhotoTitle;
-
-  /// No description provided for @pc_deletePhotoBody.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć zdjęcie od „{name}\"?'**
-  String pc_deletePhotoBody(String name);
 
   /// No description provided for @pc_empty.
   ///
@@ -11814,12 +11220,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dodano (nie udało się zlokalizować miejscowości)'**
   String get guestMap_addedNoGeo;
-
-  /// No description provided for @guestMap_deleteConfirm.
-  ///
-  /// In pl, this message translates to:
-  /// **'Czy na pewno usunąć „{name}\"?'**
-  String guestMap_deleteConfirm(String name);
 
   /// No description provided for @guestMap_addGuest.
   ///
@@ -12474,18 +11874,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Zaloguj się e-mailem'**
   String get login_emailButton;
-
-  /// No description provided for @welcome_testMode.
-  ///
-  /// In pl, this message translates to:
-  /// **'Tryb testowy — wejście bez logowania'**
-  String get welcome_testMode;
-
-  /// No description provided for @welcome_enter.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wejdź do aplikacji'**
-  String get welcome_enter;
 
   /// No description provided for @auth_cancelled.
   ///
@@ -13320,12 +12708,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'np. Zadatek'**
   String get vend_instalmentHint;
-
-  /// No description provided for @welcome_tagline.
-  ///
-  /// In pl, this message translates to:
-  /// **'PANEL ORGANIZACJI WESELA'**
-  String get welcome_tagline;
 
   /// No description provided for @layout_forcePhone.
   ///
@@ -14275,12 +13657,6 @@ abstract class AppLocalizations {
   /// **'Podaj imię, żebyśmy wiedzieli, kto to.'**
   String get id_needName;
 
-  /// No description provided for @id_continue.
-  ///
-  /// In pl, this message translates to:
-  /// **'Dalej'**
-  String get id_continue;
-
   /// No description provided for @id_enter.
   ///
   /// In pl, this message translates to:
@@ -14298,12 +13674,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'To nie ja — zmień osobę'**
   String get id_notMeMenu;
-
-  /// No description provided for @id_switched.
-  ///
-  /// In pl, this message translates to:
-  /// **'Wybierz siebie jeszcze raz'**
-  String get id_switched;
 
   /// No description provided for @id_invalidTitle.
   ///
