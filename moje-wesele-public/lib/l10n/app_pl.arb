@@ -2354,6 +2354,8 @@
       }
     }
   },
+  "gi_willAttend": "Będzie",
+  "gi_willNotAttend": "Nie będzie",
   "cw_title": "Nowe wesele",
   "cw_intro": "Podaj podstawowe informacje — resztę uzupełnisz później w Ustawieniach.",
   "cw_name": "Nazwa wesela",
@@ -4857,6 +4859,8 @@
   "taskSvc_song": "Utwór",
   "err_noActiveWedding": "Brak aktywnego wesela — nie wiadomo, komu przypisać dane. Wybierz wesele i spróbuj ponownie.",
   "err_weddingDocMissing": "Dokument wesela nie istnieje",
+  "err_guestViewMissing": "guestView/main nie powstał — sprawdź reguły",
+  "err_guestViewTokenMismatch": "Token w guestView nie zgadza się z weselem",
   "common_optionalHint": "Opcjonalnie…",
   "common_phoneHint": "np. 600 100 200",
   "common_emailHint": "kontakt@firma.pl",

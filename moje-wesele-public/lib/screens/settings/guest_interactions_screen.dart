@@ -279,7 +279,9 @@ class _InteractionList extends StatelessWidget {
         if (coll == 'rsvp') {
           final attending = e['attending'] == true;
           final comp = (e['companions'] as num?)?.toInt() ?? 0;
-          return '$name — ${attending ? 'Będzie' : 'Nie będzie'}${attending && comp > 0 ? ' (+$comp)' : ''}';
+          final status =
+              attending ? AppText.t.gi_willAttend : AppText.t.gi_willNotAttend;
+          return '$name — $status${attending && comp > 0 ? ' (+$comp)' : ''}';
         }
         if (coll == 'guestMap') {
           final city = (e['city'] as String?) ?? '';

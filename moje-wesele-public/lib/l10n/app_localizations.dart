@@ -7026,6 +7026,18 @@ abstract class AppLocalizations {
   /// **'Dieta: {diet}'**
   String gi_diet(String diet);
 
+  /// No description provided for @gi_willAttend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Będzie'**
+  String get gi_willAttend;
+
+  /// No description provided for @gi_willNotAttend.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie będzie'**
+  String get gi_willNotAttend;
+
   /// No description provided for @cw_title.
   ///
   /// In pl, this message translates to:
@@ -13578,6 +13590,18 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dokument wesela nie istnieje'**
   String get err_weddingDocMissing;
+
+  /// No description provided for @err_guestViewMissing.
+  ///
+  /// In pl, this message translates to:
+  /// **'guestView/main nie powstał — sprawdź reguły'**
+  String get err_guestViewMissing;
+
+  /// No description provided for @err_guestViewTokenMismatch.
+  ///
+  /// In pl, this message translates to:
+  /// **'Token w guestView nie zgadza się z weselem'**
+  String get err_guestViewTokenMismatch;
 
   /// No description provided for @common_optionalHint.
   ///

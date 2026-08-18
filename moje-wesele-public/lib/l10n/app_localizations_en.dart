@@ -3942,6 +3942,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get gi_willAttend => 'Will attend';
+
+  @override
+  String get gi_willNotAttend => 'Won\'t attend';
+
+  @override
   String get cw_title => 'New wedding';
 
   @override
@@ -7742,6 +7748,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get err_weddingDocMissing => 'The wedding document doesn\'t exist';
+
+  @override
+  String get err_guestViewMissing =>
+      'guestView/main wasn\'t created — check the security rules';
+
+  @override
+  String get err_guestViewTokenMismatch =>
+      'The guestView token doesn\'t match this wedding';
 
   @override
   String get common_optionalHint => 'Optional…';

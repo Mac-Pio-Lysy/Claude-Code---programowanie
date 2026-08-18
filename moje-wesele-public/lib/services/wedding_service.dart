@@ -378,14 +378,14 @@ class WeddingService {
             weddingId: m.weddingId,
             name: label,
             ok: false,
-            error: 'guestView/main nie powstał — sprawdź reguły',
+            error: AppText.t.err_guestViewMissing,
           ));
         } else if ((gv['guestToken'] as String?)?.trim() != token) {
           results.add(GuestViewSyncResult(
             weddingId: m.weddingId,
             name: label,
             ok: false,
-            error: 'Token w guestView nie zgadza się z weselem',
+            error: AppText.t.err_guestViewTokenMismatch,
           ));
         } else {
           results.add(GuestViewSyncResult(

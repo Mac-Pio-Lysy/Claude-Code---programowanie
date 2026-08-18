@@ -312,7 +312,8 @@ class _AdvicesScreenState extends State<AdvicesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppText.t.advices_deleteTitle),
-        content: Text('Czy na pewno usunąć radę od „${a.name.isEmpty ? AppText.t.role_guest : a.name}"? Tej operacji nie można cofnąć.'),
+        content: Text(AppText.t.advices_deleteConfirm(
+            a.name.isEmpty ? AppText.t.role_guest : a.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

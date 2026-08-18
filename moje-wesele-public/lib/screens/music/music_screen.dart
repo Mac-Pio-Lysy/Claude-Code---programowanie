@@ -721,7 +721,7 @@ class _MusicScreenState extends State<MusicScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '👤 od gościa${s.guestName.isNotEmpty ? ': ${s.guestName}' : ''}',
+                    '${AppText.t.music_fromGuest}${s.guestName.isNotEmpty ? ': ${s.guestName}' : ''}',
                     style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,

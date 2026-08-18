@@ -3948,6 +3948,12 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get gi_willAttend => 'Będzie';
+
+  @override
+  String get gi_willNotAttend => 'Nie będzie';
+
+  @override
   String get cw_title => 'Nowe wesele';
 
   @override
@@ -7763,6 +7769,14 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get err_weddingDocMissing => 'Dokument wesela nie istnieje';
+
+  @override
+  String get err_guestViewMissing =>
+      'guestView/main nie powstał — sprawdź reguły';
+
+  @override
+  String get err_guestViewTokenMismatch =>
+      'Token w guestView nie zgadza się z weselem';
 
   @override
   String get common_optionalHint => 'Opcjonalnie…';

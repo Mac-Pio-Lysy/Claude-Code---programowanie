@@ -491,7 +491,8 @@ class _GuestCardState extends State<_GuestCard> {
       // Powiązane osoby towarzyszące — widać, kto z kim przychodzi (#4).
       for (final c in widget.companions)
         _Badge(
-          '👥 z: ${c.namePending ? 'osoba towarzysząca' : c.fullName}',
+          AppText.t.guests_badgeCompanionOf(
+              c.namePending ? AppText.t.guests_companionPlaceholder : c.fullName),
           const Color(0xFFF1F5F9),
           const Color(0xFF475569),
         ),

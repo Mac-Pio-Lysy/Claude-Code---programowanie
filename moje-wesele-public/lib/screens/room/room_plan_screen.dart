@@ -690,7 +690,8 @@ class _TableSheetState extends State<_TableSheet> {
         controller: controller,
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
-          Text('${table['name'] ?? 'Stół'} (${seated.length}/${seats.length})',
+          Text(
+              '${table['name'] ?? AppText.t.roomplan_elementTable} (${seated.length}/${seats.length})',
               style: GoogleFonts.playfairDisplay(
                   fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
