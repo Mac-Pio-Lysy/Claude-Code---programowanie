@@ -50,6 +50,7 @@ class GuestSectionDef {
         'photoGuess' => AppText.t.guestSection_photoGuess,
         'photoChallenge' => AppText.t.guestSection_photoChallenge,
         'bingo' => AppText.t.guestSection_bingo,
+        'photoContest' => AppText.t.guestSection_photoContest,
         _ => key,
       };
 }
@@ -70,6 +71,7 @@ const List<GuestSectionDef> kGuestSections = [
   GuestSectionDef('photoGuess', Icons.image_search),
   GuestSectionDef('photoChallenge', Icons.photo_camera_outlined),
   GuestSectionDef('bingo', Icons.grid_view_outlined),
+  GuestSectionDef('photoContest', Icons.emoji_events_outlined),
 ];
 
 /// Zachowanie, gdy sekcja jest poza zakresem dat lub wyłączona.

@@ -3216,6 +3216,120 @@ abstract class AppLocalizations {
   /// **'Foto-wyzwania'**
   String get games_photoChallenge;
 
+  /// No description provided for @games_photoContest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konkursy foto'**
+  String get games_photoContest;
+
+  /// No description provided for @contest_empty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak konkursów'**
+  String get contest_empty;
+
+  /// No description provided for @contest_emptyHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Załóż pierwszy konkurs fotograficzny — goście będą zgłaszać zdjęcia i głosować.'**
+  String get contest_emptyHint;
+
+  /// No description provided for @contest_add.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowy konkurs'**
+  String get contest_add;
+
+  /// No description provided for @contest_edit.
+  ///
+  /// In pl, this message translates to:
+  /// **'Edytuj konkurs'**
+  String get contest_edit;
+
+  /// No description provided for @contest_name.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa konkursu'**
+  String get contest_name;
+
+  /// No description provided for @contest_subcategories.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podkategorie'**
+  String get contest_subcategories;
+
+  /// No description provided for @contest_addSubcategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj podkategorię'**
+  String get contest_addSubcategory;
+
+  /// No description provided for @contest_subcategoryLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa podkategorii'**
+  String get contest_subcategoryLabel;
+
+  /// No description provided for @contest_subcategoriesEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj co najmniej jedną podkategorię.'**
+  String get contest_subcategoriesEmpty;
+
+  /// No description provided for @contest_rankingSize.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozmiar rankingu'**
+  String get contest_rankingSize;
+
+  /// No description provided for @contest_revealMode.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ujawnienie wyników'**
+  String get contest_revealMode;
+
+  /// No description provided for @contest_revealManual.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ręczne'**
+  String get contest_revealManual;
+
+  /// No description provided for @contest_revealAuto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Automatyczne po dacie'**
+  String get contest_revealAuto;
+
+  /// No description provided for @contest_revealDate.
+  ///
+  /// In pl, this message translates to:
+  /// **'Data ujawnienia'**
+  String get contest_revealDate;
+
+  /// No description provided for @contest_active.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konkurs aktywny dla gości'**
+  String get contest_active;
+
+  /// No description provided for @contest_deleteTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunąć konkurs?'**
+  String get contest_deleteTitle;
+
+  /// No description provided for @contest_deleteBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konkurs, jego podkategorie oraz powiązane zgłoszenia i głosy gości znikną ze strony gości. Dane zgłoszeń w Firestore NIE są kasowane automatycznie.'**
+  String get contest_deleteBody;
+
+  /// No description provided for @contest_subcategoriesCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} {count, plural, =1{podkategoria} few{podkategorie} other{podkategorii}}'**
+  String contest_subcategoriesCount(int count);
+
   /// No description provided for @quiz_addQuestion.
   ///
   /// In pl, this message translates to:
@@ -4319,6 +4433,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Ślubne Bingo'**
   String get guestSection_bingo;
+
+  /// No description provided for @guestSection_photoContest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konkursy fotograficzne'**
+  String get guestSection_photoContest;
 
   /// No description provided for @gw_appTitle.
   ///

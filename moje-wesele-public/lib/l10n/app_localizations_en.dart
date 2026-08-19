@@ -1732,6 +1732,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get games_photoChallenge => 'Photo challenges';
 
   @override
+  String get games_photoContest => 'Photo contests';
+
+  @override
+  String get contest_empty => 'No contests yet';
+
+  @override
+  String get contest_emptyHint =>
+      'Create your first photo contest — guests will submit photos and vote.';
+
+  @override
+  String get contest_add => 'New contest';
+
+  @override
+  String get contest_edit => 'Edit contest';
+
+  @override
+  String get contest_name => 'Contest name';
+
+  @override
+  String get contest_subcategories => 'Subcategories';
+
+  @override
+  String get contest_addSubcategory => 'Add subcategory';
+
+  @override
+  String get contest_subcategoryLabel => 'Subcategory name';
+
+  @override
+  String get contest_subcategoriesEmpty => 'Add at least one subcategory.';
+
+  @override
+  String get contest_rankingSize => 'Ranking size';
+
+  @override
+  String get contest_revealMode => 'Results reveal';
+
+  @override
+  String get contest_revealManual => 'Manual';
+
+  @override
+  String get contest_revealAuto => 'Automatic after date';
+
+  @override
+  String get contest_revealDate => 'Reveal date';
+
+  @override
+  String get contest_active => 'Contest active for guests';
+
+  @override
+  String get contest_deleteTitle => 'Delete this contest?';
+
+  @override
+  String get contest_deleteBody =>
+      'The contest, its subcategories, and guest submissions/votes will disappear from the guest page. Submission data in Firestore is NOT deleted automatically.';
+
+  @override
+  String contest_subcategoriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'subcategories',
+      one: 'subcategory',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
   String get quiz_addQuestion => 'Add question';
 
   @override
@@ -2363,6 +2430,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guestSection_bingo => 'Wedding Bingo';
+
+  @override
+  String get guestSection_photoContest => 'Photo contests';
 
   @override
   String get gw_appTitle => 'Wedding — guest zone';

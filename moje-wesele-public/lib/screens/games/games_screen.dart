@@ -5,6 +5,7 @@ import '../../services/firestore_service.dart';
 import '../../widgets/tabbed_section_scaffold.dart';
 import '../bingo/bingo_screen.dart';
 import 'photo_challenge_screen.dart';
+import 'photo_contest_screen.dart';
 import 'photo_guess_screen.dart';
 import 'quiz_screen.dart';
 import 'true_false_screen.dart';
@@ -53,6 +54,10 @@ class GamesScreen extends StatelessWidget {
         (
           label: AppText.t.games_photoChallenge,
           view: PhotoChallengeScreen(data: data, firestore: firestore),
+        ),
+        (
+          label: AppText.t.games_photoContest,
+          view: PhotoContestScreen(data: data, firestore: firestore),
         ),
       ];
 

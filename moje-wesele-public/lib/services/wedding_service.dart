@@ -517,6 +517,14 @@ class WeddingService {
       'photoChallengeTasks': ifOn('photoChallenge', data['photoChallengeTasks']),
       'bingoFields': ifOn('bingo', data['bingoFields']),
       'bingoCenterMode': (data['bingoCenterMode'] as String?) ?? '',
+      // Konkursy fotograficzne: mapa {contestId: config}, nie lista — `ifOn`
+      // działa na listach, więc gate robimy tu wprost. `results`/
+      // `coupleChoice` nie wymagają osobnego ukrywania: organizator zapisuje
+      // je dopiero przy ujawnieniu, więc przed tym momentem po prostu nie
+      // istnieją w źródłowym dokumencie.
+      'photoContests': vis.sectionFor('photoContest').enabled && data['photoContests'] is Map
+          ? Map<String, dynamic>.from(data['photoContests'] as Map)
+          : const <String, dynamic>{},
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

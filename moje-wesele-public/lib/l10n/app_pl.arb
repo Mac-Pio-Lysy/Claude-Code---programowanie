@@ -1036,6 +1036,32 @@
   "games_photoGuess": "Zgadnij zdjęcie",
   "games_wheel": "Koło fortuny",
   "games_photoChallenge": "Foto-wyzwania",
+  "games_photoContest": "Konkursy foto",
+  "contest_empty": "Brak konkursów",
+  "contest_emptyHint": "Załóż pierwszy konkurs fotograficzny — goście będą zgłaszać zdjęcia i głosować.",
+  "contest_add": "Nowy konkurs",
+  "contest_edit": "Edytuj konkurs",
+  "contest_name": "Nazwa konkursu",
+  "contest_subcategories": "Podkategorie",
+  "contest_addSubcategory": "Dodaj podkategorię",
+  "contest_subcategoryLabel": "Nazwa podkategorii",
+  "contest_subcategoriesEmpty": "Dodaj co najmniej jedną podkategorię.",
+  "contest_rankingSize": "Rozmiar rankingu",
+  "contest_revealMode": "Ujawnienie wyników",
+  "contest_revealManual": "Ręczne",
+  "contest_revealAuto": "Automatyczne po dacie",
+  "contest_revealDate": "Data ujawnienia",
+  "contest_active": "Konkurs aktywny dla gości",
+  "contest_deleteTitle": "Usunąć konkurs?",
+  "contest_deleteBody": "Konkurs, jego podkategorie oraz powiązane zgłoszenia i głosy gości znikną ze strony gości. Dane zgłoszeń w Firestore NIE są kasowane automatycznie.",
+  "contest_subcategoriesCount": "{count} {count, plural, =1{podkategoria} few{podkategorie} other{podkategorii}}",
+  "@contest_subcategoriesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "quiz_addQuestion": "Dodaj pytanie",
   "quiz_empty": "Brak pytań",
   "quiz_emptyHint": "Dodaj własne pytania lub zacznij od gotowych przykładów.",
@@ -1404,6 +1430,7 @@
   "guestSection_photoGuess": "Zgadnij zdjęcie",
   "guestSection_photoChallenge": "Foto-wyzwania",
   "guestSection_bingo": "Ślubne Bingo",
+  "guestSection_photoContest": "Konkursy fotograficzne",
   "gw_appTitle": "Wesele — strefa gości",
   "gw_language": "Język",
   "@gw_language": {

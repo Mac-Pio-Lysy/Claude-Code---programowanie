@@ -1734,6 +1734,75 @@ class AppLocalizationsPl extends AppLocalizations {
   String get games_photoChallenge => 'Foto-wyzwania';
 
   @override
+  String get games_photoContest => 'Konkursy foto';
+
+  @override
+  String get contest_empty => 'Brak konkursów';
+
+  @override
+  String get contest_emptyHint =>
+      'Załóż pierwszy konkurs fotograficzny — goście będą zgłaszać zdjęcia i głosować.';
+
+  @override
+  String get contest_add => 'Nowy konkurs';
+
+  @override
+  String get contest_edit => 'Edytuj konkurs';
+
+  @override
+  String get contest_name => 'Nazwa konkursu';
+
+  @override
+  String get contest_subcategories => 'Podkategorie';
+
+  @override
+  String get contest_addSubcategory => 'Dodaj podkategorię';
+
+  @override
+  String get contest_subcategoryLabel => 'Nazwa podkategorii';
+
+  @override
+  String get contest_subcategoriesEmpty =>
+      'Dodaj co najmniej jedną podkategorię.';
+
+  @override
+  String get contest_rankingSize => 'Rozmiar rankingu';
+
+  @override
+  String get contest_revealMode => 'Ujawnienie wyników';
+
+  @override
+  String get contest_revealManual => 'Ręczne';
+
+  @override
+  String get contest_revealAuto => 'Automatyczne po dacie';
+
+  @override
+  String get contest_revealDate => 'Data ujawnienia';
+
+  @override
+  String get contest_active => 'Konkurs aktywny dla gości';
+
+  @override
+  String get contest_deleteTitle => 'Usunąć konkurs?';
+
+  @override
+  String get contest_deleteBody =>
+      'Konkurs, jego podkategorie oraz powiązane zgłoszenia i głosy gości znikną ze strony gości. Dane zgłoszeń w Firestore NIE są kasowane automatycznie.';
+
+  @override
+  String contest_subcategoriesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'podkategorii',
+      few: 'podkategorie',
+      one: 'podkategoria',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
   String get quiz_addQuestion => 'Dodaj pytanie';
 
   @override
@@ -2367,6 +2436,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get guestSection_bingo => 'Ślubne Bingo';
+
+  @override
+  String get guestSection_photoContest => 'Konkursy fotograficzne';
 
   @override
   String get gw_appTitle => 'Wesele — strefa gości';
