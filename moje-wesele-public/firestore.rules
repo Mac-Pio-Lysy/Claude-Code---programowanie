@@ -290,10 +290,19 @@ service cloud.firestore {
         && t >= request.time.toMillis() - 604800000;
     }
     // Imię + treść (księga gości, rady).
+    //
+    // `authorUid` (etap 4, indywidualne zaproszenia): OPCJONALNY stempel —
+    // uid anonimowej sesji gościa (ten sam co przy rsvp/guestMap), do
+    // powiązania wpisu z tożsamością z paczki (identities), WYŁĄCZNIE do
+    // wglądu organizatora (`orgOf`). Gdy podany, MUSI być uidem PISZĄCEGO —
+    // inaczej gość mógłby podszyć się pod cudzy uid i skierować podejrzenie
+    // na inną osobę z paczki.
     function vMessage(maxMsg) {
       let d = request.resource.data;
-      return d.keys().hasOnly(['name','message','timestamp'])
-        && _s(d.name, 1, 80) && _s(d.message, 1, maxMsg) && _ts();
+      return d.keys().hasOnly(['name','message','timestamp','authorUid'])
+        && _s(d.name, 1, 80) && _s(d.message, 1, maxMsg) && _ts()
+        && (!('authorUid' in d)
+            || (request.auth != null && d.authorUid == request.auth.uid));
     }
     // Mapa gości: imię + miasto + pozdrowienie.
     function vGuestMap() {
@@ -317,11 +326,14 @@ service cloud.firestore {
     }
 
     // Galeria gościa: imię + zdjęcie + opcjonalny podpis.
+    // `authorUid` — patrz komentarz przy `vMessage`, ta sama zasada.
     function vGallery() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['name','caption','photoUrl','photoPublicId','timestamp'])
+      return d.keys().hasOnly(['name','caption','photoUrl','photoPublicId','timestamp','authorUid'])
         && _s(d.name, 1, 80) && _s(d.caption, 0, 200)
-        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200) && _ts();
+        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200) && _ts()
+        && (!('authorUid' in d)
+            || (request.auth != null && d.authorUid == request.auth.uid));
     }
     // Propozycja utworu: imię + tytuł + wykonawca + okładka.
     function vMusic() {
@@ -344,12 +356,18 @@ service cloud.firestore {
         && _ts();
     }
     // Zgłoszenie foto-wyzwania: imię + numer wyzwania + zdjęcie.
+    // `authorUid` — patrz komentarz przy `vMessage`. Tu technicznie
+    // redundantne (uid już da się odczytać z ID dokumentu, `isSelfChallenge`),
+    // ale dodane dla jednolitego API odczytu w organizatorskim widoku
+    // „kto co dodał" (jedno pole, wspólne dla wszystkich 4 sekcji).
     function vPhotoChallenge() {
       let d = request.resource.data;
-      return d.keys().hasOnly(['name','challengeId','photoUrl','photoPublicId','timestamp'])
+      return d.keys().hasOnly(['name','challengeId','photoUrl','photoPublicId','timestamp','authorUid'])
         && _s(d.name, 1, 80)
         && d.challengeId is int && d.challengeId >= 0 && d.challengeId <= 100000
-        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200) && _ts();
+        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200) && _ts()
+        && (!('authorUid' in d)
+            || (request.auth != null && d.authorUid == request.auth.uid));
     }
     // Zgłoszenie bingo: ile pól skreślonych z ilu.
     function vBingo() {

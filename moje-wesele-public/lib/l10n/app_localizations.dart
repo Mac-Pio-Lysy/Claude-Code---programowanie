@@ -6420,6 +6420,24 @@ abstract class AppLocalizations {
   /// **'Brak wpisów.'**
   String get gi_empty;
 
+  /// No description provided for @gi_authorMatched.
+  ///
+  /// In pl, this message translates to:
+  /// **'✓ {displayName}'**
+  String gi_authorMatched(String displayName);
+
+  /// No description provided for @gi_authorUnassigned.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszona tożsamość: {displayName} (nieprzypisana)'**
+  String gi_authorUnassigned(String displayName);
+
+  /// No description provided for @gi_authorOutsidePackage.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gość spoza indywidualnych zaproszeń (wspólny link)'**
+  String get gi_authorOutsidePackage;
+
   /// No description provided for @gi_musicNew.
   ///
   /// In pl, this message translates to:

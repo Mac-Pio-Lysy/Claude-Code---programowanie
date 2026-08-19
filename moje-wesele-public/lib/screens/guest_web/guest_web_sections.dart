@@ -95,6 +95,7 @@ class _GalleryPageState extends State<_GalleryPage> {
         photoUrl: up.url,
         photoPublicId: up.publicId,
         caption: _captionCtrl.text.trim(),
+        authorUid: GuestIdentity.uid,
       );
       _captionCtrl.clear();
       if (mounted) _snack(AppText.t.gw_photoThanks);

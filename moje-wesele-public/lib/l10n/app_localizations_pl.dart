@@ -3568,6 +3568,20 @@ class AppLocalizationsPl extends AppLocalizations {
   String get gi_empty => 'Brak wpisów.';
 
   @override
+  String gi_authorMatched(String displayName) {
+    return '✓ $displayName';
+  }
+
+  @override
+  String gi_authorUnassigned(String displayName) {
+    return 'Zgłoszona tożsamość: $displayName (nieprzypisana)';
+  }
+
+  @override
+  String get gi_authorOutsidePackage =>
+      'Gość spoza indywidualnych zaproszeń (wspólny link)';
+
+  @override
   String get gi_musicNew => 'Nowa';
 
   @override

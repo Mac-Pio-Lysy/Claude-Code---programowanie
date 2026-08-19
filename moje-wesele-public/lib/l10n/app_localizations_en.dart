@@ -3565,6 +3565,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gi_empty => 'No entries yet.';
 
   @override
+  String gi_authorMatched(String displayName) {
+    return '✓ $displayName';
+  }
+
+  @override
+  String gi_authorUnassigned(String displayName) {
+    return 'Claimed identity: $displayName (unassigned)';
+  }
+
+  @override
+  String get gi_authorOutsidePackage =>
+      'Guest outside individual invitations (shared link)';
+
+  @override
   String get gi_musicNew => 'New';
 
   @override

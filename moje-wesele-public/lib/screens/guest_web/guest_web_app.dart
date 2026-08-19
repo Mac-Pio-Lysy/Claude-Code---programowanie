@@ -595,8 +595,8 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           hint: AppText.t.gw_guestbookHint,
           cta: AppText.t.gw_guestbookCta,
           emptyText: AppText.t.gw_guestbookEmpty,
-          onSubmit: (name, msg) =>
-              _service.addGuestbookEntry(name: name, message: msg),
+          onSubmit: (name, msg) => _service.addGuestbookEntry(
+              name: name, message: msg, authorUid: GuestIdentity.uid),
           stream: _service.watchGuestbook(),
           showAuthorNames: showAuthorNames,
         );
@@ -605,7 +605,8 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           hint: AppText.t.gw_adviceHint,
           cta: AppText.t.gw_adviceCta,
           emptyText: AppText.t.gw_adviceEmpty,
-          onSubmit: (name, msg) => _service.addAdvice(name: name, message: msg),
+          onSubmit: (name, msg) => _service.addAdvice(
+              name: name, message: msg, authorUid: GuestIdentity.uid),
           stream: _service.watchAdvice(),
           showAuthorNames: showAuthorNames,
         );

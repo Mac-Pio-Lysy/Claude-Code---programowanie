@@ -361,6 +361,60 @@ service cloud.firestore {
         && d.marked <= d.total && _ts();
     }
 
+    // ── R2: walidacja tożsamości z kodu paczki ──────────────────────────────
+    // Trzy warunki, każdy zamyka inną drogę nadużycia:
+    //
+    //  1. KOD ISTNIEJE I NALEŻY DO TEJ STREFY — `guestToken` w `inviteCodes`
+    //     musi wskazywać token ze ścieżki. Bez tego kod jednego wesela
+    //     pozwalałby pisać tożsamości w strefie innego.
+    //
+    //  2. KSZTAŁT DOKUMENTU — dozwolone pola i limity długości, jak przy
+    //     pozostałych wpisach gościa.
+    //
+    //  3. IDENTYFIKATOR DOKUMENTU ZGADZA SIĘ Z TREŚCIĄ:
+    //     • wskazana osoba → `{KOD}__{guestId}`, a `guestId` MUSI być
+    //       w `memberIds` tej paczki. To realizuje limit „jedno miejsce na
+    //       osobę": paczka dwuosobowa ma dokładnie dwa możliwe ID, więc nie
+    //       da się wygenerować trzeciej tożsamości.
+    //     • „nie wiem, kim jestem" → `{KOD}__x{uid}`, czyli zakres własnego
+    //       konta. Takie zgłoszenia nie zajmują imiennych miejsc i nie
+    //       nadpisują się między gośćmi.
+    //
+    // Dlaczego `memberIds`, a nie `members`: reguły nie zaglądają do map
+    // wewnątrz tablicy, więc klient publikuje płaską listę identyfikatorów.
+    function inviteDoc(c) {
+      return get(/databases/$(database)/documents/inviteCodes/$(c)).data;
+    }
+    function inviteReal(c) {
+      return exists(/databases/$(database)/documents/inviteCodes/$(c));
+    }
+    function vIdentityShape() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(
+               ['uid','code','guestId','displayName','source','claimedAt'])
+        && d.uid is string && d.uid == request.auth.uid
+        && _s(d.code, 6, 20)
+        && _s(d.displayName, 1, 160)
+        && d.source in ['picked', 'typed']
+        && (d.guestId == null || d.guestId is int);
+    }
+    function validIdentity(t, id) {
+      let d = request.resource.data;
+      return request.auth != null
+        && inviteReal(d.code)
+        && inviteDoc(d.code).guestToken == t
+        && vIdentityShape()
+        && (
+             // wskazana osoba z paczki — imienne miejsce
+             (d.guestId != null
+                && d.guestId in inviteDoc(d.code).memberIds
+                && id == d.code + '__' + string(d.guestId))
+             // „nie wiem, kim jestem" — miejsce w zakresie własnego konta
+             || (d.guestId == null
+                && id == d.code + '__x' + request.auth.uid)
+           );
+    }
+
     // RSVP: imię + obecność + osoby + dieta + notatka.
     function vRsvp() {
       let d = request.resource.data;
@@ -416,6 +470,30 @@ service cloud.firestore {
       //  • TYLKO ORGANIZATOR: RSVP, kapsuła czasu (prywatne dla Pary Młodej).
       // Tworzenie: bez logowania, ale token musi wskazywać ISTNIEJĄCE wesele
       // (blokuje śmieci pod zmyślonymi tokenami) + walidacja pól/rozmiaru.
+
+      // ── R2: tożsamości z kodów paczek (zaproszenia indywidualne) ─────────
+      // `identities/{id}` → { uid, code, guestId, displayName, source,
+      // claimedAt }. Mapowanie „ta przeglądarka to Anna z zaproszenia X".
+      //
+      // ODCZYT WYŁĄCZNIE ORGANIZATOR. To jest sedno prywatności całej funkcji:
+      // imię autora przy wpisie widzą wszyscy (bo bez tego księga gości, mapa
+      // i rady tracą sens), ale POWIĄZANIE z konkretną osobą z listy gości
+      // zostaje po stronie Pary Młodej. Gość nie ma jak sprawdzić, kto stoi
+      // za cudzym wpisem.
+      //
+      // ZAPIS bez logowania (gość jest anonimowy), ale pod trzema warunkami
+      // naraz — patrz `validIdentity`.
+      //
+      // ⚠️ To ROZPOZNANIE, NIE UWIERZYTELNIENIE. Kod jedzie wydrukowany na
+      // zaproszeniu, więc każdy, kto go zobaczy, może wskazać dowolną osobę
+      // z tej paczki. Reguła pilnuje spójności danych, a nie tego, że po
+      // drugiej stronie siedzi właśnie Anna. Interfejs organizatora mówi
+      // o tym wprost.
+      match /identities/{id} {
+        allow get, list: if orgOf(token);
+        allow create, update: if validIdentity(token, id);
+        allow delete: if orgOf(token);
+      }
 
       match /guestbook/{id} {
         allow read:   if true;                              // publiczny

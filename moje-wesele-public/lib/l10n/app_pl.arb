@@ -2068,6 +2068,23 @@
     }
   },
   "gi_empty": "Brak wpisów.",
+  "gi_authorMatched": "✓ {displayName}",
+  "@gi_authorMatched": {
+    "placeholders": {
+      "displayName": {
+        "type": "String"
+      }
+    }
+  },
+  "gi_authorUnassigned": "Zgłoszona tożsamość: {displayName} (nieprzypisana)",
+  "@gi_authorUnassigned": {
+    "placeholders": {
+      "displayName": {
+        "type": "String"
+      }
+    }
+  },
+  "gi_authorOutsidePackage": "Gość spoza indywidualnych zaproszeń (wspólny link)",
   "gi_musicNew": "Nowa",
   "gi_musicAccepted": "Zagramy",
   "gi_musicRejected": "Odrzucona",

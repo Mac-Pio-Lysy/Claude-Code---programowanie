@@ -87,12 +87,27 @@ class GuestInteractionsScreen extends StatelessWidget {
           ),
           child: SafeArea(
             top: false,
-            child: TabBarView(
-              children: [
-                for (final t in _tabs)
-                  _InteractionList(
-                      service: service, coll: t.coll, kind: t.kind),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: service.watchAllIdentities(),
+              builder: (context, snapshot) {
+                // Mapa uid→tożsamość do przypisania autora wpisu (etap 4).
+                // Brak/błąd strumienia = pusta mapa: karty po prostu nie
+                // pokażą chipa, reszta ekranu działa normalnie.
+                final identities = <String, Map<String, dynamic>>{
+                  for (final id in snapshot.data ?? const [])
+                    if (id['uid'] is String) id['uid'] as String: id,
+                };
+                return TabBarView(
+                  children: [
+                    for (final t in _tabs)
+                      _InteractionList(
+                          service: service,
+                          coll: t.coll,
+                          kind: t.kind,
+                          identities: identities),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -102,12 +117,27 @@ class GuestInteractionsScreen extends StatelessWidget {
 }
 
 class _InteractionList extends StatelessWidget {
-  const _InteractionList(
-      {required this.service, required this.coll, required this.kind});
+  const _InteractionList({
+    required this.service,
+    required this.coll,
+    required this.kind,
+    required this.identities,
+  });
 
   final GuestSpaceService service;
   final String coll;
   final _Kind kind;
+
+  /// Mapa uid tożsamości→dokument `identities` (etap 4, „kto co dodał").
+  final Map<String, Map<String, dynamic>> identities;
+
+  /// Sekcje, w których pole `authorUid` w ogóle występuje w dokumentach.
+  static const _kindsWithAuthor = {
+    'guestbook',
+    'advice',
+    'gallery',
+    'photoChallenges',
+  };
 
   Future<void> _delete(BuildContext context, String id) async {
     final ok = await showDialog<bool>(
@@ -198,6 +228,10 @@ class _InteractionList extends StatelessWidget {
                         style: GoogleFonts.inter(
                             fontSize: 13, color: AppColors.text)),
                   ],
+                  if (_kindsWithAuthor.contains(coll)) ...[
+                    const SizedBox(height: 4),
+                    _authorChip(e),
+                  ],
                   if (kind == _Kind.music) ...[
                     const SizedBox(height: 8),
                     _statusRow(e),
@@ -231,6 +265,32 @@ class _InteractionList extends StatelessWidget {
                       )),
         ),
       );
+
+  /// Chip „kto dodał" (etap 4) — trzy warianty, patrz plan:
+  /// brak `authorUid` = brak chipa (stary wpis, zero zmiany wizualnej);
+  /// `authorUid` bez pasującej tożsamości = gość spoza paczek (wspólny link);
+  /// tożsamość znaleziona = imię, z dopiskiem gdy jeszcze nieprzypisana do
+  /// konkretnego gościa z listy (etap 5, „Do przypisania").
+  Widget _authorChip(Map<String, dynamic> e) {
+    final authorUid = e['authorUid'] as String?;
+    if (authorUid == null) return const SizedBox.shrink();
+    final identity = identities[authorUid];
+    final String label;
+    if (identity == null) {
+      label = AppText.t.gi_authorOutsidePackage;
+    } else {
+      final displayName =
+          (identity['displayName'] as String?) ?? AppText.t.role_guest;
+      label = identity['guestId'] != null
+          ? AppText.t.gi_authorMatched(displayName)
+          : AppText.t.gi_authorUnassigned(displayName);
+    }
+    return Text(label,
+        style: GoogleFonts.inter(
+            fontSize: 11,
+            fontStyle: FontStyle.italic,
+            color: AppColors.textLight));
+  }
 
   /// Status propozycji muzycznej: brak pola = „Nowa".
   Widget _statusRow(Map<String, dynamic> e) {

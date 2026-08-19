@@ -42,22 +42,38 @@ class GuestSpaceService {
   // ── Interakcje gości (kształt payloadu ZGODNY z walidacją w regułach) ──────
 
   /// Wpis do księgi gości (imię + treść). PUBLICZNY odczyt.
-  Future<void> addGuestbookEntry(
-          {required String name, required String message}) =>
+  ///
+  /// [authorUid] (etap 4, opcjonalny): uid anonimowej sesji gościa
+  /// (`GuestIdentity.uid`) — do powiązania wpisu z tożsamością z paczki,
+  /// wyłącznie do wglądu organizatora. Gdy pominięty, wpis zachowuje się
+  /// jak dotychczas (bez stempla).
+  Future<void> addGuestbookEntry({
+    required String name,
+    required String message,
+    String? authorUid,
+  }) =>
       _coll('guestbook').add({
         'name': _cap(name, 80),
         'message': _cap(message, 1000),
         'timestamp': _now,
+        'authorUid': ?authorUid,
       });
 
   Stream<List<Map<String, dynamic>>> watchGuestbook() => _watch('guestbook');
 
   /// Rada dla Pary Młodej. PUBLICZNY odczyt.
-  Future<void> addAdvice({required String name, required String message}) =>
+  ///
+  /// [authorUid] — patrz komentarz przy [addGuestbookEntry].
+  Future<void> addAdvice({
+    required String name,
+    required String message,
+    String? authorUid,
+  }) =>
       _coll('advice').add({
         'name': _cap(name, 80),
         'message': _cap(message, 1000),
         'timestamp': _now,
+        'authorUid': ?authorUid,
       });
 
   Stream<List<Map<String, dynamic>>> watchAdvice() => _watch('advice');
@@ -133,11 +149,14 @@ class GuestSpaceService {
   /// Zdjęcie gościa do wspólnej galerii. PUBLICZNY odczyt (goście widzą się
   /// nawzajem). [photoUrl] MUSI pochodzić z naszego Cloudinary — reguły
   /// odrzucą adres z innego hosta.
+  ///
+  /// [authorUid] — patrz komentarz przy [addGuestbookEntry].
   Future<void> addGalleryPhoto({
     required String name,
     required String photoUrl,
     required String photoPublicId,
     String caption = '',
+    String? authorUid,
   }) =>
       _coll('gallery').add({
         'name': _cap(name, 80),
@@ -145,6 +164,7 @@ class GuestSpaceService {
         'photoUrl': photoUrl,
         'photoPublicId': _cap(photoPublicId, 200),
         'timestamp': _now,
+        'authorUid': ?authorUid,
       });
 
   Stream<List<Map<String, dynamic>>> watchGallery() => _watch('gallery');
@@ -183,6 +203,7 @@ class GuestSpaceService {
         'photoUrl': photoUrl,
         'photoPublicId': _cap(photoPublicId, 200),
         'timestamp': _now,
+        'authorUid': uid,
       });
 
   /// Identyfikator zgłoszenia foto-wyzwania. Jedno źródło prawdy dla klienta
@@ -243,6 +264,17 @@ class GuestSpaceService {
   Stream<List<Map<String, dynamic>>> watchUnassignedIdentities() => _coll(
           'identities')
       .where('guestId', isNull: true)
+      .snapshots()
+      .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+
+  /// WSZYSTKIE tożsamości z paczek tego wesela (etap 4, „kto co dodał").
+  ///
+  /// Bez `orderBy` z tego samego powodu co [watchUnassignedIdentities] —
+  /// dokumenty mają `claimedAt`, nie `timestamp`. Zbiór jest mały (rząd
+  /// wielkości liczby paczek, nie liczby wpisów), więc pobranie całości
+  /// naraz jest tanie.
+  Stream<List<Map<String, dynamic>>> watchAllIdentities() => _coll(
+          'identities')
       .snapshots()
       .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
 
