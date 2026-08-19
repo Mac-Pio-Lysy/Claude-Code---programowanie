@@ -1,0 +1,53 @@
+@startuml 01-context
+' ============================================================================
+' C4 CONTEXT — „Moje Wesele" (Wedding Planner)
+'
+' Wygenerowane z RZECZYWISTEGO kodu (nie z opisu), stan repo:
+'   - lib/main.dart (trzy wejścia: MojeWeseleApp / InviteEntryApp / GuestWebApp)
+'   - lib/services/auth_service.dart, guest_identity.dart
+'   - pubspec.yaml (firebase_core/auth, cloud_firestore, google_sign_in, http)
+'   - lib/services/cloudinary_service.dart, deezer_service.dart,
+'     geocoding_service.dart
+'
+' Poziom: kto (ludzie) i co (systemy zewnętrzne) współpracuje z systemem.
+' ============================================================================
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagram Kontekstu — System „Moje Wesele”
+
+Person(organizer, "Para Młoda / Organizator", "Zakłada wesele, zarządza gośćmi, budżetem, planem sali, zaproszeniami. Loguje się (Google albo e-mail+hasło).")
+Person(collaborator, "Współorganizator", "Świadek, rodzic itp. Dostęp wg roli 'planner'/'collaborator', dołącza kodem zaproszenia roli (roleInvites).")
+Person(guest, "Gość", "BEZ konta i BEZ instalacji. Wchodzi przez wspólny link/QR (?t=TOKEN) albo indywidualny kod zaproszenia z paczki (?i=KOD).")
+
+System(mojeWesele, "Moje Wesele", "Aplikacja Flutter (Android/iOS/Web) — panel organizatora + strefa gości bez logowania. Jeden kod, wiele wejść (main.dart).")
+
+System_Ext(firebaseAuth, "Firebase Authentication", "Tożsamość: Google OAuth, e-mail/hasło (organizatorzy) i logowanie anonimowe (goście, guest_identity.dart).")
+System_Ext(googleSignIn, "Google Sign-In", "Dostawca OAuth używany przez AuthService.signInWithGoogle().")
+SystemDb_Ext(firestore, "Cloud Firestore", "Baza NoSQL — weddings, memberships, guestSpaces, inviteCodes, users, weddingCodes, roleInvites. Dostęp egzekwowany przez firestore.rules wg roli.")
+
+System_Ext(cloudinary, "Cloudinary", "Hosting zdjęć — galeria gości i foto-wyzwania (cloudinary_service.dart).")
+System_Ext(deezer, "Deezer API", "Wyszukiwanie utworów do propozycji muzycznych gości (deezer_service.dart).")
+System_Ext(nominatim, "OpenStreetMap Nominatim", "Geokodowanie adresów — mapa gości / lokalizacje (geocoding_service.dart).")
+
+Rel(organizer, mojeWesele, "zarządza swoim weselem", "HTTPS / appka")
+Rel(collaborator, mojeWesele, "współpracuje wg przydzielonej roli", "HTTPS / appka")
+Rel(guest, mojeWesele, "RSVP, księga gości, galeria, gry — bez logowania", "HTTPS (web)")
+
+Rel(mojeWesele, firebaseAuth, "loguje / rejestruje / weryfikuje sesję", "Firebase Auth SDK")
+Rel(firebaseAuth, googleSignIn, "deleguje uwierzytelnienie OAuth", "OAuth 2.0")
+Rel(mojeWesele, firestore, "czyta i zapisuje dane wesela, gości, zaproszeń, wpisów gości", "Cloud Firestore SDK, wg firestore.rules")
+Rel(mojeWesele, cloudinary, "przesyła zdjęcia (galeria, foto-wyzwania)", "HTTPS upload API")
+Rel(mojeWesele, deezer, "wyszukuje utwory do playlisty", "REST/HTTPS")
+Rel(mojeWesele, nominatim, "geokoduje wpisane adresy", "REST/HTTPS")
+
+note right of mojeWesele
+  Trzy korzenie aplikacji z main.dart, wybierane wg parametru URL:
+  • brak parametru → MojeWeseleApp (panel organizatora, AuthGate)
+  • ?i=KOD          → InviteEntryApp (indywidualne zaproszenie z paczki)
+  • ?t=TOKEN        → GuestWebApp (wspólny link/QR strefy gości)
+end note
+
+@enduml

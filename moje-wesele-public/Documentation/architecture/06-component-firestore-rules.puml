@@ -1,0 +1,74 @@
+@startuml 06-component-firestore-rules
+' ============================================================================
+' C4 COMPONENT — Reguły Firestore (firestore.rules)
+'
+' Wygenerowane z RZECZYWISTEGO pliku firestore.rules (nie z opisu) — funkcje
+' pomocnicze i bloki match, które z nich korzystają. Reguły są konfiguracją,
+' nie kodem aplikacji, ale mają wyraźną wewnętrzną architekturę warstwową,
+' więc modelujemy ją tym samym C4-Component.
+'
+' Poziom: kto (jaka funkcja reguł) chroni które kolekcje.
+' ============================================================================
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagram Komponentów — firestore.rules (izolacja wg roli)
+
+Container_Boundary(helpers, "Funkcje pomocnicze") {
+  Component(signedIn, "signedIn() / uid()", "helper", "Czy request.auth != null.")
+  Component(activeMember, "activeMember(w)", "helper", "memberships/{uid}__{w} istnieje, status=='active', notExpired(). notExpired: brak expiresAtTs LUB request.time < expiresAtTs (planer).")
+  Component(roleIn, "roleIn(w, roles) / isOwner(w) / fullAccess(w)", "helper", "fullAccess = rola w ['owner','planner','collaborator'] — GOŚĆ wyraźnie wykluczony.")
+  Component(tokenFns, "tokenWedding(t) / tokenReal(t) / orgOf(t)", "helper", "Rozwiązuje weddingId z guestTokens/{t} (get() pomija reguły odczytu). orgOf(t) = fullAccess właściciela tego tokenu.")
+  Component(isSelf, "isSelf(id) / isSelfChallenge(id)", "helper", "Dokument ID == uid() gościa (RSVP, mapa gości, wyniki gier, bingo) — 'jeden wpis na gościa', bez zapytań/Cloud Functions.")
+  Component(validIdentity, "validIdentity(token, id)", "helper", "Kształt zapisu do guestSpaces/{token}/identities + zgodność ID (code__guestId albo code__xuid) z memberIds kodu.")
+  Component(ownerIndexFns, "ownerIndexCreate/Update/Delete()", "helper", "Zapis publicznych indeksów WYŁĄCZNIE przez isOwner(weddingId) — planer/współorganizator NIE mogą dodawać osób.")
+  Component(claimFns, "ownerSelf() / guestClaim() / roleClaim()", "helper\nmatch memberships", "Trzy legalne drogi utworzenia własnego membership: założyciel wesela, gość z weddingCodes, odbiorca roleInvites.")
+}
+
+Container_Boundary(collections, "Kolekcje (match blocks)") {
+  Component(weddingsMatch, "weddings/{w}", "match", "read/update: fullAccess(w). create: signedIn + ownerId==uid(). delete: isOwner(w). ⚠️ Gość NIE czyta całego dokumentu (D1, etap 5).")
+  Component(guestViewMatch, "weddings/{w}/guestView/main", "match", "read: activeMember(w) (W TYM rola guest). write: fullAccess(w). Jedyne okno gościa do danych wesela.")
+  Component(usersMatch, "users/{userId}", "match", "read/write: tylko właściciel dokumentu (uid()==userId).")
+  Component(usersByEmailMatch, "usersByEmail/{email}", "match", "get: signedIn. list: false (blokuje wyciek listy adresów). write: tylko wpis wskazujący siebie.")
+  Component(membershipsMatch, "memberships/{mid}", "match", "get/list: własne LUB owner wesela. create: ownerSelf/guestClaim/roleClaim. update/delete: tylko owner, NIGDY na roli 'owner'.")
+  Component(weddingCodesMatch, "weddingCodes/{code}", "match", "get: true (gość weryfikuje kod+data+nazwisko). list: false. write: ownerIndex*.")
+  Component(roleInvitesMatch, "roleInvites/{code}", "match", "get: signedIn. list: false. write: ownerIndex*.")
+  Component(inviteCodesMatch, "inviteCodes/{code}", "match", "get: true (gość czyta skład SWOJEJ paczki bez logowania). list: false — chroni imion wszystkich gości naraz. write: ownerIndex*.")
+  Component(guestSpacesRoot, "guestSpaces/{token}", "match", "write: signedIn && fullAccess(tokenWedding(token)) — organizator synchronizuje mirror.")
+  Component(identitiesMatch, "guestSpaces/{token}/identities/{id}", "match", "get/list: TYLKO orgOf(token) — powiązanie z osobą widzi WYŁĄCZNIE Para Młoda. create/update: validIdentity. delete: orgOf.")
+  Component(guestbookAdviceMatch, "guestbook/ · advice/", "match", "read: true (publiczne). create: tokenReal + walidacja pól. update/delete: orgOf (moderacja).")
+  Component(guestMapRsvpMatch, "guestMap/{id} · rsvp/{id}", "match", "ID==uid (isSelf). guestMap: read publiczny. rsvp: read orgOf+autor (od etapu C).")
+}
+
+Rel(weddingsMatch, roleIn, "fullAccess(w) / isOwner(w)")
+Rel(guestViewMatch, activeMember, "activeMember(w) — czyta też rola guest")
+Rel(guestViewMatch, roleIn, "write: fullAccess(w)")
+Rel(membershipsMatch, roleIn, "isOwner(weddingId)")
+Rel(membershipsMatch, claimFns, "create: jedna z 3 dróg")
+Rel(claimFns, weddingCodesMatch, "guestClaim() sprawdza istnienie kodu")
+Rel(claimFns, roleInvitesMatch, "roleClaim() sprawdza kod+rolę")
+
+Rel(weddingCodesMatch, ownerIndexFns, "create/update/delete")
+Rel(roleInvitesMatch, ownerIndexFns, "create/update/delete")
+Rel(inviteCodesMatch, ownerIndexFns, "create/update/delete")
+Rel(ownerIndexFns, roleIn, "isOwner(weddingId)")
+
+Rel(guestSpacesRoot, tokenFns, "orgOf(token) do zapisu mirrora")
+Rel(identitiesMatch, tokenFns, "orgOf(token) do get/list")
+Rel(identitiesMatch, validIdentity, "create/update")
+Rel(validIdentity, tokenFns, "sprawdza tokenWedding/tokenReal")
+Rel(guestbookAdviceMatch, tokenFns, "tokenReal(token) do create")
+Rel(guestbookAdviceMatch, tokenFns, "orgOf(token) do moderacji")
+Rel(guestMapRsvpMatch, isSelf, "create/update: isSelf(id)")
+Rel(guestMapRsvpMatch, tokenFns, "orgOf(token) do odczytu/moderacji")
+
+note bottom of collections
+  Zasada przewodnia całego pliku: rola 'guest' ma READ dokładnie jednego
+  okna (guestView/main) do danych organizatora, a resztę treści gości
+  (księga, rady, mapa, RSVP...) dostaje wyłącznie przez publiczny mirror
+  guestSpaces/{token} — węższy zakres pól niż pełny dokument weddings/{w}.
+end note
+
+@enduml

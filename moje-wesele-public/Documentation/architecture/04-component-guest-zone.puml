@@ -1,0 +1,78 @@
+@startuml 04-component-guest-zone
+' ============================================================================
+' C4 COMPONENT — Strefa gości + indywidualne zaproszenia
+'
+' Wygenerowane z RZECZYWISTEGO kodu:
+'   - lib/screens/guest_web/invite_entry_app.dart (InviteEntryApp,
+'     InviteEntryScreen, IdentityPickerScreen)
+'   - lib/screens/guest_web/guest_web_app.dart (GuestRootApp, GuestWebHome)
+'   - lib/models/invite_package.dart (InvitePackage, PackageMember)
+'   - lib/models/invite_identity.dart (InviteCodeDoc, InviteMember,
+'     PackageIdentity)
+'   - lib/services/invite_code_service.dart, invite_identity_service.dart,
+'     guest_space_service.dart
+'   - lib/screens/settings/unassigned_identities_screen.dart (etap 5)
+'   - lib/services/pdf_service.dart::individualInvitations (etap 6)
+'
+' Poziom: jak działa wejście gościa kodem paczki (?i=KOD), tożsamości i
+' zarządzanie nimi po stronie organizatora.
+' ============================================================================
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Diagram Komponentów — Strefa gości i indywidualne zaproszenia
+
+ContainerDb_Ext(firestore, "Cloud Firestore", "inviteCodes/{KOD}, weddings/{id}.invitePackages,\nguestSpaces/{token}/*, guestSpaces/{token}/identities/{id}")
+
+Container_Boundary(guestEntry, "Wejście gościa (?i=KOD)") {
+  Component(inviteEntryApp, "InviteEntryApp / InviteEntryScreen", "StatelessWidget/StatefulWidget\nguest_web/invite_entry_app.dart", "Wczytuje InviteCodeDoc po kodzie; zapamiętany wybór (SharedPreferences) pomija ekran wyboru przy kolejnym wejściu.")
+  Component(identityPicker, "IdentityPickerScreen", "StatefulWidget", "'Kim jesteś?' — kafelek na osobę z paczki, 'osoba towarzysząca' (jeśli jest namePending), 'to nie moje zaproszenie'.")
+}
+
+Container_Boundary(guestZone, "Strefa gościa (wspólna dla ?i= i ?t=)") {
+  Component(guestRootApp, "GuestRootApp", "StatelessWidget", "Wspólny korzeń MaterialApp — ta sama strefa niezależnie od drogi wejścia.")
+  Component(guestWebHome, "GuestWebHome", "StatefulWidget", "Sekcje: księga gości, rady, mapa gości, RSVP, galeria, harmonogram, gry. Dzwoneczek powiadomień (companionReminder — etap 7).")
+}
+
+Container_Boundary(inviteModels, "Model paczek i tożsamości") {
+  Component(invitePackage, "InvitePackage / PackageMember", "Dart model\nmodels/invite_package.dart", "Paczka LICZONA na żywo z Guest.companionOfId (nie przechowywana). id paczki = id gościa głównego.")
+  Component(inviteCodeDoc, "InviteCodeDoc / InviteMember / PackageIdentity", "Dart model\nmodels/invite_identity.dart", "PackageIdentity.guestId==null → 'nie wiem kim jestem', trafia do 'Do przypisania'.")
+}
+
+Container_Boundary(orgSide, "Organizator — zarządzanie zaproszeniami") {
+  Component(invitationsScreen, "InvitationsScreen", "StatefulWidget\nscreens/settings/invitations_screen.dart", "Tryb shared/individual, generowanie/regeneracja/unieważnianie kodów, wydruk PDF per paczka.")
+  Component(unassignedScreen, "UnassignedIdentitiesScreen", "StatefulWidget\nscreens/settings/unassigned_identities_screen.dart", "Etap 5 — tożsamości z guestId==null: przypisz do gościa / utwórz nowego / odrzuć.")
+  Component(pdfService, "PdfService.individualInvitations", "Dart function\nservices/pdf_service.dart", "Etap 6 — PDF A6/A5/A4×(1,2,4) z QR na <baseUrl>/?i=<KOD>.")
+}
+
+Component(inviteCodeService, "InviteCodeService", "Dart class\nservices/invite_code_service.dart", "generateMissing / regenerate / setRevoked / syncRosters. Zapis DWA miejsca naraz: publiczny inviteCodes/{KOD} + prywatny indeks weddings/{id}.invitePackages.")
+Component(inviteIdentityService, "InviteIdentityService", "Dart class\nservices/invite_identity_service.dart", "load(code) → InviteCodeDoc. claim(doc, identity) → zapis guestSpaces/{token}/identities/{code}__{guestId|xuid} (best-effort).")
+Component(guestSpaceService, "GuestSpaceService", "Dart class\nservices/guest_space_service.dart", "watchUnassignedIdentities(), watchCollection(), updateEntry(), deleteEntry() — moderacja organizatora nad guestSpaces/{token}/*.")
+
+Rel(inviteEntryApp, inviteIdentityService, "load(code)")
+Rel(identityPicker, inviteEntryApp, "onPicked(PackageIdentity)", "callback")
+Rel(inviteEntryApp, inviteIdentityService, "claim(doc, identity)")
+Rel(inviteEntryApp, guestRootApp, "po ustaleniu tożsamości")
+Rel(guestRootApp, guestWebHome, "buduje")
+Rel(guestWebHome, guestSpaceService, "czyta/pisze wpisy sekcji gościa")
+
+Rel(inviteIdentityService, inviteCodeDoc, "produkuje")
+Rel(invitationsScreen, inviteCodeService, "generuje/zarządza kodami")
+Rel(invitationsScreen, invitePackage, "buduje listę paczek z gości")
+Rel(invitationsScreen, pdfService, "wydruk zaznaczonych/wszystkich/bez kodu")
+Rel(pdfService, inviteCodeService, "kody + skład paczek do wydrukowania")
+Rel(unassignedScreen, guestSpaceService, "watchUnassignedIdentities / updateEntry(guestId) / deleteEntry")
+Rel(unassignedScreen, invitePackage, "podpowiedzi z tej samej paczki")
+
+Rel(inviteCodeService, firestore, "inviteCodes/{KOD}, weddings/{id}.invitePackages", "Firestore SDK")
+Rel(inviteIdentityService, firestore, "guestSpaces/{token}/identities/{id}", "Firestore SDK")
+Rel(guestSpaceService, firestore, "guestSpaces/{token}/*", "Firestore SDK")
+
+note bottom of inviteModels
+  Kod paczki NIE tworzy osobnej strefy — guestToken w InviteCodeDoc to TEN SAM
+  token co wspólny link. Kod jest bramką TOŻSAMOŚCI, nie osobnym miejscem.
+end note
+
+@enduml
