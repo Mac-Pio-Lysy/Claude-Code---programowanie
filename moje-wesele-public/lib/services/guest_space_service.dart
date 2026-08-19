@@ -276,6 +276,45 @@ class GuestSpaceService {
         return list;
       });
 
+  /// Identyfikator dokumentu głosu — jedno źródło prawdy dla klienta i dla
+  /// reguł (`isSelfContestVote`), tak jak [photoChallengeId].
+  static String contestVoteId(String uid, int contestId, int subcategoryId) =>
+      '${uid}__${contestId}__$subcategoryId';
+
+  /// Zapisuje KOMPLETNY zestaw 3-2-1 (nadpisuje cały dokument — reguła
+  /// `vContestVote` waliduje pełny kształt, więc częściowy `merge: true`
+  /// nie miałby sensu: musi zawsze przejść wszystkie 3 pola naraz).
+  /// Pierwszy zapis = `create`, kolejne (zmiana głosu) = `update` tego
+  /// samego dokumentu — reguła dopuszcza oba przez `isSelfContestVote`.
+  Future<void> saveContestVote({
+    required String uid,
+    required int contestId,
+    required int subcategoryId,
+    required String first,
+    required String second,
+    required String third,
+  }) =>
+      _coll('contestVotes')
+          .doc(contestVoteId(uid, contestId, subcategoryId))
+          .set({
+        'contestId': '$contestId',
+        'subcategoryId': '$subcategoryId',
+        'first': first,
+        'second': second,
+        'third': third,
+        'timestamp': _now,
+      });
+
+  /// Własny głos w danej podkategorii (do odtworzenia obwolut po powrocie
+  /// na stronę) — `get` na pojedynczy dokument, dozwolony regułą
+  /// `isSelfContestVote`. `null`, gdy gość jeszcze nie głosował.
+  Stream<Map<String, dynamic>?> watchOwnContestVote(
+          String uid, int contestId, int subcategoryId) =>
+      _coll('contestVotes')
+          .doc(contestVoteId(uid, contestId, subcategoryId))
+          .snapshots()
+          .map((s) => s.data());
+
   /// Wynik gry (quiz / prawda-fałsz / zgadnij zdjęcie) — JEDEN NA GOŚCIA NA GRĘ.
   /// Odczyt: organizator oraz sam autor (własny wynik).
   ///

@@ -402,6 +402,44 @@ service cloud.firestore {
         && _ts();
     }
 
+    // ── Konkursy fotograficzne z głosowaniem (etap 3: głosy 3-2-1) ──────────
+    // ID dokumentu głosu ma postać "{uid}__{contestId}__{subcategoryId}" —
+    // dokładnie wzorzec `isSelfChallenge`/`photoChallengeId`. Wymusza
+    // JEDNOCZEŚNIE dwie rzeczy: „jeden zestaw głosów na gościa na
+    // podkategorię" (drugi zapis to `update` tego samego dokumentu, nie
+    // nowy) i „nie da się głosować pod cudzym uid".
+    function isSelfContestVote(id, contestId, subcategoryId) {
+      return request.auth != null
+        && id == request.auth.uid + '__' + contestId + '__' + subcategoryId;
+    }
+    // Odczytuje ZGŁOSZENIE, na które ktoś głosuje — jedyny sposób w regułach
+    // sprawdzić, czyje jest zdjęcie (blokada głosu na siebie) i czy naprawdę
+    // należy do tej podkategorii/konkursu (nie da się podpiąć zdjęcia z
+    // cudzego konkursu/podkategorii).
+    function contestSubmissionOf(t, id) {
+      return get(/databases/$(database)/documents/guestSpaces/$(t)/contestSubmissions/$(id)).data;
+    }
+    function validPick(t, contestId, subcategoryId, photoId) {
+      let s = contestSubmissionOf(t, photoId);
+      return s.contestId == contestId && s.subcategoryId == subcategoryId
+        && s.authorUid != request.auth.uid;
+    }
+    // Dokument o STAŁYM kształcie (trzy nazwane pola, nie lista) — sama
+    // struktura wymusza „maksymalnie 3 zdjęcia, jedno na miejsce", bez
+    // liczenia elementów. `first/second/third` muszą być parami różne —
+    // nie da się przyznać temu samemu zdjęciu dwóch miejsc naraz.
+    function vContestVote(t) {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['contestId','subcategoryId','first','second','third','timestamp'])
+        && _s(d.contestId, 1, 40) && _s(d.subcategoryId, 1, 40)
+        && _s(d.first, 1, 200) && _s(d.second, 1, 200) && _s(d.third, 1, 200)
+        && d.first != d.second && d.first != d.third && d.second != d.third
+        && _ts()
+        && validPick(t, d.contestId, d.subcategoryId, d.first)
+        && validPick(t, d.contestId, d.subcategoryId, d.second)
+        && validPick(t, d.contestId, d.subcategoryId, d.third);
+    }
+
     // ── R2: walidacja tożsamości z kodu paczki ──────────────────────────────
     // Trzy warunki, każdy zamyka inną drogę nadużycia:
     //
@@ -627,6 +665,21 @@ service cloud.firestore {
         allow read:   if true;
         allow create: if tokenReal(token) && vContestSubmission();
         allow update, delete: if orgOf(token);              // moderacja
+      }
+
+      // ── Konkursy fotograficzne z głosowaniem (etap 3: głosy 3-2-1) ───────
+      // PUNKTY UKRYTE PRZED GOŚĆMI: `get` własnego dokumentu pokazuje TYLKO
+      // własne trzy wybory (gość je i tak zna) — nigdy cudze, nigdy sumę.
+      // `list` WYŁĄCZNIE organizator — to jedyny sposób policzenia rankingu
+      // (agregacja po stronie klienta organizatora, patrz plan sekcja 2).
+      match /contestVotes/{id} {
+        allow get:    if isSelfContestVote(id, resource.data.contestId, resource.data.subcategoryId)
+                         || orgOf(token);
+        allow list:   if orgOf(token);
+        allow create, update: if tokenReal(token)
+          && isSelfContestVote(id, request.resource.data.contestId, request.resource.data.subcategoryId)
+          && vContestVote(token);
+        allow delete: if orgOf(token);
       }
 
       match /musicProposals/{id} {
