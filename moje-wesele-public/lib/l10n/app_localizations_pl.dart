@@ -2775,6 +2775,25 @@ class AppLocalizationsPl extends AppLocalizations {
   String get gw_photoSent => 'Zdjęcie wysłane ✓';
 
   @override
+  String get gw_contestsSoon => 'Konkursy fotograficzne pojawią się wkrótce.';
+
+  @override
+  String get gw_contestPickCategory => 'Wybierz podkategorię';
+
+  @override
+  String get gw_contestSubmitHint =>
+      'Zdjęcie trafi też do ogólnej galerii wesela.';
+
+  @override
+  String get gw_contestSubmissions => 'Zgłoszenia';
+
+  @override
+  String get gw_contestSubmitted => 'Zdjęcie zgłoszone do konkursu ✓';
+
+  @override
+  String get gw_contestBack => 'Wybierz konkurs';
+
+  @override
   String get gw_bingoSoon => 'Plansza bingo pojawi się wkrótce.';
 
   @override

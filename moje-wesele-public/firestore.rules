@@ -379,6 +379,29 @@ service cloud.firestore {
         && d.marked <= d.total && _ts();
     }
 
+    // ── Konkursy fotograficzne z głosowaniem (etap 2: zgłoszenia) ───────────
+    // Zgłoszenie do podkategorii konkursu — jak `vGallery`, ale `authorUid`
+    // jest tu WYMAGANE (nie opcjonalne jak przy galerii/księdze/etapie 4):
+    // od niego zależy blokada głosu na własne zdjęcie w etapie 3
+    // (`validPick` w regułach głosów), więc musi być zaufane od pierwszego
+    // zapisu, nie tylko wygodą organizatorskiego podglądu „kto dodał".
+    //
+    // `contestId`/`subcategoryId` to identyfikatory z konfiguracji konkursu
+    // (`weddings/{id}.photoContests`) — po stronie klienta zawsze liczby
+    // całkowite (jak `challengeId`), tu walidowane tylko jako niepuste
+    // stringi (bez potrzeby odczytu konfiguracji: nieistniejący/wyłączony
+    // konkurs po prostu nie ma dokąd wyświetlić takiego zgłoszenia).
+    function vContestSubmission() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(
+               ['contestId','subcategoryId','name','photoUrl','photoPublicId','authorUid','timestamp'])
+        && _s(d.contestId, 1, 40) && _s(d.subcategoryId, 1, 40)
+        && _s(d.name, 1, 80)
+        && _photo(d.photoUrl) && _s(d.photoPublicId, 0, 200)
+        && d.authorUid is string && d.authorUid == request.auth.uid
+        && _ts();
+    }
+
     // ── R2: walidacja tożsamości z kodu paczki ──────────────────────────────
     // Trzy warunki, każdy zamyka inną drogę nadużycia:
     //
@@ -593,6 +616,19 @@ service cloud.firestore {
                          || orgOf(token);
         allow delete: if orgOf(token);
       }
+
+      // ── Konkursy fotograficzne z głosowaniem (etap 2: zgłoszenia) ────────
+      // Publiczna galeria konkursowa, jak gallery/photoChallenges — goście
+      // muszą widzieć zgłoszenia, żeby móc na nie głosować (etap 3).
+      // Zgłoszenie trafia RÓWNOLEGLE do `gallery` (podwójna widoczność,
+      // zapis klienta przez WriteBatch) — to jest OSOBNY `create`, walidowany
+      // niezależnie przez `vGallery()`, bez zmian w tamtej regule.
+      match /contestSubmissions/{id} {
+        allow read:   if true;
+        allow create: if tokenReal(token) && vContestSubmission();
+        allow update, delete: if orgOf(token);              // moderacja
+      }
+
       match /musicProposals/{id} {
         allow read:   if orgOf(token);                      // TYLKO organizator
         allow create: if tokenReal(token) && vMusic();

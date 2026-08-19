@@ -163,3 +163,43 @@ class PhotoContest {
         coupleChoice: coupleChoice ?? this.coupleChoice,
       );
 }
+
+/// Zgłoszenie zdjęcia do podkategorii konkursu
+/// (`guestSpaces/{token}/contestSubmissions/{autoId}`).
+///
+/// `contestId`/`subcategoryId` są w Firestore STRINGAMI (zgodnie z regułą
+/// `vContestSubmission`, `_s(...)`), mimo że [PhotoContest.id]/
+/// [ContestSubcategory.id] to `int` — parsowane tu z powrotem na `int`,
+/// żeby dopasowanie do konfiguracji konkursu było proste w kodzie Dart.
+class ContestSubmission {
+  ContestSubmission({
+    required this.id,
+    required this.contestId,
+    required this.subcategoryId,
+    required this.name,
+    required this.photoUrl,
+    required this.photoPublicId,
+    required this.authorUid,
+    required this.timestamp,
+  });
+
+  final String id;
+  final int contestId;
+  final int subcategoryId;
+  final String name;
+  final String photoUrl;
+  final String photoPublicId;
+  final String authorUid;
+  final int timestamp;
+
+  factory ContestSubmission.fromMap(String id, Map<String, dynamic> m) => ContestSubmission(
+        id: id,
+        contestId: int.tryParse('${m['contestId']}') ?? 0,
+        subcategoryId: int.tryParse('${m['subcategoryId']}') ?? 0,
+        name: (m['name'] as String?)?.trim() ?? '',
+        photoUrl: (m['photoUrl'] as String?)?.trim() ?? '',
+        photoPublicId: (m['photoPublicId'] as String?)?.trim() ?? '',
+        authorUid: (m['authorUid'] as String?) ?? '',
+        timestamp: (m['timestamp'] as num?)?.toInt() ?? 0,
+      );
+}

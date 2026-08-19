@@ -1260,6 +1260,259 @@ class _PhotoChallengePageState extends State<_PhotoChallengePage> {
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+// KONKURSY FOTOGRAFICZNE — etap 2: zgłaszanie zdjęć (BEZ głosowania, etap 3)
+// ───────────────────────────────────────────────────────────────────────────
+
+/// Lista aktywnych konkursów — tap wchodzi w podkategorie jednego z nich.
+class _PhotoContestPage extends StatelessWidget {
+  const _PhotoContestPage({
+    required this.service,
+    required this.contests,
+    required this.showAuthorNames,
+  });
+
+  final GuestSpaceService service;
+  final Map<int, PhotoContest> contests;
+
+  /// Etap 8 — `false` pokazuje „gość" zamiast imienia autora zgłoszenia.
+  final bool showAuthorNames;
+
+  @override
+  Widget build(BuildContext context) {
+    final active = contests.values.where((c) => c.active).toList()
+      ..sort((a, b) => a.id.compareTo(b.id));
+    if (active.isEmpty) {
+      return _centerInfo(AppText.t.gw_contestsSoon, icon: Icons.emoji_events_outlined);
+    }
+    // Jeden aktywny konkurs — wchodzimy w niego od razu, bez zbędnego kliku.
+    if (active.length == 1) {
+      return _ContestDetailPage(
+          service: service, contest: active.first, showAuthorNames: showAuthorNames);
+    }
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        for (final c in active) _contestCard(context, c),
+      ],
+    );
+  }
+
+  Widget _contestCard(BuildContext context, PhotoContest c) => Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2EAF7)),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: const Icon(Icons.emoji_events_outlined, color: AppColors.accent),
+          title: Text(c.name,
+              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
+          subtitle: Text(
+            AppText.t.contest_subcategoriesCount(c.subcategories.length),
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+          ),
+          trailing: const Icon(Icons.chevron_right, color: AppColors.textLight),
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => _GuestSectionScaffold(
+              title: c.name,
+              child: _ContestDetailPage(
+                  service: service, contest: c, showAuthorNames: showAuthorNames),
+            ),
+          )),
+        ),
+      );
+}
+
+/// Jeden konkurs: wybór podkategorii (jeśli jest ich więcej niż jedna) +
+/// formularz zgłoszenia + siatka już zgłoszonych zdjęć tej podkategorii.
+///
+/// Głosowanie (system 3-2-1) dochodzi w etapie 3 — tu zdjęcia są tylko do
+/// obejrzenia, bez interakcji.
+class _ContestDetailPage extends StatefulWidget {
+  const _ContestDetailPage({
+    required this.service,
+    required this.contest,
+    required this.showAuthorNames,
+  });
+
+  final GuestSpaceService service;
+  final PhotoContest contest;
+  final bool showAuthorNames;
+
+  @override
+  State<_ContestDetailPage> createState() => _ContestDetailPageState();
+}
+
+class _ContestDetailPageState extends State<_ContestDetailPage> {
+  final _nameCtrl = TextEditingController(text: GuestSession.displayName);
+  final _picker = ImagePicker();
+  final _cloudinary = CloudinaryService();
+  bool _busy = false;
+  late int? _subcategoryId =
+      widget.contest.subcategories.isEmpty ? null : widget.contest.subcategories.first.id;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  void _snack(String m) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(m)));
+
+  Future<void> _submit(ImageSource source) async {
+    final subId = _subcategoryId;
+    if (subId == null) return;
+    final name = _nameCtrl.text.trim();
+    if (name.isEmpty) {
+      _snack(AppText.t.gw_nameFirst);
+      return;
+    }
+    final uid = GuestIdentity.uid;
+    if (uid == null) {
+      _snack(AppText.t.gw_sessionError);
+      return;
+    }
+    try {
+      final file = await _picker.pickImage(source: source, maxWidth: 1600, imageQuality: 85);
+      if (file == null) return;
+      setState(() => _busy = true);
+      final bytes = await file.readAsBytes();
+      final up = await _cloudinary.uploadImage(bytes, filename: file.name);
+      await widget.service.submitContestPhoto(
+        contestId: widget.contest.id,
+        subcategoryId: subId,
+        name: name,
+        photoUrl: up.url,
+        photoPublicId: up.publicId,
+        authorUid: uid,
+      );
+      if (mounted) _snack(AppText.t.gw_contestSubmitted);
+    } catch (e) {
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final subs = widget.contest.subcategories;
+    if (subs.isEmpty) {
+      return _centerInfo(AppText.t.gw_contestsSoon, icon: Icons.emoji_events_outlined);
+    }
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        if (subs.length > 1) ...[
+          Text(AppText.t.gw_contestPickCategory,
+              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final s in subs)
+                ChoiceChip(
+                  label: Text(s.label),
+                  selected: _subcategoryId == s.id,
+                  onSelected: (_) => setState(() => _subcategoryId = s.id),
+                  selectedColor: AppColors.accent.withValues(alpha: 0.15),
+                  labelStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: _subcategoryId == s.id ? AppColors.accent : AppColors.text),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+        ],
+        _nameField(_nameCtrl),
+        const SizedBox(height: 4),
+        Text(AppText.t.gw_contestSubmitHint,
+            style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
+        const SizedBox(height: 8),
+        _PhotoButtons(busy: _busy, onPick: _submit, label: AppText.t.gw_sendPhoto),
+        const SizedBox(height: 18),
+        Text(AppText.t.gw_contestSubmissions,
+            style: GoogleFonts.playfairDisplay(
+                fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text)),
+        const SizedBox(height: 10),
+        if (_subcategoryId != null) _submissionsGrid(_subcategoryId!),
+      ],
+    );
+  }
+
+  Widget _submissionsGrid(int subId) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: widget.service.watchContestSubmissions(widget.contest.id, subId),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text(AppText.t.gw_photosError,
+              style: GoogleFonts.inter(color: AppColors.textLight));
+        }
+        final items = snapshot.data ?? const [];
+        if (items.isEmpty) {
+          return Text(AppText.t.gw_photosEmpty,
+              style: GoogleFonts.inter(color: AppColors.textLight));
+        }
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, i) {
+            final url = (items[i]['photoUrl'] as String?) ?? '';
+            final name = widget.showAuthorNames
+                ? (items[i]['name'] as String?) ?? AppText.t.gw_guest
+                : AppText.t.gw_guest;
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  url.isEmpty
+                      ? const ColoredBox(color: Color(0xFFF1F5FC))
+                      : Image.network(url,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => const ColoredBox(
+                                color: Color(0xFFF1F5FC),
+                                child: Icon(Icons.broken_image_outlined,
+                                    color: AppColors.textLight),
+                              )),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      color: const Color(0x99000000),
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                            fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // ŚLUBNE BINGO — plansza z pól organizatora, skreślanie lokalne
 // ───────────────────────────────────────────────────────────────────────────
 

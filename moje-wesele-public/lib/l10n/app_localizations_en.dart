@@ -2768,6 +2768,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gw_photoSent => 'Photo sent ✓';
 
   @override
+  String get gw_contestsSoon => 'Photo contests will appear soon.';
+
+  @override
+  String get gw_contestPickCategory => 'Choose a subcategory';
+
+  @override
+  String get gw_contestSubmitHint =>
+      'The photo will also appear in the general wedding gallery.';
+
+  @override
+  String get gw_contestSubmissions => 'Submissions';
+
+  @override
+  String get gw_contestSubmitted => 'Photo submitted to the contest ✓';
+
+  @override
+  String get gw_contestBack => 'Choose a contest';
+
+  @override
   String get gw_bingoSoon => 'The bingo board will appear soon.';
 
   @override

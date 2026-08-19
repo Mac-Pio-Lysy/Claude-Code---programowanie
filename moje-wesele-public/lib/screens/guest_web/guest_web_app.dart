@@ -17,6 +17,7 @@ import '../../l10n/app_text.dart';
 import '../../l10n/language_picker.dart';
 import '../../l10n/locale_controller.dart';
 import '../../models/guest_visibility.dart';
+import '../../models/photo_contest.dart';
 import '../../onboarding/onboarding_steps.dart' show OnbVariant;
 import '../../services/cloudinary_service.dart';
 import '../../services/deezer_service.dart';
@@ -653,6 +654,12 @@ class _GuestWebHomeState extends State<GuestWebHome> {
           service: _service,
           tasks: _mapsFrom(space['photoChallengeTasks']),
           active: space['photoChallengesActive'] == true,
+          showAuthorNames: showAuthorNames,
+        );
+      case 'photoContest':
+        page = _PhotoContestPage(
+          service: _service,
+          contests: PhotoContest.mapFromRaw(space['photoContests']),
           showAuthorNames: showAuthorNames,
         );
       case 'bingo':

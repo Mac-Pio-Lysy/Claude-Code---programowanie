@@ -5040,6 +5040,42 @@ abstract class AppLocalizations {
   /// **'Zdjęcie wysłane ✓'**
   String get gw_photoSent;
 
+  /// No description provided for @gw_contestsSoon.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konkursy fotograficzne pojawią się wkrótce.'**
+  String get gw_contestsSoon;
+
+  /// No description provided for @gw_contestPickCategory.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz podkategorię'**
+  String get gw_contestPickCategory;
+
+  /// No description provided for @gw_contestSubmitHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie trafi też do ogólnej galerii wesela.'**
+  String get gw_contestSubmitHint;
+
+  /// No description provided for @gw_contestSubmissions.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zgłoszenia'**
+  String get gw_contestSubmissions;
+
+  /// No description provided for @gw_contestSubmitted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zdjęcie zgłoszone do konkursu ✓'**
+  String get gw_contestSubmitted;
+
+  /// No description provided for @gw_contestBack.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz konkurs'**
+  String get gw_contestBack;
+
   /// No description provided for @gw_bingoSoon.
   ///
   /// In pl, this message translates to:

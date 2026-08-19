@@ -214,6 +214,68 @@ class GuestSpaceService {
   Stream<List<Map<String, dynamic>>> watchPhotoChallenges() =>
       _watch('photoChallenges');
 
+  // ── Konkursy fotograficzne z głosowaniem (etap 2: zgłoszenia) ────────────
+
+  /// Zgłasza zdjęcie do podkategorii konkursu — ATOMOWO (WriteBatch): jeden
+  /// dokument w `contestSubmissions` (walidacja `vContestSubmission`) + jego
+  /// kopia w `gallery` (podwójna widoczność, walidacja `vGallery`, bez zmian
+  /// w tamtej regule). Batch = oba zapisy się udają albo żaden.
+  ///
+  /// `contestId`/`subcategoryId` w Firestore są STRINGAMI (tak wymaga
+  /// `_s(...)` w regule) — konwersja z `int` (spójnego z [PhotoContest.id]/
+  /// [ContestSubcategory.id]) dzieje się tu, w jednym miejscu.
+  ///
+  /// [authorUid] jest WYMAGANE (nie opcjonalne jak przy galerii/księdze) —
+  /// reguła `vContestSubmission` je wymusza, bo od niego zależy blokada
+  /// głosu na własne zdjęcie w etapie 3.
+  Future<void> submitContestPhoto({
+    required int contestId,
+    required int subcategoryId,
+    required String name,
+    required String photoUrl,
+    required String photoPublicId,
+    required String authorUid,
+  }) async {
+    final batch = _db.batch();
+    batch.set(_coll('contestSubmissions').doc(), {
+      'contestId': '$contestId',
+      'subcategoryId': '$subcategoryId',
+      'name': _cap(name, 80),
+      'photoUrl': photoUrl,
+      'photoPublicId': _cap(photoPublicId, 200),
+      'authorUid': authorUid,
+      'timestamp': _now,
+    });
+    batch.set(_coll('gallery').doc(), {
+      'name': _cap(name, 80),
+      'caption': '',
+      'photoUrl': photoUrl,
+      'photoPublicId': _cap(photoPublicId, 200),
+      'timestamp': _now,
+      'authorUid': authorUid,
+    });
+    await batch.commit();
+  }
+
+  /// Zgłoszenia JEDNEJ podkategorii jednego konkursu — publiczne (goście
+  /// oglądają się nawzajem, tak jak galeria/foto-wyzwania).
+  ///
+  /// Bez `orderBy` w zapytaniu (dwa równości + sortowanie po trzecim polu
+  /// wymagałoby dodatkowego indeksu złożonego) — sortowanie po stronie
+  /// klienta, zbiór jest mały (zgłoszenia jednej podkategorii).
+  Stream<List<Map<String, dynamic>>> watchContestSubmissions(
+          int contestId, int subcategoryId) =>
+      _coll('contestSubmissions')
+          .where('contestId', isEqualTo: '$contestId')
+          .where('subcategoryId', isEqualTo: '$subcategoryId')
+          .snapshots()
+          .map((snap) {
+        final list = snap.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+        list.sort((a, b) => (b['timestamp'] as int? ?? 0)
+            .compareTo(a['timestamp'] as int? ?? 0));
+        return list;
+      });
+
   /// Wynik gry (quiz / prawda-fałsz / zgadnij zdjęcie) — JEDEN NA GOŚCIA NA GRĘ.
   /// Odczyt: organizator oraz sam autor (własny wynik).
   ///
