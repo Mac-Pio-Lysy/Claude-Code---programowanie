@@ -1,0 +1,366 @@
+// ============================================================================
+// MODEL — jedyne źródło prawdy o architekturze. Wygenerowany z RZECZYWISTEGO
+// kodu (nie z opisu), stan repo: lib/main.dart, lib/widgets/auth_gate.dart,
+// lib/services/auth_service.dart, lib/services/guest_identity.dart,
+// lib/screens/guest_web/*, lib/models/invite_package.dart,
+// lib/models/invite_identity.dart, lib/services/invite_code_service.dart,
+// lib/services/invite_identity_service.dart, lib/services/guest_space_service.dart,
+// lib/services/wedding_service.dart, lib/services/membership_service.dart,
+// lib/services/pdf_service.dart, firestore.rules, pubspec.yaml, zrodlo-web/.
+//
+// Widoki (co i jak pokazać) są OSOBNO w views.c4 — ten plik opisuje TYLKO
+// co istnieje i jak jest ze sobą powiązane.
+//
+// Jak dodać nowy element: dopisz go w odpowiednim miejscu drzewa poniżej
+// (person/system na najwyższym poziomie, container w środku system,
+// component w środku container/component), a potem dopisz jego relacje w
+// sekcji "RELACJE" na końcu pliku, pełną ścieżką od korzenia (patrz
+// istniejące przykłady). Na koniec dodaj go do właściwego widoku w views.c4
+// (zwykle wystarczy `include *` w widoku rodzica — nowy element pojawi się
+// sam).
+// ============================================================================
+
+model {
+
+  // ── LUDZIE ────────────────────────────────────────────────────────────
+  person organizator "Para Młoda / Organizator" {
+    description "Zakłada wesele, zarządza gośćmi, budżetem, planem sali, zaproszeniami. Loguje się (Google albo e-mail+hasło)."
+  }
+  person collaborator "Współorganizator" {
+    description "Świadek, rodzic itp. Dostęp wg roli 'planner'/'collaborator' w członkostwie (memberships), dołącza kodem zaproszenia roli (roleInvites)."
+  }
+  person guest "Gość" {
+    description "BEZ konta i BEZ instalacji. Wchodzi przez wspólny link/QR (?t=TOKEN) albo indywidualny kod zaproszenia z paczki (?i=KOD)."
+  }
+
+  // ── SYSTEM: Moje Wesele ───────────────────────────────────────────────
+  system mojeWesele "Moje Wesele" {
+    description "Aplikacja Flutter (Android/iOS/Web) — panel organizatora + strefa gości bez logowania. Jeden kod, wiele wejść (lib/main.dart)."
+
+    container mobileApp "Aplikacja mobilna" {
+      technology "Flutter, Android/iOS"
+      description "Panel organizatora i współorganizatora. Wykonuje ten sam wspólny kod (sharedCore) co appka web — bez trybu gościa (main.dart wykrywa parametry URL tylko na webie, kIsWeb)."
+    }
+
+    container webApp "Aplikacja web" {
+      technology "Flutter Web"
+      description "Ten sam kod źródłowy co appka mobilna, budowany na web. main.dart wybiera korzeń wg parametru URL: brak → panel organizatora; ?i=KOD → wejście gościa kodem paczki; ?t=TOKEN → wejście gościa wspólnym linkiem."
+    }
+
+    container staticGuestPages "Statyczne strony gości" {
+      technology "HTML/CSS/JS, zrodlo-web/"
+      description "Starsza, RÓWNOLEGŁA ścieżka: pojedyncze strony per funkcja (galeria.html, rsvp.html, harmonogram.html, muzyka.html) z własnym firebase-config.js/auth.js/script.js, łączone bezpośrednio z Firebase JS SDK. Adresy do nich buduje PublicPages (lib/config/public_urls.dart)."
+    }
+
+    container sharedCore "Wspólny kod Flutter (lib/)" {
+      description "Logika biznesowa (services/, screens/, models/) skompilowana do JEDNEGO binarki i appki mobilnej, i appki web. To tu mieszka niemal cała złożoność systemu — mobileApp/webApp to głównie routing i UI."
+
+      // ── Warstwa uwierzytelniania ────────────────────────────────────
+      component authLayer "Warstwa uwierzytelniania" {
+        description "Logowanie organizatora (Google + e-mail/hasło) i osobna, celowo niezależna ścieżka anonimowej tożsamości gościa."
+
+        component authGate "AuthGate" {
+          technology "StatefulWidget, widgets/auth_gate.dart"
+          description "Nasłuchuje authStateChanges(). Wg stanu pokazuje LoginScreen, EmailAuthScreen, LockScreen, WeddingsListScreen, MainNavigation albo GuestHomeScreen (rola 'guest' w weselu)."
+        }
+        component authService "AuthService" {
+          technology "Dart class, services/auth_service.dart"
+          description "signInWithGoogle(), registerWithEmail(), signInWithEmail(), sendPasswordResetEmail(), signOut(), authStateChanges(), currentUser."
+        }
+        component loginScreen "LoginScreen" {
+          technology "StatelessWidget, screens/login_screen.dart"
+          description "Przycisk 'Zaloguj przez Google' + wejście do logowania e-mailem. Google i e-mail to OSOBNE konta (świadomie nie łączone)."
+        }
+        component emailAuthScreen "EmailAuthScreen" {
+          technology "StatefulWidget, screens/email_auth_screen.dart"
+          description "Jeden ekran, trzy tryby: logowanie / rejestracja / reset hasła e-mailem."
+        }
+        component lockScreen "LockScreen + AppLockService" {
+          technology "StatefulWidget + service, screens/lock/, services/app_lock_service.dart"
+          description "PIN/biometria PO auto-loginie (nie po świadomym zalogowaniu — flaga _interactiveSignIn w AuthGate)."
+        }
+        component weddingsListScreen "WeddingsListScreen" {
+          technology "StatefulWidget, screens/weddings/weddings_list_screen.dart"
+          description "Lista wesel użytkownika (z memberships) → wybór aktywnego ActiveWedding.id."
+        }
+        component guestIdentity "GuestIdentity" {
+          technology "Dart class, services/guest_identity.dart"
+          description "ensure() → własne signInAnonymously() na FirebaseAuth.instance. NIE korzysta z AuthService — bezwarunkowe logowanie anonimowe wylogowałoby organizatora z konta Google."
+        }
+      }
+
+      // ── Strefa gości i indywidualne zaproszenia ─────────────────────
+      component guestZone "Strefa gości i indywidualne zaproszenia" {
+        description "Wejście gościa kodem paczki (?i=KOD) albo wspólnym linkiem (?t=TOKEN) oraz zarządzanie zaproszeniami po stronie organizatora. Ekrany wejścia gościa są osiągalne WYŁĄCZNIE na webie (main.dart: kIsWeb) — reszta (InvitationsScreen, wydruk PDF) działa też na mobile."
+
+        component inviteEntryApp "InviteEntryApp / InviteEntryScreen" {
+          technology "StatelessWidget/StatefulWidget, guest_web/invite_entry_app.dart"
+          description "Wczytuje InviteCodeDoc po kodzie z URL. Zapamiętany wybór (SharedPreferences) pomija ekran wyboru przy kolejnym wejściu."
+        }
+        component identityPicker "IdentityPickerScreen" {
+          technology "StatefulWidget"
+          description "'Kim jesteś?' — kafelek na osobę z paczki, 'osoba towarzysząca' (gdy jest namePending), albo 'to nie moje zaproszenie'."
+        }
+        component guestRootApp "GuestRootApp" {
+          technology "StatelessWidget, guest_web/guest_web_app.dart"
+          description "Wspólny korzeń MaterialApp — TA SAMA strefa niezależnie od drogi wejścia (kod paczki czy wspólny link)."
+        }
+        component guestWebHome "GuestWebHome" {
+          technology "StatefulWidget, guest_web/guest_web_app.dart"
+          description "Sekcje gościa: księga gości, rady, mapa gości, RSVP, galeria, harmonogram, gry. Dzwoneczek powiadomień (m.in. companionReminder — przypomnienie o osobie towarzyszącej)."
+        }
+        component invitationsScreen "InvitationsScreen" {
+          technology "StatefulWidget, screens/settings/invitations_screen.dart"
+          description "Ekran organizatora: tryb shared/individual, generowanie/regeneracja/unieważnianie kodów paczek, wydruk PDF per paczka. Działa na mobile i web."
+        }
+        component unassignedScreen "UnassignedIdentitiesScreen" {
+          technology "StatefulWidget, screens/settings/unassigned_identities_screen.dart"
+          description "'Do przypisania' — tożsamości z guestId==null: przypisz do istniejącego gościa / utwórz nowego / odrzuć."
+        }
+        component invitePackageModel "InvitePackage / PackageIdentity / InviteCodeDoc" {
+          technology "Dart models, models/invite_package.dart, models/invite_identity.dart"
+          description "InvitePackage: paczka LICZONA na żywo z Guest.companionOfId (nie przechowywana). PackageIdentity.guestId==null → 'nie wiem kim jestem', trafia do 'Do przypisania'."
+        }
+      }
+
+      // ── Warstwa danych ────────────────────────────────────────────
+      component dataLayer "Warstwa danych" {
+        description "JAK aplikacja rozmawia z Firestore — dwa różne wzorce: organizator (przez FirestoreService, kontekst ActiveWedding.id) kontra gość/publiczne kolekcje (bezpośrednio FirebaseFirestore.instance, wg tokenu/kodu, BEZ ActiveWedding)."
+
+        component activeWedding "ActiveWedding" {
+          technology "Dart static holder, services/active_wedding.dart"
+          description "Globalne ActiveWedding.id — ustawiane po wyborze wesela na WeddingsListScreen."
+        }
+        component firestoreService "FirestoreService" {
+          technology "Dart class, services/firestore_service.dart"
+          description "mainDoc = weddings/{ActiveWedding.id}. readData(), weddingId. Bazowy punkt dostępu dla większości serwisów domenowych organizatora."
+        }
+        component weddingService "WeddingService" {
+          technology "Dart class, services/wedding_service.dart"
+          description "Zakładanie/dołączanie do wesela, ensureGuestViewForUser(), _guestMirror() → publikuje mirror do guestSpaces/{token} i weddings/{id}/guestView/main."
+        }
+        component membershipService "MembershipService" {
+          technology "Dart class, services/membership_service.dart"
+          description "CRUD memberships/{uid}__{weddingId} — rola, status, expiresAtTimestamp (wygaśnięcie planera)."
+        }
+        component guestService "GuestService" {
+          technology "Dart class, services/guest_service.dart"
+          description "addGuest / updateGuest / deleteGuest / createCompanionFor / createCompanionWithId — lista weddings/{id}.guests."
+        }
+        component inviteCodeService "InviteCodeService" {
+          technology "Dart class, services/invite_code_service.dart"
+          description "generateMissing / regenerate / setRevoked / syncRosters. Zapisuje DWA miejsca naraz: publiczny inviteCodes/{KOD} + prywatny indeks weddings/{id}.invitePackages."
+        }
+        component guestSpaceService "GuestSpaceService" {
+          technology "Dart class, services/guest_space_service.dart"
+          description "WŁASNA instancja FirebaseFirestore, kluczowana TOKENEM (guestSpaces/{token}), NIGDY weddingId. addGuestbookEntry, saveRsvp, watchGallery, watchUnassignedIdentities, updateEntry/deleteEntry (moderacja organizatora)."
+        }
+        component inviteIdentityService "InviteIdentityService" {
+          technology "Dart class, services/invite_identity_service.dart"
+          description "WŁASNA instancja FirebaseFirestore. load(code) → InviteCodeDoc. claim(doc, identity) → zapis guestSpaces/{token}/identities (best-effort). Działa PRZED ustaleniem tożsamości, więc nie zna jeszcze kontekstu wesela."
+        }
+        component pdfService "PdfService" {
+          technology "Dart class, services/pdf_service.dart"
+          description "individualInvitations() — PDF A6/A5/A4×(1,2,4) z QR na <baseUrl>/?i=<KOD>, budowany z kodów z InviteCodeService."
+        }
+        component domainServices "Serwisy domenowe (~30 klas)" {
+          technology "Dart classes, services/*.dart"
+          description "budget_service, table_service, task_service, vendor_service, schedule_service, room_service, gift_service, transport_service, accommodation_service, planning_service, guest_visibility_service, config_service i inne. Jeden wzorzec: FirestoreService.mainDoc.set(merge:true)."
+        }
+      }
+    }
+  }
+
+  // ── SYSTEMY ZEWNĘTRZNE ───────────────────────────────────────────────
+  system firebaseAuth "Firebase Authentication" {
+    description "Tożsamość: Google OAuth, e-mail/hasło (organizatorzy) i logowanie anonimowe (goście)."
+  }
+  system googleSignIn "Google Sign-In" {
+    description "Dostawca OAuth używany przez AuthService.signInWithGoogle()."
+  }
+
+  system firestore "Cloud Firestore" {
+    description "Baza NoSQL. Poniżej: wewnętrzna architektura firestore.rules — funkcje pomocnicze i bloki match, które chronią poszczególne kolekcje wg roli w memberships."
+    // -- funkcje pomocnicze reguł --
+    component signedIn "signedIn() / uid()" {
+      technology "helper, firestore.rules"
+      description "Czy request.auth != null."
+    }
+    component activeMember "activeMember(w)" {
+      technology "helper"
+      description "memberships/{uid}__{w} istnieje, status=='active', notExpired(). notExpired: brak expiresAtTs LUB request.time < expiresAtTs (planer)."
+    }
+    component roleIn "roleIn(w, roles) / isOwner(w) / fullAccess(w)" {
+      technology "helper"
+      description "fullAccess = rola w ['owner','planner','collaborator'] — GOŚĆ wyraźnie wykluczony."
+    }
+    component tokenFns "tokenWedding(t) / tokenReal(t) / orgOf(t)" {
+      technology "helper"
+      description "Rozwiązuje weddingId z guestTokens/{t}. orgOf(t) = fullAccess właściciela tego tokenu."
+    }
+    component isSelf "isSelf(id) / isSelfChallenge(id)" {
+      technology "helper"
+      description "Dokument ID == uid() gościa (RSVP, mapa gości, wyniki gier, bingo) — 'jeden wpis na gościa', bez zapytań/Cloud Functions."
+    }
+    component validIdentity "validIdentity(token, id)" {
+      technology "helper"
+      description "Kształt zapisu do guestSpaces/{token}/identities + zgodność ID (code__guestId albo code__xuid) z memberIds kodu."
+    }
+    component ownerIndexFns "ownerIndexCreate/Update/Delete()" {
+      technology "helper"
+      description "Zapis publicznych indeksów WYŁĄCZNIE przez isOwner(weddingId) — planer/współorganizator NIE mogą dodawać osób."
+    }
+    component claimFns "ownerSelf() / guestClaim() / roleClaim()" {
+      technology "helper, match memberships"
+      description "Trzy legalne drogi utworzenia własnego membership: założyciel wesela, gość z weddingCodes, odbiorca roleInvites."
+    }
+
+    // -- kolekcje (match blocks) --
+    component weddingsMatch "weddings/{w}" {
+      technology "match"
+      description "read/update: fullAccess(w). create: signedIn + ownerId==uid(). delete: isOwner(w). Gość NIE czyta całego dokumentu (etap D1-5)."
+    }
+    component guestViewMatch "weddings/{w}/guestView/main" {
+      technology "match"
+      description "read: activeMember(w) — W TYM rola guest. write: fullAccess(w). Jedyne okno gościa do danych wesela."
+    }
+    component usersMatch "users/{userId}" {
+      technology "match"
+      description "read/write: tylko właściciel dokumentu (uid()==userId)."
+    }
+    component usersByEmailMatch "usersByEmail/{email}" {
+      technology "match"
+      description "get: signedIn. list: false (blokuje wyciek listy adresów). write: tylko wpis wskazujący siebie."
+    }
+    component membershipsMatch "memberships/{mid}" {
+      technology "match"
+      description "get/list: własne LUB owner wesela. create: ownerSelf/guestClaim/roleClaim. update/delete: tylko owner, NIGDY na roli 'owner'."
+    }
+    component weddingCodesMatch "weddingCodes/{code}" {
+      technology "match"
+      description "get: true (gość weryfikuje kod+data+nazwisko). list: false. write: ownerIndex*."
+    }
+    component roleInvitesMatch "roleInvites/{code}" {
+      technology "match"
+      description "get: signedIn. list: false. write: ownerIndex*."
+    }
+    component inviteCodesMatch "inviteCodes/{code}" {
+      technology "match"
+      description "get: true (gość czyta skład SWOJEJ paczki bez logowania). list: false — chroni imion wszystkich gości naraz. write: ownerIndex*."
+    }
+    component guestSpacesRoot "guestSpaces/{token}" {
+      technology "match"
+      description "write: signedIn && fullAccess(tokenWedding(token)) — organizator synchronizuje mirror."
+    }
+    component identitiesMatch "guestSpaces/{token}/identities/{id}" {
+      technology "match"
+      description "get/list: TYLKO orgOf(token) — powiązanie z osobą widzi WYŁĄCZNIE Para Młoda. create/update: validIdentity. delete: orgOf."
+    }
+    component guestbookAdviceMatch "guestbook/ , advice/" {
+      technology "match"
+      description "read: true (publiczne). create: tokenReal + walidacja pól. update/delete: orgOf (moderacja)."
+    }
+    component guestMapRsvpMatch "guestMap/{id} , rsvp/{id}" {
+      technology "match"
+      description "ID==uid (isSelf). guestMap: read publiczny. rsvp: read orgOf+autor (od etapu C)."
+    }
+  }
+
+  system cloudinary "Cloudinary" {
+    description "Hosting zdjęć — galeria gości i foto-wyzwania (cloudinary_service.dart)."
+  }
+  system deezer "Deezer API" {
+    description "Wyszukiwanie utworów do propozycji muzycznych gości (deezer_service.dart)."
+  }
+  system nominatim "OpenStreetMap Nominatim" {
+    description "Geokodowanie adresów — mapa gości / lokalizacje (geocoding_service.dart)."
+  }
+
+  // ==========================================================================
+  // RELACJE — pełne ścieżki od korzenia, żeby jednoznacznie wskazać element
+  // niezależnie od tego, w jak głębokim jest zagnieżdżeniu.
+  // ==========================================================================
+
+  // -- Ludzie → kontenery --
+  organizator -> mojeWesele.mobileApp "zarządza weselem"
+  organizator -> mojeWesele.webApp "zarządza weselem (przeglądarka)"
+  collaborator -> mojeWesele.mobileApp "współpracuje wg roli"
+  collaborator -> mojeWesele.webApp "współpracuje wg roli"
+  guest -> mojeWesele.webApp "wchodzi ?i=KOD lub ?t=TOKEN, bez logowania"
+  guest -> mojeWesele.staticGuestPages "otwiera pojedynczą stronę (link z panelu)"
+
+  // -- Appki → wspólny kod --
+  mojeWesele.mobileApp -> mojeWesele.sharedCore "wykonuje"
+  mojeWesele.webApp -> mojeWesele.sharedCore "wykonuje"
+
+  // -- Wewnątrz warstwy auth --
+  mojeWesele.sharedCore.authLayer.loginScreen -> mojeWesele.sharedCore.authLayer.authGate "onGoogleSignIn / onEmailAuth"
+  mojeWesele.sharedCore.authLayer.emailAuthScreen -> mojeWesele.sharedCore.authLayer.authGate "onSignIn / onRegister / onResetPassword"
+  mojeWesele.sharedCore.authLayer.authGate -> mojeWesele.sharedCore.authLayer.authService "wywołuje"
+  mojeWesele.sharedCore.authLayer.authGate -> mojeWesele.sharedCore.authLayer.loginScreen "pokazuje, gdy brak sesji"
+  mojeWesele.sharedCore.authLayer.authGate -> mojeWesele.sharedCore.authLayer.lockScreen "pokazuje przy auto-loginie z włączoną blokadą"
+  mojeWesele.sharedCore.authLayer.authGate -> mojeWesele.sharedCore.authLayer.weddingsListScreen "pokazuje po zalogowaniu/odblokowaniu"
+  mojeWesele.sharedCore.authLayer.weddingsListScreen -> mojeWesele.sharedCore.dataLayer.membershipService "czyta członkostwa użytkownika"
+  mojeWesele.sharedCore.authLayer.authService -> firebaseAuth "signInWithGoogle / createUserWithEmailAndPassword / signInWithEmailAndPassword / sendPasswordResetEmail"
+  firebaseAuth -> googleSignIn "deleguje uwierzytelnienie OAuth"
+  mojeWesele.sharedCore.authLayer.guestIdentity -> firebaseAuth "signInAnonymously() — ścieżka OSOBNA od AuthService"
+
+  // -- Wewnątrz strefy gości --
+  mojeWesele.sharedCore.guestZone.inviteEntryApp -> mojeWesele.sharedCore.dataLayer.inviteIdentityService "load(code)"
+  mojeWesele.sharedCore.guestZone.identityPicker -> mojeWesele.sharedCore.guestZone.inviteEntryApp "onPicked(PackageIdentity)"
+  mojeWesele.sharedCore.guestZone.inviteEntryApp -> mojeWesele.sharedCore.dataLayer.inviteIdentityService "claim(doc, identity)"
+  mojeWesele.sharedCore.guestZone.inviteEntryApp -> mojeWesele.sharedCore.guestZone.guestRootApp "po ustaleniu tożsamości"
+  mojeWesele.sharedCore.guestZone.guestRootApp -> mojeWesele.sharedCore.guestZone.guestWebHome "buduje"
+  mojeWesele.sharedCore.guestZone.guestWebHome -> mojeWesele.sharedCore.dataLayer.guestSpaceService "czyta/pisze wpisy sekcji gościa"
+  mojeWesele.sharedCore.dataLayer.inviteIdentityService -> mojeWesele.sharedCore.guestZone.invitePackageModel "produkuje InviteCodeDoc"
+  mojeWesele.sharedCore.guestZone.invitationsScreen -> mojeWesele.sharedCore.dataLayer.inviteCodeService "generuje/zarządza kodami"
+  mojeWesele.sharedCore.guestZone.invitationsScreen -> mojeWesele.sharedCore.guestZone.invitePackageModel "buduje listę paczek z gości"
+  mojeWesele.sharedCore.guestZone.invitationsScreen -> mojeWesele.sharedCore.dataLayer.pdfService "wydruk zaznaczonych/wszystkich/bez kodu"
+  mojeWesele.sharedCore.dataLayer.pdfService -> mojeWesele.sharedCore.dataLayer.inviteCodeService "kody + skład paczek do wydrukowania"
+  mojeWesele.sharedCore.guestZone.unassignedScreen -> mojeWesele.sharedCore.dataLayer.guestSpaceService "watchUnassignedIdentities / updateEntry(guestId) / deleteEntry"
+  mojeWesele.sharedCore.guestZone.unassignedScreen -> mojeWesele.sharedCore.guestZone.invitePackageModel "podpowiedzi z tej samej paczki"
+
+  // -- Warstwa danych → Firestore --
+  mojeWesele.sharedCore.dataLayer.activeWedding -> mojeWesele.sharedCore.dataLayer.firestoreService "wyznacza weddingId"
+  mojeWesele.sharedCore.dataLayer.weddingService -> mojeWesele.sharedCore.dataLayer.firestoreService "korzysta z"
+  mojeWesele.sharedCore.dataLayer.guestService -> mojeWesele.sharedCore.dataLayer.firestoreService "korzysta z"
+  mojeWesele.sharedCore.dataLayer.inviteCodeService -> mojeWesele.sharedCore.dataLayer.firestoreService "prywatny indeks: weddings/{id}.invitePackages"
+  mojeWesele.sharedCore.dataLayer.domainServices -> mojeWesele.sharedCore.dataLayer.firestoreService "korzysta z"
+  mojeWesele.sharedCore.dataLayer.firestoreService -> firestore "weddings/{ActiveWedding.id}"
+  mojeWesele.sharedCore.dataLayer.membershipService -> firestore "memberships/{uid}__{weddingId} (bezpośrednio — działa PRZED wyborem wesela)"
+  mojeWesele.sharedCore.dataLayer.inviteCodeService -> firestore "publiczny indeks: inviteCodes/{KOD} (bezpośrednio)"
+  mojeWesele.sharedCore.dataLayer.guestSpaceService -> firestore "guestSpaces/{token}/* (bezpośrednio, bez FirestoreService)"
+  mojeWesele.sharedCore.dataLayer.inviteIdentityService -> firestore "inviteCodes/{code} (odczyt), guestSpaces/{token}/identities (zapis)"
+  mojeWesele.sharedCore.dataLayer.weddingService -> mojeWesele.sharedCore.dataLayer.guestSpaceService "publikuje mirror (_guestMirror) do tego samego dokumentu guestSpaces/{token}"
+
+  // -- Strony statyczne (legacy) --
+  mojeWesele.staticGuestPages -> firebaseAuth "logowanie anonimowe gościa"
+  mojeWesele.staticGuestPages -> firestore "czyta/zapisuje wpisy gościa (starsza ścieżka, per-strona)"
+
+  // -- Integracje zewnętrzne z web --
+  mojeWesele.webApp -> cloudinary "przesyła zdjęcia (galeria, foto-wyzwania)"
+  mojeWesele.webApp -> deezer "wyszukuje utwory"
+  mojeWesele.webApp -> nominatim "geokoduje adresy"
+
+  // -- Wewnątrz firestore.rules --
+  firestore.weddingsMatch -> firestore.roleIn "fullAccess(w) / isOwner(w)"
+  firestore.guestViewMatch -> firestore.activeMember "read: activeMember(w)"
+  firestore.guestViewMatch -> firestore.roleIn "write: fullAccess(w)"
+  firestore.membershipsMatch -> firestore.roleIn "isOwner(weddingId)"
+  firestore.membershipsMatch -> firestore.claimFns "create: jedna z 3 dróg"
+  firestore.claimFns -> firestore.weddingCodesMatch "guestClaim() sprawdza istnienie kodu"
+  firestore.claimFns -> firestore.roleInvitesMatch "roleClaim() sprawdza kod+rolę"
+  firestore.weddingCodesMatch -> firestore.ownerIndexFns "create/update/delete"
+  firestore.roleInvitesMatch -> firestore.ownerIndexFns "create/update/delete"
+  firestore.inviteCodesMatch -> firestore.ownerIndexFns "create/update/delete"
+  firestore.ownerIndexFns -> firestore.roleIn "isOwner(weddingId)"
+  firestore.guestSpacesRoot -> firestore.tokenFns "orgOf(token) do zapisu mirrora"
+  firestore.identitiesMatch -> firestore.tokenFns "orgOf(token) do get/list"
+  firestore.identitiesMatch -> firestore.validIdentity "create/update"
+  firestore.validIdentity -> firestore.tokenFns "sprawdza tokenWedding/tokenReal"
+  firestore.guestbookAdviceMatch -> firestore.tokenFns "tokenReal (create) / orgOf (moderacja)"
+  firestore.guestMapRsvpMatch -> firestore.isSelf "create/update: isSelf(id)"
+  firestore.guestMapRsvpMatch -> firestore.tokenFns "orgOf(token) do odczytu/moderacji"
+  firestore.usersByEmailMatch -> firestore.signedIn "get: signedIn()"
+  firestore.usersMatch -> firestore.signedIn "read/write: signedIn() && uid()==userId"
+}

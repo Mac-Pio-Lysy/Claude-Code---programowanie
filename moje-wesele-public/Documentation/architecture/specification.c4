@@ -1,0 +1,37 @@
+// ============================================================================
+// SPECIFICATION — rodzaje elementów użyte w modelu.
+//
+// To jest "słownik" dla model.c4 i views.c4. Jeśli dodajesz nowy typ
+// elementu (np. "queue" dla przyszłej kolejki zadań), zadeklaruj go tutaj
+// najpierw — dopiero potem można go użyć w model.c4.
+// ============================================================================
+
+specification {
+
+  // ── Rodzaje elementów (kinds) ──────────────────────────────────────────
+  // Cztery standardowe poziomy C4. Głębokość zagnieżdżenia w model.c4 (nie
+  // sama nazwa "kind") decyduje o tym, na którym poziomie diagramu coś się
+  // pojawia — więc "component" bywa użyty zarówno jako duża "grupa"
+  // (np. warstwa auth) jak i jako pojedyncza klasa wewnątrz niej.
+  element person {
+    style {
+      shape person
+      color slate
+    }
+  }
+  element system {
+    style {
+      color blue
+    }
+  }
+  element container {
+    style {
+      color indigo
+    }
+  }
+  element component {
+    style {
+      color sky
+    }
+  }
+}

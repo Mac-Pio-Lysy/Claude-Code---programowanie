@@ -1,0 +1,87 @@
+// ============================================================================
+// VIEWS — jak patrzymy na model.c4. JEDEN model, WIELE widoków.
+//
+// Hierarchia klikania w podglądzie LikeC4 (Open Preview):
+//   index (kontekst)
+//     → mojeWesele                    [klik w system]
+//       → sharedCore                  [klik w kontener "Wspólny kod"]
+//         → authLayer                 [klik w grupę "Warstwa auth"]
+//         → guestZone                 [klik w grupę "Strefa gości"]
+//         → dataLayer                 [klik w grupę "Warstwa danych"]
+//       (mobileApp / webApp / staticGuestPages nie mają własnego wnętrza
+//        w modelu — to celowo "cienkie" kontenery, cała logika jest w
+//        sharedCore, patrz komentarz w model.c4)
+//     → firestore                     [klik w system Cloud Firestore]
+//       (pokazuje od razu pełną architekturę firestore.rules)
+//
+// Każdy "view of X" w tym pliku sprawia, że X staje się KLIKALNY w każdym
+// INNYM widoku, w którym się pojawia — to jest właśnie mechanizm drill-down
+// LikeC4. Nie trzeba nic dodatkowo łączyć.
+// ============================================================================
+
+views {
+
+  // ── 1. KONTEKST — punkt wejścia ────────────────────────────────────────
+  view index {
+    title "1. Kontekst — System Moje Wesele"
+    description "Kto (ludzie) i co (systemy zewnętrzne) współpracuje z systemem. Kliknij prostokąt 'Moje Wesele', żeby zejść na poziom kontenerów."
+
+    include organizator, collaborator, guest
+    include mojeWesele
+    include firebaseAuth, googleSignIn, firestore
+    include cloudinary, deezer, nominatim
+  }
+
+  // ── 2. KONTENERY ────────────────────────────────────────────────────────
+  view containers of mojeWesele {
+    title "2. Kontenery — Moje Wesele"
+    description "Główne wdrażalne jednostki: appka mobilna, appka web (3 tryby wg main.dart), starsze statyczne strony gości, oraz wspólny kod, na którym stoją obie appki. Kliknij 'Wspólny kod Flutter', żeby zejść na poziom grup komponentów."
+
+    include *
+  }
+
+  // ── 3. GRUPY KOMPONENTÓW WEWNĄTRZ WSPÓLNEGO KODU ───────────────────────
+  view sharedCoreOverview of mojeWesele.sharedCore {
+    title "3. Wspólny kod — przegląd trzech warstw"
+    description "Trzy główne obszary logiki. Kliknij każdy z nich, żeby zobaczyć konkretne klasy/ekrany."
+
+    include *
+  }
+
+  // ── 4a. Warstwa uwierzytelniania (najgłębszy poziom) ───────────────────
+  view auth of mojeWesele.sharedCore.authLayer {
+    title "4a. Komponenty — Uwierzytelnianie organizatora"
+    description "AuthGate + AuthService (Google/e-mail) + ekrany logowania, oraz osobna ścieżka GuestIdentity dla gości."
+
+    include *
+    include mojeWesele.sharedCore.dataLayer.membershipService
+  }
+
+  // ── 4b. Strefa gości i indywidualne zaproszenia (najgłębszy poziom) ────
+  view guestZoneDetail of mojeWesele.sharedCore.guestZone {
+    title "4b. Komponenty — Strefa gości i indywidualne zaproszenia"
+    description "Wejście gościa kodem paczki (?i=KOD), tożsamości, oraz zarządzanie zaproszeniami po stronie organizatora."
+
+    include *
+    include mojeWesele.sharedCore.dataLayer.inviteCodeService
+    include mojeWesele.sharedCore.dataLayer.inviteIdentityService
+    include mojeWesele.sharedCore.dataLayer.guestSpaceService
+    include mojeWesele.sharedCore.dataLayer.pdfService
+  }
+
+  // ── 4c. Warstwa danych (najgłębszy poziom) ──────────────────────────────
+  view dataLayerDetail of mojeWesele.sharedCore.dataLayer {
+    title "4c. Komponenty — Warstwa danych"
+    description "Dwa wzorce dostępu do Firestore: organizator (FirestoreService + ActiveWedding) kontra gość/publiczne kolekcje (GuestSpaceService + InviteIdentityService, własna instancja FirebaseFirestore, bez ActiveWedding)."
+
+    include *
+  }
+
+  // ── 5. Reguły Firestore (najgłębszy poziom, osobna gałąź od aplikacji) ─
+  view firestoreRules of firestore {
+    title "5. Komponenty — firestore.rules (izolacja wg roli)"
+    description "Funkcje pomocnicze reguł i bloki match, które z nich korzystają. To nie jest kod aplikacji — to konfiguracja bezpieczeństwa, ale ma wyraźną wewnętrzną architekturę warstwową."
+
+    include *
+  }
+}
