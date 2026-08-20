@@ -1803,6 +1803,58 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String get contest_results => 'Wyniki';
+
+  @override
+  String get contest_noGuestToken =>
+      'Brak tokenu strefy gości dla tego wesela — otwórz najpierw Ustawienia → Goście.';
+
+  @override
+  String get contest_ranking => 'Ranking głosów gości';
+
+  @override
+  String contest_rankingHint(int count) {
+    return 'Policzone z $count oddanych głosów. Punkty widzisz tylko Ty — goście zobaczą je dopiero po ujawnieniu.';
+  }
+
+  @override
+  String get contest_noVotesYet => 'Jeszcze nikt nie zagłosował.';
+
+  @override
+  String contest_points(int points) {
+    return '$points pkt';
+  }
+
+  @override
+  String get contest_coupleChoice => 'Wybór Pary Młodej';
+
+  @override
+  String get contest_coupleChoiceHint =>
+      'Kliknij zdjęcie, aby wskazać 1./2./3. miejsce albo wyróżnienie (max 2) — niezależnie od głosów gości.';
+
+  @override
+  String get contest_couplePickTitle => 'Werdykt Pary Młodej';
+
+  @override
+  String get contest_honorableMention => 'Wyróżnienie';
+
+  @override
+  String get contest_honorableFull =>
+      'Masz już 2 wyróżnienia — najpierw cofnij jedno.';
+
+  @override
+  String get contest_revealNow => 'Ujawnij teraz';
+
+  @override
+  String get contest_updateResults => 'Zaktualizuj wyniki';
+
+  @override
+  String get contest_revealed => 'Wyniki ujawnione ✓';
+
+  @override
+  String get contest_revealedBadge => 'Ujawnione';
+
+  @override
   String get quiz_addQuestion => 'Dodaj pytanie';
 
   @override
@@ -2818,6 +2870,18 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get gw_contestOwnPhoto => 'Twoje zdjęcie';
+
+  @override
+  String get gw_contestResultsTitle => 'Wyniki';
+
+  @override
+  String get gw_contestResultsPendingManual =>
+      'Wyniki pojawią się, gdy ujawni je Para Młoda.';
+
+  @override
+  String gw_contestResultsPendingAuto(String date) {
+    return 'Wyniki pojawią się $date.';
+  }
 
   @override
   String get gw_bingoSoon => 'Plansza bingo pojawi się wkrótce.';

@@ -315,6 +315,17 @@ class GuestSpaceService {
           .snapshots()
           .map((s) => s.data());
 
+  /// WSZYSTKIE głosy jednej podkategorii — WYŁĄCZNIE organizator (reguła:
+  /// `list: orgOf(token)`). Gość nie może wykonać tego zapytania (stąd
+  /// „punkty ukryte" — patrz `computeContestRanking`, etap 4/5/6).
+  Stream<List<Map<String, dynamic>>> watchContestVotes(
+          int contestId, int subcategoryId) =>
+      _coll('contestVotes')
+          .where('contestId', isEqualTo: '$contestId')
+          .where('subcategoryId', isEqualTo: '$subcategoryId')
+          .snapshots()
+          .map((snap) => snap.docs.map((d) => {'id': d.id, ...d.data()}).toList());
+
   /// Wynik gry (quiz / prawda-fałsz / zgadnij zdjęcie) — JEDEN NA GOŚCIA NA GRĘ.
   /// Odczyt: organizator oraz sam autor (własny wynik).
   ///

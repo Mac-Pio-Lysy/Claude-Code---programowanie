@@ -1567,22 +1567,188 @@ class _ContestDetailPageState extends State<_ContestDetailPage> {
           ),
           const SizedBox(height: 14),
         ],
-        _nameField(_nameCtrl),
-        const SizedBox(height: 4),
-        Text(AppText.t.gw_contestSubmitHint,
-            style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
-        const SizedBox(height: 8),
-        _PhotoButtons(busy: _busy, onPick: _submit, label: AppText.t.gw_sendPhoto),
-        const SizedBox(height: 18),
-        Text(AppText.t.gw_contestSubmissions,
+        if (_subcategoryId != null) ..._body(_subcategoryId!),
+      ],
+    );
+  }
+
+  /// Etap 7: PO ujawnieniu tej podkategorii pokazujemy wyniki (ranking +
+  /// Wybór Pary Młodej) ZAMIAST formularza/głosowania — konkurs tej
+  /// podkategorii jest rozstrzygnięty. PRZED ujawnieniem — jak dotąd
+  /// (etapy 2-3): zgłaszanie + głosowanie, z krótką informacją kiedy/jak
+  /// wyniki się pojawią.
+  List<Widget> _body(int subId) {
+    if (widget.contest.isSubcategoryRevealed(subId)) {
+      return _resultsBody(subId);
+    }
+    return [
+      _nameField(_nameCtrl),
+      const SizedBox(height: 4),
+      Text(AppText.t.gw_contestSubmitHint,
+          style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
+      const SizedBox(height: 8),
+      _PhotoButtons(busy: _busy, onPick: _submit, label: AppText.t.gw_sendPhoto),
+      const SizedBox(height: 12),
+      _revealPendingNote(),
+      const SizedBox(height: 6),
+      Text(AppText.t.gw_contestSubmissions,
+          style: GoogleFonts.playfairDisplay(
+              fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text)),
+      const SizedBox(height: 4),
+      Text(AppText.t.gw_contestVoteHint,
+          style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
+      const SizedBox(height: 10),
+      _submissionsGrid(subId),
+    ];
+  }
+
+  Widget _revealPendingNote() {
+    final auto = widget.contest.revealMode == ContestRevealMode.auto;
+    final date = widget.contest.revealDate;
+    return Text(
+      auto && date != null
+          ? AppText.t.gw_contestResultsPendingAuto(date)
+          : AppText.t.gw_contestResultsPendingManual,
+      style: GoogleFonts.inter(
+          fontSize: 12, fontStyle: FontStyle.italic, color: AppColors.textLight),
+    );
+  }
+
+  List<Widget> _resultsBody(int subId) {
+    final ranking = widget.contest.subcategoryRanking(subId);
+    final couple = widget.contest.subcategoryCoupleChoice(subId);
+    return [
+      Text(AppText.t.gw_contestResultsTitle,
+          style: GoogleFonts.playfairDisplay(
+              fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text)),
+      const SizedBox(height: 10),
+      if (ranking.isEmpty)
+        Text(AppText.t.contest_noVotesYet,
+            style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight))
+      else
+        for (var i = 0; i < ranking.length; i++) _resultRow(i + 1, ranking[i]),
+      if (couple != null) ...[
+        const SizedBox(height: 22),
+        Text(AppText.t.contest_coupleChoice,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text)),
-        const SizedBox(height: 4),
-        Text(AppText.t.gw_contestVoteHint,
-            style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
         const SizedBox(height: 10),
-        if (_subcategoryId != null) _submissionsGrid(_subcategoryId!),
+        _coupleChoiceGrid(couple),
       ],
+    ];
+  }
+
+  Widget _resultRow(int rank, Map<String, dynamic> entry) {
+    final url = (entry['photoUrl'] as String?) ?? '';
+    final medal = switch (rank) { 1 => _gold, 2 => _silver, 3 => _bronze, _ => null };
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: medal ?? const Color(0xFFE2EAF7), width: medal != null ? 2 : 1),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 22,
+            child: Text('$rank',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w800)),
+          ),
+          const SizedBox(width: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: url.isEmpty
+                  ? const ColoredBox(color: Color(0xFFF1F5FC))
+                  : Image.network(url, fit: BoxFit.cover),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text((entry['name'] as String?) ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+          Text(AppText.t.contest_points((entry['points'] as num?)?.toInt() ?? 0),
+              style: GoogleFonts.inter(
+                  fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.accent)),
+        ],
+      ),
+    );
+  }
+
+  Widget _coupleChoiceGrid(Map<String, dynamic> couple) {
+    final slots = <({String? id, String label, Color color})>[
+      (id: couple['first'] as String?, label: '1', color: _gold),
+      (id: couple['second'] as String?, label: '2', color: _silver),
+      (id: couple['third'] as String?, label: '3', color: _bronze),
+      for (final h in (couple['honorable'] as List?) ?? const [])
+        if (h is String) (id: h, label: '★', color: AppColors.accent),
+    ];
+    final tiles = [for (final s in slots) if (s.id != null) s];
+    if (tiles.isEmpty) {
+      return Text(AppText.t.gw_photosEmpty,
+          style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight));
+    }
+    // JEDEN strumień zgłoszeń dla całej siatki (nie per kafel) — zdjęcia
+    // wskazane przez Wybór Pary Młodej należą zawsze do tej samej
+    // podkategorii, którą już i tak czyta `_submissionsGrid`.
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: widget.service.watchContestSubmissions(widget.contest.id, _subcategoryId ?? 0),
+      builder: (context, snapshot) {
+        final all = snapshot.data ?? const [];
+        final byId = {for (final s in all) s['id'] as String: s};
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+          ),
+          itemCount: tiles.length,
+          itemBuilder: (context, i) {
+            final slot = tiles[i];
+            final url = (byId[slot.id]?['photoUrl'] as String?) ?? '';
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: slot.color, width: 3),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    url.isEmpty
+                        ? const ColoredBox(color: Color(0xFFF1F5FC))
+                        : Image.network(url, fit: BoxFit.cover),
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: slot.color),
+                        child: Text(slot.label,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

@@ -79,6 +79,27 @@ class PhotoContest {
 
   bool get isRevealed => results.isNotEmpty;
 
+  /// Czy WYNIKI TEJ KONKRETNEJ podkategorii są już ujawnione — ujawnienie
+  /// jest granularne per podkategoria (organizator może ogłosić „Pana
+  /// Młodego" wcześniej niż „Razem"), nie per cały konkurs naraz.
+  bool isSubcategoryRevealed(int subId) => results.containsKey('$subId');
+
+  /// Ranking tej podkategorii (`[{submissionId, points, name, photoUrl}]`),
+  /// pusty gdy jeszcze nieujawniona.
+  List<Map<String, dynamic>> subcategoryRanking(int subId) {
+    final r = results['$subId'];
+    if (r is! Map) return const [];
+    final ranking = r['ranking'];
+    if (ranking is! List) return const [];
+    return [for (final e in ranking) if (e is Map) Map<String, dynamic>.from(e)];
+  }
+
+  /// Werdykt Pary Młodej dla tej podkategorii — `null` gdy nieujawniony.
+  Map<String, dynamic>? subcategoryCoupleChoice(int subId) {
+    final c = coupleChoice['$subId'];
+    return c is Map ? Map<String, dynamic>.from(c) : null;
+  }
+
   ContestSubcategory? subcategory(int subId) {
     for (final s in subcategories) {
       if (s.id == subId) return s;
@@ -202,4 +223,43 @@ class ContestSubmission {
         authorUid: (m['authorUid'] as String?) ?? '',
         timestamp: (m['timestamp'] as num?)?.toInt() ?? 0,
       );
+}
+
+/// Liczy ranking podkategorii z surowych głosów (system 3-2-1: 1.=3pkt,
+/// 2.=2pkt, 3.=1pkt) — WYŁĄCZNIE po stronie klienta organizatora, bo
+/// Firestore Security Rules nie agreguje danych między dokumentami (nie ma
+/// SUM/GROUP BY). Organizator ma `list` na `contestVotes` (reguła etapu 3),
+/// więc to bezpieczne: gość nigdy nie wykona tego samego zapytania.
+///
+/// Wynik zawiera ZDJĘTĄ w danym momencie kopię `name`/`photoUrl` zgłoszenia
+/// (nie tylko `submissionId`) — żeby opublikowany ranking pozostał czytelny
+/// nawet gdyby organizator później skasował/zmoderował zgłoszenie.
+List<Map<String, dynamic>> computeContestRanking({
+  required List<Map<String, dynamic>> submissions,
+  required List<Map<String, dynamic>> votes,
+  required int rankingSize,
+}) {
+  final points = <String, int>{};
+  void add(String? id, int p) {
+    if (id == null || id.isEmpty) return;
+    points[id] = (points[id] ?? 0) + p;
+  }
+
+  for (final v in votes) {
+    add(v['first'] as String?, 3);
+    add(v['second'] as String?, 2);
+    add(v['third'] as String?, 1);
+  }
+  final subById = {for (final s in submissions) s['id'] as String: s};
+  final entries = points.entries.toList()
+    ..sort((a, b) => b.value.compareTo(a.value));
+  return [
+    for (final e in entries.take(rankingSize))
+      {
+        'submissionId': e.key,
+        'points': e.value,
+        'name': (subById[e.key]?['name'] as String?) ?? '',
+        'photoUrl': (subById[e.key]?['photoUrl'] as String?) ?? '',
+      },
+  ];
 }

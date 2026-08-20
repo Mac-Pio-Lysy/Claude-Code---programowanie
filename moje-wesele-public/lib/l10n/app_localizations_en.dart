@@ -1799,6 +1799,58 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get contest_results => 'Results';
+
+  @override
+  String get contest_noGuestToken =>
+      'No guest-zone token for this wedding yet — open Settings → Guests first.';
+
+  @override
+  String get contest_ranking => 'Guest vote ranking';
+
+  @override
+  String contest_rankingHint(int count) {
+    return 'Calculated from $count votes cast. Only you see the points — guests will see them after reveal.';
+  }
+
+  @override
+  String get contest_noVotesYet => 'No one has voted yet.';
+
+  @override
+  String contest_points(int points) {
+    return '$points pts';
+  }
+
+  @override
+  String get contest_coupleChoice => 'The Couple\'s Choice';
+
+  @override
+  String get contest_coupleChoiceHint =>
+      'Tap a photo to mark 1st/2nd/3rd place or an honorable mention (max 2) — independent of guest votes.';
+
+  @override
+  String get contest_couplePickTitle => 'The Couple\'s verdict';
+
+  @override
+  String get contest_honorableMention => 'Honorable mention';
+
+  @override
+  String get contest_honorableFull =>
+      'You already have 2 honorable mentions — remove one first.';
+
+  @override
+  String get contest_revealNow => 'Reveal now';
+
+  @override
+  String get contest_updateResults => 'Update results';
+
+  @override
+  String get contest_revealed => 'Results revealed ✓';
+
+  @override
+  String get contest_revealedBadge => 'Revealed';
+
+  @override
   String get quiz_addQuestion => 'Add question';
 
   @override
@@ -2811,6 +2863,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gw_contestOwnPhoto => 'Your photo';
+
+  @override
+  String get gw_contestResultsTitle => 'Results';
+
+  @override
+  String get gw_contestResultsPendingManual =>
+      'Results will appear once revealed by the Couple.';
+
+  @override
+  String gw_contestResultsPendingAuto(String date) {
+    return 'Results will appear on $date.';
+  }
 
   @override
   String get gw_bingoSoon => 'The bingo board will appear soon.';

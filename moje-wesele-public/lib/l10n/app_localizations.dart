@@ -3330,6 +3330,96 @@ abstract class AppLocalizations {
   /// **'{count} {count, plural, =1{podkategoria} few{podkategorie} other{podkategorii}}'**
   String contest_subcategoriesCount(int count);
 
+  /// No description provided for @contest_results.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyniki'**
+  String get contest_results;
+
+  /// No description provided for @contest_noGuestToken.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brak tokenu strefy gości dla tego wesela — otwórz najpierw Ustawienia → Goście.'**
+  String get contest_noGuestToken;
+
+  /// No description provided for @contest_ranking.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ranking głosów gości'**
+  String get contest_ranking;
+
+  /// No description provided for @contest_rankingHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Policzone z {count} oddanych głosów. Punkty widzisz tylko Ty — goście zobaczą je dopiero po ujawnieniu.'**
+  String contest_rankingHint(int count);
+
+  /// No description provided for @contest_noVotesYet.
+  ///
+  /// In pl, this message translates to:
+  /// **'Jeszcze nikt nie zagłosował.'**
+  String get contest_noVotesYet;
+
+  /// No description provided for @contest_points.
+  ///
+  /// In pl, this message translates to:
+  /// **'{points} pkt'**
+  String contest_points(int points);
+
+  /// No description provided for @contest_coupleChoice.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybór Pary Młodej'**
+  String get contest_coupleChoice;
+
+  /// No description provided for @contest_coupleChoiceHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kliknij zdjęcie, aby wskazać 1./2./3. miejsce albo wyróżnienie (max 2) — niezależnie od głosów gości.'**
+  String get contest_coupleChoiceHint;
+
+  /// No description provided for @contest_couplePickTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Werdykt Pary Młodej'**
+  String get contest_couplePickTitle;
+
+  /// No description provided for @contest_honorableMention.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyróżnienie'**
+  String get contest_honorableMention;
+
+  /// No description provided for @contest_honorableFull.
+  ///
+  /// In pl, this message translates to:
+  /// **'Masz już 2 wyróżnienia — najpierw cofnij jedno.'**
+  String get contest_honorableFull;
+
+  /// No description provided for @contest_revealNow.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ujawnij teraz'**
+  String get contest_revealNow;
+
+  /// No description provided for @contest_updateResults.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaktualizuj wyniki'**
+  String get contest_updateResults;
+
+  /// No description provided for @contest_revealed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyniki ujawnione ✓'**
+  String get contest_revealed;
+
+  /// No description provided for @contest_revealedBadge.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ujawnione'**
+  String get contest_revealedBadge;
+
   /// No description provided for @quiz_addQuestion.
   ///
   /// In pl, this message translates to:
@@ -5117,6 +5207,24 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Twoje zdjęcie'**
   String get gw_contestOwnPhoto;
+
+  /// No description provided for @gw_contestResultsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyniki'**
+  String get gw_contestResultsTitle;
+
+  /// No description provided for @gw_contestResultsPendingManual.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyniki pojawią się, gdy ujawni je Para Młoda.'**
+  String get gw_contestResultsPendingManual;
+
+  /// No description provided for @gw_contestResultsPendingAuto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyniki pojawią się {date}.'**
+  String gw_contestResultsPendingAuto(String date);
 
   /// No description provided for @gw_bingoSoon.
   ///

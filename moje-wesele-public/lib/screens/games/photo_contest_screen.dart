@@ -5,11 +5,13 @@ import '../../app_colors.dart';
 import '../../models/photo_contest.dart';
 import '../../models/wedding_data.dart';
 import '../../services/firestore_service.dart';
+import '../../services/guest_space_service.dart';
 import '../../services/photo_contest_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/app_format.dart';
 import '../../utils/warsaw_time.dart';
 import '../../l10n/app_text.dart';
+import 'photo_contest_results_screen.dart';
 
 /// Etap 1 „Konkursów fotograficznych z głosowaniem": konfiguracja konkursów
 /// przez organizatora (nazwa, podkategorie, rozmiar rankingu, tryb
@@ -36,6 +38,20 @@ class _PhotoContestScreenState extends State<PhotoContestScreen> {
   Map<int, PhotoContest> get _contests =>
       PhotoContest.mapFromRaw(widget.data?.raw['photoContests']);
 
+  String get _guestToken => (widget.data?.raw['guestToken'] as String?)?.trim() ?? '';
+
+  bool _autoRevealChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Etap 6: sprawdzenie best-effort — bez Cloud Function nic nie „budzi
+    // się" samo o określonej godzinie, więc robimy to przy KAŻDYM otwarciu
+    // tego ekranu przez organizatora. Raz na wejście na ekran (nie przy
+    // każdym rebuildzie po zapisie) — stąd `_autoRevealChecked`.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAutoReveal());
+  }
+
   void _toast(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context)
@@ -49,6 +65,68 @@ class _PhotoContestScreenState extends State<PhotoContestScreen> {
     try {
       await WeddingService().ensureGuestToken(widget._firestore.weddingId);
     } catch (_) {}
+  }
+
+  /// Etap 6 — automatyczne ujawnienie po dacie, BEST-EFFORT (patrz plan,
+  /// ryzyko #2): wyniki pojawią się u gości dopiero, gdy KTOŚ z organizacji
+  /// otworzy ten ekran po `revealDate`. Liczy ranking dokładnie tak samo
+  /// jak przycisk ręczny (`PhotoContestService.revealSubcategory`) — bez
+  /// werdyktu Pary Młodej (ten organizator ustawia ręcznie w ekranie
+  /// wyników; auto-ujawnienie nie nadpisuje go, jeśli już istnieje, bo
+  /// `revealSubcategory` z `coupleChoice: null` zostawia poprzedni wpis
+  /// przez `Map.from(c.coupleChoice)` w `publishResults`).
+  Future<void> _checkAutoReveal() async {
+    if (_autoRevealChecked || !mounted) return;
+    _autoRevealChecked = true;
+    final token = _guestToken;
+    if (token.isEmpty) return;
+    final today = warsawToday();
+    final guestSpace = GuestSpaceService(token: token);
+    var revealedAny = false;
+    for (final c in _contests.values) {
+      if (!c.active || c.revealMode != ContestRevealMode.auto) continue;
+      final revealDate = AppFormat.parseIso(c.revealDate);
+      if (revealDate == null) continue;
+      final due = !today.isBefore(DateTime(revealDate.year, revealDate.month, revealDate.day));
+      if (!due) continue;
+      for (final sub in c.subcategories) {
+        if (c.isSubcategoryRevealed(sub.id)) continue;
+        try {
+          await widget.service.revealSubcategory(
+            guestSpace: guestSpace,
+            contestId: c.id,
+            subcategoryId: sub.id,
+            rankingSize: c.rankingSize,
+          );
+          revealedAny = true;
+        } catch (_) {
+          // Best-effort — pojedyncza nieudana podkategoria nie przerywa
+          // reszty, spróbujemy ponownie przy następnym otwarciu ekranu.
+        }
+      }
+    }
+    if (revealedAny) {
+      await _resync();
+      if (mounted) setState(() {});
+    }
+  }
+
+  void _openResults(PhotoContest c) {
+    final token = _guestToken;
+    if (token.isEmpty) {
+      _toast(AppText.t.contest_noGuestToken);
+      return;
+    }
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+          builder: (_) => ContestResultsScreen(
+            contest: c,
+            service: widget.service,
+            guestToken: token,
+            weddingId: widget._firestore.weddingId,
+          ),
+        ))
+        .then((_) => mounted ? setState(() {}) : null);
   }
 
   @override
@@ -131,6 +209,13 @@ class _PhotoContestScreenState extends State<PhotoContestScreen> {
                 child: Text(c.name,
                     style: GoogleFonts.inter(
                         fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.text)),
+              ),
+              IconButton(
+                onPressed: () => _openResults(c),
+                icon: const Icon(Icons.leaderboard_outlined, size: 18),
+                color: AppColors.accent,
+                visualDensity: VisualDensity.compact,
+                tooltip: AppText.t.contest_results,
               ),
               IconButton(
                 onPressed: () => _manageSubcategories(c),

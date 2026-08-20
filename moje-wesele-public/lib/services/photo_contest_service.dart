@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/photo_contest.dart';
 import 'firestore_service.dart';
+import 'guest_space_service.dart';
 
 /// Konfiguracja konkursów fotograficznych (organizator) — w
 /// `weddings/{id}.photoContests`, MAPA `{contestId: config}`.
@@ -132,6 +133,67 @@ class PhotoContestService {
       for (final s in c.subcategories) if (s.id != subId) s,
     ];
     contests[contestId] = c.copyWith(subcategories: subs);
+    await _save(contests);
+  }
+
+  // ── Etapy 4/5/6: ujawnienie wyników + werdykt Pary Młodej ────────────────
+
+  /// Liczy ranking podkategorii i zapisuje go razem z (opcjonalnym) werdyktem
+  /// Pary Młodej — JEDNA akcja „Ujawnij", zgodnie z ustaleniem. Odczyt głosów
+  /// (`GuestSpaceService.watchContestVotes`, `list: orgOf`) i zgłoszeń dzieje
+  /// się TU, jednorazowo (`.first` na strumieniu) — sama agregacja jest
+  /// czysto kliencka, patrz komentarz przy `computeContestRanking`.
+  ///
+  /// Wywoływana zarówno z przycisku „Ujawnij teraz" (ręcznie, etap 4/5), jak
+  /// i z automatycznego sprawdzenia po dacie (etap 6) — jedno miejsce, żeby
+  /// oba tryby liczyły ranking dokładnie tak samo.
+  Future<void> revealSubcategory({
+    required GuestSpaceService guestSpace,
+    required int contestId,
+    required int subcategoryId,
+    required int rankingSize,
+    Map<String, dynamic>? coupleChoice,
+  }) async {
+    final submissions =
+        await guestSpace.watchContestSubmissions(contestId, subcategoryId).first;
+    final votes = await guestSpace.watchContestVotes(contestId, subcategoryId).first;
+    final ranking = computeContestRanking(
+      submissions: submissions,
+      votes: votes,
+      rankingSize: rankingSize,
+    );
+    await publishResults(
+      contestId: contestId,
+      subcategoryId: subcategoryId,
+      ranking: ranking,
+      coupleChoice: coupleChoice,
+    );
+  }
+
+  /// Zapisuje policzony ranking (+ opcjonalnie werdykt Pary Młodej) do
+  /// konfiguracji konkursu. Zwykły zapis `weddings/{id}` (`fullAccess`) —
+  /// zero zmian w regułach. Mirror gościa (`_guestMirror`) skopiuje to przy
+  /// najbliższej synchronizacji (wywołaj `WeddingService().ensureGuestToken`
+  /// po tej metodzie, jak przy każdej zmianie konfiguracji konkursów).
+  Future<void> publishResults({
+    required int contestId,
+    required int subcategoryId,
+    required List<Map<String, dynamic>> ranking,
+    Map<String, dynamic>? coupleChoice,
+  }) async {
+    final contests = await readContests();
+    final c = contests[contestId];
+    if (c == null) return;
+    final results = Map<String, dynamic>.from(c.results);
+    results['$subcategoryId'] = {
+      'revealedAt': DateTime.now().millisecondsSinceEpoch,
+      'ranking': ranking,
+    };
+    final coupleMap = Map<String, dynamic>.from(c.coupleChoice);
+    if (coupleChoice != null) {
+      coupleMap['$subcategoryId'] = coupleChoice;
+    }
+    contests[contestId] = c.copyWith(results: results, coupleChoice: coupleMap);
     await _save(contests);
   }
 

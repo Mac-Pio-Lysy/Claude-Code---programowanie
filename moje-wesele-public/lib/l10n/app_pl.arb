@@ -1062,6 +1062,35 @@
       }
     }
   },
+  "contest_results": "Wyniki",
+  "contest_noGuestToken": "Brak tokenu strefy gości dla tego wesela — otwórz najpierw Ustawienia → Goście.",
+  "contest_ranking": "Ranking głosów gości",
+  "contest_rankingHint": "Policzone z {count} oddanych głosów. Punkty widzisz tylko Ty — goście zobaczą je dopiero po ujawnieniu.",
+  "@contest_rankingHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "contest_noVotesYet": "Jeszcze nikt nie zagłosował.",
+  "contest_points": "{points} pkt",
+  "@contest_points": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "contest_coupleChoice": "Wybór Pary Młodej",
+  "contest_coupleChoiceHint": "Kliknij zdjęcie, aby wskazać 1./2./3. miejsce albo wyróżnienie (max 2) — niezależnie od głosów gości.",
+  "contest_couplePickTitle": "Werdykt Pary Młodej",
+  "contest_honorableMention": "Wyróżnienie",
+  "contest_honorableFull": "Masz już 2 wyróżnienia — najpierw cofnij jedno.",
+  "contest_revealNow": "Ujawnij teraz",
+  "contest_updateResults": "Zaktualizuj wyniki",
+  "contest_revealed": "Wyniki ujawnione ✓",
+  "contest_revealedBadge": "Ujawnione",
   "quiz_addQuestion": "Dodaj pytanie",
   "quiz_empty": "Brak pytań",
   "quiz_emptyHint": "Dodaj własne pytania lub zacznij od gotowych przykładów.",
@@ -1608,6 +1637,16 @@
     }
   },
   "gw_contestOwnPhoto": "Twoje zdjęcie",
+  "gw_contestResultsTitle": "Wyniki",
+  "gw_contestResultsPendingManual": "Wyniki pojawią się, gdy ujawni je Para Młoda.",
+  "gw_contestResultsPendingAuto": "Wyniki pojawią się {date}.",
+  "@gw_contestResultsPendingAuto": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "gw_bingoSoon": "Plansza bingo pojawi się wkrótce.",
   "gw_bingoIntro": "Skreślaj pola, gdy zobaczysz je na weselu. Skreślenia są tylko na Twoim telefonie — wyślij zgłoszenie, gdy uzbierasz komplet.",
   "gw_bingoMarked": "Skreślone: {marked} / {total}",
