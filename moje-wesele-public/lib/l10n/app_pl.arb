@@ -1587,6 +1587,27 @@
   "gw_contestSubmissions": "Zgłoszenia",
   "gw_contestSubmitted": "Zdjęcie zgłoszone do konkursu ✓",
   "gw_contestBack": "Wybierz konkurs",
+  "gw_contestVoteHint": "Kliknij zdjęcie, aby przyznać mu 1., 2. lub 3. miejsce. Nie możesz głosować na własne zdjęcia.",
+  "gw_contestPickPlace": "Wybierz miejsce",
+  "gw_contestPlaceN": "{n}. miejsce",
+  "@gw_contestPlaceN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "gw_contestUndo": "Cofnij to miejsce",
+  "gw_contestVoteSaved": "Głos zapisany ✓",
+  "gw_contestVotePending": "Brakuje wyborów do zapisania głosu: {count}/3",
+  "@gw_contestVotePending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "gw_contestOwnPhoto": "Twoje zdjęcie",
   "gw_bingoSoon": "Plansza bingo pojawi się wkrótce.",
   "gw_bingoIntro": "Skreślaj pola, gdy zobaczysz je na weselu. Skreślenia są tylko na Twoim telefonie — wyślij zgłoszenie, gdy uzbierasz komplet.",
   "gw_bingoMarked": "Skreślone: {marked} / {total}",

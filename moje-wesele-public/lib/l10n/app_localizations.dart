@@ -5076,6 +5076,48 @@ abstract class AppLocalizations {
   /// **'Wybierz konkurs'**
   String get gw_contestBack;
 
+  /// No description provided for @gw_contestVoteHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kliknij zdjęcie, aby przyznać mu 1., 2. lub 3. miejsce. Nie możesz głosować na własne zdjęcia.'**
+  String get gw_contestVoteHint;
+
+  /// No description provided for @gw_contestPickPlace.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz miejsce'**
+  String get gw_contestPickPlace;
+
+  /// No description provided for @gw_contestPlaceN.
+  ///
+  /// In pl, this message translates to:
+  /// **'{n}. miejsce'**
+  String gw_contestPlaceN(int n);
+
+  /// No description provided for @gw_contestUndo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cofnij to miejsce'**
+  String get gw_contestUndo;
+
+  /// No description provided for @gw_contestVoteSaved.
+  ///
+  /// In pl, this message translates to:
+  /// **'Głos zapisany ✓'**
+  String get gw_contestVoteSaved;
+
+  /// No description provided for @gw_contestVotePending.
+  ///
+  /// In pl, this message translates to:
+  /// **'Brakuje wyborów do zapisania głosu: {count}/3'**
+  String gw_contestVotePending(int count);
+
+  /// No description provided for @gw_contestOwnPhoto.
+  ///
+  /// In pl, this message translates to:
+  /// **'Twoje zdjęcie'**
+  String get gw_contestOwnPhoto;
+
   /// No description provided for @gw_bingoSoon.
   ///
   /// In pl, this message translates to:

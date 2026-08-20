@@ -2794,6 +2794,32 @@ class AppLocalizationsPl extends AppLocalizations {
   String get gw_contestBack => 'Wybierz konkurs';
 
   @override
+  String get gw_contestVoteHint =>
+      'Kliknij zdjęcie, aby przyznać mu 1., 2. lub 3. miejsce. Nie możesz głosować na własne zdjęcia.';
+
+  @override
+  String get gw_contestPickPlace => 'Wybierz miejsce';
+
+  @override
+  String gw_contestPlaceN(int n) {
+    return '$n. miejsce';
+  }
+
+  @override
+  String get gw_contestUndo => 'Cofnij to miejsce';
+
+  @override
+  String get gw_contestVoteSaved => 'Głos zapisany ✓';
+
+  @override
+  String gw_contestVotePending(int count) {
+    return 'Brakuje wyborów do zapisania głosu: $count/3';
+  }
+
+  @override
+  String get gw_contestOwnPhoto => 'Twoje zdjęcie';
+
+  @override
   String get gw_bingoSoon => 'Plansza bingo pojawi się wkrótce.';
 
   @override

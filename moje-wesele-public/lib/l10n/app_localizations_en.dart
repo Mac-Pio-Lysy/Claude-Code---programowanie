@@ -2787,6 +2787,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gw_contestBack => 'Choose a contest';
 
   @override
+  String get gw_contestVoteHint =>
+      'Tap a photo to give it 1st, 2nd or 3rd place. You can\'t vote for your own photos.';
+
+  @override
+  String get gw_contestPickPlace => 'Choose a place';
+
+  @override
+  String gw_contestPlaceN(int n) {
+    return 'Place $n';
+  }
+
+  @override
+  String get gw_contestUndo => 'Remove this place';
+
+  @override
+  String get gw_contestVoteSaved => 'Vote saved ✓';
+
+  @override
+  String gw_contestVotePending(int count) {
+    return 'Still need $count/3 picks to save your vote';
+  }
+
+  @override
+  String get gw_contestOwnPhoto => 'Your photo';
+
+  @override
   String get gw_bingoSoon => 'The bingo board will appear soon.';
 
   @override

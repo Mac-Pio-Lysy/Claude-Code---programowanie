@@ -1346,6 +1346,10 @@ class _ContestDetailPage extends StatefulWidget {
 }
 
 class _ContestDetailPageState extends State<_ContestDetailPage> {
+  static const _gold = Color(0xFFD4AF37);
+  static const _silver = Color(0xFFB0B0B8);
+  static const _bronze = Color(0xFFCD7F32);
+
   final _nameCtrl = TextEditingController(text: GuestSession.displayName);
   final _picker = ImagePicker();
   final _cloudinary = CloudinaryService();
@@ -1353,15 +1357,149 @@ class _ContestDetailPageState extends State<_ContestDetailPage> {
   late int? _subcategoryId =
       widget.contest.subcategories.isEmpty ? null : widget.contest.subcategories.first.id;
 
+  /// Własny głos bieżącej podkategorii: miejsce (1/2/3) → ID zgłoszenia.
+  /// Serwer dopuszcza WYŁĄCZNIE kompletny zestaw trzech różnych zdjęć —
+  /// dopóki brakuje któregoś miejsca, zmiana istnieje TYLKO tutaj, lokalnie
+  /// (patrz `_applyPick`), i nie jest jeszcze zapisana.
+  Map<int, String?> _picks = {1: null, 2: null, 3: null};
+  StreamSubscription<Map<String, dynamic>?>? _voteSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _resubscribeVote();
+  }
+
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _voteSub?.cancel();
     super.dispose();
   }
 
   void _snack(String m) => ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(m)));
+
+  /// Nasłuchuje własnego głosu bieżącej podkategorii i wypełnia [_picks]
+  /// PRZY PIERWSZYM zdarzeniu ze strumienia — kolejne zdarzenia (np. zapis
+  /// z innej karty przeglądarki) świadomie ignorujemy, żeby nie nadpisać
+  /// wyboru, który gość akurat w tej chwili układa lokalnie.
+  void _resubscribeVote() {
+    _voteSub?.cancel();
+    _voteSub = null;
+    final uid = GuestIdentity.uid;
+    final subId = _subcategoryId;
+    if (uid == null || subId == null) return;
+    var seeded = false;
+    _voteSub = widget.service
+        .watchOwnContestVote(uid, widget.contest.id, subId)
+        .listen((vote) {
+      if (!mounted || seeded || vote == null) return;
+      seeded = true;
+      setState(() {
+        _picks = {
+          1: vote['first'] as String?,
+          2: vote['second'] as String?,
+          3: vote['third'] as String?,
+        };
+      });
+    });
+  }
+
+  void _selectSubcategory(int id) {
+    setState(() {
+      _subcategoryId = id;
+      _picks = {1: null, 2: null, 3: null};
+    });
+    _resubscribeVote();
+  }
+
+  int? _placeOf(String submissionId) {
+    for (final e in _picks.entries) {
+      if (e.value == submissionId) return e.key;
+    }
+    return null;
+  }
+
+  Color? _placeColor(int? place) => switch (place) {
+        1 => _gold,
+        2 => _silver,
+        3 => _bronze,
+        _ => null,
+      };
+
+  Future<void> _openPicker(Map<String, dynamic> submission) async {
+    final id = submission['id'] as String;
+    final current = _placeOf(id);
+    final choice = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(AppText.t.gw_contestPickPlace),
+        children: [
+          for (final p in [1, 2, 3])
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(ctx).pop(p),
+              child: Row(
+                children: [
+                  Icon(Icons.emoji_events, color: _placeColor(p)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(AppText.t.gw_contestPlaceN(p))),
+                  if (current == p) const Icon(Icons.check, color: AppColors.accent, size: 18),
+                ],
+              ),
+            ),
+          if (current != null)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(ctx).pop(0),
+              child: Row(
+                children: [
+                  const Icon(Icons.close, color: AppColors.textLight),
+                  const SizedBox(width: 10),
+                  Text(AppText.t.gw_contestUndo),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (choice == null) return;
+    await _applyPick(id, choice == 0 ? null : choice);
+  }
+
+  /// Przypisuje/zwalnia miejsce lokalnie; zdjęcie może zajmować TYLKO jedno
+  /// miejsce naraz, więc jeśli miało inne — najpierw je zwalniamy (przełóż,
+  /// nie duplikuj). Wysyła na serwer WYŁĄCZNIE gdy komplet 3 różnych zdjęć —
+  /// serwer i tak odrzuciłby częściowy zapis (reguła `vContestVote` wymaga
+  /// wszystkich trzech pól).
+  Future<void> _applyPick(String submissionId, int? place) async {
+    final next = Map<int, String?>.from(_picks)
+      ..updateAll((k, v) => v == submissionId ? null : v);
+    if (place != null) next[place] = submissionId;
+    setState(() => _picks = next);
+
+    final missing = next.values.where((v) => v == null).length;
+    if (missing > 0) {
+      _snack(AppText.t.gw_contestVotePending(missing));
+      return;
+    }
+    final uid = GuestIdentity.uid;
+    final subId = _subcategoryId;
+    if (uid == null || subId == null) return;
+    try {
+      await widget.service.saveContestVote(
+        uid: uid,
+        contestId: widget.contest.id,
+        subcategoryId: subId,
+        first: next[1]!,
+        second: next[2]!,
+        third: next[3]!,
+      );
+      if (mounted) _snack(AppText.t.gw_contestVoteSaved);
+    } catch (e) {
+      if (mounted) _snack(AppText.t.gw_sendError('$e'));
+    }
+  }
 
   Future<void> _submit(ImageSource source) async {
     final subId = _subcategoryId;
@@ -1419,7 +1557,7 @@ class _ContestDetailPageState extends State<_ContestDetailPage> {
                 ChoiceChip(
                   label: Text(s.label),
                   selected: _subcategoryId == s.id,
-                  onSelected: (_) => setState(() => _subcategoryId = s.id),
+                  onSelected: (_) => _selectSubcategory(s.id),
                   selectedColor: AppColors.accent.withValues(alpha: 0.15),
                   labelStyle: GoogleFonts.inter(
                       fontSize: 12,
@@ -1439,6 +1577,9 @@ class _ContestDetailPageState extends State<_ContestDetailPage> {
         Text(AppText.t.gw_contestSubmissions,
             style: GoogleFonts.playfairDisplay(
                 fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.text)),
+        const SizedBox(height: 4),
+        Text(AppText.t.gw_contestVoteHint,
+            style: GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
         const SizedBox(height: 10),
         if (_subcategoryId != null) _submissionsGrid(_subcategoryId!),
       ],
@@ -1468,41 +1609,83 @@ class _ContestDetailPageState extends State<_ContestDetailPage> {
           ),
           itemCount: items.length,
           itemBuilder: (context, i) {
-            final url = (items[i]['photoUrl'] as String?) ?? '';
+            final item = items[i];
+            final id = item['id'] as String;
+            final url = (item['photoUrl'] as String?) ?? '';
+            final isOwn = item['authorUid'] != null &&
+                item['authorUid'] == GuestIdentity.uid;
             final name = widget.showAuthorNames
-                ? (items[i]['name'] as String?) ?? AppText.t.gw_guest
+                ? (item['name'] as String?) ?? AppText.t.gw_guest
                 : AppText.t.gw_guest;
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  url.isEmpty
-                      ? const ColoredBox(color: Color(0xFFF1F5FC))
-                      : Image.network(url,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const ColoredBox(
-                                color: Color(0xFFF1F5FC),
-                                child: Icon(Icons.broken_image_outlined,
-                                    color: AppColors.textLight),
-                              )),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      color: const Color(0x99000000),
-                      child: Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                            fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white),
-                      ),
+            final place = _placeOf(id);
+            final placeColor = _placeColor(place);
+            return Opacity(
+              opacity: isOwn ? 0.55 : 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: placeColor != null
+                      ? Border.all(color: placeColor, width: 3)
+                      : null,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: GestureDetector(
+                    onTap: isOwn || url.isEmpty ? null : () => _openPicker(item),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        url.isEmpty
+                            ? const ColoredBox(color: Color(0xFFF1F5FC))
+                            : Image.network(url,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const ColoredBox(
+                                      color: Color(0xFFF1F5FC),
+                                      child: Icon(Icons.broken_image_outlined,
+                                          color: AppColors.textLight),
+                                    )),
+                        if (place != null)
+                          Positioned(
+                            top: 4,
+                            left: 4,
+                            child: Container(
+                              width: 22,
+                              height: 22,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: placeColor,
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0x55000000), blurRadius: 3),
+                                ],
+                              ),
+                              child: Text('$place',
+                                  style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white)),
+                            ),
+                          ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            color: const Color(0x99000000),
+                            child: Text(
+                              isOwn ? AppText.t.gw_contestOwnPhoto : name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                  fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             );
           },
