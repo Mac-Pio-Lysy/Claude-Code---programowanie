@@ -70,14 +70,36 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
 
 # ── Konfiguracja ikony aplikacji (flutter_launcher_icons) ──
-# Generuje ikony dla Androida (mipmap + adaptive) i web z assets/ikona.png.
+# Generuje ikony dla Androida (mipmap + adaptive), iOS i web.
+#
+# Źródło Android/iOS: assets/app_icon.png (2048x2048) — ALE ten plik ma
+# realną grafikę (pierścionek w pudełku) wciśniętą w prawy dolny róg płótna
+# (32%x32%, 0% marginesu z prawej/dołu), więc generowanie wprost z niego
+# dałoby ikonę z logo w rogu i pustą resztą kafla. Dlatego dwa wyprowadzone
+# pliki (wygenerowane raz, sprawdzone pikselowo — logo naprawdę wycentrowane,
+# białe tło naprawdę nieprzezroczyste):
+#   • app_icon_processed.png  — logo wycentrowane, ~80% szerokości, TŁO
+#     BIAŁE (nieprzezroczyste) — dla iOS i zapasowej/Play Store ikony
+#     Androida (legacy, urządzenia < Android 8).
+#   • app_icon_foreground.png — to samo logo, ~62% szerokości (bezpieczna
+#     strefa adaptive icon), TŁO PRZEZROCZYSTE — warstwa foreground pod
+#     Android adaptive icon; białe tło dokłada `adaptive_icon_background`.
+#
+# Białe tło na OBU platformach = świadoma decyzja spójności (jasny,
+# „jubilerski" wygląd zdjęcia pasuje do białego tła lepiej niż do
+# przezroczystości/starego jasnoniebieskiego tła).
 flutter_launcher_icons:
-  image_path: "assets/ikona.png"
+  image_path: "assets/app_icon_processed.png"
   android: true
   min_sdk_android: 24
-  # Adaptive icon (Android 8+): jasnoniebieskie tło + ikona aplikacji jako foreground.
-  adaptive_icon_background: "#E8F1FC"
-  adaptive_icon_foreground: "assets/ikona.png"
+  # Adaptive icon (Android 8+): białe tło (spójne z iOS) + logo jako foreground.
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/app_icon_foreground.png"
+  ios: true
+  # iOS NIE akceptuje przezroczystości w ikonie — usuwa kanał alfa i wypełnia
+  # białym (na wszelki wypadek; app_icon_processed.png jest już opakowy).
+  remove_alpha_ios: true
+  background_color_ios: "#FFFFFF"
   web:
     generate: true
     image_path: "assets/ikona.png"
