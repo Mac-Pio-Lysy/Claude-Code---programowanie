@@ -75,5 +75,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Aplikacja używa aparatu do skanowania kodów QR zaproszeń</string>
 </dict>
 </plist>
