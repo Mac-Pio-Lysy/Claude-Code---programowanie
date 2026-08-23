@@ -960,6 +960,32 @@ class AppLocalizationsPl extends AppLocalizations {
   String get budget_venueMinGuests => 'Minimalna liczba osób (próg sali)';
 
   @override
+  String get budget_plannedGuests => 'Osoby planowane';
+
+  @override
+  String get budget_plannedGuestsHint =>
+      'Szacunek, zanim znasz pełną listę gości.';
+
+  @override
+  String budget_effectiveBreakdown(
+    String invited,
+    String min,
+    String planned,
+    String effective,
+  ) {
+    return 'Zaproszeni: $invited · Minimum sali: $min · Planowani: $planned → liczymy dla: $effective';
+  }
+
+  @override
+  String budget_moreThanPlannedInfo(String diff, String total) {
+    return 'Zaproszonych jest więcej o $diff, łącznie $total.';
+  }
+
+  @override
+  String get budget_moreThanPlannedNote =>
+      'Nie trzeba nic zmieniać — liczba aktualizuje się automatycznie.';
+
+  @override
   String get budget_guestsAssigned => 'Goście przypisani do stołów';
 
   @override
@@ -1041,33 +1067,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get budget_guestsUnassigned => 'Goście nieprzypisani';
 
   @override
-  String get budget_guestsBilledTotal => 'Razem gości liczonych';
-
-  @override
   String get budget_guestsCost => 'Koszt gości';
-
-  @override
-  String get budget_countUnassigned => 'Licz gości nieprzypisanych do stołów';
-
-  @override
-  String budget_countUnassignedOn(int count) {
-    return 'Nieprzypisani ($count) są wliczani do kosztu.';
-  }
-
-  @override
-  String budget_countUnassignedOff(int count) {
-    return 'Nieprzypisani ($count) NIE są wliczani.';
-  }
 
   @override
   String get budget_virtualGuests => 'Goście wirtualni (do progu sali)';
 
   @override
   String get budget_virtualGuestsCost => 'Koszt gości wirtualnych';
-
-  @override
-  String get budget_includeVirtualCalc =>
-      'Uwzględnij gości wirtualnych w obliczeniach';
 
   @override
   String get budget_cateringSeparateNote =>
@@ -1088,7 +1094,23 @@ class AppLocalizationsPl extends AppLocalizations {
   String get budget_staffEmpty => 'Brak obsługi. Dodaj przyciskiem +.';
 
   @override
-  String get budget_staffRate => 'Stawka obsługi za osobę (puste = jak goście)';
+  String get budget_staffModeHeadcount => 'Wg listy obsługi';
+
+  @override
+  String get budget_staffModePerGuest => 'Na gości';
+
+  @override
+  String get budget_staffModeManual => 'Kwota ręczna';
+
+  @override
+  String get budget_staffRate => 'Stawka obsługi za osobę';
+
+  @override
+  String get budget_staffRateFallbackHint =>
+      'Zostaw puste, żeby liczyć jak za gościa (ta sama stawka co catering).';
+
+  @override
+  String get budget_staffManualAmount => 'Kwota za obsługę';
 
   @override
   String get budget_staffInclude => 'Doliczaj obsługę do kosztu sali';

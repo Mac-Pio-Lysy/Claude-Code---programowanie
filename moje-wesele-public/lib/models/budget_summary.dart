@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'guest_basis.dart';
 import 'sala_summary.dart';
 import 'wedding_data.dart';
 
@@ -103,13 +104,9 @@ class BudgetSummary {
 
     final raw = data.raw;
     final bd = _asMap(raw['budgetData']);
-    final guests = data.guests;
 
-    final guestCount = guests.length;
-    final seated =
-        guests.where((g) => g is Map && g['tableId'] != null).length;
-    final venueMin = _d(bd['venueMinGuests']);
-    final virtual = max(0.0, venueMin - seated);
+    final guestBasis = GuestBasis.from(data);
+    final guestCount = guestBasis.invited;
 
     // ── Sala (catering) — liczone tym samym modelem co podzakładka „Sala"
     // (goście przypisani/nieprzypisani + obsługa), bez duplikacji logiki. ──
@@ -156,7 +153,7 @@ class BudgetSummary {
     final giftPersonCount = giftBasis == 'real'
         ? guestCount.toDouble()
         : giftBasis == 'realvirtual'
-            ? guestCount + virtual
+            ? guestBasis.effective
             : 0.0;
     final giftsForGuestsTotal = _sum(raw['giftsForGuests'], (g) {
       final qty = giftBasis.isNotEmpty ? giftPersonCount : _d(g['qty']);

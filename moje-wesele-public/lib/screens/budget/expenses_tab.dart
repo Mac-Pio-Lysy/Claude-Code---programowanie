@@ -7,6 +7,7 @@ import '../../app_colors.dart';
 import '../../layout/responsive.dart';
 import '../../models/expense.dart';
 import '../../models/gift.dart';
+import '../../models/guest_basis.dart';
 import '../../models/wedding_data.dart';
 import '../../navigation/app_sections.dart';
 import '../../services/budget_service.dart';
@@ -731,15 +732,16 @@ class _ExpensesTabState extends State<ExpensesTab> {
   }
 
   /// Liczba osób użyta do przeliczenia, gdy włączona podstawa „na gości".
+  ///
+  /// Wariant „z dopłatą" woła WSPÓLNĄ efektywną liczbę gości z
+  /// `GuestBasis` (ten sam mechanizm co Sala/Napoje/Prezenty) — zero
+  /// własnej arytmetyki.
   int get _giftPersonCount {
     final guests = widget.data?.guests ?? const [];
     final basis = _giftBasis;
     if (basis == 'real') return guests.length;
     if (basis == 'realvirtual') {
-      final venueMin = (_bd['venueMinGuests'] as num?)?.toInt() ?? 0;
-      final seated =
-          guests.where((g) => g is Map && g['tableId'] != null).length;
-      return guests.length + max(0, venueMin - seated);
+      return GuestBasis.from(widget.data).effective.round();
     }
     return 0;
   }

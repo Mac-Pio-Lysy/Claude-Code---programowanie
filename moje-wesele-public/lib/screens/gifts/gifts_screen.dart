@@ -1,11 +1,10 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/gift.dart';
 import '../../models/guest.dart';
+import '../../models/guest_basis.dart';
 import '../../models/wedding_data.dart';
 import '../../navigation/app_sections.dart';
 import '../../onboarding/tour_tab_sync.dart';
@@ -228,23 +227,18 @@ class _ForGuestsTab extends StatelessWidget {
     return (b == 'real' || b == 'realvirtual') ? b as String : '';
   }
 
-  int get _virtualGuests {
-    final bd = data?.raw['budgetData'];
-    final venueMin = (bd is Map ? (bd['venueMinGuests'] as num?)?.toInt() : 0) ?? 0;
-    final seated =
-        _guests.where((g) => g.raw['tableId'] != null).length;
-    return max(0, venueMin - seated);
-  }
-
   @override
   Widget build(BuildContext context) {
     final items = _items;
     final guests = _guests;
     final basis = _basis;
+    // „Realni goście" vs „z dopłatą do minimum sali/planu" — wariant
+    // „z dopłatą" woła WSPÓLNĄ efektywną liczbę gości z `GuestBasis`,
+    // zero własnej arytmetyki (ten sam mechanizm co Sala/Napoje).
     final personCount = basis == 'real'
         ? guests.length
         : basis == 'realvirtual'
-            ? guests.length + _virtualGuests
+            ? GuestBasis.from(data).effective.round()
             : 0;
     double effQty(GiftForGuest it) =>
         basis.isNotEmpty ? personCount.toDouble() : it.qty;

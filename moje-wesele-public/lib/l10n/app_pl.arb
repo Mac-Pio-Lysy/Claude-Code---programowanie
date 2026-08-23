@@ -559,6 +559,37 @@
   "budget_cateringTotal": "Łącznie catering",
   "budget_pricePerPerson": "Cena za osobę",
   "budget_venueMinGuests": "Minimalna liczba osób (próg sali)",
+  "budget_plannedGuests": "Osoby planowane",
+  "budget_plannedGuestsHint": "Szacunek, zanim znasz pełną listę gości.",
+  "budget_effectiveBreakdown": "Zaproszeni: {invited} · Minimum sali: {min} · Planowani: {planned} → liczymy dla: {effective}",
+  "@budget_effectiveBreakdown": {
+    "placeholders": {
+      "invited": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      },
+      "planned": {
+        "type": "String"
+      },
+      "effective": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_moreThanPlannedInfo": "Zaproszonych jest więcej o {diff}, łącznie {total}.",
+  "@budget_moreThanPlannedInfo": {
+    "placeholders": {
+      "diff": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_moreThanPlannedNote": "Nie trzeba nic zmieniać — liczba aktualizuje się automatycznie.",
   "budget_guestsAssigned": "Goście przypisani do stołów",
   "budget_catVenueCatering": "Sala i catering",
   "budget_catDress": "Suknia ślubna",
@@ -589,28 +620,9 @@
   },
   "budget_expenseFallbackName": "Wydatek",
   "budget_guestsUnassigned": "Goście nieprzypisani",
-  "budget_guestsBilledTotal": "Razem gości liczonych",
   "budget_guestsCost": "Koszt gości",
-  "budget_countUnassigned": "Licz gości nieprzypisanych do stołów",
-  "budget_countUnassignedOn": "Nieprzypisani ({count}) są wliczani do kosztu.",
-  "@budget_countUnassignedOn": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "budget_countUnassignedOff": "Nieprzypisani ({count}) NIE są wliczani.",
-  "@budget_countUnassignedOff": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "budget_virtualGuests": "Goście wirtualni (do progu sali)",
   "budget_virtualGuestsCost": "Koszt gości wirtualnych",
-  "budget_includeVirtualCalc": "Uwzględnij gości wirtualnych w obliczeniach",
   "budget_cateringSeparateNote": "Catering (osobna firma) liczony w osobnej karcie poniżej.",
   "budget_cateringIncluded": "Catering wliczony w cenę sali za osobę.",
   "budget_staff": "Obsługa",
@@ -619,7 +631,12 @@
   },
   "budget_staffHint": "Kelnerzy, fotograf, DJ, kamerzysta — osoby, które jedzą, ale nie są gośćmi. Liczone osobno.",
   "budget_staffEmpty": "Brak obsługi. Dodaj przyciskiem +.",
-  "budget_staffRate": "Stawka obsługi za osobę (puste = jak goście)",
+  "budget_staffModeHeadcount": "Wg listy obsługi",
+  "budget_staffModePerGuest": "Na gości",
+  "budget_staffModeManual": "Kwota ręczna",
+  "budget_staffRate": "Stawka obsługi za osobę",
+  "budget_staffRateFallbackHint": "Zostaw puste, żeby liczyć jak za gościa (ta sama stawka co catering).",
+  "budget_staffManualAmount": "Kwota za obsługę",
   "budget_staffInclude": "Doliczaj obsługę do kosztu sali",
   "budget_staffIncludeHint": "Liczona jest obsługa oznaczona „w kosztach”.",
   "budget_staffCountTotal": "Osób obsługi łącznie",

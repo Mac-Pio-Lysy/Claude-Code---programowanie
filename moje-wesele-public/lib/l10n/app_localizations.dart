@@ -1826,6 +1826,41 @@ abstract class AppLocalizations {
   /// **'Minimalna liczba osób (próg sali)'**
   String get budget_venueMinGuests;
 
+  /// No description provided for @budget_plannedGuests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Osoby planowane'**
+  String get budget_plannedGuests;
+
+  /// No description provided for @budget_plannedGuestsHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Szacunek, zanim znasz pełną listę gości.'**
+  String get budget_plannedGuestsHint;
+
+  /// No description provided for @budget_effectiveBreakdown.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszeni: {invited} · Minimum sali: {min} · Planowani: {planned} → liczymy dla: {effective}'**
+  String budget_effectiveBreakdown(
+    String invited,
+    String min,
+    String planned,
+    String effective,
+  );
+
+  /// No description provided for @budget_moreThanPlannedInfo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaproszonych jest więcej o {diff}, łącznie {total}.'**
+  String budget_moreThanPlannedInfo(String diff, String total);
+
+  /// No description provided for @budget_moreThanPlannedNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie trzeba nic zmieniać — liczba aktualizuje się automatycznie.'**
+  String get budget_moreThanPlannedNote;
+
   /// No description provided for @budget_guestsAssigned.
   ///
   /// In pl, this message translates to:
@@ -1988,35 +2023,11 @@ abstract class AppLocalizations {
   /// **'Goście nieprzypisani'**
   String get budget_guestsUnassigned;
 
-  /// No description provided for @budget_guestsBilledTotal.
-  ///
-  /// In pl, this message translates to:
-  /// **'Razem gości liczonych'**
-  String get budget_guestsBilledTotal;
-
   /// No description provided for @budget_guestsCost.
   ///
   /// In pl, this message translates to:
   /// **'Koszt gości'**
   String get budget_guestsCost;
-
-  /// No description provided for @budget_countUnassigned.
-  ///
-  /// In pl, this message translates to:
-  /// **'Licz gości nieprzypisanych do stołów'**
-  String get budget_countUnassigned;
-
-  /// No description provided for @budget_countUnassignedOn.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nieprzypisani ({count}) są wliczani do kosztu.'**
-  String budget_countUnassignedOn(int count);
-
-  /// No description provided for @budget_countUnassignedOff.
-  ///
-  /// In pl, this message translates to:
-  /// **'Nieprzypisani ({count}) NIE są wliczani.'**
-  String budget_countUnassignedOff(int count);
 
   /// No description provided for @budget_virtualGuests.
   ///
@@ -2029,12 +2040,6 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Koszt gości wirtualnych'**
   String get budget_virtualGuestsCost;
-
-  /// No description provided for @budget_includeVirtualCalc.
-  ///
-  /// In pl, this message translates to:
-  /// **'Uwzględnij gości wirtualnych w obliczeniach'**
-  String get budget_includeVirtualCalc;
 
   /// No description provided for @budget_cateringSeparateNote.
   ///
@@ -2066,11 +2071,41 @@ abstract class AppLocalizations {
   /// **'Brak obsługi. Dodaj przyciskiem +.'**
   String get budget_staffEmpty;
 
+  /// No description provided for @budget_staffModeHeadcount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wg listy obsługi'**
+  String get budget_staffModeHeadcount;
+
+  /// No description provided for @budget_staffModePerGuest.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na gości'**
+  String get budget_staffModePerGuest;
+
+  /// No description provided for @budget_staffModeManual.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kwota ręczna'**
+  String get budget_staffModeManual;
+
   /// No description provided for @budget_staffRate.
   ///
   /// In pl, this message translates to:
-  /// **'Stawka obsługi za osobę (puste = jak goście)'**
+  /// **'Stawka obsługi za osobę'**
   String get budget_staffRate;
+
+  /// No description provided for @budget_staffRateFallbackHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zostaw puste, żeby liczyć jak za gościa (ta sama stawka co catering).'**
+  String get budget_staffRateFallbackHint;
+
+  /// No description provided for @budget_staffManualAmount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kwota za obsługę'**
+  String get budget_staffManualAmount;
 
   /// No description provided for @budget_staffInclude.
   ///

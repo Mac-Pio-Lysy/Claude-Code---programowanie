@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'children.dart';
+import 'guest_basis.dart';
 import 'wedding_data.dart';
 import '../l10n/app_text.dart';
 
@@ -98,10 +99,16 @@ class BeverageSummary {
     }
 
     final guests = data?.guests ?? const [];
-    final seated = guests.where((g) => g is Map && g['tableId'] != null).length;
-    final venueMin = _d(budget['venueMinGuests']);
-    final virtual = max(0.0, venueMin - seated);
     final perVirtual = budget[kind.perVirtualKey] == true;
+
+    // „Realni goście" vs „z dopłatą do minimum sali/planu" — LEGALNY wybór
+    // (nie to samo co dawny błąd „nieprzypisanych" w Sali: minimum sali nie
+    // jest podzbiorem zaproszonych, więc nie ma tu dublowania). Wariant
+    // „z dopłatą" woła WSPÓLNĄ efektywną liczbę gości z [GuestBasis] —
+    // zero własnej arytmetyki.
+    final rawBase = perVirtual
+        ? GuestBasis.from(data).effective
+        : guests.length.toDouble();
 
     // Wesele z dziećmi: dzieci są WYŁĄCZONE z przeliczeń alkoholu
     // (alkohol nie dla dzieci). Napojów bezalkoholowych to nie dotyczy.
@@ -109,10 +116,9 @@ class BeverageSummary {
     // Liczba pochodzi z [ChildrenSettings] — w trybie „auto" z listy gości,
     // w ręcznym z pola w Budżecie. Sama logika przeliczeń bez zmian.
     final childrenCount = ChildrenSettings.from(budget, guests).count;
-    final baseGuests = kind == BeverageKind.alcohol
-        ? max(0, guests.length - childrenCount)
-        : guests.length;
-    final personCount = baseGuests + (perVirtual ? virtual : 0.0);
+    final personCount = kind == BeverageKind.alcohol
+        ? max(0.0, rawBase - childrenCount)
+        : rawBase;
 
     final names = budget['coupleNames'];
     // Etykiety zastępcze do POKAZANIA (nie do zapisu) — stąd tłumaczenie.

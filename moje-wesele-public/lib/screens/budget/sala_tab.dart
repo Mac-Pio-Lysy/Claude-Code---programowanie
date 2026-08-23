@@ -212,7 +212,7 @@ class SalaTab extends StatelessWidget {
                 name: (a['name'] as String?) ?? '',
                 amount: _d(a['pricePerPerson']),
                 amountSuffix: AppText.t.budget_perPersonShort(AppFormat.currency.symbol),
-                lineTotal: _d(a['pricePerPerson']) * s.effectiveGuestCount,
+                lineTotal: _d(a['pricePerPerson']) * s.addonsPersonCount,
                 onNameSaved: (v) =>
                     service.updateCateringMenuAddon(_id(a), name: v),
                 onAmountSaved: (v) =>
@@ -221,9 +221,9 @@ class SalaTab extends StatelessWidget {
               ),
           const Divider(height: 20),
           _infoRow(AppText.t.budget_peopleForCalc,
-              '${s.effectiveGuestCount.round()}'),
+              '${s.addonsPersonCount.round()}'),
           _infoRow(AppText.t.sala_cateringBase,
-              formatPlnZl(s.effectiveGuestCount * s.cateringPricePerPerson)),
+              formatPlnZl(s.addonsPersonCount * s.cateringPricePerPerson)),
           _infoRow(AppText.t.sala_cateringExtras, formatPlnZl(s.cateringMenuAddonsTotal)),
           _infoRow(AppText.t.budget_cateringTotal, formatPlnZl(s.cateringSeparateTotal),
               bold: true),
@@ -256,6 +256,22 @@ class SalaTab extends StatelessWidget {
             onSaved: service.setVenueMinGuests,
           ),
           const SizedBox(height: 12),
+          BudgetNumberField(
+            key: const ValueKey('plannedGuests'),
+            label: AppText.t.budget_plannedGuests,
+            suffix: AppText.t.common_personsShort,
+            integer: true,
+            initial: s.plannedGuests,
+            onSaved: service.setPlannedGuests,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 2),
+            child: Text(
+              AppText.t.budget_plannedGuestsHint,
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+            ),
+          ),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -267,50 +283,59 @@ class SalaTab extends StatelessWidget {
                 _infoRow(AppText.t.budget_guestsAssigned, '${s.assignedCount}'),
                 _infoRow(AppText.t.budget_guestsUnassigned, '${s.unassignedCount}'),
                 const Divider(height: 14),
-                _infoRow(AppText.t.budget_guestsBilledTotal,
-                    '${s.guestBilledCount.round()}'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    AppText.t.budget_effectiveBreakdown(
+                      '${s.guestCount}',
+                      '${s.venueMinGuests.round()}',
+                      '${s.plannedGuests.round()}',
+                      '${s.effectiveGuestCount.round()}',
+                    ),
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text),
+                  ),
+                ),
+                const Divider(height: 14),
                 _infoRow(AppText.t.budget_guestsCost, formatPlnZl(s.guestCost)),
               ],
             ),
           ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            activeThumbColor: AppColors.accent,
-            title: Text(AppText.t.budget_countUnassigned,
-                style: GoogleFonts.inter(fontSize: 13)),
-            subtitle: Text(
-              s.includeUnassigned
-                  ? AppText.t.budget_countUnassignedOn(s.unassignedCount)
-                  : AppText.t.budget_countUnassignedOff(s.unassignedCount),
-              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+          if (s.plannedGuests > 0 && s.guestCount > s.plannedGuests) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5FF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFD6E4FB)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppText.t.budget_moreThanPlannedInfo(
+                      '${(s.guestCount - s.plannedGuests).round()}',
+                      '${s.guestCount}',
+                    ),
+                    style: GoogleFonts.inter(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    AppText.t.budget_moreThanPlannedNote,
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight),
+                  ),
+                ],
+              ),
             ),
-            value: s.includeUnassigned,
-            onChanged: service.setIncludeUnassigned,
-          ),
-          const Divider(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFF),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                _infoRow(AppText.t.budget_virtualGuests,
-                    '${s.virtualGuests.round()}'),
-                _infoRow(AppText.t.budget_virtualGuestsCost, formatPlnZl(s.virtualCost)),
-              ],
-            ),
-          ),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            activeThumbColor: AppColors.accent,
-            title: Text(AppText.t.budget_includeVirtualCalc,
-                style: GoogleFonts.inter(fontSize: 13)),
-            value: s.includeVirtual,
-            onChanged: service.setIncludeVirtual,
-          ),
-          const Divider(height: 8),
+          ],
+          const SizedBox(height: 8),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
@@ -333,11 +358,14 @@ class SalaTab extends StatelessWidget {
 
   // ── Karta „Obsługa" (osobna pula, własna stawka) ──
   Widget _staffCard(SalaSummary s) {
+    final headcount = s.staffCalcMode == StaffCalcMode.headcount;
+    final perGuest = s.staffCalcMode == StaffCalcMode.perGuest;
     return _card(
       title: AppText.t.budget_staff,
-      trailing: _addButton(
+      trailing: headcount
           // Nazwa trafia do bazy — zapisujemy w bieżącym języku.
-          () => service.addStaffTable(AppText.t.budget_staff, 1)),
+          ? _addButton(() => service.addStaffTable(AppText.t.budget_staff, 1))
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -346,50 +374,112 @@ class SalaTab extends StatelessWidget {
             style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
           ),
           const SizedBox(height: 10),
-          if (s.staff.isEmpty)
-            _emptyHint(AppText.t.budget_staffEmpty)
-          else
-            for (final t in s.staff)
-              _StaffRow(
-                key: ValueKey('staff-${t.id}'),
-                name: t.name,
-                persons: t.persons,
-                includeInCost: t.includeInCost,
-                onNameSaved: (v) => service.updateStaffTable(t.id, name: v),
-                onPersonsSaved: (v) =>
-                    service.updateStaffTable(t.id, persons: v),
-                onIncludeChanged: (v) =>
-                    service.updateStaffTable(t.id, includeInCost: v),
-                onDelete: () => service.deleteStaffTable(t.id),
-              ),
+          Wrap(spacing: 6, runSpacing: 6, children: [
+            _staffModeChip(
+                StaffCalcMode.headcount, AppText.t.budget_staffModeHeadcount, s),
+            _staffModeChip(
+                StaffCalcMode.perGuest, AppText.t.budget_staffModePerGuest, s),
+            _staffModeChip(
+                StaffCalcMode.manual, AppText.t.budget_staffModeManual, s),
+          ]),
           const SizedBox(height: 12),
-          BudgetNumberField(
-            key: const ValueKey('staffPricePerPerson'),
-            label: AppText.t.budget_staffRate,
-            suffix: AppFormat.currency.symbol,
-            initial: s.staffPricePerPerson,
-            onSaved: service.setStaffPricePerPerson,
-          ),
+          if (headcount) ...[
+            if (s.staff.isEmpty)
+              _emptyHint(AppText.t.budget_staffEmpty)
+            else
+              for (final t in s.staff)
+                _StaffRow(
+                  key: ValueKey('staff-${t.id}'),
+                  name: t.name,
+                  persons: t.persons,
+                  includeInCost: t.includeInCost,
+                  onNameSaved: (v) => service.updateStaffTable(t.id, name: v),
+                  onPersonsSaved: (v) =>
+                      service.updateStaffTable(t.id, persons: v),
+                  onIncludeChanged: (v) =>
+                      service.updateStaffTable(t.id, includeInCost: v),
+                  onDelete: () => service.deleteStaffTable(t.id),
+                ),
+            const SizedBox(height: 12),
+            BudgetNumberField(
+              key: const ValueKey('staffPricePerPerson'),
+              label: AppText.t.budget_staffRate,
+              suffix: AppFormat.currency.symbol,
+              initial: s.staffPricePerPerson,
+              onSaved: service.setStaffPricePerPerson,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 2),
+              child: Text(
+                AppText.t.budget_staffRateFallbackHint,
+                style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
+              ),
+            ),
+          ] else if (perGuest) ...[
+            _infoRow(AppText.t.budget_peopleForCalc,
+                '${s.effectiveGuestCount.round()}'),
+            const SizedBox(height: 8),
+            BudgetNumberField(
+              key: const ValueKey('staffPricePerPerson'),
+              label: AppText.t.budget_staffRate,
+              suffix: AppFormat.currency.symbol,
+              initial: s.staffPricePerPerson,
+              onSaved: service.setStaffPricePerPerson,
+            ),
+          ] else ...[
+            BudgetNumberField(
+              key: const ValueKey('staffManualAmount'),
+              label: AppText.t.budget_staffManualAmount,
+              suffix: AppFormat.currency.symbol,
+              initial: s.staffManualAmount,
+              onSaved: service.setStaffManualAmount,
+            ),
+          ],
           const SizedBox(height: 4),
           SwitchListTile.adaptive(
             contentPadding: EdgeInsets.zero,
             activeThumbColor: AppColors.accent,
             title: Text(AppText.t.budget_staffInclude,
                 style: GoogleFonts.inter(fontSize: 13)),
-            subtitle: Text(
-              AppText.t.budget_staffIncludeHint,
-              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
-            ),
+            subtitle: headcount
+                ? Text(
+                    AppText.t.budget_staffIncludeHint,
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight),
+                  )
+                : null,
             value: s.includeStaff,
             onChanged: service.setIncludeStaff,
           ),
           const Divider(height: 16),
-          _infoRow(AppText.t.budget_staffCountTotal, '${s.staffPersonCount.round()}'),
-          _infoRow(AppText.t.sala_inCosts, '${s.staffCostPersonCount.round()}'),
-          _infoRow(AppText.t.budget_staffRateShort, formatPlnZl(s.staffRate)),
+          if (headcount) ...[
+            _infoRow(AppText.t.budget_staffCountTotal, '${s.staffPersonCount.round()}'),
+            _infoRow(AppText.t.sala_inCosts, '${s.staffCostPersonCount.round()}'),
+            _infoRow(AppText.t.budget_staffRateShort, formatPlnZl(s.staffRate)),
+          ],
           _infoRow(AppText.t.budget_staffCost, formatPlnZl(s.staffCost), bold: true),
         ],
       ),
+    );
+  }
+
+  Widget _staffModeChip(String mode, String label, SalaSummary s) {
+    final selected = s.staffCalcMode == mode;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => service.setStaffCalcMode(mode),
+      showCheckmark: false,
+      labelStyle: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: selected ? Colors.white : AppColors.textLight,
+      ),
+      selectedColor: AppColors.accent,
+      backgroundColor: Colors.white,
+      side: BorderSide(
+          color: selected ? AppColors.accent : const Color(0xFFDCE4F2)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 
@@ -409,7 +499,7 @@ class SalaTab extends StatelessWidget {
                 name: (a['name'] as String?) ?? '',
                 amount: _d(a['pricePerPerson']),
                 amountSuffix: AppText.t.budget_perPersonShort(AppFormat.currency.symbol),
-                lineTotal: _d(a['pricePerPerson']) * s.effectiveGuestCount,
+                lineTotal: _d(a['pricePerPerson']) * s.addonsPersonCount,
                 onNameSaved: (v) =>
                     service.updateMenuAddon(_id(a), name: v),
                 onAmountSaved: (v) =>
@@ -419,7 +509,7 @@ class SalaTab extends StatelessWidget {
           if (addons.isNotEmpty) ...[
             const Divider(height: 20),
             _infoRow(AppText.t.budget_peopleForCalc,
-                '${s.effectiveGuestCount.round()}'),
+                '${s.addonsPersonCount.round()}'),
             _infoRow(AppText.t.budget_menuAddonsTotal,
                 formatPlnZl(s.menuAddonsTotal),
                 bold: true),
@@ -489,20 +579,23 @@ class SalaTab extends StatelessWidget {
       title: AppText.t.budget_venueSummary,
       child: Column(
         children: [
-          _infoRow(AppText.t.budget_guestsCostCount(s.guestBilledCount.round()),
+          _infoRow(AppText.t.budget_guestsCostCount(s.effectiveGuestCount.round()),
               formatPlnZl(s.guestCost)),
           if (s.childMenuSeparate && s.childBilledCount > 0)
             _infoRow(
                 'w tym menu dzieci (${s.childBilledCount.round()} os.)',
                 formatPlnZl(s.childMenuTotal)),
-          if (s.includeVirtual && s.virtualGuests > 0)
+          if (s.virtualGuests > 0)
             _infoRow(AppText.t.budget_virtualCostCount(s.virtualGuests.round()),
                 formatPlnZl(s.virtualCost)),
           _infoRow(
-              s.includeStaff
-                  ? AppText.t.budget_staffCostCount(s.staffCostPersonCount.round())
-                  : AppText.t.budget_staffCostCountExcluded(
-                      s.staffCostPersonCount.round()),
+              s.staffCalcMode != StaffCalcMode.headcount
+                  ? AppText.t.budget_staffCost
+                  : s.includeStaff
+                      ? AppText.t.budget_staffCostCount(
+                          s.staffCostPersonCount.round())
+                      : AppText.t.budget_staffCostCountExcluded(
+                          s.staffCostPersonCount.round()),
               formatPlnZl(s.staffCost)),
           _infoRow(AppText.t.sala_menuExtras, formatPlnZl(s.menuAddonsTotal)),
           _infoRow(AppText.t.budget_tableDecorTotal, formatPlnZl(s.tableDecoTotal)),

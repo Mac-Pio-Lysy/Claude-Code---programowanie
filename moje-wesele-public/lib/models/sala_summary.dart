@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'children.dart';
+import 'guest_basis.dart';
 import 'wedding_data.dart';
 
 /// Pozycja obsługi (kelnerzy, fotograf, DJ…) — `staffTables` (współdzielone
@@ -15,23 +16,51 @@ class StaffEntry {
   bool get includeInCost => raw['includeInCost'] == true;
 }
 
-/// Obliczenia podzakładki „Sala" — odwzorowane z funkcji `calcCatering*` /
-/// `getEffectiveGuestCount` w zrodlo-web/script.js, rozszerzone o trzy osobno
-/// liczone grupy: goście przypisani, goście nieprzypisani (opcjonalnie) oraz
-/// obsługa (własna stawka).
+/// Tryb liczenia kosztu obsługi.
+class StaffCalcMode {
+  const StaffCalcMode._();
+
+  /// Suma osób z listy obsługi (`staffTables`) × stawka — dotychczasowe
+  /// zachowanie, domyślne dla starych wesel (brak pola = ten tryb).
+  static const String headcount = 'headcount';
+
+  /// Efektywna liczba gości × stawka — obsługa liczona jak catering.
+  static const String perGuest = 'perGuest';
+
+  /// Kwota wpisana wprost, bez żadnego mnożenia.
+  static const String manual = 'manual';
+
+  static const List<String> all = [headcount, perGuest, manual];
+
+  /// Odczyt z surowych danych. Nieznana/brakująca wartość → [headcount]
+  /// (zgodność wsteczna — stare wesela nie znają innych trybów).
+  static String fromRaw(dynamic v) =>
+      all.contains(v) ? v as String : headcount;
+}
+
+/// Obliczenia podzakładki „Sala" — catering, obsługa i dekoracje.
+///
+/// Liczba osób do WSZYSTKICH przeliczeń per-osobę (catering, dodatki menu,
+/// obsługa w trybie „na gości") pochodzi z JEDNEGO miejsca: [GuestBasis]
+/// (`effective = max(zaproszeni, minimum sali, planowani)`), bez osobnych
+/// przełączników „licz nieprzypisanych"/„licz wirtualnych" — te dwa
+/// dotychczasowe mechanizmy dublowały ludzi już policzonych w „zaproszeni"
+/// (nieprzypisani są PODZBIOREM zaproszonych) albo dokładały „wirtualnych"
+/// w oderwaniu od realnej liczby zaproszonych. [assignedCount]/
+/// [unassignedCount]/[virtualGuests] zostają WYŁĄCZNIE jako informacja.
 class SalaSummary {
   const SalaSummary({
     required this.pricePerPerson,
     required this.staffPricePerPerson,
     required this.staffRate,
+    required this.staffCalcMode,
+    required this.staffManualAmount,
     required this.venueMinGuests,
-    required this.includeVirtual,
-    required this.includeUnassigned,
+    required this.plannedGuests,
     required this.includeStaff,
     required this.guestCount,
     required this.assignedCount,
     required this.unassignedCount,
-    required this.guestBilledCount,
     required this.guestCost,
     required this.virtualGuests,
     required this.virtualCost,
@@ -40,6 +69,7 @@ class SalaSummary {
     required this.staffCost,
     required this.staff,
     required this.effectiveGuestCount,
+    required this.addonsPersonCount,
     required this.menuAddonsTotal,
     required this.honorDecoTotal,
     required this.regularDecoTotal,
@@ -62,47 +92,73 @@ class SalaSummary {
 
   final double pricePerPerson;
 
-  /// Stawka obsługi (zapisana, 0 = brak — wtedy używana jest [pricePerPerson]).
+  /// Stawka obsługi (zapisana). W trybie [StaffCalcMode.headcount] pusta
+  /// (0) oznacza „jak za gościa" — patrz [staffRate]. W pozostałych trybach
+  /// bez fallbacku: pusta = 0, bez ukrytej magii.
   final double staffPricePerPerson;
 
-  /// Efektywna stawka obsługi (staffPricePerPerson albo pricePerPerson).
+  /// Efektywna stawka obsługi DLA TRYBU HEADCOUNT (staffPricePerPerson albo,
+  /// gdy pusta, pricePerPerson — zgodność wsteczna ze starymi weselami).
   final double staffRate;
 
+  /// Tryb liczenia kosztu obsługi — patrz [StaffCalcMode].
+  final String staffCalcMode;
+
+  /// Kwota wpisana wprost w trybie [StaffCalcMode.manual].
+  final double staffManualAmount;
+
   final double venueMinGuests;
-  final bool includeVirtual;
-  final bool includeUnassigned;
+
+  /// Szacunek pary, zanim zna pełną listę gości (`budgetData.plannedGuests`).
+  final double plannedGuests;
+
   final bool includeStaff;
 
-  /// Wszyscy goście (przypisani + nieprzypisani).
+  /// Wszyscy zaproszeni (przypisani + nieprzypisani).
   final int guestCount;
 
-  /// Goście przypisani do stołów.
+  /// Goście przypisani do stołów. WYŁĄCZNIE informacyjne.
   final int assignedCount;
 
-  /// Goście bez przypisanego stołu.
+  /// Goście bez przypisanego stołu. WYŁĄCZNIE informacyjne — zero wpływu
+  /// na [effectiveGuestCount] ani na żaden koszt.
   final int unassignedCount;
 
-  /// Liczba gości wliczana do kosztu (przypisani + nieprzypisani gdy włączone).
-  final double guestBilledCount;
+  /// Koszt gości: `effectiveGuestCount * pricePerPerson` (z uwzględnieniem
+  /// osobnego menu dziecięcego, jeśli włączone).
   final double guestCost;
 
+  /// O ile [effectiveGuestCount] przewyższa realnie zaproszonych — czysto
+  /// informacyjne, np. „5 osób to dopłata do minimum sali". NIE dolicza się
+  /// osobno do [cateringTotal] (jest już wliczone w [guestCost], bo
+  /// [effectiveGuestCount] jest tego bazą).
   final double virtualGuests;
+
+  /// Koszt [virtualGuests] — czysto informacyjny (wycinek [guestCost]).
   final double virtualCost;
 
-  /// Łączna liczba osób obsługi.
+  /// Łączna liczba osób obsługi z listy `staffTables`.
   final double staffPersonCount;
 
-  /// Obsługa oznaczona „w kosztach" (`includeInCost`).
+  /// Obsługa oznaczona „w kosztach" (`includeInCost`) — dotyczy trybu
+  /// [StaffCalcMode.headcount].
   final double staffCostPersonCount;
 
-  /// Koszt obsługi (gdy [includeStaff]).
+  /// Koszt obsługi (gdy [includeStaff]) — wg [staffCalcMode].
   final double staffCost;
 
-  /// Lista pozycji obsługi (do zarządzania w UI).
+  /// Lista pozycji obsługi (do zarządzania w UI, tryb headcount).
   final List<StaffEntry> staff;
 
-  /// Liczba osób do przeliczeń per-osoba (dodatki do menu).
+  /// „Efektywna liczba gości" — `max(zaproszeni, minimum sali, planowani)`.
+  /// JEDYNA baza do kosztu gości, dodatków per-osobę (poza wyjątkiem niżej)
+  /// i obsługi w trybie [StaffCalcMode.perGuest].
   final double effectiveGuestCount;
+
+  /// Liczba osób do dodatków menu/cateringu oddzielnego: [effectiveGuestCount]
+  /// plus obsługa (gdy wliczona I w trybie headcount — w pozostałych trybach
+  /// nie ma osobno śledzonego headcountu obsługi do doliczenia).
+  final double addonsPersonCount;
 
   final double menuAddonsTotal;
   final double honorDecoTotal;
@@ -130,7 +186,8 @@ class SalaSummary {
   /// UI Budżetu pokazuje na tej podstawie pole edytowalne albo podgląd.
   final ChildrenSettings children;
 
-  /// Dzieci faktycznie liczone do sali (min z liczby dzieci i gości liczonych).
+  /// Dzieci faktycznie liczone do sali (min z liczby dzieci i efektywnej
+  /// liczby gości).
   final double childBilledCount;
 
   /// Czy dzieci mają OSOBNE menu (inna cena za dziecko).
@@ -147,52 +204,44 @@ class SalaSummary {
 
     final raw = data.raw;
     final bd = _asMap(raw['budgetData']);
-    final guests = data.guests;
     final tables = data.tables;
+
+    final basis = GuestBasis.from(data);
+    final effectiveGuestCount = basis.effective;
 
     final pricePerPerson = _d(bd['pricePerPerson']);
     final staffPricePerPerson = _d(bd['staffPricePerPerson']);
+    // Fallback „jak za gościa" — WYŁĄCZNIE dla trybu headcount, dla
+    // zgodności wstecznej ze starymi weselami, które na nim polegały.
     final staffRate = staffPricePerPerson > 0 ? staffPricePerPerson : pricePerPerson;
+    final staffCalcMode = StaffCalcMode.fromRaw(bd['staffCalcMode']);
+    final staffManualAmount = _d(bd['staffManualAmount']);
 
-    final guestCount = guests.length;
-    final assigned =
-        guests.where((g) => g is Map && g['tableId'] != null).length;
-    final unassigned = guestCount - assigned;
-
-    final venueMin = _d(bd['venueMinGuests']);
-    final virtual = max(0.0, venueMin - assigned);
-
-    // Domyślnie liczymy nieprzypisanych (zgodnie z dotychczasową bazą cateringu
-    // = wszyscy goście). Można wyłączyć.
-    final includeUnassigned = bd['includeUnassignedInCalc'] != false;
-    final includeVirtual = bd['includeVirtualInCalc'] == true;
     final includeStaff = bd['includeStaffInCalc'] == true;
 
-    final guestBilledCount =
-        (assigned + (includeUnassigned ? unassigned : 0)).toDouble();
-
     // ── Wesele z dziećmi ──
-    // Liczba dzieci z [ChildrenSettings]: tryb „auto" bierze ją z listy gości
-    // (flaga `isChild`), ręczny — z pola w Budżecie. Poniższe przeliczenia
-    // pozostają bez zmian, dostają tylko inne źródło liczby.
-    final children = ChildrenSettings.from(bd, guests);
+    final children = ChildrenSettings.from(bd, data.guests);
     final withChildren = children.enabled;
     final childrenCount = children.count;
     final childMenuSeparate = withChildren && bd['childMenuSeparate'] == true;
     final childMenuPPP = _d(bd['childMenuPricePerPerson']);
-    // Dzieci faktycznie liczone (nie więcej niż liczonych gości).
-    final childBilled =
-        min(childrenCount.toDouble(), guestBilledCount);
+    // Dzieci faktycznie liczone (nie więcej niż efektywna liczba gości).
+    final childBilled = min(childrenCount.toDouble(), effectiveGuestCount);
 
     // Koszt gości: gdy dzieci mają osobne menu, liczymy je po cenie dziecięcej,
     // a dorosłych po cenie za osobę. W przeciwnym razie wszyscy po cenie sali.
-    final adultBilled = guestBilledCount - childBilled;
+    final adultBilled = effectiveGuestCount - childBilled;
     final childMenuTotal =
         childMenuSeparate ? childBilled * childMenuPPP : 0.0;
     final guestCost = childMenuSeparate
         ? adultBilled * pricePerPerson + childMenuTotal
-        : guestBilledCount * pricePerPerson;
-    final virtualCost = (includeVirtual ? virtual : 0.0) * pricePerPerson;
+        : effectiveGuestCount * pricePerPerson;
+
+    // „Dopłata" do minimum/planu ponad realnie zaproszonych — WYŁĄCZNIE
+    // informacyjna, już wliczona w guestCost (bo effectiveGuestCount jest
+    // jego bazą), więc NIE dolicza się osobno do cateringTotal.
+    final virtualGuests = basis.paddingOverInvited;
+    final virtualCost = virtualGuests * pricePerPerson;
 
     final staffList = (raw['staffTables'] is List)
         ? (raw['staffTables'] as List)
@@ -204,16 +253,27 @@ class SalaSummary {
         staffList.fold<double>(0, (s, t) => s + t.persons);
     final staffCostPersonCount = staffList.fold<double>(
         0, (s, t) => s + (t.includeInCost ? t.persons : 0));
-    final staffCost = (includeStaff ? staffCostPersonCount : 0.0) * staffRate;
 
-    // Liczba osób do dodatków per-osoba: wliczeni goście + wirtualni + obsługa.
-    final effectiveGuestCount = guestBilledCount +
-        (includeVirtual ? virtual : 0.0) +
-        (includeStaff ? staffPersonCount : 0.0);
+    final staffCost = !includeStaff
+        ? 0.0
+        : switch (staffCalcMode) {
+            StaffCalcMode.perGuest => effectiveGuestCount * staffPricePerPerson,
+            StaffCalcMode.manual => staffManualAmount,
+            _ => staffCostPersonCount * staffRate,
+          };
+
+    // Liczba osób do dodatków per-osoba: efektywna liczba gości + obsługa,
+    // ale headcount obsługi doliczamy TYLKO w trybie headcount — w trybie
+    // „na gości"/ręcznym nie ma osobno śledzonej liczby osób obsługi do
+    // doliczenia (koszt obsługi już nie pochodzi z tej listy).
+    final addonsPersonCount = effectiveGuestCount +
+        (includeStaff && staffCalcMode == StaffCalcMode.headcount
+            ? staffPersonCount
+            : 0.0);
 
     final menuAddonsTotal =
         _sum(bd['menuAddons'], (a) => _d(a['pricePerPerson'])) *
-            effectiveGuestCount;
+            addonsPersonCount;
 
     final regularTableCount =
         tables.where((t) => t is Map && t['isHonorTable'] != true).length;
@@ -230,13 +290,15 @@ class SalaSummary {
     final cateringAddonsPerPerson =
         _sum(bd['cateringMenuAddons'], (a) => _d(a['pricePerPerson']));
     final cateringMenuAddonsTotal =
-        cateringSeparate ? cateringAddonsPerPerson * effectiveGuestCount : 0.0;
+        cateringSeparate ? cateringAddonsPerPerson * addonsPersonCount : 0.0;
     final cateringSeparateTotal = cateringSeparate
-        ? effectiveGuestCount * cateringPPP + cateringMenuAddonsTotal
+        ? addonsPersonCount * cateringPPP + cateringMenuAddonsTotal
         : 0.0;
 
+    // ⚠️ BEZ osobnego `+ virtualCost` — dopłata do minimum/planu jest już
+    // wliczona w `guestCost` (patrz [virtualCost]), doliczenie jej tu
+    // ponownie dublowałoby te same osoby.
     final cateringTotal = guestCost +
-        virtualCost +
         staffCost +
         menuAddonsTotal +
         honorDeco +
@@ -247,22 +309,23 @@ class SalaSummary {
       pricePerPerson: pricePerPerson,
       staffPricePerPerson: staffPricePerPerson,
       staffRate: staffRate,
-      venueMinGuests: venueMin,
-      includeVirtual: includeVirtual,
-      includeUnassigned: includeUnassigned,
+      staffCalcMode: staffCalcMode,
+      staffManualAmount: staffManualAmount,
+      venueMinGuests: basis.venueMinGuests,
+      plannedGuests: basis.plannedGuests,
       includeStaff: includeStaff,
-      guestCount: guestCount,
-      assignedCount: assigned,
-      unassignedCount: unassigned,
-      guestBilledCount: guestBilledCount.toDouble(),
+      guestCount: basis.invited,
+      assignedCount: basis.assigned,
+      unassignedCount: basis.unassigned,
       guestCost: guestCost,
-      virtualGuests: virtual,
+      virtualGuests: virtualGuests,
       virtualCost: virtualCost,
       staffPersonCount: staffPersonCount,
       staffCostPersonCount: staffCostPersonCount,
       staffCost: staffCost,
       staff: staffList,
       effectiveGuestCount: effectiveGuestCount,
+      addonsPersonCount: addonsPersonCount,
       menuAddonsTotal: menuAddonsTotal,
       honorDecoTotal: honorDeco,
       regularDecoTotal: regularDeco,
@@ -286,14 +349,14 @@ class SalaSummary {
     pricePerPerson: 0,
     staffPricePerPerson: 0,
     staffRate: 0,
+    staffCalcMode: StaffCalcMode.headcount,
+    staffManualAmount: 0,
     venueMinGuests: 0,
-    includeVirtual: false,
-    includeUnassigned: true,
+    plannedGuests: 0,
     includeStaff: false,
     guestCount: 0,
     assignedCount: 0,
     unassignedCount: 0,
-    guestBilledCount: 0,
     guestCost: 0,
     virtualGuests: 0,
     virtualCost: 0,
@@ -302,6 +365,7 @@ class SalaSummary {
     staffCost: 0,
     staff: [],
     effectiveGuestCount: 0,
+    addonsPersonCount: 0,
     menuAddonsTotal: 0,
     honorDecoTotal: 0,
     regularDecoTotal: 0,

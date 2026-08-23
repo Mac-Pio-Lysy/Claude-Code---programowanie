@@ -73,20 +73,27 @@ class BudgetService {
   Future<void> setVenueMinGuests(num value) =>
       _mergeBudget({'venueMinGuests': value});
 
-  Future<void> setIncludeVirtual(bool value) =>
-      _mergeBudget({'includeVirtualInCalc': value});
-
-  /// Czy liczyć gości NIEprzypisanych do stołów w koszcie sali (domyślnie tak).
-  Future<void> setIncludeUnassigned(bool value) =>
-      _mergeBudget({'includeUnassignedInCalc': value});
+  /// Szacunek pary, zanim zna pełną listę gości — jeden ze składników
+  /// efektywnej liczby gości (`GuestBasis.effective`).
+  Future<void> setPlannedGuests(num value) =>
+      _mergeBudget({'plannedGuests': value});
 
   /// Czy doliczać obsługę (`staffTables` z „w kosztach") do kosztu sali.
   Future<void> setIncludeStaff(bool value) =>
       _mergeBudget({'includeStaffInCalc': value});
 
-  /// Stawka za osobę dla obsługi (0 = używana jest cena ogólna za osobę).
+  /// Stawka za osobę dla obsługi (0 = w trybie headcount używana jest cena
+  /// ogólna za osobę — zgodność wsteczna).
   Future<void> setStaffPricePerPerson(num value) =>
       _mergeBudget({'staffPricePerPerson': value});
+
+  /// Tryb liczenia kosztu obsługi — patrz `StaffCalcMode`.
+  Future<void> setStaffCalcMode(String mode) =>
+      _mergeBudget({'staffCalcMode': mode});
+
+  /// Kwota obsługi wpisana wprost (tryb `StaffCalcMode.manual`).
+  Future<void> setStaffManualAmount(num value) =>
+      _mergeBudget({'staffManualAmount': value});
 
   // ── CATERING ODDZIELNY (osobna firma niż sala) ───────────────────────
 

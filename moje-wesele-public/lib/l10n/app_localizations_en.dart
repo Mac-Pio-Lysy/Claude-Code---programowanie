@@ -958,6 +958,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budget_venueMinGuests => 'Minimum headcount (venue threshold)';
 
   @override
+  String get budget_plannedGuests => 'Planned guests';
+
+  @override
+  String get budget_plannedGuestsHint =>
+      'Your estimate before you know the full guest list.';
+
+  @override
+  String budget_effectiveBreakdown(
+    String invited,
+    String min,
+    String planned,
+    String effective,
+  ) {
+    return 'Invited: $invited · Venue minimum: $min · Planned: $planned → counting for: $effective';
+  }
+
+  @override
+  String budget_moreThanPlannedInfo(String diff, String total) {
+    return 'There are $diff more invited guests, $total in total.';
+  }
+
+  @override
+  String get budget_moreThanPlannedNote =>
+      'No need to change anything — the number updates automatically.';
+
+  @override
   String get budget_guestsAssigned => 'Guests seated at tables';
 
   @override
@@ -1039,33 +1065,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budget_guestsUnassigned => 'Unseated guests';
 
   @override
-  String get budget_guestsBilledTotal => 'Guests counted in total';
-
-  @override
   String get budget_guestsCost => 'Guest cost';
-
-  @override
-  String get budget_countUnassigned => 'Count guests not seated at tables';
-
-  @override
-  String budget_countUnassignedOn(int count) {
-    return 'Unseated ($count) are included in the cost.';
-  }
-
-  @override
-  String budget_countUnassignedOff(int count) {
-    return 'Unseated ($count) are NOT included.';
-  }
 
   @override
   String get budget_virtualGuests => 'Virtual guests (to the venue threshold)';
 
   @override
   String get budget_virtualGuestsCost => 'Virtual guest cost';
-
-  @override
-  String get budget_includeVirtualCalc =>
-      'Include virtual guests in calculations';
 
   @override
   String get budget_cateringSeparateNote =>
@@ -1086,8 +1092,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get budget_staffEmpty => 'No staff yet. Add with +.';
 
   @override
-  String get budget_staffRate =>
-      'Staff rate per person (empty = same as guests)';
+  String get budget_staffModeHeadcount => 'By staff list';
+
+  @override
+  String get budget_staffModePerGuest => 'Per guest';
+
+  @override
+  String get budget_staffModeManual => 'Manual amount';
+
+  @override
+  String get budget_staffRate => 'Staff rate per person';
+
+  @override
+  String get budget_staffRateFallbackHint =>
+      'Leave empty to use the same rate as for guests (same as catering).';
+
+  @override
+  String get budget_staffManualAmount => 'Staff amount';
 
   @override
   String get budget_staffInclude => 'Add staff to the venue cost';
