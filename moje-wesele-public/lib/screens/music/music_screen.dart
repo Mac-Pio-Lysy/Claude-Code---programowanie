@@ -71,6 +71,14 @@ class _MusicScreenState extends State<MusicScreen> {
       ..showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  void _clearSearch() {
+    setState(() {
+      _searchCtrl.clear();
+      _results = null;
+      _searchError = false;
+    });
+  }
+
   Future<void> _search() async {
     final q = _searchCtrl.text.trim();
     if (q.isEmpty) return;
@@ -270,6 +278,7 @@ class _MusicScreenState extends State<MusicScreen> {
                   controller: _searchCtrl,
                   textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _search(),
+                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: AppText.t.music_searchDeezer,
                     isDense: true,
@@ -277,6 +286,12 @@ class _MusicScreenState extends State<MusicScreen> {
                     fillColor: const Color(0xFFF8FAFF),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 12),
+                    suffixIcon: _searchCtrl.text.isEmpty
+                        ? null
+                        : IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: _clearSearch,
+                          ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFFDCE4F2)),
@@ -1462,9 +1477,19 @@ class _AddSpecialSongDialogState extends State<_AddSpecialSongDialog> {
                       controller: _search,
                       textInputAction: TextInputAction.search,
                       onSubmitted: (_) => _doSearch(),
+                      onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
                         hintText: AppText.t.music_searchInDeezer,
                         isDense: true,
+                        suffixIcon: _search.text.isEmpty
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () => setState(() {
+                                  _search.clear();
+                                  _results = null;
+                                }),
+                              ),
                         border: OutlineInputBorder(),
                       ),
                     ),

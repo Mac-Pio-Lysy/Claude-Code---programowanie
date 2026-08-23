@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_colors.dart';
+import '../config/feature_flags.dart';
 import '../layout/responsive.dart';
 import '../models/dash_widget.dart';
 import '../models/gallery_item.dart';
@@ -82,6 +83,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final hidden = DashWidgets.all
         .where((w) => !_layout.contains(w.id))
+        // Kafelek „Zadania" tymczasowo poza katalogiem (sekcja ukryta z
+        // nawigacji) — zostaje jednak dla kogoś, kto go już wcześniej dodał
+        // (byId nadal go rozpoznaje, patrz `dash_widget.dart`).
+        .where((w) => w.id != 'tasks' || FeatureFlags.showTasksSection)
         .toList();
 
     return ListView(

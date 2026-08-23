@@ -125,7 +125,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 GuestPageTab(
                   links: [
                     (AppText.t.gal_photoVideo, PublicPages.galeria(baseUrl)),
-                    (AppText.t.gal_musicChoice, PublicPages.muzyka(baseUrl)),
                   ],
                   intro:
                       AppText.t.gallery_txt1,

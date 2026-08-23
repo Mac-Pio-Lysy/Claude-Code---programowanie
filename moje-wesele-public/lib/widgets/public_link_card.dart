@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_colors.dart';
+import '../config/feature_flags.dart';
 import '../l10n/app_text.dart';
 
 /// Karta z kodem QR i klikalnym linkiem do publicznej strony dla gości
@@ -28,6 +29,13 @@ class PublicLinkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Strony przeglądowe dla gości (galeria, harmonogram, RSVP itd.) są
+    // tymczasowo ukryte — patrz FeatureFlags. NIE dotyczy to kodów
+    // indywidualnych (`?i=KOD`), które generuje osobny widget gdzie indziej
+    // i które zostają aktywne niezależnie od tej flagi.
+    if (!FeatureFlags.showWebsiteLinks) {
+      return _comingSoonCard();
+    }
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -95,6 +103,31 @@ class PublicLinkCard extends StatelessWidget {
   static Future<void> _open(String url) async {
     final uri = Uri.tryParse(url);
     if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Widget _comingSoonCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        children: [
+          Text(label,
+              style: GoogleFonts.inter(
+                  fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.text)),
+          const SizedBox(height: 12),
+          const Icon(Icons.hourglass_top, size: 32, color: AppColors.textLight),
+          const SizedBox(height: 10),
+          Text(AppText.t.w_comingSoon,
+              textAlign: TextAlign.center,
+              style:
+                  GoogleFonts.inter(fontSize: 12.5, color: AppColors.textLight)),
+        ],
+      ),
+    );
   }
 }
 

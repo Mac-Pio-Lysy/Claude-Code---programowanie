@@ -6216,6 +6216,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get w_download => 'Download / share';
 
   @override
+  String get w_comingSoon =>
+      'The guest website is coming soon — for now, only the app is available.';
+
+  @override
   String get w_weddingToday => 'It is today! 🎉';
 
   @override

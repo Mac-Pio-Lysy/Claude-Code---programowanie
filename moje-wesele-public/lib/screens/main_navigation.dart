@@ -497,6 +497,7 @@ class _MainNavigationState extends State<MainNavigation> {
             s != AppSection.dashboard &&
             s != AppSection.settings &&
             s != AppSection.analytics &&
+            !s.hiddenFromNav &&
             !_bar.contains(s))
         .toList();
     if (!_bar.contains(AppSection.analytics)) {
@@ -727,7 +728,9 @@ class _MainNavigationState extends State<MainNavigation> {
   List<AppSection> get _railSections => [
         AppSection.dashboard,
         ...AppSection.values.where((s) =>
-            s != AppSection.dashboard && s != AppSection.settings),
+            s != AppSection.dashboard &&
+            s != AppSection.settings &&
+            !s.hiddenFromNav),
       ];
 
   Widget _buildTabletLayout(WeddingData? data, bool loading) {
@@ -1064,6 +1067,7 @@ class _BarEditSheetState extends State<_BarEditSheet> {
       .where((s) =>
           s != AppSection.dashboard &&
           s != AppSection.settings &&
+          !s.hiddenFromNav &&
           !_items.contains(s))
       .toList();
 

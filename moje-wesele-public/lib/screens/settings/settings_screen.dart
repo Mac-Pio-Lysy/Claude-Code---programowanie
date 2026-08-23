@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
+import '../../config/feature_flags.dart';
 import '../../config/public_urls.dart';
 import '../../layout/responsive.dart';
 import '../../l10n/app_localizations.dart';
@@ -820,6 +821,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _guestLinkCard() {
+    if (!FeatureFlags.showWebsiteLinks) {
+      return _card(
+        AppText.t.settings_guestLinkCard,
+        Text(
+          AppText.t.w_comingSoon,
+          style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
+        ),
+      );
+    }
     final token = _guestToken;
     final link = token == null ? null : _guestLink(token);
     return _card(

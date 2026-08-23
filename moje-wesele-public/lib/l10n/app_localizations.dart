@@ -10896,6 +10896,12 @@ abstract class AppLocalizations {
   /// **'Pobierz / udostępnij'**
   String get w_download;
 
+  /// No description provided for @w_comingSoon.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strona dla gości pojawi się wkrótce — na razie dostępna jest tylko aplikacja.'**
+  String get w_comingSoon;
+
   /// No description provided for @w_weddingToday.
   ///
   /// In pl, this message translates to:

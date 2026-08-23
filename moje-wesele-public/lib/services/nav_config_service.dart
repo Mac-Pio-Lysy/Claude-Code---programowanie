@@ -30,7 +30,7 @@ class NavConfigService {
     AppSection.budget,
     AppSection.room,
     AppSection.schedule,
-    AppSection.tasks,
+    AppSection.transport,
   ];
 
   String get _key => 'nav_bar_$uid';
@@ -46,6 +46,9 @@ class NavConfigService {
       final s = match.first;
       if (s == AppSection.dashboard) continue; // pinned osobno
       if (s == AppSection.settings) continue; // tylko przez menu logo
+      // Sekcja tymczasowo ukryta (patrz FeatureFlags) — pomijamy nawet gdy
+      // była już zapisana we wcześniejszej konfiguracji użytkownika.
+      if (s.hiddenFromNav) continue;
       if (!sections.contains(s)) sections.add(s);
     }
     if (sections.isEmpty) return List.of(defaultBar);
@@ -79,6 +82,7 @@ class NavConfigService {
       if (result.length >= target) break;
       if (candidate == AppSection.dashboard) continue;
       if (candidate == AppSection.settings) continue;
+      if (candidate.hiddenFromNav) continue;
       if (!result.contains(candidate)) result.add(candidate);
     }
     return result.take(target).toList();

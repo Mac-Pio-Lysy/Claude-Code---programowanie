@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/feature_flags.dart';
 import '../l10n/app_text.dart';
 
 /// Wszystkie sekcje aplikacji weselnej (odpowiednik zakładek `switchView`
@@ -70,6 +71,19 @@ extension AppSectionMeta on AppSection {
         AppSection.rsvp => Icons.how_to_reg_outlined,
         AppSection.rsvpAll => Icons.list_alt_outlined,
         AppSection.settings => Icons.settings_outlined,
+      };
+
+  /// Czy sekcja jest tymczasowo ukryta z nawigacji (patrz [FeatureFlags]).
+  ///
+  /// Filtruje WYŁĄCZNIE listy sekcji do wyboru/wyświetlenia w menu (pasek,
+  /// „Więcej", szyna tabletu, kreator paska, przewodnik, katalog widgetów
+  /// dashboardu). Nawigacja BEZPOŚREDNIA do sekcji (np. przycisk „Dodano w:
+  /// Zadania" przy wydatku) nadal działa — to nie jest blokada ekranu,
+  /// tylko filtr list wyboru.
+  bool get hiddenFromNav => switch (this) {
+        AppSection.tasks => !FeatureFlags.showTasksSection,
+        AppSection.vendors => !FeatureFlags.showVendorsSection,
+        _ => false,
       };
 }
 

@@ -318,6 +318,7 @@ List<OnbStep> buildOnboardingSteps({OnbVariant variant = OnbVariant.owner}) {
 
   for (final s in AppSection.values) {
     if (s == AppSection.dashboard || s == AppSection.settings) continue;
+    if (s.hiddenFromNav) continue;
     steps.add(OnbStep(
         section: s, title: s.label, desc: descFor(s), basic: true, nav: true));
     final subs = _subTabs[s];
