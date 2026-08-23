@@ -1669,6 +1669,31 @@ class AppLocalizationsPl extends AppLocalizations {
   String get accommodation_guestsNeeding => 'Goście potrzebujący noclegu';
 
   @override
+  String get accommodation_pickGuests => 'Wybierz gości';
+
+  @override
+  String get accommodation_markAll => 'Zaznacz wszystkich';
+
+  @override
+  String get accommodation_pickTitle => 'Kto potrzebuje noclegu?';
+
+  @override
+  String accommodation_markAllToast(int count) {
+    return 'Oznaczono $count gości jako potrzebujących noclegu.';
+  }
+
+  @override
+  String get accommodation_toBookHeader => 'Do zarezerwowania';
+
+  @override
+  String get accommodation_toBookEmpty => 'Nic nie czeka na rezerwację.';
+
+  @override
+  String accommodation_toBookRow(String hotel, int rooms, int guests) {
+    return '$hotel: $rooms pokoi dla $guests gości';
+  }
+
+  @override
   String get accommodation_hotels => 'Hotele i miejsca noclegowe';
 
   @override
@@ -6784,6 +6809,11 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String hotel_guestCount(int count) {
     return '🛏 gości: $count';
+  }
+
+  @override
+  String hotel_roomCount(int count) {
+    return '🏠 pokoi: $count';
   }
 
   @override

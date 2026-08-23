@@ -40,6 +40,104 @@ class AccommodationScreen extends StatelessWidget {
       ..showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  /// Wybór wielu gości naraz (multi-select) — ten sam wzorzec co w Transporcie
+  /// (`TransportScreen._pickGuest`), bez limitu (nie ma tu odpowiednika
+  /// „wolnych miejsc").
+  Future<void> _pickGuests(
+      BuildContext context, String title, List<Guest> options) async {
+    if (options.isEmpty) {
+      _toast(context, AppText.t.transport_noGuestsAvailable);
+      return;
+    }
+    final selected = await showModalBottomSheet<List<int>>(
+      context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
+      backgroundColor: Colors.white,
+      showDragHandle: true,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final picked = <int>{};
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(title,
+                          style: GoogleFonts.playfairDisplay(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text)),
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final g in options)
+                          CheckboxListTile(
+                            value: picked.contains(g.id),
+                            activeColor: AppColors.accent,
+                            secondary: CircleAvatar(
+                              backgroundColor: AppColors.accent,
+                              child: Text(g.initials.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white)),
+                            ),
+                            title: Text(g.fullName.isEmpty
+                                ? AppText.t.common_noName
+                                : g.fullName),
+                            onChanged: g.id == null
+                                ? null
+                                : (v) => setSheetState(() {
+                                      if (v == true) {
+                                        picked.add(g.id!);
+                                      } else {
+                                        picked.remove(g.id);
+                                      }
+                                    }),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: picked.isEmpty
+                            ? null
+                            : () =>
+                                Navigator.of(context).pop(picked.toList()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(AppText.t.tr_confirmSelection(picked.length)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (selected != null && selected.isNotEmpty) {
+      await service.setGuestsNeedAccommodation(selected, true);
+    }
+  }
+
   Future<void> _addHotel(BuildContext context) async {
     final draft = await showModalBottomSheet<HotelDraft>(
       context: context,
@@ -97,6 +195,12 @@ class AccommodationScreen extends StatelessWidget {
     final reserved = needs
         .where((g) => g.raw['accommodationStatus'] == 'reserved')
         .length;
+    // Precyzyjna definicja „Do zarezerwowania": TYLKO status == 'pending',
+    // nie „każdy niezarezerwowany" (to liczyłoby też gości „Sam rezerwuje",
+    // którzy nie wymagają żadnej akcji organizatora).
+    final pendingGuests = needs
+        .where((g) => g.raw['accommodationStatus'] == 'pending')
+        .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,13 +232,67 @@ class AccommodationScreen extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
             children: [
-              _summary(needs.length, reserved),
+              _summary(needs.length, reserved, pendingGuests.length),
+              const SizedBox(height: 12),
+              _toBookCard(pendingGuests, hotels),
               const SizedBox(height: 16),
-              Text(AppText.t.accommodation_guestsNeeding,
-                  style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.text)),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(AppText.t.accommodation_guestsNeeding,
+                        style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.text)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _pickGuests(
+                      context,
+                      AppText.t.accommodation_pickTitle,
+                      guests
+                          .where((g) => !g.needsAccommodation)
+                          .toList(),
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(AppText.t.accommodation_pickGuests),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.accent,
+                      side: const BorderSide(color: AppColors.accent),
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: guests.isEmpty
+                        ? null
+                        : () async {
+                            final ids = [
+                              for (final g in guests)
+                                if (g.id != null) g.id!,
+                            ];
+                            await service.setGuestsNeedAccommodation(
+                                ids, true);
+                            if (context.mounted) {
+                              _toast(
+                                  context,
+                                  AppText.t
+                                      .accommodation_markAllToast(ids.length));
+                            }
+                          },
+                    icon: const Icon(Icons.done_all, size: 18),
+                    label: Text(AppText.t.accommodation_markAll),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.accent,
+                      side: const BorderSide(color: AppColors.accent),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               if (needs.isEmpty)
                 _hint(
@@ -185,7 +343,7 @@ class AccommodationScreen extends StatelessWidget {
     );
   }
 
-  Widget _summary(int needs, int reserved) {
+  Widget _summary(int needs, int reserved, int pending) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -204,7 +362,9 @@ class AccommodationScreen extends StatelessWidget {
         children: [
           _stat('$needs', AppText.t.hotel_needsRoom, AppColors.accent),
           _stat('$reserved', 'Zarezerwowane', const Color(0xFF059669)),
-          _stat('${needs - reserved}', AppText.t.gs_roomPending,
+          // Precyzyjnie status == 'pending' — NIE „każdy niezarezerwowany"
+          // (to liczyłoby też „Sam rezerwuje", który nie wymaga akcji).
+          _stat('$pending', AppText.t.gs_roomPending,
               const Color(0xFFB45309)),
         ],
       ),
@@ -225,6 +385,70 @@ class AccommodationScreen extends StatelessWidget {
       ),
     );
   }
+
+  /// Karta „Do zarezerwowania" — goście ze statusem `pending` (mają już
+  /// przypisany hotel, ale nikt jeszcze nie zarezerwował), pogrupowani po
+  /// hotelu, z liczbą pokoi wyliczoną z pojemności hotelu.
+  Widget _toBookCard(List<Guest> pendingGuests, List<Hotel> hotels) {
+    final byHotel = <int, int>{};
+    for (final g in pendingGuests) {
+      final hotelId = (g.raw['hotelId'] as num?)?.toInt();
+      if (hotelId == null) continue;
+      byHotel[hotelId] = (byHotel[hotelId] ?? 0) + 1;
+    }
+    final hotelsById = {for (final h in hotels) h.id: h};
+
+    return _hint2(
+      title: AppText.t.accommodation_toBookHeader,
+      child: byHotel.isEmpty
+          ? Text(AppText.t.accommodation_toBookEmpty,
+              style: GoogleFonts.inter(
+                  fontSize: 12, color: AppColors.textLight))
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final entry in byHotel.entries)
+                  if (hotelsById[entry.key] != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text(
+                        '🏨 ${AppText.t.accommodation_toBookRow(
+                          hotelsById[entry.key]!.name,
+                          hotelsById[entry.key]!.roomsFor(entry.value),
+                          entry.value,
+                        )}',
+                        style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFB45309)),
+                      ),
+                    ),
+              ],
+            ),
+    );
+  }
+
+  Widget _hint2({required String title, required Widget child}) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF7ED),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFCD9A6)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFFB45309))),
+            const SizedBox(height: 6),
+            child,
+          ],
+        ),
+      );
 
   Widget _guestRow(Guest g, List<Hotel> hotels) {
     final hotelId = (g.raw['hotelId'] as num?)?.toInt();
@@ -255,6 +479,16 @@ class AccommodationScreen extends StatelessWidget {
                 child: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
                     style: GoogleFonts.inter(
                         fontSize: 14, fontWeight: FontWeight.w600)),
+              ),
+              // Zdejmuje z listy „potrzebuje noclegu" bez wchodzenia w kartę
+              // gościa (symetria z transportem — tam też jest chip z „x").
+              IconButton(
+                onPressed: () =>
+                    service.setGuestsNeedAccommodation([g.id ?? 0], false),
+                icon: const Icon(Icons.close, size: 18),
+                color: const Color(0xFFC0392B),
+                visualDensity: VisualDensity.compact,
+                tooltip: AppText.t.common_delete,
               ),
             ],
           ),
@@ -373,6 +607,7 @@ class AccommodationScreen extends StatelessWidget {
               _chip(AppText.t.hotel_perRoom(h.personsPerRoom)),
               _chip('💰 koszt: ${formatPlnZl(h.cost)}'),
               _chip(AppText.t.hotel_guestCount(guestCount)),
+              _chip(AppText.t.hotel_roomCount(h.roomsFor(guestCount))),
             ],
           ),
           if (h.notes.isNotEmpty)

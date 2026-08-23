@@ -1666,6 +1666,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accommodation_guestsNeeding => 'Guests who need a room';
 
   @override
+  String get accommodation_pickGuests => 'Pick guests';
+
+  @override
+  String get accommodation_markAll => 'Mark everyone';
+
+  @override
+  String get accommodation_pickTitle => 'Who needs a room?';
+
+  @override
+  String accommodation_markAllToast(int count) {
+    return 'Marked $count guests as needing a room.';
+  }
+
+  @override
+  String get accommodation_toBookHeader => 'To book';
+
+  @override
+  String get accommodation_toBookEmpty => 'Nothing waiting to be booked.';
+
+  @override
+  String accommodation_toBookRow(String hotel, int rooms, int guests) {
+    return '$hotel: $rooms rooms for $guests guests';
+  }
+
+  @override
   String get accommodation_hotels => 'Hotels and places to stay';
 
   @override
@@ -6766,6 +6791,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String hotel_guestCount(int count) {
     return '🛏 guests: $count';
+  }
+
+  @override
+  String hotel_roomCount(int count) {
+    return '🏠 rooms: $count';
   }
 
   @override

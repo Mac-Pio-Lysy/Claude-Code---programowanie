@@ -3091,6 +3091,48 @@ abstract class AppLocalizations {
   /// **'Goście potrzebujący noclegu'**
   String get accommodation_guestsNeeding;
 
+  /// No description provided for @accommodation_pickGuests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybierz gości'**
+  String get accommodation_pickGuests;
+
+  /// No description provided for @accommodation_markAll.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaznacz wszystkich'**
+  String get accommodation_markAll;
+
+  /// No description provided for @accommodation_pickTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kto potrzebuje noclegu?'**
+  String get accommodation_pickTitle;
+
+  /// No description provided for @accommodation_markAllToast.
+  ///
+  /// In pl, this message translates to:
+  /// **'Oznaczono {count} gości jako potrzebujących noclegu.'**
+  String accommodation_markAllToast(int count);
+
+  /// No description provided for @accommodation_toBookHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'Do zarezerwowania'**
+  String get accommodation_toBookHeader;
+
+  /// No description provided for @accommodation_toBookEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nic nie czeka na rezerwację.'**
+  String get accommodation_toBookEmpty;
+
+  /// No description provided for @accommodation_toBookRow.
+  ///
+  /// In pl, this message translates to:
+  /// **'{hotel}: {rooms} pokoi dla {guests} gości'**
+  String accommodation_toBookRow(String hotel, int rooms, int guests);
+
   /// No description provided for @accommodation_hotels.
   ///
   /// In pl, this message translates to:
@@ -11783,6 +11825,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'🛏 gości: {count}'**
   String hotel_guestCount(int count);
+
+  /// No description provided for @hotel_roomCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'🏠 pokoi: {count}'**
+  String hotel_roomCount(int count);
 
   /// No description provided for @hotel_nameHint.
   ///

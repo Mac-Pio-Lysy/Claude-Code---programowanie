@@ -990,6 +990,33 @@
   "accommodation_title": "Noclegi",
   "accommodation_deleteHotelTitle": "Usunąć hotel?",
   "accommodation_guestsNeeding": "Goście potrzebujący noclegu",
+  "accommodation_pickGuests": "Wybierz gości",
+  "accommodation_markAll": "Zaznacz wszystkich",
+  "accommodation_pickTitle": "Kto potrzebuje noclegu?",
+  "accommodation_markAllToast": "Oznaczono {count} gości jako potrzebujących noclegu.",
+  "@accommodation_markAllToast": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "accommodation_toBookHeader": "Do zarezerwowania",
+  "accommodation_toBookEmpty": "Nic nie czeka na rezerwację.",
+  "accommodation_toBookRow": "{hotel}: {rooms} pokoi dla {guests} gości",
+  "@accommodation_toBookRow": {
+    "placeholders": {
+      "hotel": {
+        "type": "String"
+      },
+      "rooms": {
+        "type": "int"
+      },
+      "guests": {
+        "type": "int"
+      }
+    }
+  },
   "accommodation_hotels": "Hotele i miejsca noclegowe",
   "accommodation_addHotel": "Dodaj hotel",
   "accommodation_noHotel": "Brak hotelu",
@@ -4295,6 +4322,14 @@
   },
   "hotel_guestCount": "🛏 gości: {count}",
   "@hotel_guestCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hotel_roomCount": "🏠 pokoi: {count}",
+  "@hotel_roomCount": {
     "placeholders": {
       "count": {
         "type": "int"

@@ -38,4 +38,11 @@ class Hotel {
 
   /// Koszt = cena za osobę za noc × liczba osób w pokoju (jak w wersji web).
   double get cost => pricePerNight * (personsPerRoom <= 0 ? 1 : personsPerRoom);
+
+  /// Ile pokoi potrzeba na [guestCount] gości, przy pojemności [personsPerRoom]
+  /// na pokój (zaokrąglone w górę — nie ma pokoi „częściowych").
+  int roomsFor(int guestCount) {
+    final perRoom = personsPerRoom <= 0 ? 1 : personsPerRoom;
+    return (guestCount / perRoom).ceil();
+  }
 }

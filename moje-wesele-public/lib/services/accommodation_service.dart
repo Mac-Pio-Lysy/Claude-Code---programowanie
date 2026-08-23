@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../models/hotel.dart';
 import 'firestore_service.dart';
 
 /// Dane hotelu z formularza.
@@ -82,6 +83,12 @@ class AccommodationService {
   }
 
   /// Aktualizuje przypisanie noclegu gościa.
+  ///
+  /// Gdy przypisujemy hotel (nie czyścimy) i gość NIE MA jeszcze żadnego
+  /// statusu, od razu ustawiamy „Do zarezerwowania" — bez tego organizator
+  /// musiałby klikać dwa osobne pola za każdym razem. Działa TYLKO gdy status
+  /// jest pusty, więc nigdy nie nadpisuje ręcznie wybranego „Zarezerwowany"/
+  /// „Sam rezerwuje" przy zmianie hotelu.
   Future<void> updateGuestAccommodation(int guestId,
       {int? hotelId, bool clearHotel = false, String? status}) async {
     final data = await _read();
@@ -92,9 +99,33 @@ class AccommodationService {
       g['hotelId'] = null;
     } else if (hotelId != null) {
       g['hotelId'] = hotelId;
+      final current = g['accommodationStatus'] as String?;
+      if (status == null && (current == null || current.isEmpty)) {
+        g['accommodationStatus'] = AccommodationStatus.pending.value;
+      }
     }
     if (status != null) {
       g['accommodationStatus'] = status.isEmpty ? null : status;
+    }
+    await _firestore.mainDoc.set({'guests': guests}, SetOptions(merge: true));
+  }
+
+  /// Włącza/wyłącza „potrzebuje noclegu" dla KILKU gości naraz — jeden
+  /// odczyt i jeden zapis. Wyłączenie czyści też przypisany hotel i status
+  /// (skoro gość nie potrzebuje noclegu, nie ma czego rezerwować).
+  Future<void> setGuestsNeedAccommodation(
+      List<int> guestIds, bool on) async {
+    if (guestIds.isEmpty) return;
+    final data = await _read();
+    final guests = _mapList(data['guests']);
+    for (final guestId in guestIds) {
+      final g = _find(guests, guestId);
+      if (g == null) continue;
+      g['needsAccommodation'] = on;
+      if (!on) {
+        g['hotelId'] = null;
+        g['accommodationStatus'] = null;
+      }
     }
     await _firestore.mainDoc.set({'guests': guests}, SetOptions(merge: true));
   }
