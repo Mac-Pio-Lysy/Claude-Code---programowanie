@@ -40,7 +40,7 @@ class WeddingSummary {
   /// Etykieta roli po polsku.
   String get roleLabel => switch (role) {
         'owner' => AppText.t.wsum_owner,
-        'planner' => 'Planer',
+        'planner' => AppText.t.role_planner,
         'collaborator' => AppText.t.wsum_collab,
         'guest' => AppText.t.role_guest,
         _ => role,

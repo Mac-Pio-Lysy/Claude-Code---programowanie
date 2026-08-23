@@ -149,6 +149,7 @@ class _JoinWeddingScreenState extends State<JoinWeddingScreen> {
                       textCapitalization: TextCapitalization.characters,
                       inputFormatters: [
                         UpperCaseFormatter(),
+                        JoinCodeDashFormatter(),
                         LengthLimitingTextInputFormatter(JoinCode.length + 4),
                       ],
                       style: GoogleFonts.robotoMono(
@@ -335,5 +336,20 @@ class UpperCaseFormatter extends TextInputFormatter {
   TextEditingValue formatEditUpdate(
       TextEditingValue oldValue, TextEditingValue newValue) {
     return newValue.copyWith(text: newValue.text.toUpperCase());
+  }
+}
+
+/// Wstawia myślniki w trakcie wpisywania kodu, tak jak w [JoinCode.format]
+/// (`ABCD-EFGH-JKMN`) — gość/organizator/planer wpisuje sam kod, myślniki
+/// pojawiają się same.
+class JoinCodeDashFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final formatted = JoinCode.format(newValue.text);
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }

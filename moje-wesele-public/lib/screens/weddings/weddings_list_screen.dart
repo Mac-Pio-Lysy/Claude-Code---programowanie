@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
@@ -224,6 +225,11 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
             TextField(
               controller: codeCtrl,
               textCapitalization: TextCapitalization.characters,
+              inputFormatters: [
+                UpperCaseFormatter(),
+                JoinCodeDashFormatter(),
+                LengthLimitingTextInputFormatter(JoinCode.length + 4),
+              ],
               style: GoogleFonts.robotoMono(
                   fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 2),
               decoration: InputDecoration(
@@ -644,13 +650,17 @@ class _WeddingCard extends StatelessWidget {
                         Icon(Icons.event,
                             size: 14, color: AppColors.textLight),
                         const SizedBox(width: 4),
-                        Text(
-                          _dateLabel(wedding.date),
-                          style: GoogleFonts.inter(
-                              fontSize: 12, color: AppColors.textLight),
+                        Flexible(
+                          child: Text(
+                            _dateLabel(wedding.date),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: AppColors.textLight),
+                          ),
                         ),
                         const SizedBox(width: 12),
-                        _roleChip(wedding.roleLabel),
+                        Flexible(child: _roleChip(wedding.roleLabel)),
                       ],
                     ),
                   ],
@@ -672,6 +682,8 @@ class _WeddingCard extends StatelessWidget {
         ),
         child: Text(
           label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.inter(
             fontSize: 11,
             fontWeight: FontWeight.w600,

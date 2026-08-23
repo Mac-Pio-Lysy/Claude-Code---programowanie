@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
 import '../../config/public_urls.dart';
@@ -899,6 +900,15 @@ class _InvitationsScreenState extends State<InvitationsScreen> {
       children: [
         const SizedBox(height: 10),
         const Divider(height: 1),
+        const SizedBox(height: 8),
+        Center(
+          child: QrImageView(
+            data: PublicPages.inviteEntry(
+                PublicPages.baseUrl(widget.raw), c.code),
+            size: 120,
+            gapless: false,
+          ),
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
