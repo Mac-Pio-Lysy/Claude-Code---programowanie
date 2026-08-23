@@ -1612,6 +1612,23 @@ class AppLocalizationsPl extends AppLocalizations {
   String get transport_showOwn => 'Pokaż transport własny';
 
   @override
+  String get transport_autoOwnToggle =>
+      'Nowi goście automatycznie na transport własny';
+
+  @override
+  String get transport_autoOwnHint =>
+      'Każdy nowo dodany gość (i osoba towarzysząca) dostanie od razu transport własny. Możesz to zmienić pojedynczo w karcie gościa.';
+
+  @override
+  String get transport_assignAllOwn =>
+      'Przypisz wszystkich pozostałych do transportu własnego';
+
+  @override
+  String transport_assignAllOwnToast(int count) {
+    return 'Przypisano $count gości do transportu własnego.';
+  }
+
+  @override
   String transport_seatsOf(int used, int total) {
     return '$used/$total miejsc';
   }
@@ -5644,6 +5661,18 @@ class AppLocalizationsPl extends AppLocalizations {
   String get vehicle_other => 'Inne';
 
   @override
+  String get vehicle_purposeChurch => 'Dojazd do kościoła';
+
+  @override
+  String get vehicle_purposeCouple => 'Pojazd Pary Młodej';
+
+  @override
+  String get vehicle_purposeReception => 'Dojazd do wesela';
+
+  @override
+  String get vehicle_purposeOther => 'Inny';
+
+  @override
   String get quiz_favouriteFilmGroom => 'Ulubiony film Pana Młodego?';
 
   @override
@@ -6920,6 +6949,16 @@ class AppLocalizationsPl extends AppLocalizations {
   String get tr_addToOwn => 'Dodaj do transportu własnego';
 
   @override
+  String tr_confirmSelection(int count) {
+    return 'Przypisz ($count)';
+  }
+
+  @override
+  String tr_seatsSelected(int selected, int free) {
+    return 'Wybrano $selected z $free wolnych miejsc';
+  }
+
+  @override
   String get tr_typeHint => 'np. Pojazd Kuby, Bus wynajęty';
 
   @override
@@ -7506,6 +7545,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get tr_typeRequired => 'Typ / nazwa pojazdu *';
+
+  @override
+  String get tr_purposeLabel => 'Przeznaczenie (opcjonalnie)';
 
   @override
   String get tr_departure => 'Godzina odjazdu';

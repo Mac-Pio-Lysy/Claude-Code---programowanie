@@ -21,6 +21,7 @@ class VehicleFormSheet extends StatefulWidget {
 class _VehicleFormSheetState extends State<VehicleFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _type;
+  late final TextEditingController _purpose;
   late final TextEditingController _driver;
   late final TextEditingController _route;
   late final TextEditingController _cost;
@@ -35,6 +36,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     super.initState();
     final v = widget.existing;
     _type = TextEditingController(text: v?.type ?? '');
+    _purpose = TextEditingController(text: v?.purpose ?? '');
     _driver = TextEditingController(text: v?.driver ?? '');
     _route = TextEditingController(text: v?.route ?? '');
     _cost = TextEditingController(
@@ -46,6 +48,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   @override
   void dispose() {
     _type.dispose();
+    _purpose.dispose();
     _driver.dispose();
     _route.dispose();
     _cost.dispose();
@@ -76,6 +79,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     Navigator.of(context).pop(
       VehicleDraft(
         type: _type.text.trim(),
+        purpose: _purpose.text.trim(),
         description: '',
         driver: _driver.text.trim(),
         seats: _seats,
@@ -143,6 +147,35 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                                   style: GoogleFonts.inter(fontSize: 11)),
                               onPressed: () {
                                 _type.text = t;
+                                setState(() {});
+                              },
+                              backgroundColor: const Color(0xFFF1F5F9),
+                              side: BorderSide.none,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _label(AppText.t.tr_purposeLabel),
+                  TextField(
+                    controller: _purpose,
+                    decoration: _dec(hint: AppText.t.vehicle_purposeOther),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 34,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final p in kVehiclePurposes)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: ActionChip(
+                              label: Text(p,
+                                  style: GoogleFonts.inter(fontSize: 11)),
+                              onPressed: () {
+                                _purpose.text = p;
                                 setState(() {});
                               },
                               backgroundColor: const Color(0xFFF1F5F9),

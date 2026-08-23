@@ -28,6 +28,16 @@ List<String> get kVehicleTypes {
   ];
 }
 
+/// Przeznaczenie pojazdu (DO CZEGO służy) — niezależne od [Vehicle.type]
+/// (CZYJ/jaki to pojazd: wynajęty/własny/auto rodziców itd.). Opcjonalne;
+/// puste pole traktujemy jak [other] (patrz [Vehicle.purposeOrFallback]).
+List<String> get kVehiclePurposes => [
+      AppText.t.vehicle_purposeChurch,
+      AppText.t.vehicle_purposeCouple,
+      AppText.t.vehicle_purposeReception,
+      AppText.t.vehicle_purposeOther,
+    ];
+
 /// Pojazd transportu — nakładka na surową mapę.
 class Vehicle {
   Vehicle(this.raw);
@@ -35,6 +45,16 @@ class Vehicle {
 
   int? get id => (raw['id'] as num?)?.toInt();
   String get type => (raw['type'] as String?) ?? '';
+
+  /// Przeznaczenie — wolny tekst (jak [type]), opcjonalne. Puste → `''`;
+  /// do pokazania użytkownikowi patrz [purposeOrFallback].
+  String get purpose => (raw['purpose'] as String?) ?? '';
+
+  /// Przeznaczenie do WYŚWIETLENIA — puste pole pokazujemy jako „Inny",
+  /// zamiast zostawiać pustkę na karcie pojazdu.
+  String get purposeOrFallback =>
+      purpose.isEmpty ? AppText.t.vehicle_purposeOther : purpose;
+
   String get description => (raw['description'] as String?) ?? '';
   String get driver => (raw['driver'] as String?) ?? '';
   int get seats => (raw['seats'] as num?)?.toInt() ?? 0;

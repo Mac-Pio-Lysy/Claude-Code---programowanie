@@ -1610,6 +1610,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transport_showOwn => 'Show own transport';
 
   @override
+  String get transport_autoOwnToggle => 'New guests default to own transport';
+
+  @override
+  String get transport_autoOwnHint =>
+      'Every newly added guest (and plus-one) will immediately get own transport. You can change it per guest in their card.';
+
+  @override
+  String get transport_assignAllOwn =>
+      'Assign all remaining guests to own transport';
+
+  @override
+  String transport_assignAllOwnToast(int count) {
+    return 'Assigned $count guests to own transport.';
+  }
+
+  @override
   String transport_seatsOf(int used, int total) {
     return '$used/$total seats';
   }
@@ -5637,6 +5653,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicle_other => 'Other';
 
   @override
+  String get vehicle_purposeChurch => 'Ride to the church';
+
+  @override
+  String get vehicle_purposeCouple => 'Couple\'s car';
+
+  @override
+  String get vehicle_purposeReception => 'Ride to the reception';
+
+  @override
+  String get vehicle_purposeOther => 'Other';
+
+  @override
   String get quiz_favouriteFilmGroom => 'The Groom\'s favourite film?';
 
   @override
@@ -6903,6 +6931,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tr_addToOwn => 'Add to own transport';
 
   @override
+  String tr_confirmSelection(int count) {
+    return 'Assign ($count)';
+  }
+
+  @override
+  String tr_seatsSelected(int selected, int free) {
+    return 'Selected $selected of $free free seats';
+  }
+
+  @override
   String get tr_typeHint => 'e.g. Jake\'s car, rented bus';
 
   @override
@@ -7485,6 +7523,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tr_typeRequired => 'Vehicle type / name *';
+
+  @override
+  String get tr_purposeLabel => 'Purpose (optional)';
 
   @override
   String get tr_departure => 'Departure time';

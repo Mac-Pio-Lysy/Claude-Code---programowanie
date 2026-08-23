@@ -2995,6 +2995,30 @@ abstract class AppLocalizations {
   /// **'Pokaż transport własny'**
   String get transport_showOwn;
 
+  /// No description provided for @transport_autoOwnToggle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nowi goście automatycznie na transport własny'**
+  String get transport_autoOwnToggle;
+
+  /// No description provided for @transport_autoOwnHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Każdy nowo dodany gość (i osoba towarzysząca) dostanie od razu transport własny. Możesz to zmienić pojedynczo w karcie gościa.'**
+  String get transport_autoOwnHint;
+
+  /// No description provided for @transport_assignAllOwn.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypisz wszystkich pozostałych do transportu własnego'**
+  String get transport_assignAllOwn;
+
+  /// No description provided for @transport_assignAllOwnToast.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypisano {count} gości do transportu własnego.'**
+  String transport_assignAllOwnToast(int count);
+
   /// No description provided for @transport_seatsOf.
   ///
   /// In pl, this message translates to:
@@ -9936,6 +9960,30 @@ abstract class AppLocalizations {
   /// **'Inne'**
   String get vehicle_other;
 
+  /// No description provided for @vehicle_purposeChurch.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dojazd do kościoła'**
+  String get vehicle_purposeChurch;
+
+  /// No description provided for @vehicle_purposeCouple.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pojazd Pary Młodej'**
+  String get vehicle_purposeCouple;
+
+  /// No description provided for @vehicle_purposeReception.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dojazd do wesela'**
+  String get vehicle_purposeReception;
+
+  /// No description provided for @vehicle_purposeOther.
+  ///
+  /// In pl, this message translates to:
+  /// **'Inny'**
+  String get vehicle_purposeOther;
+
   /// No description provided for @quiz_favouriteFilmGroom.
   ///
   /// In pl, this message translates to:
@@ -12042,6 +12090,18 @@ abstract class AppLocalizations {
   /// **'Dodaj do transportu własnego'**
   String get tr_addToOwn;
 
+  /// No description provided for @tr_confirmSelection.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypisz ({count})'**
+  String tr_confirmSelection(int count);
+
+  /// No description provided for @tr_seatsSelected.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wybrano {selected} z {free} wolnych miejsc'**
+  String tr_seatsSelected(int selected, int free);
+
   /// No description provided for @tr_typeHint.
   ///
   /// In pl, this message translates to:
@@ -13139,6 +13199,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Typ / nazwa pojazdu *'**
   String get tr_typeRequired;
+
+  /// No description provided for @tr_purposeLabel.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przeznaczenie (opcjonalnie)'**
+  String get tr_purposeLabel;
 
   /// No description provided for @tr_departure.
   ///

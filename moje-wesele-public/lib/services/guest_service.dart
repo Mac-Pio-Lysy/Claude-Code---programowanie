@@ -100,6 +100,12 @@ class GuestService {
       hasCompanion: draft.hasCompanion,
     );
 
+    // Ustawienie z sekcji Transport: nowo dodani goście dostają od razu
+    // transport własny. Czytane z TEGO SAMEGO odczytu — zero dodatkowego
+    // zapytania. Dotyczy WYŁĄCZNIE tworzenia — `updateGuest` tego nie rusza,
+    // więc nie nadpisuje transportu ustawionego już ręcznie przy edycji.
+    final autoOwnTransport = data['transportAutoOwn'] == true;
+
     final mainId = nextId++;
     final main = _baseGuest(mainId)
       ..addAll({
@@ -115,6 +121,7 @@ class GuestService {
         'needsAccommodation': draft.needsAccommodation,
         'menuChoice': draft.menuChoice,
         'isChild': draft.isChild,
+        if (autoOwnTransport) 'ownTransport': true,
       });
     guests.add(main);
 
@@ -122,14 +129,16 @@ class GuestService {
     // Także wtedy, gdy imię nie jest jeszcze znane: dzięki temu ma miejsce przy
     // stole i liczy się do cateringu, a dane uzupełnia się później.
     if (draft.hasCompanion) {
-      guests.add(buildCompanionRecord(
+      final companion = buildCompanionRecord(
         id: nextId++,
         draft: draft,
         inviterId: mainId,
         inviterLastName: draft.lastName,
         inviterCategory: draft.category,
         inviterInvitedBy: draft.invitedBy,
-      ));
+      );
+      if (autoOwnTransport) companion['ownTransport'] = true;
+      guests.add(companion);
     }
 
     await _firestore.mainDoc.set(

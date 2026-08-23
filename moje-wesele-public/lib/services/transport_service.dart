@@ -8,6 +8,7 @@ import 'firestore_service.dart';
 class VehicleDraft {
   VehicleDraft({
     required this.type,
+    this.purpose = '',
     required this.description,
     required this.driver,
     required this.seats,
@@ -17,6 +18,10 @@ class VehicleDraft {
   });
 
   final String type;
+
+  /// Przeznaczenie (kościół / Para Młoda / dojazd do wesela / inny) —
+  /// opcjonalne, niezależne od [type].
+  final String purpose;
   final String description;
   final String driver;
   final int seats;
@@ -26,6 +31,7 @@ class VehicleDraft {
 
   Map<String, dynamic> toFields() => {
         'type': type,
+        'purpose': purpose,
         'description': description,
         'driver': driver,
         'seats': seats,
@@ -110,6 +116,34 @@ class TransportService {
         .set({'vehicles': vehicles, 'guests': guests}, SetOptions(merge: true));
   }
 
+  /// Przypisuje KILKU gości naraz do jednego pojazdu — jeden odczyt i jeden
+  /// zapis dla całej paczki.
+  Future<void> assignGuestsToVehicle(
+      List<int> guestIds, int vehicleId) async {
+    if (guestIds.isEmpty) return;
+    final data = await _read();
+    final vehicles = _mapList(data['vehicles']);
+    final guests = _mapList(data['guests']);
+
+    for (final guestId in guestIds) {
+      // Usuń gościa ze wszystkich pojazdów (jak w wersji pojedynczej).
+      for (final v in vehicles) {
+        v['guestIds'] = _intList(v['guestIds'])..remove(guestId);
+      }
+      final g = _find(guests, guestId);
+      if (g != null) {
+        g['vehicleId'] = vehicleId;
+        g['ownTransport'] = false;
+      }
+    }
+    final v = _find(vehicles, vehicleId);
+    if (v != null) {
+      v['guestIds'] = [..._intList(v['guestIds']), ...guestIds];
+    }
+    await _firestore.mainDoc
+        .set({'vehicles': vehicles, 'guests': guests}, SetOptions(merge: true));
+  }
+
   /// Włącza/wyłącza „transport własny" dla gościa.
   Future<void> setGuestOwnTransport(int guestId, bool on) async {
     final data = await _read();
@@ -127,6 +161,56 @@ class TransportService {
     await _firestore.mainDoc
         .set({'vehicles': vehicles, 'guests': guests}, SetOptions(merge: true));
   }
+
+  /// Włącza/wyłącza „transport własny" dla KILKU gości naraz — jeden odczyt
+  /// i jeden zapis dla całej paczki.
+  Future<void> setGuestsOwnTransport(List<int> guestIds, bool on) async {
+    if (guestIds.isEmpty) return;
+    final data = await _read();
+    final vehicles = _mapList(data['vehicles']);
+    final guests = _mapList(data['guests']);
+
+    for (final guestId in guestIds) {
+      final g = _find(guests, guestId);
+      if (g == null) continue;
+      if (on) {
+        for (final v in vehicles) {
+          v['guestIds'] = _intList(v['guestIds'])..remove(guestId);
+        }
+        g['vehicleId'] = null;
+      }
+      g['ownTransport'] = on;
+    }
+    await _firestore.mainDoc
+        .set({'vehicles': vehicles, 'guests': guests}, SetOptions(merge: true));
+  }
+
+  /// Przypisuje WSZYSTKICH gości bez pojazdu i bez transportu własnego do
+  /// transportu własnego — jednym kliknięciem, jednym zapisem.
+  Future<int> assignAllUnassignedToOwnTransport() async {
+    final data = await _read();
+    final guests = _mapList(data['guests']);
+    final assigned = <int>{
+      for (final v in _mapList(data['vehicles'])) ..._intList(v['guestIds']),
+    };
+    var count = 0;
+    for (final g in guests) {
+      final id = _idOf(g);
+      if (id == null) continue;
+      if (assigned.contains(id)) continue;
+      if (g['ownTransport'] == true) continue;
+      g['ownTransport'] = true;
+      count++;
+    }
+    if (count == 0) return 0;
+    await _firestore.mainDoc.set({'guests': guests}, SetOptions(merge: true));
+    return count;
+  }
+
+  /// Czy nowo dodawani goście mają domyślnie dostawać transport własny
+  /// (odczytywane w `GuestService.addGuest` — NIE dotyczy edycji istniejących).
+  Future<void> setAutoOwnTransport(bool value) => _firestore.mainDoc
+      .set({'transportAutoOwn': value}, SetOptions(merge: true));
 
   // ── TRANSPORT WEWNĘTRZNY ─────────────────────────────────────────────
 

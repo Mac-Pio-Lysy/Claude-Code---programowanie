@@ -77,60 +77,119 @@ class _TransportScreenState extends State<TransportScreen> {
     await widget.service.updateVehicle(v.id!, draft);
   }
 
-  Future<void> _pickGuest(String title, List<Guest> options,
-      ValueChanged<int> onPick) async {
+  /// Wybór wielu gości naraz (multi-select). [maxSelectable] — gdy podane,
+  /// TWARDO ogranicza liczbę zaznaczeń (np. do wolnych miejsc w pojeździe);
+  /// `null` = bez limitu (np. dodawanie do transportu własnego).
+  Future<void> _pickGuest(
+    String title,
+    List<Guest> options,
+    ValueChanged<List<int>> onPick, {
+    int? maxSelectable,
+  }) async {
     if (options.isEmpty) {
       _toast(AppText.t.transport_noGuestsAvailable);
       return;
     }
-    final id = await showModalBottomSheet<int>(
+    final selected = await showModalBottomSheet<List<int>>(
       context: context,
       constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
       backgroundColor: Colors.white,
       showDragHandle: true,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(title,
-                    style: GoogleFonts.playfairDisplay(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.text)),
-              ),
-            ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
+      builder: (context) {
+        final picked = <int>{};
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final limit = maxSelectable;
+            final atLimit = limit != null && picked.length >= limit;
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final g in options)
-                    ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: AppColors.accent,
-                        child: Text(g.initials.toUpperCase(),
-                            style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white)),
-                      ),
-                      title: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName),
-                      onTap: () => Navigator.of(context).pop(g.id),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(title,
+                          style: GoogleFonts.playfairDisplay(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.text)),
                     ),
+                  ),
+                  if (limit != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          AppText.t.tr_seatsSelected(picked.length, limit),
+                          style: GoogleFonts.inter(
+                              fontSize: 12, color: AppColors.textLight),
+                        ),
+                      ),
+                    ),
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final g in options)
+                          CheckboxListTile(
+                            value: picked.contains(g.id),
+                            activeColor: AppColors.accent,
+                            secondary: CircleAvatar(
+                              backgroundColor: AppColors.accent,
+                              child: Text(g.initials.toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white)),
+                            ),
+                            title: Text(g.fullName.isEmpty
+                                ? AppText.t.common_noName
+                                : g.fullName),
+                            onChanged: g.id == null ||
+                                    (!picked.contains(g.id) && atLimit)
+                                ? null
+                                : (v) => setSheetState(() {
+                                      if (v == true) {
+                                        picked.add(g.id!);
+                                      } else {
+                                        picked.remove(g.id);
+                                      }
+                                    }),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: picked.isEmpty
+                            ? null
+                            : () =>
+                                Navigator.of(context).pop(picked.toList()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(AppText.t.tr_confirmSelection(picked.length)),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
-    if (id != null) onPick(id);
+    if (selected != null && selected.isNotEmpty) onPick(selected);
   }
 
   @override
@@ -194,6 +253,33 @@ class _TransportScreenState extends State<TransportScreen> {
                     value: _showOwn,
                     activeThumbColor: AppColors.accent,
                     onChanged: (v) => setState(() => _showOwn = v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.person_add_alt_1_outlined,
+                      size: 18, color: AppColors.textLight),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(AppText.t.transport_autoOwnToggle,
+                            style: GoogleFonts.inter(
+                                fontSize: 13, color: AppColors.text)),
+                        Text(AppText.t.transport_autoOwnHint,
+                            style: GoogleFonts.inter(
+                                fontSize: 11, color: AppColors.textLight)),
+                      ],
+                    ),
+                  ),
+                  Switch.adaptive(
+                    value: widget.data?.raw['transportAutoOwn'] == true,
+                    activeThumbColor: AppColors.accent,
+                    onChanged: widget.service.setAutoOwnTransport,
                   ),
                 ],
               ),
@@ -337,13 +423,15 @@ class _TransportScreenState extends State<TransportScreen> {
               ),
             ],
           ),
-          if (v.driver.isNotEmpty ||
+          if (v.purpose.isNotEmpty ||
+              v.driver.isNotEmpty ||
               v.route.isNotEmpty ||
               v.departureTime.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 2, bottom: 4),
               child: Text(
                 [
+                  if (v.purpose.isNotEmpty) '📍 ${v.purpose}',
                   if (v.driver.isNotEmpty) '👤 ${v.driver}',
                   if (v.route.isNotEmpty) AppText.t.tr_route(v.route),
                   if (v.departureTime.isNotEmpty) '🕐 ${v.departureTime}',
@@ -367,7 +455,9 @@ class _TransportScreenState extends State<TransportScreen> {
                   onPressed: () => _pickGuest(
                     AppText.t.tr_assignTo(v.type),
                     available,
-                    (gid) => widget.service.assignGuestToVehicle(gid, v.id),
+                    (ids) =>
+                        widget.service.assignGuestsToVehicle(ids, v.id ?? 0),
+                    maxSelectable: v.freeSeats,
                   ),
                   backgroundColor: const Color(0xFFEEF3FF),
                   side: BorderSide.none,
@@ -404,7 +494,7 @@ class _TransportScreenState extends State<TransportScreen> {
             onPressed: () => _pickGuest(
               AppText.t.tr_addToOwn,
               unassigned,
-              (gid) => widget.service.setGuestOwnTransport(gid, true),
+              (ids) => widget.service.setGuestsOwnTransport(ids, true),
             ),
             icon: const Icon(Icons.add, size: 18),
             label: Text(AppText.t.transport_addGuest),
@@ -425,23 +515,47 @@ class _TransportScreenState extends State<TransportScreen> {
           ? Text(AppText.t.transport_allAssigned,
               style: GoogleFonts.inter(
                   fontSize: 12, color: const Color(0xFF059669)))
-          : Wrap(
-              spacing: 6,
-              runSpacing: 6,
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final g in unassigned)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFF),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFDCE4F2)),
-                    ),
-                    child: Text(g.fullName.isEmpty ? AppText.t.common_noName : g.fullName,
-                        style: GoogleFonts.inter(
-                            fontSize: 12, color: AppColors.text)),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final g in unassigned)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFF),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFDCE4F2)),
+                        ),
+                        child: Text(
+                            g.fullName.isEmpty
+                                ? AppText.t.common_noName
+                                : g.fullName,
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: AppColors.text)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final n =
+                        await widget.service.assignAllUnassignedToOwnTransport();
+                    if (mounted) {
+                      _toast(AppText.t.transport_assignAllOwnToast(n));
+                    }
+                  },
+                  icon: const Icon(Icons.directions_walk, size: 18),
+                  label: Text(AppText.t.transport_assignAllOwn),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
                   ),
+                ),
               ],
             ),
     );

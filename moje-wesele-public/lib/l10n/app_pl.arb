@@ -950,6 +950,17 @@
   "transport_vehicleAdded": "Dodano pojazd",
   "transport_noGuestsAvailable": "Brak dostępnych gości",
   "transport_showOwn": "Pokaż transport własny",
+  "transport_autoOwnToggle": "Nowi goście automatycznie na transport własny",
+  "transport_autoOwnHint": "Każdy nowo dodany gość (i osoba towarzysząca) dostanie od razu transport własny. Możesz to zmienić pojedynczo w karcie gościa.",
+  "transport_assignAllOwn": "Przypisz wszystkich pozostałych do transportu własnego",
+  "transport_assignAllOwnToast": "Przypisano {count} gości do transportu własnego.",
+  "@transport_assignAllOwnToast": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "transport_seatsOf": "{used}/{total} miejsc",
   "@transport_seatsOf": {
     "placeholders": {
@@ -3519,6 +3530,10 @@
   "vehicle_bus": "Bus",
   "vehicle_taxi": "Taxi/Uber",
   "vehicle_other": "Inne",
+  "vehicle_purposeChurch": "Dojazd do kościoła",
+  "vehicle_purposeCouple": "Pojazd Pary Młodej",
+  "vehicle_purposeReception": "Dojazd do wesela",
+  "vehicle_purposeOther": "Inny",
   "quiz_favouriteFilmGroom": "Ulubiony film Pana Młodego?",
   "quiz_favouriteFilmNamed": "Ulubiony film ({person})?",
   "@quiz_favouriteFilmNamed": {
@@ -4365,6 +4380,25 @@
     }
   },
   "tr_addToOwn": "Dodaj do transportu własnego",
+  "tr_confirmSelection": "Przypisz ({count})",
+  "@tr_confirmSelection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tr_seatsSelected": "Wybrano {selected} z {free} wolnych miejsc",
+  "@tr_seatsSelected": {
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "free": {
+        "type": "int"
+      }
+    }
+  },
   "tr_typeHint": "np. Pojazd Kuby, Bus wynajęty",
   "tr_needType": "Podaj typ/nazwę",
   "tr_driverName": "Imię kierowcy",
@@ -4658,6 +4692,7 @@
   "tr_editVehicle": "Edytuj pojazd",
   "tr_addVehicle": "Dodaj pojazd",
   "tr_typeRequired": "Typ / nazwa pojazdu *",
+  "tr_purposeLabel": "Przeznaczenie (opcjonalnie)",
   "tr_departure": "Godzina odjazdu",
   "vf_customCategoryHint": "np. Animator",
   "vf_companyRequired": "Nazwa firmy *",
