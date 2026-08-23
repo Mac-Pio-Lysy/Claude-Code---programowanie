@@ -13,12 +13,14 @@ import '../../l10n/app_localizations.dart';
 import '../../l10n/language_picker.dart';
 import '../../l10n/app_text.dart';
 import '../../l10n/locale_controller.dart';
+import '../../models/children.dart';
 import '../../models/couple.dart';
 import '../../models/currency.dart';
 import '../../models/wedding_data.dart';
 import '../../services/backup_service.dart';
 import '../../services/config_service.dart';
 import '../../services/firestore_service.dart';
+import '../../services/guest_service.dart';
 import '../../services/legacy_migration_service.dart';
 import '../../services/wedding_service.dart';
 import '../../utils/app_format.dart';
@@ -268,77 +270,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Text(AppText.t.settings_title,
-              style: GoogleFonts.playfairDisplay(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.text)),
-        ),
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-            children: [
-              _syncCard(),
-              const SizedBox(height: 12),
-              _displayModeCard(),
-              const SizedBox(height: 12),
-              _helpCard(),
-              const SizedBox(height: 12),
-              _guestVisibilityCard(),
-              const SizedBox(height: 12),
-              _invitationsCard(),
-              const SizedBox(height: 12),
-              _joinCodeCard(),
-              const SizedBox(height: 12),
-              _guestLinkCard(),
-              const SizedBox(height: 12),
-              _guestInteractionsCard(),
-              const SizedBox(height: 12),
-              // „Osoby i dostęp" — TYLKO dla właściciela (owner).
-              if (widget.isOwner) ...[
-                _peopleAccessCard(),
-                const SizedBox(height: 12),
-                _legacyMigrationCard(),
-                const SizedBox(height: 12),
+    final tabs = [
+      AppText.t.settings_tabWedding,
+      AppText.t.settings_tabGuests,
+      AppText.t.settings_tabAccount,
+      AppText.t.settings_tabApp,
+      AppText.t.settings_tabHelp,
+    ];
+    return DefaultTabController(
+      length: tabs.length,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Text(AppText.t.settings_title,
+                style: GoogleFonts.playfairDisplay(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.text)),
+          ),
+          const SizedBox(height: 12),
+          TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: AppColors.accent,
+            unselectedLabelColor: AppColors.textLight,
+            indicatorColor: AppColors.accent,
+            dividerColor: const Color(0xFFE2EAF7),
+            labelStyle:
+                GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w700),
+            unselectedLabelStyle:
+                GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500),
+            tabs: [for (final t in tabs) Tab(text: t)],
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _tabList([
+                  _configCard(),
+                  _budgetSettingsCard(),
+                  _childrenDataCard(),
+                  _syncCard(),
+                  if (widget.isOwner) _legacyMigrationCard(),
+                ]),
+                _tabList([
+                  _guestInteractionsCard(),
+                  _guestLinkCard(),
+                  _joinCodeCard(),
+                  _invitationsCard(),
+                  _guestVisibilityCard(),
+                ]),
+                _tabList([
+                  _loginCard(),
+                  // „Osoby i dostęp" — TYLKO dla właściciela (owner).
+                  if (widget.isOwner) _peopleAccessCard(),
+                  _accessCard(),
+                ]),
+                _tabList([
+                  _languageCard(),
+                  _displayModeCard(),
+                  _notificationsCard(),
+                ]),
+                _tabList([
+                  _helpCard(),
+                  _devCard(),
+                ]),
               ],
-              _languageCard(),
-              const SizedBox(height: 12),
-              _notificationsCard(),
-              const SizedBox(height: 12),
-              _loginCard(),
-              const SizedBox(height: 12),
-              _configCard(),
-              const SizedBox(height: 12),
-              _budgetSettingsCard(),
-              const SizedBox(height: 12),
-              _accessCard(),
-              const SizedBox(height: 12),
-              _devCard(),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: widget.onSignOut,
-                  icon: const Icon(Icons.logout),
-                  label: Text(AppText.t.settings_logoutButton),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFC0392B),
-                    side: const BorderSide(color: Color(0xFFE9A8A8)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: widget.onSignOut,
+                icon: const Icon(Icons.logout),
+                label: Text(AppText.t.settings_logoutButton),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFC0392B),
+                  side: const BorderSide(color: Color(0xFFE9A8A8)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
+
+  /// Lista kart jednej podzakładki Ustawień — spójny odstęp, bez powtarzania
+  /// `SizedBox` między każdą kartą przy wywołaniu.
+  Widget _tabList(List<Widget> cards) => ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        children: [
+          for (final c in cards) ...[c, const SizedBox(height: 12)],
+        ],
+      );
 
   Widget _syncCard() {
     final ok = widget.data != null;
@@ -1701,6 +1730,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _toast(AppText.t.settings_budgetSaved);
     } catch (e) {
       _toast(AppText.t.common_saveErrorToast('$e'));
+    }
+  }
+
+  /// Karta „Dane o dzieciach" — jedyne miejsce TRWAŁEGO usunięcia (w
+  /// odróżnieniu od przełącznika „wesele z dziećmi" w Budżecie, który tylko
+  /// ukrywa dane, nic nie kasując — patrz [ChildrenSettings]).
+  Widget _childrenDataCard() {
+    final bd = widget.data?.raw['budgetData'];
+    final budget = bd is Map ? bd : const <String, dynamic>{};
+    final guests = widget.data?.guests ?? const [];
+    final children = ChildrenSettings.from(budget, guests);
+    final hasData = children.fromGuests > 0 || children.manualCount > 0;
+
+    return _card(
+      AppText.t.settings_childrenDataCard,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppText.t.settings_childrenDataHint,
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            AppText.t.settings_childrenDataCount('${children.fromGuests}'),
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: hasData ? _confirmDeleteChildrenData : null,
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: Text(AppText.t.settings_childrenDataButton),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFFC0392B),
+                side: const BorderSide(color: Color(0xFFE9A8A8)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteChildrenData() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(AppText.t.settings_childrenDataConfirmTitle,
+            style: GoogleFonts.playfairDisplay(
+                fontSize: 18, fontWeight: FontWeight.w700)),
+        content: Text(AppText.t.settings_childrenDataConfirmBody,
+            style: GoogleFonts.inter(fontSize: 13.5, height: 1.45)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppText.t.common_cancel),
+          ),
+          FilledButton(
+            style:
+                FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(AppText.t.settings_childrenDataConfirmButton),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      await GuestService(firestore: widget.firestore).clearChildrenData();
+      if (mounted) _toast(AppText.t.settings_childrenDataDeleted);
+    } catch (e) {
+      if (mounted) _toast(AppText.t.common_saveErrorToast('$e'));
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../app_colors.dart';
 import '../../layout/responsive.dart';
@@ -115,6 +116,8 @@ class _PeopleAccessScreenState extends State<PeopleAccessScreen> {
               style:
                   GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
             ),
+            const SizedBox(height: 16),
+            QrImageView(data: code, size: 160),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../l10n/app_text.dart';
+import '../l10n/locale_controller.dart';
 
 /// Uwierzytelnianie przez Google — odpowiednik zrodlo-web/auth.js.
 ///
@@ -118,6 +119,7 @@ class AuthService {
       password: password,
     );
     try {
+      _syncAuthLanguage();
       await credential.user?.sendEmailVerification();
     } catch (_) {
       // Best-effort — rejestracja i tak się powiodła.
@@ -125,13 +127,25 @@ class AuthService {
     return credential;
   }
 
+  /// Ustawia język maili Firebase Auth (weryfikacja, reset hasła) wg
+  /// bieżącego języka aplikacji — treść samych szablonów konfiguruje się
+  /// w Firebase Console (Authentication → Templates), to tylko wybór wariantu.
+  void _syncAuthLanguage() {
+    _auth.setLanguageCode(
+      LocaleController.locale.value?.languageCode ??
+          LocaleController.fallback.languageCode,
+    );
+  }
+
   /// Logowanie e-mailem i hasłem.
   Future<UserCredential> signInWithEmail(String email, String password) =>
       _auth.signInWithEmailAndPassword(email: email, password: password);
 
   /// Wysyłka maila do resetu hasła (konto e-mail/hasło).
-  Future<void> sendPasswordResetEmail(String email) =>
-      _auth.sendPasswordResetEmail(email: email);
+  Future<void> sendPasswordResetEmail(String email) {
+    _syncAuthLanguage();
+    return _auth.sendPasswordResetEmail(email: email);
+  }
 
   Future<void> signOut() async {
     if (!kIsWeb) {

@@ -66,6 +66,21 @@ class AppLocalizationsPl extends AppLocalizations {
   String get settings_title => 'Ustawienia';
 
   @override
+  String get settings_tabWedding => 'Wesele';
+
+  @override
+  String get settings_tabGuests => 'Goście';
+
+  @override
+  String get settings_tabAccount => 'Konto i dostęp';
+
+  @override
+  String get settings_tabApp => 'Aplikacja';
+
+  @override
+  String get settings_tabHelp => 'Pomoc i zaawansowane';
+
+  @override
   String get settings_configCard => 'Konfiguracja';
 
   @override
@@ -662,7 +677,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get budget_reserveHint =>
-      'Rezerwę ustawisz w Ustawieniach → „Ustawienia budżetu”.';
+      'Zapas ponad budżet główny — liczony osobno, zużywany dopiero, gdy koszty go przekroczą.';
 
   @override
   String get budget_saveButton => 'Zapisz budżet';
@@ -913,6 +928,15 @@ class AppLocalizationsPl extends AppLocalizations {
   String budget_childrenMismatch(String fromGuests, String manual) {
     return 'Na liście gości oznaczono $fromGuests, a tu wpisano $manual. Sprawdź, która liczba jest właściwa.';
   }
+
+  @override
+  String budget_childrenHiddenInfo(String count) {
+    return 'Dane dzieci są zachowane ($count oznaczonych na liście gości), tylko nie liczą się teraz do budżetu. Włącz przełącznik, żeby wróciły do wyliczeń.';
+  }
+
+  @override
+  String get budget_childrenHiddenDeleteHint =>
+      'Trwałe usunięcie: Ustawienia → Wesele.';
 
   @override
   String get budget_childMenuSeparate => 'Czy dla dzieci jest oddzielne menu?';
@@ -1483,6 +1507,10 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get budget_menuAddons => 'Dodatki do menu (per osoba)';
+
+  @override
+  String get budget_menuAddonsAlcoholNote =>
+      'Alkohol i napoje bezalkoholowe liczone są w osobnych sekcjach (Budżet → Alkohol / Napoje).';
 
   @override
   String get budget_includeInVenueCost => 'Wliczaj w koszt sali';
@@ -3259,6 +3287,34 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get settings_budgetCard => 'Ustawienia budżetu';
+
+  @override
+  String get settings_childrenDataCard => 'Dane o dzieciach';
+
+  @override
+  String get settings_childrenDataHint =>
+      'Wyłączenie „wesele z dziećmi” w budżecie tylko ukrywa dane — nic nie usuwa. Tu możesz je skasować na trwałe.';
+
+  @override
+  String settings_childrenDataCount(String count) {
+    return '$count gości oznaczonych jako dziecko.';
+  }
+
+  @override
+  String get settings_childrenDataButton => 'Usuń dane o dzieciach';
+
+  @override
+  String get settings_childrenDataConfirmTitle => 'Usunąć dane o dzieciach?';
+
+  @override
+  String get settings_childrenDataConfirmBody =>
+      'To usunie oznaczenie „dziecko” u wszystkich gości oraz liczbę i ustawienia dzieci w budżecie. Tej operacji NIE MOŻNA cofnąć.';
+
+  @override
+  String get settings_childrenDataConfirmButton => 'Usuń trwale';
+
+  @override
+  String get settings_childrenDataDeleted => 'Dane o dzieciach usunięte.';
 
   @override
   String get settings_budgetHint =>

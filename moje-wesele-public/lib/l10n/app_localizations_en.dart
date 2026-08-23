@@ -65,6 +65,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_title => 'Settings';
 
   @override
+  String get settings_tabWedding => 'Wedding';
+
+  @override
+  String get settings_tabGuests => 'Guests';
+
+  @override
+  String get settings_tabAccount => 'Account & access';
+
+  @override
+  String get settings_tabApp => 'App';
+
+  @override
+  String get settings_tabHelp => 'Help & advanced';
+
+  @override
   String get settings_configCard => 'Configuration';
 
   @override
@@ -660,7 +675,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budget_reserveHint =>
-      'Set the reserve in Settings → „Budget settings”.';
+      'A buffer on top of the main budget — counted separately, used only once costs exceed it.';
 
   @override
   String get budget_saveButton => 'Save budget';
@@ -911,6 +926,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String budget_childrenMismatch(String fromGuests, String manual) {
     return 'The guest list has $fromGuests marked, but $manual entered here. Check which number is right.';
   }
+
+  @override
+  String budget_childrenHiddenInfo(String count) {
+    return 'Children\'s data is kept ($count marked on the guest list) — it just doesn\'t count toward the budget right now. Turn the switch back on to bring it back into the calculations.';
+  }
+
+  @override
+  String get budget_childrenHiddenDeleteHint =>
+      'Permanent deletion: Settings → Wedding.';
 
   @override
   String get budget_childMenuSeparate => 'Separate meal for children?';
@@ -1481,6 +1505,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get budget_menuAddons => 'Menu add-ons (per person)';
+
+  @override
+  String get budget_menuAddonsAlcoholNote =>
+      'Alcohol and soft drinks are counted in their own sections (Budget → Alcohol / Soft drinks).';
 
   @override
   String get budget_includeInVenueCost => 'Include in the venue cost';
@@ -3250,6 +3278,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_budgetCard => 'Budget settings';
+
+  @override
+  String get settings_childrenDataCard => 'Children\'s data';
+
+  @override
+  String get settings_childrenDataHint =>
+      'Turning off \"wedding with children\" in the budget only hides the data — it deletes nothing. Here you can delete it permanently.';
+
+  @override
+  String settings_childrenDataCount(String count) {
+    return '$count guests marked as a child.';
+  }
+
+  @override
+  String get settings_childrenDataButton => 'Delete children\'s data';
+
+  @override
+  String get settings_childrenDataConfirmTitle => 'Delete children\'s data?';
+
+  @override
+  String get settings_childrenDataConfirmBody =>
+      'This removes the \"child\" mark from every guest and clears the children count and settings in the budget. This CANNOT be undone.';
+
+  @override
+  String get settings_childrenDataConfirmButton => 'Delete permanently';
+
+  @override
+  String get settings_childrenDataDeleted => 'Children\'s data deleted.';
 
   @override
   String get settings_budgetHint =>

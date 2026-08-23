@@ -7,6 +7,7 @@ import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import 'budget_fields.dart';
+import 'sala_breakdown_rows.dart';
 import '../../l10n/app_text.dart';
 import '../../utils/app_format.dart';
 
@@ -169,6 +170,33 @@ class SalaTab extends StatelessWidget {
                     bold: true),
               ),
             ],
+          ] else if (s.children.fromGuests > 0) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFF),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFDCE4F2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppText.t.budget_childrenHiddenInfo(
+                        '${s.children.fromGuests}'),
+                    style: GoogleFonts.inter(
+                        fontSize: 12.5, color: AppColors.text),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppText.t.budget_childrenHiddenDeleteHint,
+                    style: GoogleFonts.inter(
+                        fontSize: 11, color: AppColors.textLight),
+                  ),
+                ],
+              ),
+            ),
           ],
         ],
       ),
@@ -490,6 +518,17 @@ class SalaTab extends StatelessWidget {
       trailing: _addButton(() => service.addMenuAddon()),
       child: Column(
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Text(
+                AppText.t.budget_menuAddonsAlcoholNote,
+                style: GoogleFonts.inter(
+                    fontSize: 11.5, color: AppColors.textLight),
+              ),
+            ),
+          ),
           if (addons.isEmpty)
             _emptyHint(AppText.t.budget_noAddons)
           else
@@ -577,36 +616,7 @@ class SalaTab extends StatelessWidget {
   Widget _summaryCard(SalaSummary s) {
     return _card(
       title: AppText.t.budget_venueSummary,
-      child: Column(
-        children: [
-          _infoRow(AppText.t.budget_guestsCostCount(s.effectiveGuestCount.round()),
-              formatPlnZl(s.guestCost)),
-          if (s.childMenuSeparate && s.childBilledCount > 0)
-            _infoRow(
-                'w tym menu dzieci (${s.childBilledCount.round()} os.)',
-                formatPlnZl(s.childMenuTotal)),
-          if (s.virtualGuests > 0)
-            _infoRow(AppText.t.budget_virtualCostCount(s.virtualGuests.round()),
-                formatPlnZl(s.virtualCost)),
-          _infoRow(
-              s.staffCalcMode != StaffCalcMode.headcount
-                  ? AppText.t.budget_staffCost
-                  : s.includeStaff
-                      ? AppText.t.budget_staffCostCount(
-                          s.staffCostPersonCount.round())
-                      : AppText.t.budget_staffCostCountExcluded(
-                          s.staffCostPersonCount.round()),
-              formatPlnZl(s.staffCost)),
-          _infoRow(AppText.t.sala_menuExtras, formatPlnZl(s.menuAddonsTotal)),
-          _infoRow(AppText.t.budget_tableDecorTotal, formatPlnZl(s.tableDecoTotal)),
-          if (s.cateringSeparate)
-            _infoRow(AppText.t.sala_separateCatering,
-                formatPlnZl(s.cateringSeparateTotal)),
-          const Divider(height: 20),
-          _infoRow(AppText.t.sala_venueTotal, formatPlnZl(s.cateringTotal),
-              bold: true, big: true),
-        ],
-      ),
+      child: SalaBreakdownRows(s: s),
     );
   }
 

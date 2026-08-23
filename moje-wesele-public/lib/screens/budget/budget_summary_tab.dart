@@ -3,10 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
 import '../../models/budget_summary.dart';
+import '../../models/sala_summary.dart';
 import '../../models/wedding_data.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
+import 'budget_fields.dart';
 import 'payments_tab.dart';
+import 'sala_breakdown_rows.dart';
 import '../../l10n/app_text.dart';
 import '../../utils/app_format.dart';
 
@@ -131,11 +134,6 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
               color: AppColors.text,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            AppText.t.budget_reserveHint,
-            style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
-          ),
           const SizedBox(height: 10),
           TextField(
             controller: _budgetCtrl,
@@ -183,6 +181,21 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
                 ),
               ),
               child: Text(AppText.t.budget_saveButton),
+            ),
+          ),
+          const SizedBox(height: 16),
+          BudgetNumberField(
+            key: const ValueKey('reserve'),
+            label: AppText.t.settings_budgetReserve(AppFormat.currency.symbol),
+            suffix: AppFormat.currency.symbol,
+            initial: widget.summary.reserve,
+            onSaved: widget.service.setReserve,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, left: 2),
+            child: Text(
+              AppText.t.budget_reserveHint,
+              style: GoogleFonts.inter(fontSize: 11, color: AppColors.textLight),
             ),
           ),
         ],
@@ -286,10 +299,19 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           // ── Budżet rzeczywisty (faktyczne koszty) ──
           _valueRow(AppText.t.budget_actual, formatPlnZl(s.actualCost),
               const Color(0xFFEA580C)),
-          if (s.catering > 0)
+          if (s.catering > 0) ...[
             _valueRow(AppText.t.bs_ofWhichVenue, formatPlnZl(s.catering),
                 AppColors.textLight,
                 small: true),
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 2, bottom: 2),
+              child: SalaBreakdownRows(
+                s: SalaSummary.from(widget.data),
+                showTotal: false,
+                compact: true,
+              ),
+            ),
+          ],
           _valueRow(AppText.t.budget_ofWhichPaid, formatPlnZl(s.totalPaid),
               const Color(0xFF059669),
               small: true),

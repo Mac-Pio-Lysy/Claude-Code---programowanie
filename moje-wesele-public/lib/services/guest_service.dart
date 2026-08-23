@@ -596,6 +596,32 @@ class GuestService {
     }
   }
 
+  /// Trwałe usunięcie oznaczeń „dziecko" ze WSZYSTKICH gości oraz wyzerowanie
+  /// pól budżetowych dzieci (`childrenCount`, `childMenuSeparate`,
+  /// `childMenuPricePerPerson`). NIEODWRACALNE — wołane wyłącznie po wyraźnym
+  /// potwierdzeniu w UI (Ustawienia → Wesele).
+  ///
+  /// Samo wyłączenie „wesele z dziećmi" (`BudgetService.setWithChildren`)
+  /// NIE kasuje danych — tylko przestaje je liczyć do budżetu. Ta metoda jest
+  /// jedynym miejscem faktycznego, trwałego usunięcia.
+  Future<void> clearChildrenData() async {
+    final data = await _firestore.readData() ?? <String, dynamic>{};
+    final guests = _mapList(data['guests']);
+    for (var i = 0; i < guests.length; i++) {
+      if (guests[i]['isChild'] == true) {
+        guests[i] = {...guests[i], 'isChild': false};
+      }
+    }
+    await _firestore.mainDoc.set({
+      'guests': guests,
+      'budgetData': {
+        'childrenCount': 0,
+        'childMenuSeparate': false,
+        'childMenuPricePerPerson': 0,
+      },
+    }, SetOptions(merge: true));
+  }
+
   // ── Pomocnicze ─────────────────────────────────────────────────────────
 
   /// Domyślny szablon gościa — odpowiednik `_newGuestBase()` + stałe pola.

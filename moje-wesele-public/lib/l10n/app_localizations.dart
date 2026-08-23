@@ -188,6 +188,36 @@ abstract class AppLocalizations {
   /// **'Ustawienia'**
   String get settings_title;
 
+  /// No description provided for @settings_tabWedding.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wesele'**
+  String get settings_tabWedding;
+
+  /// No description provided for @settings_tabGuests.
+  ///
+  /// In pl, this message translates to:
+  /// **'Goście'**
+  String get settings_tabGuests;
+
+  /// No description provided for @settings_tabAccount.
+  ///
+  /// In pl, this message translates to:
+  /// **'Konto i dostęp'**
+  String get settings_tabAccount;
+
+  /// No description provided for @settings_tabApp.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aplikacja'**
+  String get settings_tabApp;
+
+  /// No description provided for @settings_tabHelp.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pomoc i zaawansowane'**
+  String get settings_tabHelp;
+
   /// No description provided for @settings_configCard.
   ///
   /// In pl, this message translates to:
@@ -1295,7 +1325,7 @@ abstract class AppLocalizations {
   /// No description provided for @budget_reserveHint.
   ///
   /// In pl, this message translates to:
-  /// **'Rezerwę ustawisz w Ustawieniach → „Ustawienia budżetu”.'**
+  /// **'Zapas ponad budżet główny — liczony osobno, zużywany dopiero, gdy koszty go przekroczą.'**
   String get budget_reserveHint;
 
   /// No description provided for @budget_saveButton.
@@ -1747,6 +1777,18 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Na liście gości oznaczono {fromGuests}, a tu wpisano {manual}. Sprawdź, która liczba jest właściwa.'**
   String budget_childrenMismatch(String fromGuests, String manual);
+
+  /// No description provided for @budget_childrenHiddenInfo.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dane dzieci są zachowane ({count} oznaczonych na liście gości), tylko nie liczą się teraz do budżetu. Włącz przełącznik, żeby wróciły do wyliczeń.'**
+  String budget_childrenHiddenInfo(String count);
+
+  /// No description provided for @budget_childrenHiddenDeleteHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Trwałe usunięcie: Ustawienia → Wesele.'**
+  String get budget_childrenHiddenDeleteHint;
 
   /// No description provided for @budget_childMenuSeparate.
   ///
@@ -2772,6 +2814,12 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Dodatki do menu (per osoba)'**
   String get budget_menuAddons;
+
+  /// No description provided for @budget_menuAddonsAlcoholNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Alkohol i napoje bezalkoholowe liczone są w osobnych sekcjach (Budżet → Alkohol / Napoje).'**
+  String get budget_menuAddonsAlcoholNote;
 
   /// No description provided for @budget_includeInVenueCost.
   ///
@@ -5860,6 +5908,54 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Ustawienia budżetu'**
   String get settings_budgetCard;
+
+  /// No description provided for @settings_childrenDataCard.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dane o dzieciach'**
+  String get settings_childrenDataCard;
+
+  /// No description provided for @settings_childrenDataHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyłączenie „wesele z dziećmi” w budżecie tylko ukrywa dane — nic nie usuwa. Tu możesz je skasować na trwałe.'**
+  String get settings_childrenDataHint;
+
+  /// No description provided for @settings_childrenDataCount.
+  ///
+  /// In pl, this message translates to:
+  /// **'{count} gości oznaczonych jako dziecko.'**
+  String settings_childrenDataCount(String count);
+
+  /// No description provided for @settings_childrenDataButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń dane o dzieciach'**
+  String get settings_childrenDataButton;
+
+  /// No description provided for @settings_childrenDataConfirmTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usunąć dane o dzieciach?'**
+  String get settings_childrenDataConfirmTitle;
+
+  /// No description provided for @settings_childrenDataConfirmBody.
+  ///
+  /// In pl, this message translates to:
+  /// **'To usunie oznaczenie „dziecko” u wszystkich gości oraz liczbę i ustawienia dzieci w budżecie. Tej operacji NIE MOŻNA cofnąć.'**
+  String get settings_childrenDataConfirmBody;
+
+  /// No description provided for @settings_childrenDataConfirmButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Usuń trwale'**
+  String get settings_childrenDataConfirmButton;
+
+  /// No description provided for @settings_childrenDataDeleted.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dane o dzieciach usunięte.'**
+  String get settings_childrenDataDeleted;
 
   /// No description provided for @settings_budgetHint.
   ///

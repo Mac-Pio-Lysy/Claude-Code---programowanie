@@ -54,6 +54,11 @@
     }
   },
   "settings_title": "Ustawienia",
+  "settings_tabWedding": "Wesele",
+  "settings_tabGuests": "Goście",
+  "settings_tabAccount": "Konto i dostęp",
+  "settings_tabApp": "Aplikacja",
+  "settings_tabHelp": "Pomoc i zaawansowane",
   "settings_configCard": "Konfiguracja",
   "settings_languageCard": "Język i region",
   "@settings_languageCard": {
@@ -393,7 +398,7 @@
   "budget_tabSoft": "Napoje bezalkoholowe",
   "budget_tabHoneymoon": "Podróż poślubna",
   "budget_planned": "Budżet planowany",
-  "budget_reserveHint": "Rezerwę ustawisz w Ustawieniach → „Ustawienia budżetu”.",
+  "budget_reserveHint": "Zapas ponad budżet główny — liczony osobno, zużywany dopiero, gdy koszty go przekroczą.",
   "budget_saveButton": "Zapisz budżet",
   "budget_savedToast": "Zapisano budżet",
   "budget_invalidAmount": "Nieprawidłowa kwota",
@@ -521,6 +526,15 @@
   "budget_childrenFromGuests": "Liczba dzieci (z listy gości)",
   "budget_childrenCount": "Liczba dzieci",
   "budget_childrenMismatch": "Na liście gości oznaczono {fromGuests}, a tu wpisano {manual}. Sprawdź, która liczba jest właściwa.",
+  "budget_childrenHiddenInfo": "Dane dzieci są zachowane ({count} oznaczonych na liście gości), tylko nie liczą się teraz do budżetu. Włącz przełącznik, żeby wróciły do wyliczeń.",
+  "@budget_childrenHiddenInfo": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "budget_childrenHiddenDeleteHint": "Trwałe usunięcie: Ustawienia → Wesele.",
   "@budget_childrenMismatch": {
     "placeholders": {
       "fromGuests": {
@@ -871,6 +885,7 @@
   "budget_cateringAddons": "Dodatki cateringu (per osoba)",
   "budget_cateringSeparateAsk": "Czy catering jest oddzielny?",
   "budget_menuAddons": "Dodatki do menu (per osoba)",
+  "budget_menuAddonsAlcoholNote": "Alkohol i napoje bezalkoholowe liczone są w osobnych sekcjach (Budżet → Alkohol / Napoje).",
   "budget_includeInVenueCost": "Wliczaj w koszt sali",
   "checklist_newItem": "Nowa pozycja — {category}",
   "@checklist_newItem": {
@@ -1877,6 +1892,21 @@
   "settings_expenseCategories": "Kategorie wydatków (po jednym w linii)",
   "settings_saveConfig": "Zapisz konfigurację",
   "settings_budgetCard": "Ustawienia budżetu",
+  "settings_childrenDataCard": "Dane o dzieciach",
+  "settings_childrenDataHint": "Wyłączenie „wesele z dziećmi” w budżecie tylko ukrywa dane — nic nie usuwa. Tu możesz je skasować na trwałe.",
+  "settings_childrenDataCount": "{count} gości oznaczonych jako dziecko.",
+  "@settings_childrenDataCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_childrenDataButton": "Usuń dane o dzieciach",
+  "settings_childrenDataConfirmTitle": "Usunąć dane o dzieciach?",
+  "settings_childrenDataConfirmBody": "To usunie oznaczenie „dziecko” u wszystkich gości oraz liczbę i ustawienia dzieci w budżecie. Tej operacji NIE MOŻNA cofnąć.",
+  "settings_childrenDataConfirmButton": "Usuń trwale",
+  "settings_childrenDataDeleted": "Dane o dzieciach usunięte.",
   "settings_budgetHint": "Budżet planowany to kwota założona na start. Rezerwa to opcjonalny bufor na nieprzewidziane wydatki — doliczany do planowanego jako bezpiecznik.",
   "settings_budgetPlanned": "Budżet planowany ({currency})",
   "@settings_budgetPlanned": {

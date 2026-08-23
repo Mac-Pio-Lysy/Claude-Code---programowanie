@@ -67,6 +67,11 @@ class BudgetService {
 
   Future<void> setTotalBudget(num value) => _mergeBudget({'total': value});
 
+  /// Rezerwa (bufor) — zapas ponad budżet główny, liczony osobno. Ta sama
+  /// ścieżka zapisu co reszta budżetu; ten sam efekt co pole „Rezerwa" w
+  /// Ustawieniach → „Ustawienia budżetu" (`ConfigService.saveBudgetSettings`).
+  Future<void> setReserve(num value) => _mergeBudget({'reserve': value});
+
   Future<void> setPricePerPerson(num value) =>
       _mergeBudget({'pricePerPerson': value});
 

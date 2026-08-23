@@ -8,6 +8,7 @@ import '../../services/user_service.dart';
 import '../../services/wedding_service.dart';
 import 'create_wedding_sheet.dart';
 import 'join_wedding_screen.dart';
+import 'qr_scan_screen.dart';
 import '../../utils/app_format.dart';
 import '../../l10n/app_text.dart';
 import '../../models/join_code.dart';
@@ -222,20 +223,48 @@ class _WeddingsListScreenState extends State<WeddingsListScreen> {
                   GoogleFonts.inter(fontSize: 13, color: AppColors.textLight),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: codeCtrl,
-              textCapitalization: TextCapitalization.characters,
-              inputFormatters: [
-                UpperCaseFormatter(),
-                JoinCodeDashFormatter(),
-                LengthLimitingTextInputFormatter(JoinCode.length + 4),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: codeCtrl,
+                    textCapitalization: TextCapitalization.characters,
+                    inputFormatters: [
+                      UpperCaseFormatter(),
+                      JoinCodeDashFormatter(),
+                      LengthLimitingTextInputFormatter(JoinCode.length + 4),
+                    ],
+                    style: GoogleFonts.robotoMono(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2),
+                    decoration: InputDecoration(
+                      hintText: AppText.t.jw_codeHint,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  height: 52,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final scanned = await Navigator.of(context).push<String>(
+                        MaterialPageRoute(builder: (_) => const QrScanScreen()),
+                      );
+                      if (scanned != null && scanned.trim().isNotEmpty) {
+                        codeCtrl.text = JoinCode.normalize(scanned);
+                      }
+                    },
+                    icon: const Icon(Icons.qr_code_scanner, size: 20),
+                    label: Text(AppText.t.jw_scan),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.accent,
+                      side: const BorderSide(color: AppColors.accent),
+                    ),
+                  ),
+                ),
               ],
-              style: GoogleFonts.robotoMono(
-                  fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 2),
-              decoration: InputDecoration(
-                hintText: AppText.t.jw_codeHint,
-                border: OutlineInputBorder(),
-              ),
             ),
           ],
         ),
