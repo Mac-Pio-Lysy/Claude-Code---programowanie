@@ -100,6 +100,11 @@ class _RoomCanvasState extends State<RoomCanvas> {
     return InteractiveViewer(
       transformationController: widget.controller,
       constrained: false,
+      // W edycji WYŁĄCZAMY jednopalcowy pan — inaczej wygrywa arenę gestów
+      // z długim naciśnięciem na stole (patrz `_buildTable`) i zamiast
+      // przesunąć stół, panoramuje się cała kanwa. Zoom (pinch) zostaje
+      // włączony zawsze; poza edycją pan działa jak dotąd.
+      panEnabled: !widget.editMode,
       minScale: RoomGeometry.zoomMin,
       maxScale: RoomGeometry.zoomMax,
       boundaryMargin: const EdgeInsets.all(2000),
