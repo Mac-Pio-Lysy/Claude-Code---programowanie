@@ -12385,6 +12385,12 @@ abstract class AppLocalizations {
   /// **'Kwota orientacyjna'**
   String get ef_estimate;
 
+  /// No description provided for @ef_confirmed.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kwota rzeczywista (potwierdzona)'**
+  String get ef_confirmed;
+
   /// No description provided for @vf_companyName.
   ///
   /// In pl, this message translates to:

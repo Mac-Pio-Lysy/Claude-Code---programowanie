@@ -7087,6 +7087,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ef_estimate => 'Estimated amount';
 
   @override
+  String get ef_confirmed => 'Actual amount (confirmed)';
+
+  @override
   String get vf_companyName => 'Company name';
 
   @override

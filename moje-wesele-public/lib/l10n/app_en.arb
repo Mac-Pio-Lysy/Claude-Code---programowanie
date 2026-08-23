@@ -2047,6 +2047,7 @@
   "ef_add": "Add expense",
   "ef_nameHint": "e.g. Entertainment for children",
   "ef_estimate": "Estimated amount",
+  "ef_confirmed": "Actual amount (confirmed)",
   "vf_companyName": "Company name",
   "vf_companyHint": "e.g. Photo Studio",
   "vf_contactPerson": "Contact person",

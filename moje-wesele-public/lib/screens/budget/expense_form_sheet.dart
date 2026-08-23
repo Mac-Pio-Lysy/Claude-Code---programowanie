@@ -225,8 +225,10 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
                             decoration: _dec(hint: AppText.t.ef_nameHint),
                           ),
                         ),
-                      _field(AppText.t.ef_estimate, _numField(_planned, AppFormat.currency.symbol)),
+                      _field(AppText.t.ef_estimate, _numField(_estimated, AppFormat.currency.symbol)),
+                      _field(AppText.t.ef_confirmed, _numField(_planned, AppFormat.currency.symbol)),
                       _field(AppText.t.budget_paid, _numField(_paid, AppFormat.currency.symbol)),
+                      _remainingRow(),
                       _field(
                         AppText.t.budget_paymentDate,
                         InkWell(
@@ -433,6 +435,39 @@ class _ExpenseFormSheetState extends State<ExpenseFormSheet> {
           child,
         ],
       ),
+    );
+  }
+
+  /// Pozostało do zapłaty — wyliczane na żywo z pól kwoty rzeczywistej
+  /// i opłaconej (jak `Expense.remaining`: `planned - paid`, nie schodzi
+  /// poniżej zera).
+  Widget _remainingRow() {
+    return ListenableBuilder(
+      listenable: Listenable.merge([_planned, _paid]),
+      builder: (context, _) {
+        final planned = _parse(_planned).toDouble();
+        final paid = _parse(_paid).toDouble();
+        final remaining = planned - paid;
+        return _field(
+          AppText.t.budget_left,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFDCE4F2)),
+            ),
+            child: Text(
+              formatPlnZl(remaining < 0 ? 0 : remaining),
+              style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text),
+            ),
+          ),
+        );
+      },
     );
   }
 

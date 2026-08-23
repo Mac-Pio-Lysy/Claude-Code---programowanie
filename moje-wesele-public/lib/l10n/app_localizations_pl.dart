@@ -7104,6 +7104,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get ef_estimate => 'Kwota orientacyjna';
 
   @override
+  String get ef_confirmed => 'Kwota rzeczywista (potwierdzona)';
+
+  @override
   String get vf_companyName => 'Nazwa firmy';
 
   @override
