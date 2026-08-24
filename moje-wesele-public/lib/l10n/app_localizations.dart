@@ -3956,13 +3956,13 @@ abstract class AppLocalizations {
   /// No description provided for @gifts_wishlistHint.
   ///
   /// In pl, this message translates to:
-  /// **'Lista życzeń od Pary Młodej. Zaznaczone propozycje są widoczne dla gości na stronie harmonogramu.'**
+  /// **'Lista życzeń od Pary Młodej. Zaznaczone propozycje są widoczne dla gości w sekcji Prezenty.'**
   String get gifts_wishlistHint;
 
   /// No description provided for @gifts_showToGuests.
   ///
   /// In pl, this message translates to:
-  /// **'Pokaż gościom na stronie harmonogramu'**
+  /// **'Pokaż gościom w sekcji Prezenty'**
   String get gifts_showToGuests;
 
   /// No description provided for @keepsakes_title.
@@ -4679,6 +4679,12 @@ abstract class AppLocalizations {
   /// **'Konkursy fotograficzne'**
   String get guestSection_photoContest;
 
+  /// No description provided for @guestSection_gifts.
+  ///
+  /// In pl, this message translates to:
+  /// **'Prezenty'**
+  String get guestSection_gifts;
+
   /// No description provided for @gw_appTitle.
   ///
   /// In pl, this message translates to:
@@ -4864,6 +4870,18 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Podziel się pierwszą radą!'**
   String get gw_adviceEmpty;
+
+  /// No description provided for @gw_giftsIntro.
+  ///
+  /// In pl, this message translates to:
+  /// **'Pomysły na prezent od Pary Młodej.'**
+  String get gw_giftsIntro;
+
+  /// No description provided for @gw_giftsEmpty.
+  ///
+  /// In pl, this message translates to:
+  /// **'Para Młoda nie dodała jeszcze żadnych propozycji.'**
+  String get gw_giftsEmpty;
 
   /// No description provided for @gw_needNameAndMessage.
   ///
@@ -12006,6 +12024,12 @@ abstract class AppLocalizations {
   /// **'Łączny koszt'**
   String get gifts_totalCost;
 
+  /// No description provided for @gifts_byCategoryHeader.
+  ///
+  /// In pl, this message translates to:
+  /// **'Podział wg odbiorcy'**
+  String get gifts_byCategoryHeader;
+
   /// No description provided for @gifts_totalCostFor.
   ///
   /// In pl, this message translates to:
@@ -12605,6 +12629,54 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Wykorzystana rezerwa'**
   String get bs_reserveUsed;
+
+  /// No description provided for @bs_ofWhichExpenses.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym wydatki'**
+  String get bs_ofWhichExpenses;
+
+  /// No description provided for @bs_ofWhichAlcohol.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym alkohol'**
+  String get bs_ofWhichAlcohol;
+
+  /// No description provided for @bs_ofWhichSoft.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym napoje bezalkoholowe'**
+  String get bs_ofWhichSoft;
+
+  /// No description provided for @bs_ofWhichHoneymoon.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym podróż poślubna'**
+  String get bs_ofWhichHoneymoon;
+
+  /// No description provided for @bs_ofWhichExternal.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym zewnętrzne (dostawcy, hotele, transport)'**
+  String get bs_ofWhichExternal;
+
+  /// No description provided for @bs_ofWhichGifts.
+  ///
+  /// In pl, this message translates to:
+  /// **'w tym prezenty dla gości'**
+  String get bs_ofWhichGifts;
+
+  /// No description provided for @bs_separateFromVenueNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Liczone osobno od Sali — konfigurujesz tutaj'**
+  String get bs_separateFromVenueNote;
+
+  /// No description provided for @bs_honeymoonExcludedNote.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nie wliczona do budżetu'**
+  String get bs_honeymoonExcludedNote;
 
   /// No description provided for @ef_edit.
   ///
@@ -13673,6 +13745,24 @@ abstract class AppLocalizations {
   /// In pl, this message translates to:
   /// **'Link do oferty (https://…)'**
   String get hm_offerLink;
+
+  /// No description provided for @hm_includeInBudgetTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Uwzględnianie w budżecie'**
+  String get hm_includeInBudgetTitle;
+
+  /// No description provided for @hm_includeInBudgetSwitch.
+  ///
+  /// In pl, this message translates to:
+  /// **'Dodaj kwotę podróży do budżetu'**
+  String get hm_includeInBudgetSwitch;
+
+  /// No description provided for @hm_includeInBudgetHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Gdy wyłączone, koszt podróży nie liczy się do sum w Podsumowaniu budżetu — przydatne, gdy finansujecie wyjazd osobno.'**
+  String get hm_includeInBudgetHint;
 
   /// No description provided for @common_linkHint.
   ///

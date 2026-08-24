@@ -650,6 +650,13 @@ class BudgetService {
     await _mergeBudget({'honeymoon': hm});
   }
 
+  /// Czy kwota podróży wlicza się do sum budżetu — patrz
+  /// `HoneymoonSummary.includeInBudget` / `BudgetSummary.honeymoonTotal`.
+  Future<void> setHoneymoonIncludeInBudget(bool value) =>
+      _mergeBudget({
+        'honeymoon': {'includeInBudget': value},
+      });
+
   Future<void> setHoneymoonUseHigher(bool value) async {
     final data = await _read();
     final hm = _honeymoon(data);

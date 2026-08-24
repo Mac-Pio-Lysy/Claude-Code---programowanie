@@ -470,6 +470,25 @@ class WeddingService {
     return events;
   }
 
+  /// Propozycje prezentów (lista życzeń) widoczne dla gości — TYLKO te
+  /// oznaczone `showToGuests: true` i z niepustym tytułem, tylko do odczytu
+  /// (Etap Z13 — wariant A, bez „zaklepywania" prezentów).
+  List<Map<String, dynamic>> _guestGiftProposals(dynamic raw) {
+    final out = <Map<String, dynamic>>[];
+    for (final e in (raw is List ? raw : const [])) {
+      if (e is! Map) continue;
+      if (e['showToGuests'] != true) continue;
+      final title = (e['title'] as String?)?.trim() ?? '';
+      if (title.isEmpty) continue;
+      out.add({
+        'title': title,
+        'desc': (e['desc'] as String?)?.trim() ?? '',
+        'link': (e['link'] as String?)?.trim() ?? '',
+      });
+    }
+    return out;
+  }
+
   /// Buduje bezpieczny dla gości „mirror" z dokumentu wesela.
   ///
   /// ZASADA: trafia tu WYŁĄCZNIE to, co gość ma prawo zobaczyć. Nie ma budżetu,
@@ -505,6 +524,9 @@ class WeddingService {
       'guestVisibility': data['guestVisibility'] ?? const <String, dynamic>{},
       'scheduleEvents': vis.sectionFor('schedule').enabled
           ? _guestSchedule(data['scheduleEvents'])
+          : const <dynamic>[],
+      'giftProposals': vis.sectionFor('gifts').enabled
+          ? _guestGiftProposals(data['giftProposals'])
           : const <dynamic>[],
       // ── Treści gier (5b-part-2) ──
       'quizActive': data['quizActive'] == true,

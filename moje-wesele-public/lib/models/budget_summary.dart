@@ -23,6 +23,13 @@ class BudgetSummary {
     required this.expensesEstimated,
     required this.hasEstimates,
     required this.planForCalc,
+    required this.alcoholTotal,
+    required this.softTotal,
+    required this.expensesOnly,
+    required this.honeymoonTotal,
+    required this.honeymoonIncludedInBudget,
+    required this.externalTotal,
+    required this.giftsForGuestsTotal,
   });
 
   /// Budżet PLANOWANY (`budgetData.total`) — kwota założona na start.
@@ -58,6 +65,32 @@ class BudgetSummary {
 
   /// Kwota planu użyta do obliczeń („Pozostało", procent opłacenia).
   final double planForCalc;
+
+  /// Suma alkoholu (do rozbicia w Podsumowaniu; już wliczona w [catering]? Nie —
+  /// wliczona w wydatki, patrz [expensesOnly]).
+  final double alcoholTotal;
+
+  /// Suma napojów bezalkoholowych.
+  final double softTotal;
+
+  /// Wydatki „czyste" (bez alkoholu/napojów — te mają własne wiersze, by
+  /// uniknąć podwójnego liczenia przy osobnym rozbiciu w Podsumowaniu).
+  final double expensesOnly;
+
+  /// Kwota podróży poślubnej — zawsze rzeczywista wartość (do wyświetlenia
+  /// w Podsumowaniu), NIEZALEŻNIE od [honeymoonIncludedInBudget]. Do sum
+  /// końcowych ([totalEffective] itd.) wchodzi tylko, gdy włączone.
+  final double honeymoonTotal;
+
+  /// Czy podróż poślubna jest wliczana do budżetu (przełącznik w zakładce
+  /// „Podróż poślubna", domyślnie włączony — zgodność wsteczna).
+  final bool honeymoonIncludedInBudget;
+
+  /// Koszty zewnętrzne (dostawcy niepowiązani + hotele + transport).
+  final double externalTotal;
+
+  /// Suma upominków „Dla gości" (sekcja Prezenty).
+  final double giftsForGuestsTotal;
 
   /// Procent opłacenia względem planu (etykieta „X% opłacono").
   int get paidPercentLabel =>
@@ -99,6 +132,13 @@ class BudgetSummary {
         expensesEstimated: 0,
         hasEstimates: false,
         planForCalc: 0,
+        alcoholTotal: 0,
+        softTotal: 0,
+        expensesOnly: 0,
+        honeymoonTotal: 0,
+        honeymoonIncludedInBudget: true,
+        externalTotal: 0,
+        giftsForGuestsTotal: 0,
       );
     }
 
@@ -128,20 +168,27 @@ class BudgetSummary {
         _sum(expenses, (e) => _d(e['planned'])) + alcoholTotal + softTotal;
     final expPaid = _sum(expenses, (e) => _d(e['paid']));
     final expEstimated = _sum(expenses, (e) => _d(e['estimatedAmount']));
-    final expEffective = _sum(expenses, (e) {
-          final planned = _d(e['planned']);
-          return planned > 0 ? planned : _d(e['estimatedAmount']);
-        }) +
-        alcoholTotal +
-        softTotal;
+    final expEffectiveOnly = _sum(expenses, (e) {
+      final planned = _d(e['planned']);
+      return planned > 0 ? planned : _d(e['estimatedAmount']);
+    });
+    final expEffective = expEffectiveOnly + alcoholTotal + softTotal;
 
     // ── Podróż poślubna ──
+    // `includeInBudget` (domyślnie true — zgodność wsteczna) decyduje, czy
+    // kwota wchodzi do sum końcowych. [honeymoonTotal] eksponowany niżej
+    // pokazuje ZAWSZE rzeczywistą kwotę (do wyświetlenia), niezależnie od
+    // przełącznika.
     final honeymoon = _asMap(bd['honeymoon']);
-    final hmConfirmed = _d(honeymoon['totalAmount']);
+    final hmIncludeInBudget = honeymoon['includeInBudget'] != false;
+    final hmConfirmedRaw = _d(honeymoon['totalAmount']);
     final hmEstimated = _d(honeymoon['estimatedAmount']);
-    final hmEffective = hmConfirmed > 0 ? hmConfirmed : hmEstimated;
-    final honeymoonPaid = _sum(honeymoon['installments'],
+    final hmEffectiveRaw = hmConfirmedRaw > 0 ? hmConfirmedRaw : hmEstimated;
+    final honeymoonPaidRaw = _sum(honeymoon['installments'],
         (i) => i['status'] == 'paid' ? _d(i['amount']) : 0.0);
+    final hmConfirmed = hmIncludeInBudget ? hmConfirmedRaw : 0.0;
+    final hmEffective = hmIncludeInBudget ? hmEffectiveRaw : 0.0;
+    final honeymoonPaid = hmIncludeInBudget ? honeymoonPaidRaw : 0.0;
 
     // ── Upominki „Dla gości" (sekcja Prezenty) ──
     // Liczone wg podstawy przeliczania: stała ilość (qty) albo na gości
@@ -202,6 +249,13 @@ class BudgetSummary {
       expensesEstimated: expEstimated,
       hasEstimates: hasEstimates,
       planForCalc: planForCalc,
+      alcoholTotal: alcoholTotal,
+      softTotal: softTotal,
+      expensesOnly: expEffectiveOnly,
+      honeymoonTotal: hmEffectiveRaw,
+      honeymoonIncludedInBudget: hmIncludeInBudget,
+      externalTotal: externalTotal,
+      giftsForGuestsTotal: giftsForGuestsTotal,
     );
   }
 

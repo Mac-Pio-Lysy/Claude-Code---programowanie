@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,6 +32,8 @@ class HoneymoonTab extends StatelessWidget {
           _variantsCard(context, h)
         else
           _classicCard(context, h),
+        const SizedBox(height: 16),
+        _includeInBudgetCard(h),
         const SizedBox(height: 16),
         _paidCard(h),
         const SizedBox(height: 16),
@@ -73,10 +77,7 @@ class HoneymoonTab extends StatelessWidget {
               ),
             ),
           const SizedBox(height: 12),
-          BudgetNumberField(
-            key: const ValueKey('hm-total'),
-            label: AppText.t.budget_roughAmount,
-            suffix: AppFormat.currency.symbol,
+          _HoneymoonAmountField(
             initial: h.totalAmount,
             onSaved: (v) => service.updateHoneymoon(totalAmount: v),
           ),
@@ -170,6 +171,27 @@ class HoneymoonTab extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Przełącznik „dodaj do budżetu" — wspólny dla trybu klasycznego i
+  /// wariantów (jedna flaga na całą zakładkę). Gdy wyłączony, kwota podróży
+  /// nie wlicza się do sum w Podsumowaniu budżetu (`BudgetSummary`).
+  Widget _includeInBudgetCard(HoneymoonSummary h) {
+    return _card(
+      title: AppText.t.hm_includeInBudgetTitle,
+      child: SwitchListTile.adaptive(
+        contentPadding: EdgeInsets.zero,
+        activeThumbColor: AppColors.accent,
+        value: h.includeInBudget,
+        onChanged: (v) => service.setHoneymoonIncludeInBudget(v),
+        title: Text(AppText.t.hm_includeInBudgetSwitch,
+            style:
+                GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600)),
+        subtitle: Text(AppText.t.hm_includeInBudgetHint,
+            style:
+                GoogleFonts.inter(fontSize: 11, color: AppColors.textLight)),
       ),
     );
   }
@@ -288,6 +310,95 @@ class HoneymoonTab extends StatelessWidget {
           child,
         ],
       ),
+    );
+  }
+}
+
+/// Kwota orientacyjna podróży — suwak (szybka regulacja) + pole liczbowe
+/// obok (precyzyjny wpis), zsynchronizowane z tą samą wartością. Zakres
+/// suwaka rośnie wraz z kwotą (większe z 50 000 zł lub 1,2× obecnej), by
+/// nie obcinać już wpisanych, wyższych kwot.
+class _HoneymoonAmountField extends StatefulWidget {
+  const _HoneymoonAmountField({required this.initial, required this.onSaved});
+
+  final double initial;
+  final ValueChanged<num> onSaved;
+
+  @override
+  State<_HoneymoonAmountField> createState() => _HoneymoonAmountFieldState();
+}
+
+class _HoneymoonAmountFieldState extends State<_HoneymoonAmountField> {
+  late double _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initial;
+  }
+
+  @override
+  void didUpdateWidget(covariant _HoneymoonAmountField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initial != oldWidget.initial && widget.initial != _value) {
+      _value = widget.initial;
+    }
+  }
+
+  double get _max => max(50000.0, _value * 1.2);
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = _max;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6, left: 2),
+          child: Text(
+            AppText.t.budget_roughAmount,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.text,
+            ),
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: AppColors.accent,
+                  thumbColor: AppColors.accent,
+                ),
+                child: Slider(
+                  value: _value.clamp(0, maxValue),
+                  min: 0,
+                  max: maxValue,
+                  label: formatPlnZl(_value),
+                  onChanged: (v) => setState(() => _value = v),
+                  onChangeEnd: (v) => widget.onSaved(v),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 110,
+              child: BudgetNumberField(
+                key: const ValueKey('hm-total'),
+                suffix: AppFormat.currency.symbol,
+                compact: true,
+                initial: _value,
+                onSaved: (v) {
+                  setState(() => _value = v.toDouble());
+                  widget.onSaved(v);
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

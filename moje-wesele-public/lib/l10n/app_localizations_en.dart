@@ -2156,10 +2156,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gifts_wishlistHint =>
-      'The couple\'s wish list. Selected suggestions are visible to guests on the schedule page.';
+      'The couple\'s wish list. Selected suggestions are visible to guests in the Gifts section.';
 
   @override
-  String get gifts_showToGuests => 'Show to guests on the schedule page';
+  String get gifts_showToGuests => 'Show to guests in the Gifts section';
 
   @override
   String get keepsakes_title => 'Wedding keepsakes';
@@ -2577,6 +2577,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get guestSection_photoContest => 'Photo contests';
 
   @override
+  String get guestSection_gifts => 'Gifts';
+
+  @override
   String get gw_appTitle => 'Wedding — guest zone';
 
   @override
@@ -2676,6 +2679,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gw_adviceEmpty => 'Share the first piece of advice!';
+
+  @override
+  String get gw_giftsIntro => 'Gift ideas from the couple.';
+
+  @override
+  String get gw_giftsEmpty => 'The couple hasn\'t added any ideas yet.';
 
   @override
   String get gw_needNameAndMessage => 'Enter your name and a message.';
@@ -6886,6 +6895,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gifts_totalCost => 'Total cost';
 
   @override
+  String get gifts_byCategoryHeader => 'By recipient';
+
+  @override
   String gifts_totalCostFor(String count) {
     return 'Total cost ($count people)';
   }
@@ -7222,6 +7234,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bs_reserveUsed => 'Reserve used';
+
+  @override
+  String get bs_ofWhichExpenses => 'incl. expenses';
+
+  @override
+  String get bs_ofWhichAlcohol => 'incl. alcohol';
+
+  @override
+  String get bs_ofWhichSoft => 'incl. soft drinks';
+
+  @override
+  String get bs_ofWhichHoneymoon => 'incl. honeymoon';
+
+  @override
+  String get bs_ofWhichExternal =>
+      'incl. external (vendors, hotels, transport)';
+
+  @override
+  String get bs_ofWhichGifts => 'incl. guest gifts';
+
+  @override
+  String get bs_separateFromVenueNote =>
+      'Counted separately from the venue — configure it here';
+
+  @override
+  String get bs_honeymoonExcludedNote => 'Not included in the budget';
 
   @override
   String get ef_edit => 'Edit expense';
@@ -7777,6 +7815,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hm_offerLink => 'Link to the offer (https://…)';
+
+  @override
+  String get hm_includeInBudgetTitle => 'Included in budget';
+
+  @override
+  String get hm_includeInBudgetSwitch =>
+      'Add the honeymoon amount to the budget';
+
+  @override
+  String get hm_includeInBudgetHint =>
+      'When off, the honeymoon cost isn\'t counted in the totals in the budget Summary — useful if you\'re funding the trip separately.';
 
   @override
   String get common_linkHint => 'Link (https://…)';

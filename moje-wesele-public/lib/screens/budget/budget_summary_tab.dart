@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../app_colors.dart';
+import '../../layout/responsive.dart';
 import '../../models/budget_summary.dart';
+import '../../models/expense.dart';
 import '../../models/sala_summary.dart';
 import '../../models/wedding_data.dart';
+import '../../navigation/app_sections.dart';
 import '../../services/budget_service.dart';
 import '../../utils/format.dart';
 import 'budget_fields.dart';
+import 'expense_form_sheet.dart';
 import 'payments_tab.dart';
 import 'sala_breakdown_rows.dart';
 import '../../l10n/app_text.dart';
@@ -21,11 +25,16 @@ class BudgetSummaryTab extends StatefulWidget {
     required this.summary,
     required this.service,
     required this.data,
+    this.onOpenSection,
   });
 
   final BudgetSummary summary;
   final BudgetService service;
   final WeddingData? data;
+
+  /// Przejście do innej sekcji aplikacji (np. Dostawcy, Prezenty) — dla
+  /// tappable wierszy rozbicia „Rzeczywisty" spoza zakładek Budżetu.
+  final void Function(AppSection section)? onOpenSection;
 
   @override
   State<BudgetSummaryTab> createState() => _BudgetSummaryTabState();
@@ -59,6 +68,48 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
   }
 
   String _budgetText(double value) => value == 0 ? '' : formatPln(value);
+
+  // ── Dodawanie kosztu wprost z Podsumowania (Z1) — TEN SAM formularz co
+  // w zakładce „Wydatki" (`ExpensesTab._addExpense`), żeby nie duplikować
+  // logiki dodawania wydatku.
+
+  Map<String, dynamic> get _bd {
+    final v = widget.data?.raw['budgetData'];
+    return v is Map ? Map<String, dynamic>.from(v) : <String, dynamic>{};
+  }
+
+  List<String> get _coupleNames {
+    final v = _bd['coupleNames'];
+    if (v is List && v.length >= 2) {
+      return [
+        v[0]?.toString() ?? AppText.t.couple_personNumbered(1),
+        v[1]?.toString() ?? AppText.t.couple_personNumbered(2),
+      ];
+    }
+    return [AppText.t.couple_personNumbered(1), AppText.t.couple_personNumbered(2)];
+  }
+
+  List<String> get _categories => ExpenseCategories.resolve(widget.data?.raw ?? {});
+
+  Future<void> _addExpense() async {
+    final draft = await showModalBottomSheet<ExpenseDraft>(
+      context: context,
+      constraints: const BoxConstraints(maxWidth: kSheetMaxWidth),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => ExpenseFormSheet(
+        categories: _categories,
+        coupleNames: _coupleNames,
+      ),
+    );
+    if (draft == null) return;
+    try {
+      await widget.service.addExpense(draft);
+      _toast(AppText.t.budget_expenseAddedShort);
+    } catch (e) {
+      _toast(AppText.t.common_saveErrorToast('$e'));
+    }
+  }
 
   Future<void> _saveBudget() async {
     final parsed = parsePln(_budgetCtrl.text);
@@ -95,7 +146,20 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
           _progressCard(s),
           const SizedBox(height: 16),
           _valuesCard(s),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerRight,
+            child: OutlinedButton.icon(
+              onPressed: _addExpense,
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(AppText.t.budget_addExpense),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                side: const BorderSide(color: AppColors.accent),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           PaymentsSection(data: widget.data),
         ],
       ),
@@ -312,6 +376,34 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
               ),
             ),
           ],
+          if (s.expensesOnly > 0)
+            _breakdownRow(AppText.t.bs_ofWhichExpenses, s.expensesOnly,
+                onTap: () => DefaultTabController.of(context).animateTo(2)),
+          if (s.alcoholTotal > 0)
+            _breakdownRow(AppText.t.bs_ofWhichAlcohol, s.alcoholTotal,
+                onTap: () => DefaultTabController.of(context).animateTo(3),
+                note: AppText.t.bs_separateFromVenueNote),
+          if (s.softTotal > 0)
+            _breakdownRow(AppText.t.bs_ofWhichSoft, s.softTotal,
+                onTap: () => DefaultTabController.of(context).animateTo(4),
+                note: AppText.t.bs_separateFromVenueNote),
+          if (s.honeymoonTotal > 0)
+            _breakdownRow(AppText.t.bs_ofWhichHoneymoon, s.honeymoonTotal,
+                onTap: () => DefaultTabController.of(context).animateTo(5),
+                note: s.honeymoonIncludedInBudget
+                    ? null
+                    : AppText.t.bs_honeymoonExcludedNote,
+                muted: !s.honeymoonIncludedInBudget),
+          if (s.externalTotal > 0)
+            _breakdownRow(AppText.t.bs_ofWhichExternal, s.externalTotal,
+                onTap: widget.onOpenSection == null
+                    ? null
+                    : () => widget.onOpenSection!(AppSection.vendors)),
+          if (s.giftsForGuestsTotal > 0)
+            _breakdownRow(AppText.t.bs_ofWhichGifts, s.giftsForGuestsTotal,
+                onTap: widget.onOpenSection == null
+                    ? null
+                    : () => widget.onOpenSection!(AppSection.gifts)),
           _valueRow(AppText.t.budget_ofWhichPaid, formatPlnZl(s.totalPaid),
               const Color(0xFF059669),
               small: true),
@@ -335,6 +427,59 @@ class _BudgetSummaryTabState extends State<BudgetSummaryTab> {
         ],
       ),
     );
+  }
+
+  /// Wiersz rozbicia kategorii kosztów (Wydatki/Alkohol/Napoje/Podróż/
+  /// Zewnętrzne/Prezenty) — tappable, skacze do właściwej zakładki/sekcji.
+  /// Opcjonalna [note] pod wierszem (np. „liczone osobno od Sali").
+  Widget _breakdownRow(String label, double value,
+      {VoidCallback? onTap, String? note, bool muted = false}) {
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppColors.textLight,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            formatPlnZl(value),
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: muted ? AppColors.textLight : AppColors.text,
+            ),
+          ),
+          if (onTap != null) ...[
+            const SizedBox(width: 2),
+            const Icon(Icons.chevron_right, size: 14, color: AppColors.textLight),
+          ],
+        ],
+      ),
+    );
+    final child = note == null
+        ? row
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              row,
+              Padding(
+                padding: const EdgeInsets.only(left: 2, bottom: 2),
+                child: Text(
+                  note,
+                  style: GoogleFonts.inter(fontSize: 10, color: AppColors.textLight),
+                ),
+              ),
+            ],
+          );
+    if (onTap == null) return child;
+    return InkWell(borderRadius: BorderRadius.circular(8), onTap: onTap, child: child);
   }
 
   Widget _valueRow(String label, String value, Color valueColor,

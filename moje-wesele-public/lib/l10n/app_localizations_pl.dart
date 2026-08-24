@@ -2162,10 +2162,10 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get gifts_wishlistHint =>
-      'Lista życzeń od Pary Młodej. Zaznaczone propozycje są widoczne dla gości na stronie harmonogramu.';
+      'Lista życzeń od Pary Młodej. Zaznaczone propozycje są widoczne dla gości w sekcji Prezenty.';
 
   @override
-  String get gifts_showToGuests => 'Pokaż gościom na stronie harmonogramu';
+  String get gifts_showToGuests => 'Pokaż gościom w sekcji Prezenty';
 
   @override
   String get keepsakes_title => 'Ślubne pamiątki';
@@ -2585,6 +2585,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get guestSection_photoContest => 'Konkursy fotograficzne';
 
   @override
+  String get guestSection_gifts => 'Prezenty';
+
+  @override
   String get gw_appTitle => 'Wesele — strefa gości';
 
   @override
@@ -2684,6 +2687,13 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get gw_adviceEmpty => 'Podziel się pierwszą radą!';
+
+  @override
+  String get gw_giftsIntro => 'Pomysły na prezent od Pary Młodej.';
+
+  @override
+  String get gw_giftsEmpty =>
+      'Para Młoda nie dodała jeszcze żadnych propozycji.';
 
   @override
   String get gw_needNameAndMessage => 'Podaj imię i treść.';
@@ -6904,6 +6914,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get gifts_totalCost => 'Łączny koszt';
 
   @override
+  String get gifts_byCategoryHeader => 'Podział wg odbiorcy';
+
+  @override
   String gifts_totalCostFor(String count) {
     return 'Łączny koszt ($count os.)';
   }
@@ -7241,6 +7254,32 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get bs_reserveUsed => 'Wykorzystana rezerwa';
+
+  @override
+  String get bs_ofWhichExpenses => 'w tym wydatki';
+
+  @override
+  String get bs_ofWhichAlcohol => 'w tym alkohol';
+
+  @override
+  String get bs_ofWhichSoft => 'w tym napoje bezalkoholowe';
+
+  @override
+  String get bs_ofWhichHoneymoon => 'w tym podróż poślubna';
+
+  @override
+  String get bs_ofWhichExternal =>
+      'w tym zewnętrzne (dostawcy, hotele, transport)';
+
+  @override
+  String get bs_ofWhichGifts => 'w tym prezenty dla gości';
+
+  @override
+  String get bs_separateFromVenueNote =>
+      'Liczone osobno od Sali — konfigurujesz tutaj';
+
+  @override
+  String get bs_honeymoonExcludedNote => 'Nie wliczona do budżetu';
 
   @override
   String get ef_edit => 'Edytuj wydatek';
@@ -7799,6 +7838,16 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get hm_offerLink => 'Link do oferty (https://…)';
+
+  @override
+  String get hm_includeInBudgetTitle => 'Uwzględnianie w budżecie';
+
+  @override
+  String get hm_includeInBudgetSwitch => 'Dodaj kwotę podróży do budżetu';
+
+  @override
+  String get hm_includeInBudgetHint =>
+      'Gdy wyłączone, koszt podróży nie liczy się do sum w Podsumowaniu budżetu — przydatne, gdy finansujecie wyjazd osobno.';
 
   @override
   String get common_linkHint => 'Link (https://…)';

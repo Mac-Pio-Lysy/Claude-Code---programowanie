@@ -45,6 +45,80 @@ List<Map<String, dynamic>> _mapsFrom(dynamic raw) => [
     ];
 
 // ───────────────────────────────────────────────────────────────────────────
+// PREZENTY — lista życzeń Pary Młodej, TYLKO DO ODCZYTU (etap Z13, wariant A;
+// „zaklepywanie" prezentów przez gości to osobny, odłożony projekt).
+// ───────────────────────────────────────────────────────────────────────────
+
+class _GiftProposalsPage extends StatelessWidget {
+  const _GiftProposalsPage({required this.items});
+  final List<Map<String, dynamic>> items;
+
+  Future<void> _openLink(String link) async {
+    var url = link.trim();
+    if (!url.startsWith('http')) url = 'https://$url';
+    final uri = Uri.tryParse(url);
+    if (uri != null) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) {
+      return _centerInfo(AppText.t.gw_giftsEmpty,
+          icon: Icons.card_giftcard_outlined);
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: items.length + 1,
+      separatorBuilder: (_, _) => const SizedBox(height: 10),
+      itemBuilder: (context, i) {
+        if (i == 0) {
+          return Text(AppText.t.gw_giftsIntro,
+              style: GoogleFonts.inter(fontSize: 13, color: AppColors.textLight));
+        }
+        final it = items[i - 1];
+        final title = (it['title'] as String?)?.trim() ?? '';
+        final desc = (it['desc'] as String?)?.trim() ?? '';
+        final link = (it['link'] as String?)?.trim() ?? '';
+        return Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE2EAF7)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title,
+                  style: GoogleFonts.inter(
+                      fontSize: 15, fontWeight: FontWeight.w700)),
+              if (desc.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(desc,
+                    style: GoogleFonts.inter(
+                        fontSize: 13, color: AppColors.textLight)),
+              ],
+              if (link.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => _openLink(link),
+                  icon: const Icon(Icons.open_in_new, size: 16),
+                  label: Text(AppText.t.common_open),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: const BorderSide(color: AppColors.accent),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
 // GALERIA — zdjęcia gości, odczyt PUBLICZNY
 // ───────────────────────────────────────────────────────────────────────────
 

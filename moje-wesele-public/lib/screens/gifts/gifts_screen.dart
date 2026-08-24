@@ -261,12 +261,62 @@ class _ForGuestsTab extends StatelessWidget {
               : AppText.t.gifts_totalCost),
         ]),
         const SizedBox(height: 12),
+        _byCategoryCard(items, effQty),
+        const SizedBox(height: 12),
         _basisCard(basis, personCount),
         const SizedBox(height: 12),
         for (final cat in GiftGuestCat.all)
           _categorySection(cat, items.where((it) => it.category == cat.key).toList(),
               guests, basis, effQty),
       ],
+    );
+  }
+
+  /// Zbiorczy podział wartości upominków wg odbiorcy — dane i wyliczenia
+  /// (`effQty(it) * it.cost`) już istnieją per kategoria w `_categorySection`;
+  /// tu tylko zebrane w jednym miejscu, na górze, zamiast rozproszone w
+  /// nagłówkach poszczególnych sekcji.
+  Widget _byCategoryCard(
+      List<GiftForGuest> items, double Function(GiftForGuest) effQty) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2EAF7)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(AppText.t.gifts_byCategoryHeader,
+              style: GoogleFonts.inter(
+                  fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.text)),
+          const SizedBox(height: 8),
+          for (final cat in GiftGuestCat.all)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text('${cat.icon} ${cat.label}',
+                        style: GoogleFonts.inter(
+                            fontSize: 13, color: AppColors.text)),
+                  ),
+                  Text(
+                    formatPlnZl(items
+                        .where((it) => it.category == cat.key)
+                        .fold<double>(
+                            0, (s, it) => s + effQty(it) * it.cost)),
+                    style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.accent),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 

@@ -38,6 +38,7 @@ class HoneymoonSummary {
     required this.options,
     required this.selectedOptionId,
     required this.useHigher,
+    required this.includeInBudget,
   });
 
   final String name;
@@ -51,6 +52,10 @@ class HoneymoonSummary {
   final List<HoneymoonOption> options;
   final int? selectedOptionId;
   final bool useHigher;
+
+  /// Czy kwota podróży wlicza się do sum budżetu (`BudgetSummary`).
+  /// Domyślnie `true` — zgodność wsteczna dla wcześniej zapisanych wesel.
+  final bool includeInBudget;
 
   bool get hasOptions => options.isNotEmpty;
 
@@ -110,6 +115,7 @@ class HoneymoonSummary {
       options: options,
       selectedOptionId: (hm['selectedOptionId'] as num?)?.toInt(),
       useHigher: hm['useHigher'] == true,
+      includeInBudget: hm['includeInBudget'] != false,
     );
   }
 }

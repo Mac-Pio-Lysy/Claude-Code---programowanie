@@ -100,7 +100,10 @@ class BudgetScreen extends StatelessWidget {
             child: TabBarView(
               children: [
                 BudgetSummaryTab(
-                    summary: summary, service: service, data: data),
+                    summary: summary,
+                    service: service,
+                    data: data,
+                    onOpenSection: onOpenSection),
                 SalaTab(data: data, service: service),
                 ExpensesTab(
                   data: data,

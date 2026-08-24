@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../app_colors.dart';
 import '../../models/app_notification.dart';
@@ -673,6 +674,8 @@ class _GuestWebHomeState extends State<GuestWebHome> {
                   : AppText.t.gw_bingoFree)
               : AppText.t.gw_bingoFree,
         );
+      case 'gifts':
+        page = _GiftProposalsPage(items: _mapsFrom(space['giftProposals']));
       default:
         page = const _ComingSoon();
     }
