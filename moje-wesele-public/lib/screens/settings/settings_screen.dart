@@ -336,6 +336,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _tabList([
                   _helpCard(),
                   _devCard(),
+                  if (widget.isOwner) _dangerZoneCard(),
                 ]),
               ],
             ),
@@ -1889,6 +1890,248 @@ class _SettingsScreenState extends State<SettingsScreen> {
         foregroundColor: AppColors.accent,
         side: const BorderSide(color: AppColors.accent),
       );
+
+  // ── Strefa zagrożenia — operacje NIEODWRACALNE (tylko owner) ─────────────
+  //
+  // Dwie OSOBNE karty/przyciski (Opcja 1 „Wyczyść gości i powiązania" i
+  // Opcja 2 „Wyczyść wszystkie dane wesela"), żeby nie pomylić zakresu —
+  // każda ma własny dwustopniowy dialog potwierdzenia ([_confirmDangerZone]).
+  // Mirror gości (`guestSpaces` + podkolekcje: RSVP, księga gości, zdjęcia,
+  // głosy) nie jest ruszany przez żadną z nich — osobna operacja, później.
+
+  Widget _dangerZoneCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF5F5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE9A8A8), width: 1.4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.warning_amber_rounded,
+                  color: Color(0xFFC0392B), size: 20),
+              const SizedBox(width: 8),
+              Text(AppText.t.settings_dangerZoneTitle,
+                  style: GoogleFonts.playfairDisplay(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFC0392B))),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _dangerAction(
+            title: AppText.t.settings_clearGuestsTitle,
+            hint: AppText.t.settings_clearGuestsHint,
+            buttonLabel: AppText.t.settings_clearGuestsButton,
+            onPressed: _confirmClearGuests,
+          ),
+          const Divider(height: 28),
+          _dangerAction(
+            title: AppText.t.settings_resetWeddingTitle,
+            hint: AppText.t.settings_resetWeddingHint,
+            buttonLabel: AppText.t.settings_resetWeddingButton,
+            onPressed: _confirmResetWedding,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dangerAction({
+    required String title,
+    required String hint,
+    required String buttonLabel,
+    required VoidCallback onPressed,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 4),
+        Text(hint,
+            style: GoogleFonts.inter(fontSize: 12, color: AppColors.textLight)),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: onPressed,
+            icon: const Icon(Icons.delete_forever_outlined, size: 18),
+            label: Text(buttonLabel),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFFC0392B),
+              side: const BorderSide(color: Color(0xFFC0392B)),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmClearGuests() async {
+    final ok = await _confirmDangerZone(
+      title: AppText.t.settings_clearGuestsConfirmTitle,
+      consequences: [
+        AppText.t.settings_clearGuestsConsequence1,
+        AppText.t.settings_clearGuestsConsequence2,
+        AppText.t.settings_clearGuestsConsequence3,
+      ],
+      confirmLabel: AppText.t.settings_clearGuestsButton,
+    );
+    if (!ok || !mounted) return;
+    try {
+      await GuestService(firestore: widget.firestore).clearAllGuests();
+      if (mounted) _toast(AppText.t.settings_clearGuestsDone);
+    } catch (e) {
+      if (mounted) _toast(AppText.t.common_saveErrorToast('$e'));
+    }
+  }
+
+  Future<void> _confirmResetWedding() async {
+    final ok = await _confirmDangerZone(
+      title: AppText.t.settings_resetWeddingConfirmTitle,
+      consequences: [
+        AppText.t.settings_resetWeddingConsequence1,
+        AppText.t.settings_resetWeddingConsequence2,
+        AppText.t.settings_resetWeddingConsequence3,
+        AppText.t.settings_resetWeddingConsequence4,
+      ],
+      confirmLabel: AppText.t.settings_resetWeddingButton,
+    );
+    if (!ok || !mounted) return;
+    try {
+      await WeddingService().resetWeddingData(widget.firestore.weddingId);
+      if (mounted) _toast(AppText.t.settings_resetWeddingDone);
+    } catch (e) {
+      if (mounted) _toast(AppText.t.common_saveErrorToast('$e'));
+    }
+  }
+
+  /// Dwustopniowy dialog potwierdzenia dla operacji NIEODWRACALNYCH (wzorzec
+  /// „usuwanie repo"): KROK 1 pokazuje pełną listę konsekwencji + ostrzeżenie
+  /// „nie da się cofnąć"; KROK 2 wymaga wpisania DOKŁADNEJ nazwy wesela —
+  /// przycisk potwierdzenia jest zablokowany, dopóki tekst się nie zgadza.
+  ///
+  /// Gdy wesele nie ma jeszcze nazwy (`eventName` puste), wymagane jest
+  /// wpisanie stałego słowa zamiast nazwy — inaczej warunek dopasowania
+  /// nigdy nie byłby spełniony i dialog blokowałby operację na zawsze.
+  Future<bool> _confirmDangerZone({
+    required String title,
+    required List<String> consequences,
+    required String confirmLabel,
+  }) async {
+    final cfg = widget.data?.raw['appConfig'];
+    final eventName =
+        ((cfg is Map ? cfg['eventName'] as String? : null) ?? '').trim();
+    final requiredText =
+        eventName.isNotEmpty ? eventName : AppText.t.settings_dangerFallbackWord;
+
+    final stepOneOk = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text(title,
+            style: GoogleFonts.playfairDisplay(
+                fontSize: 18, fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final c in consequences)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('•  ',
+                        style: GoogleFonts.inter(fontSize: 13.5)),
+                    Expanded(
+                        child: Text(c,
+                            style: GoogleFonts.inter(fontSize: 13.5))),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            Text(
+              AppText.t.settings_dangerIrreversible,
+              style: GoogleFonts.inter(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFC0392B)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(AppText.t.common_cancel),
+          ),
+          FilledButton(
+            style:
+                FilledButton.styleFrom(backgroundColor: const Color(0xFFC0392B)),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(AppText.t.settings_dangerContinue),
+          ),
+        ],
+      ),
+    );
+    if (stepOneOk != true || !mounted) return false;
+
+    final ctrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final matches = ctrl.text.trim() == requiredText;
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            title: Text(AppText.t.settings_dangerConfirmTitle,
+                style: GoogleFonts.playfairDisplay(
+                    fontSize: 18, fontWeight: FontWeight.w700)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppText.t.settings_dangerTypeNameHint(requiredText),
+                    style: GoogleFonts.inter(fontSize: 13.5)),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: ctrl,
+                  autofocus: true,
+                  onChanged: (_) => setDialogState(() {}),
+                  decoration: InputDecoration(
+                    hintText: requiredText,
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(AppText.t.common_cancel),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFC0392B)),
+                onPressed:
+                    matches ? () => Navigator.of(context).pop(true) : null,
+                child: Text(confirmLabel),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    ctrl.dispose();
+    return ok == true;
+  }
 
   Future<void> _exportData() async {
     final data = await widget.config.exportData();

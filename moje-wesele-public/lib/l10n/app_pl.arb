@@ -1948,6 +1948,36 @@
   "settings_childrenDataConfirmBody": "To usunie oznaczenie „dziecko” u wszystkich gości oraz liczbę i ustawienia dzieci w budżecie. Tej operacji NIE MOŻNA cofnąć.",
   "settings_childrenDataConfirmButton": "Usuń trwale",
   "settings_childrenDataDeleted": "Dane o dzieciach usunięte.",
+  "settings_dangerZoneTitle": "Strefa zagrożenia",
+  "settings_dangerIrreversible": "Tej operacji NIE da się cofnąć.",
+  "settings_dangerContinue": "Rozumiem, kontynuuj",
+  "settings_dangerConfirmTitle": "Ostateczne potwierdzenie",
+  "settings_dangerTypeNameHint": "Aby potwierdzić, wpisz dokładnie: {name}",
+  "@settings_dangerTypeNameHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_dangerFallbackWord": "USUŃ",
+  "settings_clearGuestsTitle": "Wyczyść gości i powiązania",
+  "settings_clearGuestsHint": "Kasuje całą listę gości oraz ich przypisania do stołów, pojazdów i noclegów. Budżet i harmonogram zostają bez zmian.",
+  "settings_clearGuestsButton": "Wyczyść gości",
+  "settings_clearGuestsConfirmTitle": "Na pewno wyczyścić gości?",
+  "settings_clearGuestsConsequence1": "Cała lista gości — imiona, kategorie, diety, notatki.",
+  "settings_clearGuestsConsequence2": "Przypisania do stołów, pojazdów, noclegów i par.",
+  "settings_clearGuestsConsequence3": "Budżet, harmonogram, zadania i dostawcy ZOSTAJĄ bez zmian.",
+  "settings_clearGuestsDone": "Wyczyszczono listę gości.",
+  "settings_resetWeddingTitle": "Wyczyść wszystkie dane wesela",
+  "settings_resetWeddingHint": "Zaczynasz planowanie od nowa — wszystko poza nazwą wesela, datą i dostępem współorganizatorów zostaje wyczyszczone.",
+  "settings_resetWeddingButton": "Wyczyść wszystko",
+  "settings_resetWeddingConfirmTitle": "Na pewno wyczyścić WSZYSTKIE dane?",
+  "settings_resetWeddingConsequence1": "Cała lista gości, budżet, transport, noclegi i harmonogram.",
+  "settings_resetWeddingConsequence2": "Zadania, dostawcy, plan sali i konkursy fotograficzne.",
+  "settings_resetWeddingConsequence3": "Nazwa wesela, data, kod dołączenia i dostęp współorganizatorów ZOSTAJĄ.",
+  "settings_resetWeddingConsequence4": "To znacznie szersza operacja niż „Wyczyść gości” — obejmuje wszystko poza tożsamością wesela.",
+  "settings_resetWeddingDone": "Wyczyszczono dane wesela.",
   "settings_budgetHint": "Budżet planowany to kwota założona na start. Rezerwa to opcjonalny bufor na nieprzewidziane wydatki — doliczany do planowanego jako bezpiecznik.",
   "settings_budgetPlanned": "Budżet planowany ({currency})",
   "@settings_budgetPlanned": {

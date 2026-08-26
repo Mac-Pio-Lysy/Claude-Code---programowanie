@@ -631,6 +631,54 @@ class GuestService {
     }, SetOptions(merge: true));
   }
 
+  /// Czyści całą listę gości oraz WSZYSTKIE odwołania do nich w innych
+  /// strukturach dokumentu (Ustawienia → Pomoc i zaawansowane → Strefa
+  /// zagrożenia, „Wyczyść gości i powiązania"). NIEODWRACALNE — wołane
+  /// wyłącznie po dwustopniowym potwierdzeniu w UI.
+  ///
+  /// Zachowuje same OBIEKTY (stoły, pojazdy, hotele, pozycje prezentów) —
+  /// czyści tylko odwołania do ID gościa (`seatsData`/`guestIds`) w nich.
+  /// Budżet NIE jest ruszany — `GuestBasis` przeliczy efektywną liczbę gości
+  /// z `plannedGuests`/`venueMinGuests`, tak jak przy braku wpisanych gości.
+  ///
+  /// Mirror gości (`guestSpaces` i podkolekcje: RSVP, księga gości, zdjęcia,
+  /// głosy) NIE jest ruszany — będzie osobną operacją.
+  ///
+  /// ⚠️ UWAGA NA PRZYSZŁOŚĆ: każde nowe pole odwołujące się do ID gościa
+  /// (`guestId`/`guestIds`) trzeba dopisać tutaj — tak jak przy
+  /// `deleteGuest()`, z którym ta metoda dzieli listę odwołań.
+  Future<void> clearAllGuests() async {
+    final data = await _firestore.readData() ?? <String, dynamic>{};
+
+    final tables = _mapList(data['tables']);
+    for (final t in tables) {
+      final seats = t['seatsData'];
+      if (seats is List) {
+        t['seatsData'] = List<dynamic>.filled(seats.length, null);
+      }
+    }
+
+    final vehicles = _mapList(data['vehicles']);
+    for (final v in vehicles) {
+      if (v['guestIds'] is List) v['guestIds'] = <dynamic>[];
+    }
+
+    final gifts = _mapList(data['giftsForGuests']);
+    for (final g in gifts) {
+      if (g['guestIds'] is List) g['guestIds'] = <dynamic>[];
+    }
+
+    await _firestore.mainDoc.set({
+      'guests': <dynamic>[],
+      'tables': tables,
+      'vehicles': vehicles,
+      'giftsForGuests': gifts,
+      'pairs': <dynamic>[],
+      'rsvpEntries': <dynamic>[],
+      'nextGuestId': 1,
+    }, SetOptions(merge: true));
+  }
+
   // ── Pomocnicze ─────────────────────────────────────────────────────────
 
   /// Domyślny szablon gościa — odpowiednik `_newGuestBase()` + stałe pola.

@@ -869,6 +869,98 @@ class WeddingService {
     };
   }
 
+  /// Buduje dokument „czystego" wesela — Ustawienia → Pomoc i zaawansowane →
+  /// Strefa zagrożenia, „Wyczyść wszystkie dane wesela". CZYSTA funkcja (bez
+  /// zapisu), testowalna bez atrapy Firestore'a — tak jak `_defaultWeddingData`
+  /// (ten sam szablon), tylko zasilona polami do ZACHOWANIA z [current].
+  ///
+  /// ZOSTAJE: `ownerId`, `joinCode`, `guestToken`, `tier` (poziom konta —
+  /// KRYTYCZNE: `tier` żyje W DOKUMENCIE WESELA, nie na koncie użytkownika —
+  /// pominięcie go tutaj cofnęłoby płatne wesele do darmowego), `createdAt`,
+  /// `weddingDate`, `appConfig.{eventName, displayNames, coupleType,
+  /// witnessCount}`, `budgetData.coupleNames`.
+  ///
+  /// CZYŚCI SIĘ: dosłownie wszystko inne — wywołujący zapisuje wynik przez
+  /// `.set()` BEZ merge, więc każde pole nieujęte tutaj (także takie, o którym
+  /// „zapomnieliśmy" — np. dodane przez przyszłą funkcję) znika automatycznie.
+  ///
+  /// `nextGuestId` = `couple.length + 1` (NIE literalne `1`) — Para Młoda może
+  /// zająć ID 1 i 2, więc kolejny dodany gość musi zacząć od wolnego numeru;
+  /// to ten sam mechanizm co w `_defaultWeddingData` przy zakładaniu wesela.
+  static Map<String, dynamic> buildResetWeddingData(
+      Map<String, dynamic> current) {
+    final cfg = current['appConfig'] is Map
+        ? Map<String, dynamic>.from(current['appConfig'] as Map)
+        : <String, dynamic>{};
+    final bd = current['budgetData'] is Map
+        ? Map<String, dynamic>.from(current['budgetData'] as Map)
+        : <String, dynamic>{};
+
+    final coupleType = CoupleType.fromRaw(cfg['coupleType']);
+    final witnessCount = (cfg['witnessCount'] as num?)?.toInt() ?? 2;
+
+    final coupleNamesRaw = bd['coupleNames'];
+    final coupleNames = coupleNamesRaw is List && coupleNamesRaw.length >= 2
+        ? [
+            coupleNamesRaw[0]?.toString() ?? '',
+            coupleNamesRaw[1]?.toString() ?? '',
+          ]
+        : <String>['', ''];
+
+    final couple = GuestService.buildCoupleRecords(
+      startId: 1,
+      type: coupleType,
+      person1: coupleNames[0],
+      person2: coupleNames[1],
+    );
+
+    return {
+      'ownerId': current['ownerId'],
+      'joinCode': current['joinCode'],
+      'guestToken': current['guestToken'],
+      // Poziom konta — patrz uwaga w dokumentacji metody. Brak pola w
+      // bieżącym dokumencie → darmowe, tak jak dla każdego nowego wesela.
+      'tier': current['tier'] ?? WeddingTier.free.key,
+      'createdAt': current['createdAt'] ?? FieldValue.serverTimestamp(),
+      'appConfig': {
+        'eventName': (cfg['eventName'] as String?) ?? '',
+        'displayNames': (cfg['displayNames'] as String?) ?? '',
+        'ceremonyPlace': '',
+        'receptionPlace': '',
+        'menuOptions': <String>[],
+        'expenseCategories': <String>[],
+        'witnessCount': witnessCount,
+        'coupleType': coupleType.name,
+      },
+      'weddingDate': current['weddingDate'],
+      'weddingTime': '16:00',
+      'budgetData': {
+        'coupleNames': coupleNames,
+        'total': 0,
+      },
+      'guests': couple,
+      'nextGuestId': couple.length + 1,
+      'tables': <dynamic>[],
+      'tasks': <dynamic>[],
+      'vendors': <dynamic>[],
+      'scheduleEvents': <dynamic>[],
+    };
+  }
+
+  /// Nadpisuje CAŁY dokument wesela [weddingId] „czystą" wersją zbudowaną przez
+  /// [buildResetWeddingData] — `.set()` BEZ merge, więc pola spoza szablonu
+  /// znikają. NIEODWRACALNE — wołane wyłącznie po dwustopniowym potwierdzeniu
+  /// w UI (Ustawienia → Pomoc i zaawansowane → Strefa zagrożenia).
+  ///
+  /// `memberships` (dostęp współorganizatorów) i mirror gości (`guestSpaces` +
+  /// podkolekcje) to ODRĘBNE kolekcje — ten zapis ich nie dotyka.
+  Future<void> resetWeddingData(String weddingId) async {
+    final snap = await _col.doc(weddingId).get();
+    final current = snap.data();
+    if (current == null) return;
+    await _col.doc(weddingId).set(buildResetWeddingData(current));
+  }
+
   /// Rozdziela „Imię1 i Imię2" na dwie osoby budżetu. Bez separatora — druga
   /// osoba pozostaje pusta (uzupełni się w Ustawieniach).
   List<String> _splitPersons(String persons) {

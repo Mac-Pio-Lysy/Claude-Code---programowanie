@@ -3358,6 +3358,86 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_childrenDataDeleted => 'Children\'s data deleted.';
 
   @override
+  String get settings_dangerZoneTitle => 'Danger zone';
+
+  @override
+  String get settings_dangerIrreversible => 'This action CANNOT be undone.';
+
+  @override
+  String get settings_dangerContinue => 'I understand, continue';
+
+  @override
+  String get settings_dangerConfirmTitle => 'Final confirmation';
+
+  @override
+  String settings_dangerTypeNameHint(String name) {
+    return 'To confirm, type exactly: $name';
+  }
+
+  @override
+  String get settings_dangerFallbackWord => 'DELETE';
+
+  @override
+  String get settings_clearGuestsTitle => 'Clear guests and links';
+
+  @override
+  String get settings_clearGuestsHint =>
+      'Deletes the entire guest list and their assignments to tables, vehicles, and accommodation. Budget and schedule stay unchanged.';
+
+  @override
+  String get settings_clearGuestsButton => 'Clear guests';
+
+  @override
+  String get settings_clearGuestsConfirmTitle => 'Really clear all guests?';
+
+  @override
+  String get settings_clearGuestsConsequence1 =>
+      'The entire guest list — names, categories, diets, notes.';
+
+  @override
+  String get settings_clearGuestsConsequence2 =>
+      'Assignments to tables, vehicles, accommodation, and pairs.';
+
+  @override
+  String get settings_clearGuestsConsequence3 =>
+      'Budget, schedule, tasks, and vendors STAY unchanged.';
+
+  @override
+  String get settings_clearGuestsDone => 'Guest list cleared.';
+
+  @override
+  String get settings_resetWeddingTitle => 'Clear all wedding data';
+
+  @override
+  String get settings_resetWeddingHint =>
+      'Start planning from scratch — everything except the wedding name, date, and co-organizer access is cleared.';
+
+  @override
+  String get settings_resetWeddingButton => 'Clear everything';
+
+  @override
+  String get settings_resetWeddingConfirmTitle => 'Really clear ALL data?';
+
+  @override
+  String get settings_resetWeddingConsequence1 =>
+      'The entire guest list, budget, transport, accommodation, and schedule.';
+
+  @override
+  String get settings_resetWeddingConsequence2 =>
+      'Tasks, vendors, the room plan, and photo contests.';
+
+  @override
+  String get settings_resetWeddingConsequence3 =>
+      'The wedding name, date, join code, and co-organizer access STAY.';
+
+  @override
+  String get settings_resetWeddingConsequence4 =>
+      'This is much broader than \"Clear guests\" — it covers everything except the wedding\'s identity.';
+
+  @override
+  String get settings_resetWeddingDone => 'Wedding data cleared.';
+
+  @override
   String get settings_budgetHint =>
       'The planned budget is the amount you start with. The reserve is an optional buffer for the unexpected — added to the planned amount as a safety net.';
 

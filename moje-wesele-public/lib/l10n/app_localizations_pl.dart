@@ -3369,6 +3369,87 @@ class AppLocalizationsPl extends AppLocalizations {
   String get settings_childrenDataDeleted => 'Dane o dzieciach usunięte.';
 
   @override
+  String get settings_dangerZoneTitle => 'Strefa zagrożenia';
+
+  @override
+  String get settings_dangerIrreversible => 'Tej operacji NIE da się cofnąć.';
+
+  @override
+  String get settings_dangerContinue => 'Rozumiem, kontynuuj';
+
+  @override
+  String get settings_dangerConfirmTitle => 'Ostateczne potwierdzenie';
+
+  @override
+  String settings_dangerTypeNameHint(String name) {
+    return 'Aby potwierdzić, wpisz dokładnie: $name';
+  }
+
+  @override
+  String get settings_dangerFallbackWord => 'USUŃ';
+
+  @override
+  String get settings_clearGuestsTitle => 'Wyczyść gości i powiązania';
+
+  @override
+  String get settings_clearGuestsHint =>
+      'Kasuje całą listę gości oraz ich przypisania do stołów, pojazdów i noclegów. Budżet i harmonogram zostają bez zmian.';
+
+  @override
+  String get settings_clearGuestsButton => 'Wyczyść gości';
+
+  @override
+  String get settings_clearGuestsConfirmTitle => 'Na pewno wyczyścić gości?';
+
+  @override
+  String get settings_clearGuestsConsequence1 =>
+      'Cała lista gości — imiona, kategorie, diety, notatki.';
+
+  @override
+  String get settings_clearGuestsConsequence2 =>
+      'Przypisania do stołów, pojazdów, noclegów i par.';
+
+  @override
+  String get settings_clearGuestsConsequence3 =>
+      'Budżet, harmonogram, zadania i dostawcy ZOSTAJĄ bez zmian.';
+
+  @override
+  String get settings_clearGuestsDone => 'Wyczyszczono listę gości.';
+
+  @override
+  String get settings_resetWeddingTitle => 'Wyczyść wszystkie dane wesela';
+
+  @override
+  String get settings_resetWeddingHint =>
+      'Zaczynasz planowanie od nowa — wszystko poza nazwą wesela, datą i dostępem współorganizatorów zostaje wyczyszczone.';
+
+  @override
+  String get settings_resetWeddingButton => 'Wyczyść wszystko';
+
+  @override
+  String get settings_resetWeddingConfirmTitle =>
+      'Na pewno wyczyścić WSZYSTKIE dane?';
+
+  @override
+  String get settings_resetWeddingConsequence1 =>
+      'Cała lista gości, budżet, transport, noclegi i harmonogram.';
+
+  @override
+  String get settings_resetWeddingConsequence2 =>
+      'Zadania, dostawcy, plan sali i konkursy fotograficzne.';
+
+  @override
+  String get settings_resetWeddingConsequence3 =>
+      'Nazwa wesela, data, kod dołączenia i dostęp współorganizatorów ZOSTAJĄ.';
+
+  @override
+  String get settings_resetWeddingConsequence4 =>
+      'To znacznie szersza operacja niż „Wyczyść gości” — obejmuje wszystko poza tożsamością wesela.';
+
+  @override
+  String get settings_resetWeddingDone => 'Wyczyszczono dane wesela.';
+
+  @override
   String get settings_budgetHint =>
       'Budżet planowany to kwota założona na start. Rezerwa to opcjonalny bufor na nieprzewidziane wydatki — doliczany do planowanego jako bezpiecznik.';
 

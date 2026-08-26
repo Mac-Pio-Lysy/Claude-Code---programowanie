@@ -6041,6 +6041,144 @@ abstract class AppLocalizations {
   /// **'Dane o dzieciach usunięte.'**
   String get settings_childrenDataDeleted;
 
+  /// No description provided for @settings_dangerZoneTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Strefa zagrożenia'**
+  String get settings_dangerZoneTitle;
+
+  /// No description provided for @settings_dangerIrreversible.
+  ///
+  /// In pl, this message translates to:
+  /// **'Tej operacji NIE da się cofnąć.'**
+  String get settings_dangerIrreversible;
+
+  /// No description provided for @settings_dangerContinue.
+  ///
+  /// In pl, this message translates to:
+  /// **'Rozumiem, kontynuuj'**
+  String get settings_dangerContinue;
+
+  /// No description provided for @settings_dangerConfirmTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Ostateczne potwierdzenie'**
+  String get settings_dangerConfirmTitle;
+
+  /// No description provided for @settings_dangerTypeNameHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Aby potwierdzić, wpisz dokładnie: {name}'**
+  String settings_dangerTypeNameHint(String name);
+
+  /// No description provided for @settings_dangerFallbackWord.
+  ///
+  /// In pl, this message translates to:
+  /// **'USUŃ'**
+  String get settings_dangerFallbackWord;
+
+  /// No description provided for @settings_clearGuestsTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyczyść gości i powiązania'**
+  String get settings_clearGuestsTitle;
+
+  /// No description provided for @settings_clearGuestsHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Kasuje całą listę gości oraz ich przypisania do stołów, pojazdów i noclegów. Budżet i harmonogram zostają bez zmian.'**
+  String get settings_clearGuestsHint;
+
+  /// No description provided for @settings_clearGuestsButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyczyść gości'**
+  String get settings_clearGuestsButton;
+
+  /// No description provided for @settings_clearGuestsConfirmTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na pewno wyczyścić gości?'**
+  String get settings_clearGuestsConfirmTitle;
+
+  /// No description provided for @settings_clearGuestsConsequence1.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cała lista gości — imiona, kategorie, diety, notatki.'**
+  String get settings_clearGuestsConsequence1;
+
+  /// No description provided for @settings_clearGuestsConsequence2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Przypisania do stołów, pojazdów, noclegów i par.'**
+  String get settings_clearGuestsConsequence2;
+
+  /// No description provided for @settings_clearGuestsConsequence3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Budżet, harmonogram, zadania i dostawcy ZOSTAJĄ bez zmian.'**
+  String get settings_clearGuestsConsequence3;
+
+  /// No description provided for @settings_clearGuestsDone.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyczyszczono listę gości.'**
+  String get settings_clearGuestsDone;
+
+  /// No description provided for @settings_resetWeddingTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyczyść wszystkie dane wesela'**
+  String get settings_resetWeddingTitle;
+
+  /// No description provided for @settings_resetWeddingHint.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zaczynasz planowanie od nowa — wszystko poza nazwą wesela, datą i dostępem współorganizatorów zostaje wyczyszczone.'**
+  String get settings_resetWeddingHint;
+
+  /// No description provided for @settings_resetWeddingButton.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyczyść wszystko'**
+  String get settings_resetWeddingButton;
+
+  /// No description provided for @settings_resetWeddingConfirmTitle.
+  ///
+  /// In pl, this message translates to:
+  /// **'Na pewno wyczyścić WSZYSTKIE dane?'**
+  String get settings_resetWeddingConfirmTitle;
+
+  /// No description provided for @settings_resetWeddingConsequence1.
+  ///
+  /// In pl, this message translates to:
+  /// **'Cała lista gości, budżet, transport, noclegi i harmonogram.'**
+  String get settings_resetWeddingConsequence1;
+
+  /// No description provided for @settings_resetWeddingConsequence2.
+  ///
+  /// In pl, this message translates to:
+  /// **'Zadania, dostawcy, plan sali i konkursy fotograficzne.'**
+  String get settings_resetWeddingConsequence2;
+
+  /// No description provided for @settings_resetWeddingConsequence3.
+  ///
+  /// In pl, this message translates to:
+  /// **'Nazwa wesela, data, kod dołączenia i dostęp współorganizatorów ZOSTAJĄ.'**
+  String get settings_resetWeddingConsequence3;
+
+  /// No description provided for @settings_resetWeddingConsequence4.
+  ///
+  /// In pl, this message translates to:
+  /// **'To znacznie szersza operacja niż „Wyczyść gości” — obejmuje wszystko poza tożsamością wesela.'**
+  String get settings_resetWeddingConsequence4;
+
+  /// No description provided for @settings_resetWeddingDone.
+  ///
+  /// In pl, this message translates to:
+  /// **'Wyczyszczono dane wesela.'**
+  String get settings_resetWeddingDone;
+
   /// No description provided for @settings_budgetHint.
   ///
   /// In pl, this message translates to:
