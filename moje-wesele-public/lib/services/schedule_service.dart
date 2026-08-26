@@ -18,6 +18,8 @@ class ScheduleEventDraft {
     required this.private,
     required this.locationUrl,
     required this.showLinkToGuests,
+    this.endHour,
+    this.endMinute,
   });
 
   final int hour;
@@ -31,6 +33,11 @@ class ScheduleEventDraft {
   final String locationUrl;
   final bool showLinkToGuests;
 
+  /// Koniec przedziału czasu (opcjonalny) — patrz `ScheduleEvent.hasRange`.
+  /// `null` = wydarzenie punktowe, jak dotąd.
+  final int? endHour;
+  final int? endMinute;
+
   Map<String, dynamic> toFields() => {
         'hour': hour,
         'minute': minute,
@@ -42,6 +49,10 @@ class ScheduleEventDraft {
         'private': private,
         'locationUrl': locationUrl,
         'showLinkToGuests': showLinkToGuests,
+        // Zawsze zapisywane (także `null`) — wyłączenie „przedziału czasu"
+        // przy edycji musi wyczyścić poprzednio zapisany koniec.
+        'endHour': endHour,
+        'endMinute': endMinute,
       };
 }
 

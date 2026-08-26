@@ -29,6 +29,9 @@ class _EventFormSheetState extends State<EventFormSheet> {
   late String _category;
   bool _private = false;
   bool _showLinkToGuests = false;
+  bool _isRange = false;
+  int? _endHour;
+  int? _endMinute;
 
   bool get _isEdit => widget.existing != null;
 
@@ -47,6 +50,9 @@ class _EventFormSheetState extends State<EventFormSheet> {
     if (!SchedCategory.names.contains(_category)) _category = 'Inne';
     _private = e?.private ?? false;
     _showLinkToGuests = e?.showLinkToGuests ?? false;
+    _isRange = e?.hasRange ?? false;
+    _endHour = e?.endHour;
+    _endMinute = e?.endMinute;
   }
 
   @override
@@ -72,6 +78,21 @@ class _EventFormSheetState extends State<EventFormSheet> {
     }
   }
 
+  /// Koniec przedziału czasu. `endHour < hour` jest prawidłowe (przejście
+  /// przez północ, np. barman 18:00–02:00) — bez ostrzeżenia ani blokady.
+  Future<void> _pickEndTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: _endHour ?? _hour, minute: _endMinute ?? _minute),
+    );
+    if (picked != null) {
+      setState(() {
+        _endHour = picked.hour;
+        _endMinute = picked.minute;
+      });
+    }
+  }
+
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     Navigator.of(context).pop(
@@ -86,6 +107,8 @@ class _EventFormSheetState extends State<EventFormSheet> {
         private: _private,
         locationUrl: _locationUrl.text.trim(),
         showLinkToGuests: _showLinkToGuests,
+        endHour: _isRange ? (_endHour ?? _hour) : null,
+        endMinute: _isRange ? (_endMinute ?? _minute) : null,
       ),
     );
   }
@@ -161,6 +184,44 @@ class _EventFormSheetState extends State<EventFormSheet> {
                             ),
                           ),
                         ),
+                        SwitchListTile.adaptive(
+                          contentPadding: EdgeInsets.zero,
+                          activeThumbColor: AppColors.accent,
+                          title: Text(AppText.t.sched_isRange,
+                              style: GoogleFonts.inter(fontSize: 14)),
+                          value: _isRange,
+                          onChanged: (v) => setState(() {
+                            _isRange = v;
+                            if (v) {
+                              _endHour ??= _hour;
+                              _endMinute ??= _minute;
+                            }
+                          }),
+                        ),
+                        if (_isRange)
+                          _field(
+                            AppText.t.sched_endTime,
+                            InkWell(
+                              onTap: _pickEndTime,
+                              child: InputDecorator(
+                                decoration: _dec(),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.schedule,
+                                        size: 18, color: AppColors.textLight),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      '${(_endHour ?? _hour).toString().padLeft(2, '0')}:${(_endMinute ?? _minute).toString().padLeft(2, '0')}',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.text),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         _field(
                           AppText.t.common_nameRequired,
                           TextFormField(

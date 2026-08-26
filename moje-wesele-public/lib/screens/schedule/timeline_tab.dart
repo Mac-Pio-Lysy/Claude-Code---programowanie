@@ -171,7 +171,7 @@ class _EventCardState extends State<_EventCard> {
           // Oś czasu z kropką
           Column(
             children: [
-              Text(e.timeLabel,
+              Text(e.timeRangeLabel,
                   style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,

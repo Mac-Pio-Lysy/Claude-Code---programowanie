@@ -7626,6 +7626,12 @@ class AppLocalizationsPl extends AppLocalizations {
   String get sched_mapLink => 'Link do lokalizacji';
 
   @override
+  String get sched_isRange => 'To przedział czasu';
+
+  @override
+  String get sched_endTime => 'Godzina (do)';
+
+  @override
   String get sched_eventAdded => 'Dodano wydarzenie';
 
   @override

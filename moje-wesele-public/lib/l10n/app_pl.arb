@@ -4739,6 +4739,8 @@
   "common_responsible": "Osoba odpowiedzialna",
   "sched_responsibleHint": "np. Oboje",
   "sched_mapLink": "Link do lokalizacji",
+  "sched_isRange": "To przedział czasu",
+  "sched_endTime": "Godzina (do)",
   "sched_eventAdded": "Dodano wydarzenie",
   "common_noNameNeutral": "(bez nazwy)",
   "common_seats": "Liczba miejsc",

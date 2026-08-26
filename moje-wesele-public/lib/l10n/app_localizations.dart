@@ -13320,6 +13320,18 @@ abstract class AppLocalizations {
   /// **'Link do lokalizacji'**
   String get sched_mapLink;
 
+  /// No description provided for @sched_isRange.
+  ///
+  /// In pl, this message translates to:
+  /// **'To przedział czasu'**
+  String get sched_isRange;
+
+  /// No description provided for @sched_endTime.
+  ///
+  /// In pl, this message translates to:
+  /// **'Godzina (do)'**
+  String get sched_endTime;
+
   /// No description provided for @sched_eventAdded.
   ///
   /// In pl, this message translates to:

@@ -453,8 +453,19 @@ class WeddingService {
       final hour = (m['hour'] as num?)?.toInt() ?? 0;
       final minute = (m['minute'] as num?)?.toInt() ?? 0;
       final url = (m['locationUrl'] as String?)?.trim() ?? '';
+      // Przedział czasu (opcjonalny — patrz `ScheduleEvent.hasRange`), np.
+      // budka do zdjęć 19:00–23:00. Koniec „mniejszy" niż początek (przejście
+      // przez północ, np. barman 18:00–02:00) wyświetlamy dosłownie, bez
+      // żadnej korekty — sortowanie niżej zostaje po godzinie POCZĄTKU.
+      final endHour = (m['endHour'] as num?)?.toInt();
+      final endMinute = (m['endMinute'] as num?)?.toInt();
+      final startLabel =
+          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      final timeLabel = (endHour != null && endMinute != null)
+          ? '$startLabel–${endHour.toString().padLeft(2, '0')}:${endMinute.toString().padLeft(2, '0')}'
+          : startLabel;
       events.add({
-        'time': '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}',
+        'time': timeLabel,
         'name': name,
         'description': (m['description'] as String?)?.trim() ?? '',
         'location': (m['location'] as String?)?.trim() ?? '',

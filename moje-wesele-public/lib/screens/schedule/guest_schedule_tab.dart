@@ -73,8 +73,10 @@ class GuestScheduleTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 46,
-            child: Text(e.timeLabel,
+            // Szersze niż pojedyncza godzina — mieści też przedział
+            // („19:00–23:00").
+            width: e.hasRange ? 84 : 46,
+            child: Text(e.timeRangeLabel,
                 style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -130,7 +132,7 @@ class GuestScheduleTab extends StatelessWidget {
                     value: !e.private,
                     onChanged: (v) => service.setEventVisibility(e.id ?? 0, v),
                     title: Text(
-                        '${e.timeLabel}  ${e.name.isEmpty ? '(bez nazwy)' : e.name}',
+                        '${e.timeRangeLabel}  ${e.name.isEmpty ? '(bez nazwy)' : e.name}',
                         style: GoogleFonts.inter(
                             fontSize: 13, fontWeight: FontWeight.w600)),
                     subtitle: Text(!e.private ? AppText.t.schedule_visibleToGuests : 'Ukryte',

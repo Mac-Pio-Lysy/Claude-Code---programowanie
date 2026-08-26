@@ -7602,6 +7602,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sched_mapLink => 'Map link';
 
   @override
+  String get sched_isRange => 'This is a time range';
+
+  @override
+  String get sched_endTime => 'End time';
+
+  @override
   String get sched_eventAdded => 'Event added';
 
   @override

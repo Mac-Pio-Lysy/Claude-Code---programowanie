@@ -2209,6 +2209,8 @@
   "common_responsible": "Person responsible",
   "sched_responsibleHint": "e.g. Both",
   "sched_mapLink": "Map link",
+  "sched_isRange": "This is a time range",
+  "sched_endTime": "End time",
   "sched_eventAdded": "Event added",
   "common_noNameNeutral": "(no name)",
   "common_seats": "Number of seats",
