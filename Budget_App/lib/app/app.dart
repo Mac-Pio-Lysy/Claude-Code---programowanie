@@ -1,27 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../theme/app_theme.dart';
-import '../theme/theme_controller.dart';
-import 'router.dart';
+import '../core/constants/app_constants.dart';
+import '../core/theme/app_theme.dart';
+import 'routes.dart';
 
-class BudgetApp extends ConsumerWidget {
+class BudgetApp extends StatelessWidget {
   const BudgetApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeModeOption = ref.watch(themeModeProvider);
-
+  Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Budget App',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      themeMode: switch (themeModeOption) {
-        ThemeModeOption.system => ThemeMode.system,
-        ThemeModeOption.light => ThemeMode.light,
-        ThemeModeOption.dark => ThemeMode.dark,
-      },
       routerConfig: appRouter,
     );
   }

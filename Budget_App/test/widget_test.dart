@@ -1,19 +1,28 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:budget_app/app/app.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  testWidgets('App shell shows Dashboard and navigates to Settings',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: BudgetApp()));
+  setUpAll(() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+  });
+
+  testWidgets('App boots into the workspace dashboard', (tester) async {
+    await tester.pumpWidget(const BudgetApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('Bilans netto'), findsOneWidget);
+    expect(find.text('Wpływy'), findsOneWidget);
+  });
 
-    await tester.tap(find.text('Settings').last);
+  testWidgets('Bottom nav switches to Ustawienia', (tester) async {
+    await tester.pumpWidget(const BudgetApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Appearance'), findsOneWidget);
+    await tester.tap(find.text('Ustawienia').last);
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(AppBar, 'Ustawienia'), findsOneWidget);
   });
 }
