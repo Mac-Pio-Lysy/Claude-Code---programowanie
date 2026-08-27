@@ -1,0 +1,123 @@
+specification {
+    element actor {
+        style {
+            shape person
+        }
+    }
+    element system
+    element container
+    element component
+    element database {
+        style {
+            shape storage
+        }
+    }
+}
+
+model {
+    user = actor 'Uzytkownik' {
+        description 'Osoba zarzadzajaca budzetem domowym indywidualnie lub w grupie'
+    }
+
+    googleAuth = system 'Google Auth' {
+        description 'Logowanie przez konto Google'
+    }
+
+    appleAuth = system 'Apple ID' {
+        description 'Logowanie przez Apple iCloud'
+    }
+
+    ocrService = system 'OCR Receipt Service' {
+        description 'Silnik OCR do rozpoznawania paragonow'
+    }
+
+    adService = system 'Google AdMob' {
+        description 'Emisja reklam banerowych w wersji darmowej'
+    }
+
+    budgetSystem = system 'System Budzetu Domowego' {
+        description 'Wieloplatformowa platforma do zarzadzania finansami'
+
+        flutterApp = container 'Aplikacja Kliencka (Flutter)' {
+            technology 'Flutter'
+            description 'Responsywna aplikacja z arkuszem excel-like i dashboardami'
+
+            authComponent = component 'Auth Module' {
+                technology 'Supabase / Firebase Auth'
+                description 'Obsluguje logowanie Email, Google, Apple'
+            }
+
+            workspaceComponent = component 'Workspace & Budget Manager' {
+                description 'Zarzadza lista budzetow, uprawnieniami i metadanymi'
+            }
+
+            sheetEngine = component 'Grid Sheet Engine' {
+                description 'Arkusz edycyjny w stylu Excela, obsluga komorek'
+            }
+
+            calcEngine = component 'Financial Calculation Engine' {
+                description 'Przelicza bilans, raty i harmonogramy celow'
+            }
+
+            ocrScanner = component 'Receipt Scanner Component' {
+                description 'Modul aparatu i przesylania paragonow'
+            }
+
+            monetization = component 'Monetization & Ads Gate' {
+                description 'Weryfikacja subskrypcji Premium i banery'
+            }
+
+            localDbComponent = component 'Local Cache & Sync Engine' {
+                technology 'Drift / SQLite'
+                description 'Lokalne przechowywanie offline-first'
+            }
+
+            sheetEngine -> calcEngine 'Przekazuje wartosci do wyliczen'
+            calcEngine -> localDbComponent 'Zapisuje stany'
+            workspaceComponent -> localDbComponent 'Odczytuje konfiguracje budzetow'
+            ocrScanner -> sheetEngine 'Wstawia rozpoznane wydatki'
+        }
+
+        backend = container 'Backend API' {
+            technology 'Node.js / Supabase'
+            description 'API do synchronizacji budzetow i uzytkownikow'
+        }
+
+        centralDb = database 'Glowna Baza Danych' {
+            technology 'PostgreSQL'
+            description 'Baza danych w chmurze'
+        }
+
+        flutterApp -> backend 'Synchronizacja dwukierunkowa'
+        backend -> centralDb 'Zapis i odczyt danych'
+    }
+
+    user -> flutterApp 'Wprowadza dane i analizuje wykresy'
+    flutterApp -> googleAuth 'Uwierzytelnianie'
+    flutterApp -> appleAuth 'Uwierzytelnianie'
+    flutterApp -> ocrService 'Wysyla zdjecia paragonow'
+    flutterApp -> adService 'Pobiera reklamy'
+}
+
+views {
+    view index {
+        title 'C1 - Kontekst Systemu Budzetowego'
+        include 
+            user,
+            budgetSystem,
+            googleAuth,
+            appleAuth,
+            ocrService,
+            adService
+    }
+
+    view containers of budgetSystem {
+        title 'C2 - Kontenery Systemu'
+        include *
+    }
+
+    view flutterComponents of budgetSystem.flutterApp {
+        title 'C3 - Komponenty Aplikacji Flutter'
+        include *
+    }
+}
