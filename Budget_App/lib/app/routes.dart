@@ -6,6 +6,7 @@ import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_state.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/splash_page.dart';
+import '../features/bank_import/presentation/pages/bank_import_page.dart';
 import '../features/budget_sheet/presentation/pages/ocr_scanner_page.dart';
 import '../features/monetization/presentation/pages/support_us_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
@@ -105,6 +106,10 @@ GoRouter createAppRouter({required AuthBloc authBloc}) => GoRouter(
     GoRoute(
       path: '/support',
       builder: (context, state) => const SupportUsPage(),
+    ),
+    GoRoute(
+      path: '/bank-import',
+      builder: (context, state) => const BankImportPage(),
     ),
   ],
 );

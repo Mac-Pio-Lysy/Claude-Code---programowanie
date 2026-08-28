@@ -13,6 +13,7 @@ class WorkspaceTopBar extends StatelessWidget {
     this.onViewSwitch,
     this.onBudgetSettingsTap,
     this.onScanReceiptTap,
+    this.onImportCsvTap,
   });
 
   final String budgetName;
@@ -23,6 +24,9 @@ class WorkspaceTopBar extends StatelessWidget {
 
   /// Scanner icon — opens the AB-5 receipt scanner (`/ocr`).
   final VoidCallback? onScanReceiptTap;
+
+  /// Import icon — opens the bank statement CSV import wizard (`/bank-import`).
+  final VoidCallback? onImportCsvTap;
 
   static const double _logoBreakpoint = 500;
 
@@ -58,6 +62,12 @@ class WorkspaceTopBar extends StatelessWidget {
                   tooltip: 'Skanuj paragon',
                   onPressed: onScanReceiptTap,
                   icon: const Icon(Icons.document_scanner_outlined),
+                ),
+              if (showLogo)
+                IconButton(
+                  tooltip: 'Importuj wyciąg CSV',
+                  onPressed: onImportCsvTap,
+                  icon: const Icon(Icons.upload_file_outlined),
                 ),
               IconButton(
                 tooltip: 'Ustawienia budżetu',

@@ -649,6 +649,14 @@ Future<void> showAddEntryChooser(BuildContext context) {
               GoRouter.of(context).push('/ocr');
             },
           ),
+          ListTile(
+            leading: const Icon(Icons.upload_file_outlined, color: Colors.teal),
+            title: const Text('Importuj wyciąg CSV'),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              GoRouter.of(context).push('/bank-import');
+            },
+          ),
         ],
       ),
     ),

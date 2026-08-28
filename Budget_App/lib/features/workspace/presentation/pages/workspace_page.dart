@@ -135,6 +135,7 @@ class _WorkspacePageState extends State<WorkspacePage> {
             onViewSwitch: () => context.go('/workspace'),
             onBudgetSettingsTap: () => showBudgetSettingsDialog(context, workspace: workspace),
             onScanReceiptTap: () => context.push('/ocr'),
+            onImportCsvTap: () => context.push('/bank-import'),
           ),
           summaryCard: BudgetSummaryCard(summary: sheetState.summary),
           chartSection: AnalyticsPanelCard(summary: sheetState.summary),
