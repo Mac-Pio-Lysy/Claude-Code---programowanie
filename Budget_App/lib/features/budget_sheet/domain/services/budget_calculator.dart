@@ -3,6 +3,7 @@ import '../models/budget_summary.dart';
 import '../models/expense_category_type.dart';
 import '../models/expense_entry.dart';
 import '../models/income_entry.dart';
+import '../models/installment_liability.dart';
 
 /// Pure calculation engine turning raw income/expense entries into a
 /// [BudgetSummary]. Holds no state and performs no I/O.
@@ -12,11 +13,23 @@ class BudgetCalculator {
   BudgetSummary calculateSummary({
     required List<IncomeEntry> incomes,
     required List<ExpenseEntry> expenses,
+    List<InstallmentLiability> liabilities = const [],
     double allocatedToSavings = 0.0,
   }) {
     final totalIncomeNet = _sum(incomes.map((e) => e.netAmount));
 
-    final totalMandatory = _sumByCategory(expenses, ExpenseCategoryType.mandatory);
+    // Active loan/installment payments are a fixed, required cost, so they
+    // count toward the mandatory bucket alongside rent/utilities.
+    final activeLiabilityPayments = _sum(
+      liabilities
+          .where((l) => l.remainingMonths > 0)
+          .map((l) => l.monthlyAmount),
+    );
+
+    final totalMandatory = roundCurrency(
+      _sumByCategory(expenses, ExpenseCategoryType.mandatory) +
+          activeLiabilityPayments,
+    );
     final totalUtility = _sumByCategory(expenses, ExpenseCategoryType.utility);
     final totalWants = _sumByCategory(expenses, ExpenseCategoryType.wants);
     final totalExpenses = roundCurrency(totalMandatory + totalUtility + totalWants);

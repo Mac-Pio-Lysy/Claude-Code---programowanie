@@ -131,6 +131,46 @@ void main() {
     });
   });
 
+  group('BudgetCalculator — liabilities', () {
+    test('active installment payments count toward mandatory expenses', () {
+      final now = DateTime.now();
+      final activeLiability = InstallmentLiability(
+        id: 'l1',
+        title: 'Rata za laptopa',
+        monthlyAmount: 180,
+        startDate: DateTime(now.year, now.month - 1, 1),
+        endDate: DateTime(now.year, now.month + 5, 1),
+      );
+      final finishedLiability = InstallmentLiability(
+        id: 'l2',
+        title: 'Spłacona pożyczka',
+        monthlyAmount: 300,
+        startDate: DateTime(now.year, now.month - 10, 1),
+        endDate: DateTime(now.year, now.month - 2, 1),
+      );
+
+      final summary = calculator.calculateSummary(
+        incomes: const [
+          IncomeEntry(
+            id: 'i1',
+            title: 'Pensja',
+            type: IncomeType.uop,
+            grossAmount: 5000,
+            netAmount: 4000,
+          ),
+        ],
+        expenses: const [],
+        liabilities: [activeLiability, finishedLiability],
+      );
+
+      // Only the still-active liability's monthly payment counts; the
+      // finished one no longer costs anything each month.
+      expect(summary.totalMandatoryExpenses, 180.0);
+      expect(summary.totalExpenses, 180.0);
+      expect(summary.remainingBalance, 3820.0);
+    });
+  });
+
   group('InstallmentLiability — remaining months', () {
     test('mid-way through the loan counts the current month plus what remains', () {
       final now = DateTime.now();
