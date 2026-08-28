@@ -9,6 +9,12 @@ void main() {
   Future<void> pumpApp(WidgetTester tester) async {
     await tester.pumpWidget(const BudgetApp());
     await tester.pumpAndSettle();
+
+    final guestButton = find.text('Kontynuuj jako gość (Demo / Tryb testowy)');
+    await tester.ensureVisible(guestButton);
+    await tester.pumpAndSettle();
+    await tester.tap(guestButton);
+    await tester.pumpAndSettle();
   }
 
   testWidgets('Free tier: "+" opens SupportUsView instead of creating a second budget',

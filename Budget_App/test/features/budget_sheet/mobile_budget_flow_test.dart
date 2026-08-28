@@ -16,6 +16,9 @@ void main() {
     await tester.pumpWidget(const BudgetApp());
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Kontynuuj jako gość (Demo / Tryb testowy)'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Budżet Domowy 2026'));
     await tester.pumpAndSettle();
   }

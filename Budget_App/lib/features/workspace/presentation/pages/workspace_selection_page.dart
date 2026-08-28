@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/gradient_background.dart';
+import '../../../auth/presentation/widgets/profile_menu_button.dart';
 import '../../../monetization/presentation/cubit/monetization_cubit.dart';
 import '../../../monetization/presentation/widgets/support_us_modal.dart';
 import '../bloc/workspaces_bloc.dart';
@@ -34,7 +35,10 @@ class WorkspaceSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(title: Text(AppConstants.appName)),
+      appBar: AppBar(
+        title: Text(AppConstants.appName),
+        actions: const [ProfileMenuButton(), SizedBox(width: 8)],
+      ),
       body: GradientBackground(
         child: SafeArea(
           child: BlocBuilder<WorkspacesBloc, WorkspacesState>(

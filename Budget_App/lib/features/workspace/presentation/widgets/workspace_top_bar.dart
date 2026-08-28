@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/presentation/widgets/profile_menu_button.dart';
 
 /// App logo (hidden on narrow widths to make room), the active budget name,
-/// a budget-settings gear and a workspace switcher.
+/// a budget-settings gear, a workspace switcher and the profile menu.
 class WorkspaceTopBar extends StatelessWidget {
   const WorkspaceTopBar({
     super.key,
@@ -58,6 +59,7 @@ class WorkspaceTopBar extends StatelessWidget {
                 onPressed: onViewSwitch,
                 icon: const Icon(Icons.swap_horiz_rounded),
               ),
+              const ProfileMenuButton(),
             ],
           );
         },
