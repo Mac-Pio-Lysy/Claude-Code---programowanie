@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../budget_sheet/presentation/bloc/budget_sheet_bloc.dart';
 import '../../../monetization/presentation/cubit/monetization_cubit.dart';
 import '../../../workspace/domain/models/budget_workspace.dart';
 import '../../../workspace/domain/models/workspace_tag.dart';
 import '../../../workspace/presentation/bloc/workspaces_bloc.dart';
 import '../../../workspace/presentation/bloc/workspaces_event.dart';
 import '../../../workspace/presentation/widgets/workspace_tag_ui.dart';
+import 'fair_share_split_dialog.dart';
 
 /// Reached from the gear icon next to the budget name in the top bar.
 /// Lets the owner rename the budget, change its tag/participants, and —
@@ -185,6 +187,15 @@ class _BudgetSettingsFormState extends State<_BudgetSettingsForm> {
               ),
               IconButton(onPressed: _addEmail, icon: const Icon(Icons.add)),
             ],
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => showFairShareSplitDialog(
+              context,
+              initialSharedExpensesTotal: context.read<BudgetSheetBloc>().state.summary.totalExpenses,
+            ),
+            icon: const Icon(Icons.balance_outlined),
+            label: const Text('Sprawiedliwy podział kosztów'),
           ),
         ],
         const SizedBox(height: 20),

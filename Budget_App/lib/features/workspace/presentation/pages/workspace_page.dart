@@ -17,6 +17,7 @@ import '../../../budget_sheet/presentation/widgets/excel_sheet_grid.dart';
 import '../../../budget_sheet/presentation/widgets/mobile_budget_list.dart';
 import '../../../monetization/presentation/cubit/monetization_cubit.dart';
 import '../../../settings/presentation/widgets/budget_settings_dialog.dart';
+import '../../../settings/presentation/widgets/fair_share_split_dialog.dart';
 import '../bloc/workspaces_bloc.dart';
 import '../cubit/active_workspace_cubit.dart';
 import '../widgets/budget_summary_card.dart';
@@ -136,6 +137,11 @@ class _WorkspacePageState extends State<WorkspacePage> {
             onBudgetSettingsTap: () => showBudgetSettingsDialog(context, workspace: workspace),
             onScanReceiptTap: () => context.push('/ocr'),
             onImportCsvTap: () => context.push('/bank-import'),
+            isShared: workspace.isShared,
+            onFairSplitTap: () => showFairShareSplitDialog(
+              context,
+              initialSharedExpensesTotal: sheetState.summary.totalExpenses,
+            ),
           ),
           summaryCard: BudgetSummaryCard(summary: sheetState.summary),
           chartSection: AnalyticsPanelCard(summary: sheetState.summary),

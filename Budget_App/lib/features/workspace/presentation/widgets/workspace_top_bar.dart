@@ -14,6 +14,8 @@ class WorkspaceTopBar extends StatelessWidget {
     this.onBudgetSettingsTap,
     this.onScanReceiptTap,
     this.onImportCsvTap,
+    this.onFairSplitTap,
+    this.isShared = false,
   });
 
   final String budgetName;
@@ -27,6 +29,13 @@ class WorkspaceTopBar extends StatelessWidget {
 
   /// Import icon — opens the bank statement CSV import wizard (`/bank-import`).
   final VoidCallback? onImportCsvTap;
+
+  /// "Sprawiedliwy podział kosztów" icon — only shown when [isShared].
+  final VoidCallback? onFairSplitTap;
+
+  /// Whether the active budget is shared with another partner (AB-7's cost
+  /// split only makes sense for a shared budget).
+  final bool isShared;
 
   static const double _logoBreakpoint = 500;
 
@@ -68,6 +77,12 @@ class WorkspaceTopBar extends StatelessWidget {
                   tooltip: 'Importuj wyciąg CSV',
                   onPressed: onImportCsvTap,
                   icon: const Icon(Icons.upload_file_outlined),
+                ),
+              if (isShared)
+                IconButton(
+                  tooltip: 'Sprawiedliwy podział kosztów',
+                  onPressed: onFairSplitTap,
+                  icon: const Icon(Icons.balance_outlined),
                 ),
               IconButton(
                 tooltip: 'Ustawienia budżetu',
