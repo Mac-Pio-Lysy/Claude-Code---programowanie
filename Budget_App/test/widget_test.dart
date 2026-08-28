@@ -1,13 +1,8 @@
 import 'package:budget_app/app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  setUpAll(() {
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
-
   testWidgets('App boots into the workspace dashboard', (tester) async {
     await tester.pumpWidget(const BudgetApp());
     await tester.pumpAndSettle();

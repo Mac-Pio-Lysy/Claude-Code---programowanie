@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
 /// Single Light Theme for the app: minimalist cards, soft elevation, and
 /// consistently rounded corners (12px) across inputs, buttons and cards.
+///
+/// Uses Flutter's bundled system typography rather than `google_fonts`:
+/// this is an offline-first app, and google_fonts throws (rather than
+/// falling back) when a font isn't already cached/bundled and runtime
+/// fetching is disabled — not an acceptable failure mode for app startup.
 abstract final class AppTheme {
   static const double cornerRadius = 12;
 
@@ -16,10 +20,9 @@ abstract final class AppTheme {
       surface: AppColors.pureWhite,
     );
 
-    final textTheme = GoogleFonts.interTextTheme().apply(
-      bodyColor: AppColors.textPrimary,
-      displayColor: AppColors.textPrimary,
-    );
+    final textTheme = ThemeData.light()
+        .textTheme
+        .apply(bodyColor: AppColors.textPrimary, displayColor: AppColors.textPrimary);
 
     return ThemeData(
       useMaterial3: true,

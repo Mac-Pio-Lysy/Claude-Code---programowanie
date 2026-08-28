@@ -1,17 +1,12 @@
 import 'package:budget_app/app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// End-to-end UI smoke tests: the mobile FAB add-flow and the long-press
 /// delete-flow both go through the real `BudgetSheetBloc`, so a passing
 /// assertion here proves the wiring — not just the reducer logic already
 /// covered by budget_sheet_bloc_test.dart.
 void main() {
-  setUpAll(() {
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
-
   Future<void> pumpMobileApp(WidgetTester tester) async {
     tester.view.physicalSize = const Size(400, 900);
     tester.view.devicePixelRatio = 1;

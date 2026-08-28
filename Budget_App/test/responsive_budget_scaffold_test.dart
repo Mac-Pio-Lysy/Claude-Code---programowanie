@@ -1,7 +1,6 @@
 import 'package:budget_app/app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 Future<void> _pumpAtSize(WidgetTester tester, Size size) async {
   tester.view.physicalSize = size;
@@ -14,9 +13,6 @@ Future<void> _pumpAtSize(WidgetTester tester, Size size) async {
 }
 
 void main() {
-  setUpAll(() {
-    GoogleFonts.config.allowRuntimeFetching = false;
-  });
 
   testWidgets('shows bottom NavigationBar and no sidebar under 900px',
       (tester) async {
