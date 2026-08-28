@@ -16,7 +16,7 @@ specification {
 
 model {
     user = actor 'Uzytkownik' {
-        description 'Osoba zarzadzajaca budzetem domowym indywidualnie lub w grupie'
+        description 'Zarzadza budzetem domowym indywidualnie lub w zespole'
     }
 
     googleAuth = system 'Google Auth' {
@@ -27,76 +27,77 @@ model {
         description 'Logowanie przez Apple iCloud'
     }
 
-    ocrService = system 'OCR Receipt Service' {
-        description 'Silnik OCR do rozpoznawania paragonow'
+    ocrCloudService = system 'OCR Cloud / ML Service' {
+        description 'Zewnetrzny silnik OCR / Vision API do skanowania paragonow'
     }
 
-    adService = system 'Google AdMob' {
-        description 'Emisja reklam banerowych w wersji darmowej'
+    adService = system 'AdMob / Ad Network' {
+        description 'Emisja reklam banerowych w wersji Free'
     }
 
     budgetSystem = system 'System Budzetu Domowego' {
-        description 'Wieloplatformowa platforma do zarzadzania finansami'
+        description 'Wieloplatformowa aplikacja do kontroli budzetu domowego'
 
-        flutterApp = container 'Aplikacja Kliencka (Flutter)' {
-            technology 'Flutter'
-            description 'Responsywna aplikacja z arkuszem excel-like i dashboardami'
+        flutterApp = container 'Aplikacja Kliencka (Flutter Multiplatform)' {
+            technology 'Flutter / Dart'
+            description 'Responsywna aplikacja (macOS, Windows, Web, iOS, Android)'
 
-            authComponent = component 'Auth Module' {
-                technology 'Supabase / Firebase Auth'
-                description 'Obsluguje logowanie Email, Google, Apple'
+            authModule = component 'Auth Module (AuthBloc)' {
+                description 'Zarzadzanie sesja, logowanie Google/Apple/Email oraz tryb demo'
             }
 
-            workspaceComponent = component 'Workspace & Budget Manager' {
-                description 'Zarzadza lista budzetow, uprawnieniami i metadanymi'
+            workspaceModule = component 'Workspace Module (WorkspacesBloc)' {
+                description 'Wybór i zarzadzanie encjami budzetowymi (tagi, online, wspoldzielenie)'
             }
 
-            sheetEngine = component 'Grid Sheet Engine' {
-                description 'Arkusz edycyjny w stylu Excela, obsluga komorek'
+            monetizationModule = component 'Monetization Module (MonetizationCubit)' {
+                description 'Bramka limitow Free (1 budzet, banery) vs Premium oraz widok wsparcia'
             }
 
-            calcEngine = component 'Financial Calculation Engine' {
-                description 'Przelicza bilans, raty i harmonogramy celow'
+            sheetModule = component 'Budget Sheet Engine (BudgetSheetBloc)' {
+                description 'Stan glowny na poziomie Root, arkusz Excel-like, podsumowania i bilans'
             }
 
-            ocrScanner = component 'Receipt Scanner Component' {
-                description 'Modul aparatu i przesylania paragonow'
+            calcService = component 'Budget Calculator Engine' {
+                description 'Arytmetyka wplywow netto, trojstopniowy podzial kosztow i harmonogramy rat'
             }
 
-            monetization = component 'Monetization & Ads Gate' {
-                description 'Weryfikacja subskrypcji Premium i banery'
+            savingsModule = component 'Savings Module (SavingsBloc)' {
+                description 'Zarzadzanie celami oszczednosciowymi i kalkulator tempa odkladania'
             }
 
-            localDbComponent = component 'Local Cache & Sync Engine' {
-                technology 'Drift / SQLite'
-                description 'Lokalne przechowywanie offline-first'
+            ocrModule = component 'Receipt Scanner (ReceiptScannerBloc)' {
+                description 'Skaner paragonow, parser heurystyczny i bezposredni import do arkusza'
             }
 
-            sheetEngine -> calcEngine 'Przekazuje wartosci do wyliczen'
-            calcEngine -> localDbComponent 'Zapisuje stany'
-            workspaceComponent -> localDbComponent 'Odczytuje konfiguracje budzetow'
-            ocrScanner -> sheetEngine 'Wstawia rozpoznane wydatki'
+            // Relacje wewnetrzne
+            authModule -> workspaceModule 'Autoryzuje dostep do przestrzeni roboczych'
+            workspaceModule -> monetizationModule 'Weryfikuje limity budzetow w planie Free'
+            workspaceModule -> sheetModule 'Inicjalizuje dane wybranego budzetu (LoadBudgetSheet)'
+            sheetModule -> calcService 'Przelicza bilans (wplywy netto - wydatki - raty)'
+            ocrModule -> sheetModule 'Importuje zatwierdzone pozycje paragonu jako ExpenseEntry'
+            savingsModule -> sheetModule 'Synchronizuje zaalokowane oszczednosci z bilansem'
         }
 
-        backend = container 'Backend API' {
-            technology 'Node.js / Supabase'
-            description 'API do synchronizacji budzetow i uzytkownikow'
+        backendApi = container 'Backend API & Sync Engine' {
+            technology 'Node.js / Supabase / Go'
+            description 'Serwer synchronizacji danych w czasie rzeczywistym (Online-Only)'
         }
 
         centralDb = database 'Glowna Baza Danych' {
             technology 'PostgreSQL'
-            description 'Baza danych w chmurze'
+            description 'Przechowuje uzytkownikow, budzety, wpisy i subskrypcje'
         }
 
-        flutterApp -> backend 'Synchronizacja dwukierunkowa'
-        backend -> centralDb 'Zapis i odczyt danych'
+        flutterApp -> backendApi 'Synchronizacja danych i sesji przez REST / WebSocket'
+        backendApi -> centralDb 'Zapis i odczyt danych'
     }
 
-    user -> flutterApp 'Wprowadza dane i analizuje wykresy'
-    flutterApp -> googleAuth 'Uwierzytelnianie'
-    flutterApp -> appleAuth 'Uwierzytelnianie'
-    flutterApp -> ocrService 'Wysyla zdjecia paragonow'
-    flutterApp -> adService 'Pobiera reklamy'
+    user -> flutterApp 'Wprowadza dane w arkuszu, analizuje wykresy, skanuje paragony'
+    flutterApp -> googleAuth 'Uwierzytelnianie SSO'
+    flutterApp -> appleAuth 'Uwierzytelnianie SSO'
+    flutterApp -> ocrCloudService 'Przesyla zdjecie paragonu (wersja produkcyjna)'
+    flutterApp -> adService 'Wyswietla banery (wersja Free)'
 }
 
 views {
@@ -107,7 +108,7 @@ views {
             budgetSystem,
             googleAuth,
             appleAuth,
-            ocrService,
+            ocrCloudService,
             adService
     }
 
@@ -116,8 +117,8 @@ views {
         include *
     }
 
-    view flutterComponents of budgetSystem.flutterApp {
-        title 'C3 - Komponenty Aplikacji Flutter'
+    view flutterAppComponents of budgetSystem.flutterApp {
+        title 'C3 - Architektura Komponentow Flutter'
         include *
     }
 }
