@@ -78,7 +78,7 @@ class SavingsGoalCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.insights_outlined, size: 16, color: AppColors.accentBlue),
+                const Icon(Icons.insights_outlined, size: 16, color: AppColors.primaryIndigo),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(

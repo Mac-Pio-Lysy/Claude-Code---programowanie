@@ -126,7 +126,7 @@ class DottedFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.accentBlue.withValues(alpha: 0.4), width: 2),
+        border: Border.all(color: AppColors.primaryIndigo.withValues(alpha: 0.4), width: 2),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Padding(padding: const EdgeInsets.all(12), child: child),

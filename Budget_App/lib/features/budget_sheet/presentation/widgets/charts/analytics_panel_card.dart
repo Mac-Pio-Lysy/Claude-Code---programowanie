@@ -97,7 +97,7 @@ class _MetadataTiles extends StatelessWidget {
             icon: Icons.account_balance_wallet_outlined,
             label: 'Wolne środki',
             value: CurrencyFormatter.format(summary.freeCash),
-            color: summary.freeCash >= 0 ? AppColors.accentBlue : AppColors.negative,
+            color: summary.freeCash >= 0 ? AppColors.primaryIndigo : AppColors.negative,
           ),
         ),
         const SizedBox(width: 12),

@@ -47,10 +47,10 @@ class ProfileMenuButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: CircleAvatar(
           radius: 16,
-          backgroundColor: AppColors.accentBlue.withValues(alpha: 0.15),
+          backgroundColor: AppColors.primaryIndigo.withValues(alpha: 0.15),
           child: Text(
             initial,
-            style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.w700),
+            style: const TextStyle(color: AppColors.primaryIndigo, fontWeight: FontWeight.w700),
           ),
         ),
       ),

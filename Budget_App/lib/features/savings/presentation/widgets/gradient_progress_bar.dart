@@ -29,7 +29,7 @@ class GradientProgressBar extends StatelessWidget {
               Container(
                 height: height,
                 width: double.infinity,
-                color: AppColors.navy.withValues(alpha: 0.08),
+                color: AppColors.indigoSlate.withValues(alpha: 0.08),
               ),
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),

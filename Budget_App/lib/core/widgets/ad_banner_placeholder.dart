@@ -15,7 +15,7 @@ class AdBannerPlaceholder extends StatelessWidget {
       height: height,
       width: double.infinity,
       alignment: Alignment.center,
-      color: AppColors.navy.withValues(alpha: 0.05),
+      color: AppColors.indigoSlate.withValues(alpha: 0.05),
       child: Text(
         'Reklama',
         style: Theme.of(context)

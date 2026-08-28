@@ -251,7 +251,7 @@ class _LiabilityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Tile(
-      accentColor: AppColors.accentBlue,
+      accentColor: AppColors.primaryIndigo,
       title: liability.title,
       onLongPress: () => _handleLongPress(context),
       subtitle: Padding(
@@ -266,7 +266,7 @@ class _LiabilityTile extends StatelessWidget {
       ),
       trailing: Text(
         '-${CurrencyFormatter.format(liability.monthlyAmount)}',
-        style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.w700),
+        style: const TextStyle(color: AppColors.primaryIndigo, fontWeight: FontWeight.w700),
       ),
     );
   }

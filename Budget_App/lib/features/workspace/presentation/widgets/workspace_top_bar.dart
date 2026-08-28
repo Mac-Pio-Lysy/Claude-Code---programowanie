@@ -39,7 +39,7 @@ class WorkspaceTopBar extends StatelessWidget {
           return Row(
             children: [
               if (showLogo) ...[
-                const Icon(Icons.account_balance_wallet_rounded, color: AppColors.accentBlue),
+                const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primaryIndigo),
                 const SizedBox(width: 8),
                 Text(AppConstants.appName, style: textTheme.titleMedium),
                 const SizedBox(width: 16),
@@ -86,7 +86,7 @@ class _Divider extends StatelessWidget {
     return Container(
       width: 1,
       height: 20,
-      color: AppColors.navy.withValues(alpha: 0.12),
+      color: AppColors.indigoSlate.withValues(alpha: 0.12),
     );
   }
 }

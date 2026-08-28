@@ -18,7 +18,7 @@ class CommentIndicator extends StatelessWidget {
       Icons.comment,
       size: 14,
       color: hasComment
-          ? AppColors.accentBlue
+          ? AppColors.primaryIndigo
           : AppColors.textSecondary.withValues(alpha: 0.35),
     );
 

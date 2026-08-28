@@ -39,7 +39,7 @@ class _BudgetPieChartState extends State<BudgetPieChart> {
       _Slice('Wydatki Wymagane', s.totalMandatoryExpenses, const Color(0xFFE57373)),
       _Slice('Wydatki Użytkowe', s.totalUtilityExpenses, const Color(0xFFFFB74D)),
       _Slice('Zachcianki', s.totalWantsExpenses, const Color(0xFF9575CD)),
-      _Slice('Raty i Zobowiązania', s.totalLiabilityPayments, const Color(0xFF0A2540)),
+      _Slice('Raty i Zobowiązania', s.totalLiabilityPayments, AppColors.indigoSlate),
       _Slice('Zaalokowane Oszczędności', s.allocatedToSavings, const Color(0xFF1B9C63)),
       _Slice('Wolne środki', s.freeCash < 0 ? 0 : s.freeCash, const Color(0xFFB0BEC5)),
     ].where((slice) => slice.value > 0).toList();

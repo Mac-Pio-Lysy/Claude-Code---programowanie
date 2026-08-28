@@ -69,7 +69,7 @@ class BudgetComparisonBarChart extends StatelessWidget {
                     ),
                     barGroups: [
                       _group(0, income, AppColors.positive),
-                      _group(1, expenses, overBudget ? AppColors.negative : AppColors.accentBlue),
+                      _group(1, expenses, overBudget ? AppColors.negative : AppColors.primaryIndigo),
                       _group(2, savings, const Color(0xFF1B9C63)),
                     ],
                   ),
@@ -122,7 +122,7 @@ class _UtilizationIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = overBudget ? AppColors.negative : AppColors.accentBlue;
+    final color = overBudget ? AppColors.negative : AppColors.primaryIndigo;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,7 +137,7 @@ class _UtilizationIndicator extends StatelessWidget {
           child: LinearProgressIndicator(
             value: utilization.clamp(0.0, 1.0),
             minHeight: 8,
-            backgroundColor: AppColors.navy.withValues(alpha: 0.08),
+            backgroundColor: AppColors.indigoSlate.withValues(alpha: 0.08),
             valueColor: AlwaysStoppedAnimation(color),
           ),
         ),

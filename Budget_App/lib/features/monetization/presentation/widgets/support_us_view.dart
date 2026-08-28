@@ -34,12 +34,12 @@ class SupportUsView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.accentBlue.withValues(alpha: 0.1),
+                color: AppColors.primaryIndigo.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.info_outline, color: AppColors.accentBlue, size: 18),
+                  const Icon(Icons.info_outline, color: AppColors.primaryIndigo, size: 18),
                   const SizedBox(width: 8),
                   Expanded(child: Text(limitMessage!, style: textTheme.bodySmall)),
                 ],

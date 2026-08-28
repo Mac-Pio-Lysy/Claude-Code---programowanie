@@ -62,7 +62,7 @@ class BudgetSummaryCard extends StatelessWidget {
                   child: _Figure(
                     label: 'Oszczędności',
                     value: summary.allocatedToSavings,
-                    color: AppColors.accentBlue,
+                    color: AppColors.primaryIndigo,
                     icon: Icons.savings_outlined,
                   ),
                 ),
@@ -71,7 +71,7 @@ class BudgetSummaryCard extends StatelessWidget {
                   child: _Figure(
                     label: 'Wolne środki',
                     value: summary.freeCash,
-                    color: AppColors.navy,
+                    color: AppColors.indigoSlate,
                     icon: Icons.account_balance_wallet_outlined,
                   ),
                 ),

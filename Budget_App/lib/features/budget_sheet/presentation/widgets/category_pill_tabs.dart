@@ -29,7 +29,7 @@ class CategoryPillTabs extends StatelessWidget {
             label: Text(tab.label),
             avatar: Icon(tab.icon, size: 16),
             selected: selected,
-            selectedColor: AppColors.accentBlue.withValues(alpha: 0.15),
+            selectedColor: AppColors.primaryIndigo.withValues(alpha: 0.15),
             onSelected: (_) =>
                 context.read<BudgetSheetBloc>().add(SelectCategoryTab(tab.id)),
           );

@@ -14,9 +14,9 @@ abstract final class AppTheme {
 
   static ThemeData light() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.accentBlue,
+      seedColor: AppColors.primaryIndigo,
       brightness: Brightness.light,
-      primary: AppColors.accentBlue,
+      primary: AppColors.primaryIndigo,
       surface: AppColors.pureWhite,
     );
 
@@ -37,11 +37,12 @@ abstract final class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 6,
-        shadowColor: AppColors.navy.withValues(alpha: 0.08),
+        shadowColor: AppColors.indigoSlate.withValues(alpha: 0.08),
         color: AppColors.pureWhite.withValues(alpha: 0.72),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(cornerRadius),
+          side: BorderSide(color: AppColors.indigoMist, width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -54,7 +55,7 @@ abstract final class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.accentBlue,
+          backgroundColor: AppColors.primaryIndigo,
           foregroundColor: AppColors.pureWhite,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(cornerRadius),
@@ -64,11 +65,11 @@ abstract final class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.pureWhite.withValues(alpha: 0.92),
-        indicatorColor: AppColors.accentBlue.withValues(alpha: 0.15),
+        indicatorColor: AppColors.primaryIndigo.withValues(alpha: 0.15),
         elevation: 0,
       ),
-      dividerTheme: DividerThemeData(
-        color: AppColors.navy.withValues(alpha: 0.08),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.indigoMist,
       ),
     );
   }

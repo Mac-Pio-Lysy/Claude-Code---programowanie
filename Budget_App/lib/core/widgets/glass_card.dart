@@ -6,7 +6,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 
 /// A minimalist card with a subtle shadow and a light glass (frosted) look,
-/// used throughout the dashboard on top of the navy-to-white background
+/// used throughout the dashboard on top of the indigo-to-white background
 /// gradient.
 class GlassCard extends StatelessWidget {
   const GlassCard({
@@ -27,14 +27,12 @@ class GlassCard extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: AppColors.pureWhite.withValues(alpha: 0.72),
+            color: AppColors.pureWhite.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(AppTheme.cornerRadius),
-            border: Border.all(
-              color: AppColors.pureWhite.withValues(alpha: 0.4),
-            ),
+            border: Border.all(color: AppColors.indigoMist),
             boxShadow: [
               BoxShadow(
-                color: AppColors.navy.withValues(alpha: 0.08),
+                color: AppColors.indigoSlate.withValues(alpha: 0.08),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),

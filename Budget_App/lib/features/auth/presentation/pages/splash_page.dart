@@ -58,7 +58,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.navy.withValues(alpha: 0.2),
+                        color: AppColors.indigoSlate.withValues(alpha: 0.2),
                         blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
@@ -66,7 +66,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                   ),
                   child: const Icon(
                     Icons.account_balance_wallet_rounded,
-                    color: AppColors.accentBlue,
+                    color: AppColors.primaryIndigo,
                     size: 48,
                   ),
                 ),
@@ -76,7 +76,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                   style: Theme.of(context)
                       .textTheme
                       .titleLarge
-                      ?.copyWith(color: AppColors.pureWhite, fontWeight: FontWeight.w700),
+                      ?.copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 24),
                 const SizedBox(
@@ -84,7 +84,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
                   height: 28,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation(AppColors.pureWhite),
+                    valueColor: AlwaysStoppedAnimation(AppColors.primaryIndigo),
                   ),
                 ),
               ],

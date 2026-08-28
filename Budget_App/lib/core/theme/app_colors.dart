@@ -1,24 +1,40 @@
 import 'package:flutter/material.dart';
 
-/// Brand color tokens. The app leans on a navy-to-white gradient with a
-/// single accent blue, per the product's visual identity.
+/// Brand color tokens. The app leans on a light indigo-to-snow-white
+/// gradient with a single vivid indigo accent, per the product's visual
+/// identity.
 abstract final class AppColors {
-  static const Color navy = Color(0xFF0A2540);
-  static const Color accentBlue = Color(0xFF1E88E5);
-  static const Color mistWhite = Color(0xFFF4F8FA);
+  /// Deep indigo-slate — primary text and anything needing strong contrast
+  /// (shadows, high-emphasis icons) against the light background.
+  static const Color indigoSlate = Color(0xFF1E1B4B);
+
+  /// Vivid, elegant indigo — the app's primary brand/accent color: buttons,
+  /// active states, links.
+  static const Color primaryIndigo = Color(0xFF4F46E5);
+
+  /// A touch deeper, for pressed/emphasis states of [primaryIndigo].
+  static const Color primaryIndigoDark = Color(0xFF4338CA);
+
+  /// Background-gradient stops, palest to most saturated.
+  static const Color indigoMistLight = Color(0xFFEEF2FF);
+  static const Color indigoMist = Color(0xFFE0E7FF);
+  static const Color indigoMistDeep = Color(0xFFC7D2FE);
+
+  static const Color snowWhite = Color(0xFFF8FAFC);
   static const Color pureWhite = Color(0xFFFFFFFF);
 
-  static const Color textPrimary = Color(0xFF0A2540);
-  static const Color textSecondary = Color(0xFF5C7080);
+  static const Color textPrimary = Color(0xFF0F172A);
+  static const Color textSecondary = Color(0xFF64748B);
 
   static const Color positive = Color(0xFF1B9C63);
   static const Color negative = Color(0xFFD64545);
 
-  /// Background gradient: elegant navy blending into a snow-white surface.
+  /// Background gradient: pastel indigo at the top fading down into a snow
+  /// white workspace area.
   static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [navy, accentBlue, mistWhite, pureWhite],
-    stops: [0.0, 0.28, 0.7, 1.0],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [indigoMistLight, indigoMist, indigoMistDeep, snowWhite, pureWhite],
+    stops: [0.0, 0.18, 0.38, 0.75, 1.0],
   );
 }

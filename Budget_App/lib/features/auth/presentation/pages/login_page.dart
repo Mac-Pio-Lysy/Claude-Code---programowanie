@@ -158,13 +158,13 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               const Icon(
                                 Icons.account_balance_wallet_rounded,
-                                color: AppColors.pureWhite,
+                                color: AppColors.primaryIndigo,
                                 size: 28,
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 AppConstants.appName,
-                                style: textTheme.labelLarge?.copyWith(color: AppColors.pureWhite),
+                                style: textTheme.labelLarge?.copyWith(color: AppColors.textPrimary),
                               ),
                             ],
                           ),
@@ -174,7 +174,7 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: isLoading
                               ? null
                               : () => context.read<AuthBloc>().add(const SignInAsGuest()),
-                          style: TextButton.styleFrom(foregroundColor: AppColors.pureWhite),
+                          style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
                           child: const Text('Kontynuuj jako gość (Demo / Tryb testowy)'),
                         ),
                       ],

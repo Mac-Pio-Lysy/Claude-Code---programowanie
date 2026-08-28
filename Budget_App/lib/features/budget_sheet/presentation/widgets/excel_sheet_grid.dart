@@ -367,7 +367,7 @@ class _LiabilityRow extends StatelessWidget {
               value: liability.monthlyAmount.toStringAsFixed(2),
               isNumeric: true,
               textAlign: TextAlign.end,
-              style: const TextStyle(color: AppColors.accentBlue, fontWeight: FontWeight.w600),
+              style: const TextStyle(color: AppColors.primaryIndigo, fontWeight: FontWeight.w600),
               onSubmit: (v) => bloc.add(
                 UpdateInstallmentLiability(liability.copyWith(monthlyAmount: double.parse(v))),
               ),
