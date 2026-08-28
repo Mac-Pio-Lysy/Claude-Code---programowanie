@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/ad_banner_placeholder.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/gradient_background.dart';
+import '../../../monetization/presentation/cubit/monetization_cubit.dart';
 import '../../../workspace/presentation/pages/workspace_page.dart' show workspaceNavDestinations;
 
 /// Entry point for scanning a receipt; captured images are handed to the
@@ -19,6 +22,8 @@ class OcrScannerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shouldShowAds = context.watch<MonetizationCubit>().shouldShowAds;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Skaner paragonów')),
@@ -26,6 +31,7 @@ class OcrScannerPage extends StatelessWidget {
         destinations: workspaceNavDestinations,
         selectedIndex: selectedBottomIndex,
         onDestinationSelected: onBottomDestinationSelected,
+        adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
       ),
       body: GradientBackground(
         child: Center(

@@ -10,10 +10,12 @@ Future<void> _pumpAtSize(WidgetTester tester, Size size) async {
 
   await tester.pumpWidget(const BudgetApp());
   await tester.pumpAndSettle();
+
+  await tester.tap(find.text('Budżet Domowy 2026'));
+  await tester.pumpAndSettle();
 }
 
 void main() {
-
   testWidgets('shows bottom NavigationBar and no sidebar under 900px',
       (tester) async {
     await _pumpAtSize(tester, const Size(500, 900));

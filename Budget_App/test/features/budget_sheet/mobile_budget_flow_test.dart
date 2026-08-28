@@ -15,6 +15,9 @@ void main() {
 
     await tester.pumpWidget(const BudgetApp());
     await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Budżet Domowy 2026'));
+    await tester.pumpAndSettle();
   }
 
   testWidgets('adding an income entry via the FAB updates the tile list and the balance',

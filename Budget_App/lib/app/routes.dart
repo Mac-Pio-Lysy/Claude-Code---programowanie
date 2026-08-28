@@ -1,53 +1,71 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/budget_sheet/presentation/pages/ocr_scanner_page.dart';
+import '../features/monetization/presentation/pages/support_us_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/workspace/presentation/cubit/active_workspace_cubit.dart';
 import '../features/workspace/presentation/pages/workspace_page.dart';
+import '../features/workspace/presentation/pages/workspace_selection_page.dart';
 
-/// Top-level destinations, in the same order as [workspaceNavDestinations]:
-/// Dashboard, Arkusz, Oszczędności, Skaner OCR, Ustawienia.
-const _paths = ['/dashboard', '/sheet', '/savings', '/ocr', '/settings'];
-
-void _goToIndex(GoRouter router, int index) => router.go(_paths[index]);
+/// Bottom-nav index -> destination. 0/1 (Dashboard/Arkusz) are handled
+/// locally by WorkspacePage itself; this only fires for 2-4, or when a
+/// non-workspace page needs to jump back into the last-active budget.
+void goToBottomNavIndex(BuildContext context, int index) {
+  switch (index) {
+    case 0:
+    case 1:
+      final activeId = context.read<ActiveWorkspaceCubit>().state;
+      context.go(activeId == null ? '/workspace' : '/budget/$activeId');
+    case 2:
+      context.go('/savings');
+    case 3:
+      context.go('/ocr');
+    default:
+      context.go('/settings');
+  }
+}
 
 final appRouter = GoRouter(
-  initialLocation: _paths[0],
+  initialLocation: '/workspace',
   routes: [
     GoRoute(
-      path: _paths[0],
+      path: '/workspace',
+      builder: (context, state) => const WorkspaceSelectionPage(),
+    ),
+    GoRoute(
+      path: '/budget/:budgetId',
       builder: (context, state) => WorkspacePage(
-        selectedBottomIndex: 0,
-        onBottomDestinationSelected: (i) => _goToIndex(GoRouter.of(context), i),
+        budgetId: state.pathParameters['budgetId']!,
+        onNavigate: (i) => goToBottomNavIndex(context, i),
       ),
     ),
     GoRoute(
-      path: _paths[1],
-      builder: (context, state) => WorkspacePage(
-        selectedBottomIndex: 1,
-        onBottomDestinationSelected: (i) => _goToIndex(GoRouter.of(context), i),
-      ),
-    ),
-    GoRoute(
-      path: _paths[2],
+      path: '/savings',
       builder: (context, state) => SavingsPage(
         selectedBottomIndex: 2,
-        onBottomDestinationSelected: (i) => _goToIndex(GoRouter.of(context), i),
+        onBottomDestinationSelected: (i) => goToBottomNavIndex(context, i),
       ),
     ),
     GoRoute(
-      path: _paths[3],
+      path: '/ocr',
       builder: (context, state) => OcrScannerPage(
         selectedBottomIndex: 3,
-        onBottomDestinationSelected: (i) => _goToIndex(GoRouter.of(context), i),
+        onBottomDestinationSelected: (i) => goToBottomNavIndex(context, i),
       ),
     ),
     GoRoute(
-      path: _paths[4],
+      path: '/settings',
       builder: (context, state) => SettingsPage(
         selectedBottomIndex: 4,
-        onBottomDestinationSelected: (i) => _goToIndex(GoRouter.of(context), i),
+        onBottomDestinationSelected: (i) => goToBottomNavIndex(context, i),
       ),
+    ),
+    GoRoute(
+      path: '/support',
+      builder: (context, state) => const SupportUsPage(),
     ),
   ],
 );

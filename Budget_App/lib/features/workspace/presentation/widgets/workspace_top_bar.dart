@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 
-/// Logo, active budget name, a view switcher and the profile/settings
-/// entry point.
+/// App logo (hidden on narrow widths to make room), the active budget name,
+/// a budget-settings gear and a workspace switcher.
 class WorkspaceTopBar extends StatelessWidget {
   const WorkspaceTopBar({
     super.key,
     required this.budgetName,
     this.onViewSwitch,
-    this.onProfileTap,
+    this.onBudgetSettingsTap,
   });
 
   final String budgetName;
   final VoidCallback? onViewSwitch;
-  final VoidCallback? onProfileTap;
+
+  /// Gear icon next to the budget name — opens BudgetSettingsDialog.
+  final VoidCallback? onBudgetSettingsTap;
+
+  static const double _logoBreakpoint = 500;
 
   @override
   Widget build(BuildContext context) {
@@ -23,32 +27,40 @@ class WorkspaceTopBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          const Icon(Icons.account_balance_wallet_rounded, color: AppColors.accentBlue),
-          const SizedBox(width: 8),
-          Text(AppConstants.appName, style: textTheme.titleMedium),
-          const SizedBox(width: 16),
-          const _Divider(),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              budgetName,
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          IconButton(
-            tooltip: 'Przełącz widok',
-            onPressed: onViewSwitch,
-            icon: const Icon(Icons.swap_horiz_rounded),
-          ),
-          IconButton(
-            tooltip: 'Profil i ustawienia',
-            onPressed: onProfileTap,
-            icon: const Icon(Icons.account_circle_outlined),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final showLogo = constraints.maxWidth >= _logoBreakpoint;
+
+          return Row(
+            children: [
+              if (showLogo) ...[
+                const Icon(Icons.account_balance_wallet_rounded, color: AppColors.accentBlue),
+                const SizedBox(width: 8),
+                Text(AppConstants.appName, style: textTheme.titleMedium),
+                const SizedBox(width: 16),
+                const _Divider(),
+                const SizedBox(width: 16),
+              ],
+              Expanded(
+                child: Text(
+                  budgetName,
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Ustawienia budżetu',
+                onPressed: onBudgetSettingsTap,
+                icon: const Icon(Icons.settings_outlined),
+              ),
+              IconButton(
+                tooltip: 'Przełącz budżet',
+                onPressed: onViewSwitch,
+                icon: const Icon(Icons.swap_horiz_rounded),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
