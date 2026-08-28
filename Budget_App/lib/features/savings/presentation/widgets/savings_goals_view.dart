@@ -50,7 +50,7 @@ class SavingsGoalsView extends StatelessWidget {
                       itemCount: state.goals.length,
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: columns,
-                        mainAxisExtent: 260,
+                        mainAxisExtent: 300,
                         crossAxisSpacing: 16,
                         mainAxisSpacing: 16,
                       ),
