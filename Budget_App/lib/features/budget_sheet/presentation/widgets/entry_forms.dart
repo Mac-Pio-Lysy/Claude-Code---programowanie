@@ -11,6 +11,7 @@ import '../../domain/models/income_type.dart';
 import '../../domain/models/installment_liability.dart';
 import '../bloc/budget_sheet_bloc.dart';
 import '../bloc/budget_sheet_event.dart';
+import 'expense_category_label.dart';
 
 const _uuid = Uuid();
 
@@ -24,12 +25,6 @@ String _incomeTypeLabel(IncomeType type) => switch (type) {
       IncomeType.b2b => 'B2B',
       IncomeType.mandateContract => 'Umowa zlecenie',
       IncomeType.other => 'Inne',
-    };
-
-String _categoryTypeLabel(ExpenseCategoryType type) => switch (type) {
-      ExpenseCategoryType.mandatory => 'Wymagane',
-      ExpenseCategoryType.utility => 'Użytkowe',
-      ExpenseCategoryType.wants => 'Zachcianki',
     };
 
 /// Shows [builder]'s content as a dialog on wide screens, or a scrollable
@@ -323,7 +318,7 @@ class _ExpenseFormState extends State<_ExpenseForm> {
             decoration: const InputDecoration(labelText: 'Kategoria'),
             items: [
               for (final type in ExpenseCategoryType.values)
-                DropdownMenuItem(value: type, child: Text(_categoryTypeLabel(type))),
+                DropdownMenuItem(value: type, child: Text(expenseCategoryTypeLabel(type))),
             ],
             onChanged: (value) => setState(() => _categoryType = value ?? _categoryType),
           ),
@@ -584,7 +579,7 @@ Future<void> showQuickExpenseCategoryMenu(
     position: position,
     items: [
       for (final type in ExpenseCategoryType.values)
-        PopupMenuItem(value: type, child: Text(_categoryTypeLabel(type))),
+        PopupMenuItem(value: type, child: Text(expenseCategoryTypeLabel(type))),
     ],
   );
   if (selected != null && selected != expense.categoryType) {

@@ -13,13 +13,8 @@ import '../bloc/budget_sheet_event.dart';
 import '../bloc/budget_sheet_state.dart';
 import 'charts/budget_pie_chart.dart';
 import 'entry_forms.dart';
+import 'expense_category_label.dart';
 import 'mobile_row_actions_sheet.dart';
-
-String _categoryBadgeLabel(ExpenseCategoryType type) => switch (type) {
-      ExpenseCategoryType.mandatory => 'Wymagane',
-      ExpenseCategoryType.utility => 'Użytkowe',
-      ExpenseCategoryType.wants => 'Zachcianki',
-    };
 
 /// Touch-optimized budget list for mobile: colored transaction tiles
 /// (green = wpływy, red/orange = wydatki with a category badge, blue =
@@ -215,7 +210,7 @@ class _ExpenseTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            _categoryBadgeLabel(expense.categoryType),
+            expenseCategoryTypeLabel(expense.categoryType),
             style: Theme.of(context).textTheme.labelSmall?.copyWith(color: accent),
           ),
         ),
