@@ -164,8 +164,11 @@ void main() {
       );
 
       // Only the still-active liability's monthly payment counts; the
-      // finished one no longer costs anything each month.
-      expect(summary.totalMandatoryExpenses, 180.0);
+      // finished one no longer costs anything each month. Liability
+      // payments are tracked separately from totalMandatoryExpenses so
+      // charts can show Raty/Zobowiązania as their own slice.
+      expect(summary.totalLiabilityPayments, 180.0);
+      expect(summary.totalMandatoryExpenses, 0.0);
       expect(summary.totalExpenses, 180.0);
       expect(summary.remainingBalance, 3820.0);
     });

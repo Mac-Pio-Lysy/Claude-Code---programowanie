@@ -7,6 +7,7 @@ class BudgetSummary extends Equatable {
     required this.totalMandatoryExpenses,
     required this.totalUtilityExpenses,
     required this.totalWantsExpenses,
+    required this.totalLiabilityPayments,
     required this.totalExpenses,
     required this.remainingBalance,
     required this.allocatedToSavings,
@@ -17,6 +18,14 @@ class BudgetSummary extends Equatable {
   final double totalMandatoryExpenses;
   final double totalUtilityExpenses;
   final double totalWantsExpenses;
+
+  /// Active loan/installment monthly payments — tracked separately from
+  /// [totalMandatoryExpenses] so charts can show Raty/Zobowiązania as its
+  /// own slice without double-counting.
+  final double totalLiabilityPayments;
+
+  /// totalMandatoryExpenses + totalUtilityExpenses + totalWantsExpenses +
+  /// totalLiabilityPayments.
   final double totalExpenses;
 
   /// totalIncomeNet - totalExpenses.
@@ -32,6 +41,7 @@ class BudgetSummary extends Equatable {
         totalMandatoryExpenses,
         totalUtilityExpenses,
         totalWantsExpenses,
+        totalLiabilityPayments,
         totalExpenses,
         remainingBalance,
         allocatedToSavings,

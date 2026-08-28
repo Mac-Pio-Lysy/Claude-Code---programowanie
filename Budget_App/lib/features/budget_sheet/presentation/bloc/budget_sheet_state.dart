@@ -44,6 +44,7 @@ class BudgetSheetState extends Equatable {
           totalMandatoryExpenses: 0,
           totalUtilityExpenses: 0,
           totalWantsExpenses: 0,
+          totalLiabilityPayments: 0,
           totalExpenses: 0,
           remainingBalance: 0,
           allocatedToSavings: 0,

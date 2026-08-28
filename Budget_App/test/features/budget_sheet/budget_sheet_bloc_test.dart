@@ -112,7 +112,7 @@ void main() {
     );
 
     blocTest<BudgetSheetBloc, BudgetSheetState>(
-      'AddInstallmentLiability folds an active payment into mandatory expenses',
+      'AddInstallmentLiability folds an active payment into totalLiabilityPayments',
       build: BudgetSheetBloc.new,
       seed: () => BudgetSheetState.initial().copyWith(incomes: [income]),
       act: (bloc) {
@@ -130,7 +130,7 @@ void main() {
         );
       },
       verify: (bloc) {
-        expect(bloc.state.summary.totalMandatoryExpenses, 200.0);
+        expect(bloc.state.summary.totalLiabilityPayments, 200.0);
         expect(bloc.state.summary.remainingBalance, 4300.0);
       },
     );

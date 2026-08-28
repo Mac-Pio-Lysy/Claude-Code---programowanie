@@ -18,21 +18,21 @@ class BudgetCalculator {
   }) {
     final totalIncomeNet = _sum(incomes.map((e) => e.netAmount));
 
-    // Active loan/installment payments are a fixed, required cost, so they
-    // count toward the mandatory bucket alongside rent/utilities.
-    final activeLiabilityPayments = _sum(
+    // Active loan/installment payments are a fixed, required cost, but are
+    // tracked in their own bucket (not folded into totalMandatoryExpenses)
+    // so charts can show Raty/Zobowiązania as a distinct slice.
+    final totalLiabilityPayments = _sum(
       liabilities
           .where((l) => l.remainingMonths > 0)
           .map((l) => l.monthlyAmount),
     );
 
-    final totalMandatory = roundCurrency(
-      _sumByCategory(expenses, ExpenseCategoryType.mandatory) +
-          activeLiabilityPayments,
-    );
+    final totalMandatory = _sumByCategory(expenses, ExpenseCategoryType.mandatory);
     final totalUtility = _sumByCategory(expenses, ExpenseCategoryType.utility);
     final totalWants = _sumByCategory(expenses, ExpenseCategoryType.wants);
-    final totalExpenses = roundCurrency(totalMandatory + totalUtility + totalWants);
+    final totalExpenses = roundCurrency(
+      totalMandatory + totalUtility + totalWants + totalLiabilityPayments,
+    );
 
     final remainingBalance = roundCurrency(totalIncomeNet - totalExpenses);
 
@@ -48,6 +48,7 @@ class BudgetCalculator {
       totalMandatoryExpenses: totalMandatory,
       totalUtilityExpenses: totalUtility,
       totalWantsExpenses: totalWants,
+      totalLiabilityPayments: totalLiabilityPayments,
       totalExpenses: totalExpenses,
       remainingBalance: remainingBalance,
       allocatedToSavings: safeAllocatedToSavings,
