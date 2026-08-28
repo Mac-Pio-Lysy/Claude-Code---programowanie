@@ -11,6 +11,7 @@ import '../../domain/models/installment_liability.dart';
 import '../bloc/budget_sheet_bloc.dart';
 import '../bloc/budget_sheet_event.dart';
 import '../bloc/budget_sheet_state.dart';
+import 'charts/budget_health_indicators.dart';
 import 'charts/budget_pie_chart.dart';
 import 'entry_forms.dart';
 import 'expense_category_label.dart';
@@ -44,6 +45,8 @@ class MobileBudgetList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             GlassCard(child: BudgetPieChart(summary: state.summary, compact: true)),
+            const SizedBox(height: 16),
+            GlassCard(child: BudgetHealthIndicators(summary: state.summary)),
             const SizedBox(height: 16),
             if (tiles.isEmpty)
               Padding(

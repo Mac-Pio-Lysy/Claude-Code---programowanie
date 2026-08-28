@@ -27,6 +27,15 @@ abstract final class AppColors {
   static const Color positive = Color(0xFF1B9C63);
   static const Color negative = Color(0xFFD64545);
 
+  /// Amber — the middle tier of the emergency-runway traffic light
+  /// (3-6 months of fixed costs covered).
+  static const Color caution = Color(0xFFF59E0B);
+
+  /// Orange — the emergency-runway traffic light's low tier (under 3
+  /// months covered). Deliberately distinct from [negative] (red), which
+  /// is reserved for outright negative amounts/errors.
+  static const Color critical = Color(0xFFF97316);
+
   /// Background gradient: pastel indigo on the left fading into a snow
   /// white workspace on the right.
   static const LinearGradient backgroundGradient = LinearGradient(

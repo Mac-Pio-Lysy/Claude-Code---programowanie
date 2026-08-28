@@ -7,6 +7,7 @@ import '../../../../../core/widgets/glass_card.dart';
 import '../../../domain/models/budget_summary.dart';
 import 'analytics_view_cubit.dart';
 import 'budget_comparison_bar_chart.dart';
+import 'budget_health_indicators.dart';
 import 'budget_pie_chart.dart';
 
 /// Left-column dashboard card: "Podsumowanie Budżetu" with an arrow switch
@@ -40,6 +41,8 @@ class AnalyticsPanelCard extends StatelessWidget {
                 );
               },
             ),
+            const Divider(height: 32),
+            BudgetHealthIndicators(summary: summary),
             const SizedBox(height: 16),
             _MetadataTiles(summary: summary),
           ],

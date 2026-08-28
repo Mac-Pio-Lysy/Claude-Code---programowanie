@@ -14,6 +14,7 @@ const _summary = BudgetSummary(
   remainingBalance: 4970,
   allocatedToSavings: 600,
   freeCash: 4370,
+  totalSavingsBalance: 4000,
 );
 
 void main() {
@@ -21,7 +22,11 @@ void main() {
       (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(body: AnalyticsPanelCard(summary: _summary)),
+        // Mirrors ResponsiveBudgetScaffold's desktop master column, which
+        // always wraps this card in a SingleChildScrollView.
+        home: Scaffold(
+          body: SingleChildScrollView(child: AnalyticsPanelCard(summary: _summary)),
+        ),
       ),
     );
     await tester.pump();
@@ -47,7 +52,11 @@ void main() {
   testWidgets('shows the metadata tiles below the chart', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: Scaffold(body: AnalyticsPanelCard(summary: _summary)),
+        // Mirrors ResponsiveBudgetScaffold's desktop master column, which
+        // always wraps this card in a SingleChildScrollView.
+        home: Scaffold(
+          body: SingleChildScrollView(child: AnalyticsPanelCard(summary: _summary)),
+        ),
       ),
     );
     await tester.pump();
