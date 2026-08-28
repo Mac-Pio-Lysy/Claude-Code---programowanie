@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/presentation/widgets/profile_menu_button.dart';
+import '../../../command_palette/presentation/widgets/command_palette_overlay.dart';
 
 /// App logo (hidden on narrow widths to make room), the active budget name,
 /// a budget-settings gear, a workspace switcher and the profile menu.
@@ -65,6 +66,11 @@ class WorkspaceTopBar extends StatelessWidget {
                   style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
                   overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              IconButton(
+                tooltip: 'Command Palette (⌘K)',
+                onPressed: () => showCommandPaletteOverlay(context),
+                icon: const Icon(Icons.search),
               ),
               if (showLogo)
                 IconButton(

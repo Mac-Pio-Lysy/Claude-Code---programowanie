@@ -7,6 +7,9 @@ import '../features/auth/data/repositories/mock_auth_repository.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
 import '../features/budget_sheet/presentation/bloc/budget_sheet_bloc.dart';
+import '../features/command_palette/presentation/shortcuts/command_palette_shortcut_wrapper.dart';
+import '../features/currency/data/repositories/nbp_exchange_rate_repository.dart';
+import '../features/currency/domain/repositories/exchange_rate_repository.dart';
 import '../features/monetization/presentation/cubit/monetization_cubit.dart';
 import '../features/savings/presentation/bloc/savings_bloc.dart';
 import '../features/savings/presentation/bloc/savings_event.dart';
@@ -36,27 +39,34 @@ class _BudgetAppState extends State<BudgetApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: _authBloc),
-        BlocProvider(create: (_) => MonetizationCubit()),
-        BlocProvider(create: (_) => WorkspacesBloc()..add(const LoadWorkspaces())),
-        BlocProvider(create: (_) => ActiveWorkspaceCubit()),
-        // App-lifetime so goals/sinking funds survive leaving and
-        // re-entering the Savings page, and so BudgetSheetBloc below can
-        // read its totalSavingsBalance for the emergency-runway indicator.
-        BlocProvider(create: (_) => SavingsBloc()..add(const LoadSavingsGoals())),
-        // App-lifetime so WorkspacePage and the receipt scanner's /ocr
-        // route share the same active budget's sheet.
-        BlocProvider(
-          create: (context) => BudgetSheetBloc(savingsBloc: context.read<SavingsBloc>()),
+    return RepositoryProvider<ExchangeRateRepository>(
+      create: (_) => NbpExchangeRateRepository(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: _authBloc),
+          BlocProvider(create: (_) => MonetizationCubit()),
+          BlocProvider(create: (_) => WorkspacesBloc()..add(const LoadWorkspaces())),
+          BlocProvider(create: (_) => ActiveWorkspaceCubit()),
+          // App-lifetime so goals/sinking funds survive leaving and
+          // re-entering the Savings page, and so BudgetSheetBloc below can
+          // read its totalSavingsBalance for the emergency-runway indicator.
+          BlocProvider(create: (_) => SavingsBloc()..add(const LoadSavingsGoals())),
+          // App-lifetime so WorkspacePage and the receipt scanner's /ocr
+          // route share the same active budget's sheet.
+          BlocProvider(
+            create: (context) => BudgetSheetBloc(savingsBloc: context.read<SavingsBloc>()),
+          ),
+        ],
+        child: MaterialApp.router(
+          title: AppConstants.appName,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light(),
+          routerConfig: _router,
+          // Global Cmd/Ctrl+K for the Command Palette, on top of whatever
+          // page go_router currently shows.
+          builder: (context, child) =>
+              CommandPaletteShortcutWrapper(child: child ?? const SizedBox.shrink()),
         ),
-      ],
-      child: MaterialApp.router(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        routerConfig: _router,
       ),
     );
   }
