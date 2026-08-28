@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/widgets/glass_card.dart';
 import '../../domain/models/expense_category_type.dart';
 import '../../domain/models/expense_entry.dart';
 import '../../domain/models/income_entry.dart';
@@ -10,6 +11,7 @@ import '../../domain/models/installment_liability.dart';
 import '../bloc/budget_sheet_bloc.dart';
 import '../bloc/budget_sheet_event.dart';
 import '../bloc/budget_sheet_state.dart';
+import 'charts/budget_pie_chart.dart';
 import 'entry_forms.dart';
 import 'mobile_row_actions_sheet.dart';
 
@@ -43,24 +45,26 @@ class MobileBudgetList extends StatelessWidget {
           for (final liability in state.liabilities) _LiabilityTile(liability: liability),
         ];
 
-        if (tiles.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                'Brak pozycji w tej kategorii',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AppColors.textSecondary),
-              ),
-            ),
-          );
-        }
-
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final tile in tiles) Padding(padding: const EdgeInsets.only(bottom: 10), child: tile),
+            GlassCard(child: BudgetPieChart(summary: state.summary, compact: true)),
+            const SizedBox(height: 16),
+            if (tiles.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: Text(
+                    'Brak pozycji w tej kategorii',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AppColors.textSecondary),
+                  ),
+                ),
+              )
+            else
+              for (final tile in tiles) Padding(padding: const EdgeInsets.only(bottom: 10), child: tile),
           ],
         );
       },

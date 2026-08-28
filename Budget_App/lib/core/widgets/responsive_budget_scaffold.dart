@@ -22,7 +22,6 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
     required this.topBar,
     required this.summaryCard,
     required this.chartSection,
-    required this.metadataTiles,
     required this.categorySidebar,
     required this.categoryPillTabs,
     required this.desktopSheetContent,
@@ -36,8 +35,11 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
 
   final Widget topBar;
   final Widget summaryCard;
+
+  /// Desktop/tablet-only dashboard visualization (e.g. AnalyticsPanelCard),
+  /// shown in the left column. Mobile embeds its own compact chart directly
+  /// inside [mobileSheetContent] instead, so this is never built on mobile.
   final Widget chartSection;
-  final Widget metadataTiles;
 
   /// Leftmost icon rail shown on desktop/tablet widths.
   final Widget categorySidebar;
@@ -118,8 +120,6 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
                       summaryCard,
                       const SizedBox(height: 20),
                       chartSection,
-                      const SizedBox(height: 20),
-                      metadataTiles,
                     ],
                   ),
                 ),
@@ -148,8 +148,6 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             children: [
               summaryCard,
-              const SizedBox(height: 16),
-              chartSection,
               const SizedBox(height: 16),
               categoryPillTabs,
               const SizedBox(height: 16),
