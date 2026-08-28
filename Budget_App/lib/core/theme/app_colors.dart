@@ -18,9 +18,7 @@ abstract final class AppColors {
   /// Background-gradient stops, palest to most saturated.
   static const Color indigoMistLight = Color(0xFFEEF2FF);
   static const Color indigoMist = Color(0xFFE0E7FF);
-  static const Color indigoMistDeep = Color(0xFFC7D2FE);
 
-  static const Color snowWhite = Color(0xFFF8FAFC);
   static const Color pureWhite = Color(0xFFFFFFFF);
 
   static const Color textPrimary = Color(0xFF0F172A);
@@ -29,12 +27,12 @@ abstract final class AppColors {
   static const Color positive = Color(0xFF1B9C63);
   static const Color negative = Color(0xFFD64545);
 
-  /// Background gradient: pastel indigo at the top fading down into a snow
-  /// white workspace area.
+  /// Background gradient: pastel indigo on the left fading into a snow
+  /// white workspace on the right.
   static const LinearGradient backgroundGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [indigoMistLight, indigoMist, indigoMistDeep, snowWhite, pureWhite],
-    stops: [0.0, 0.18, 0.38, 0.75, 1.0],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [indigoMistLight, indigoMist, pureWhite],
+    stops: [0.0, 0.35, 1.0],
   );
 }
