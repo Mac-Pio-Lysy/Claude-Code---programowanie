@@ -8,6 +8,8 @@ import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
 import '../features/budget_sheet/presentation/bloc/budget_sheet_bloc.dart';
 import '../features/monetization/presentation/cubit/monetization_cubit.dart';
+import '../features/savings/presentation/bloc/savings_bloc.dart';
+import '../features/savings/presentation/bloc/savings_event.dart';
 import '../features/workspace/presentation/bloc/workspaces_bloc.dart';
 import '../features/workspace/presentation/bloc/workspaces_event.dart';
 import '../features/workspace/presentation/cubit/active_workspace_cubit.dart';
@@ -40,9 +42,15 @@ class _BudgetAppState extends State<BudgetApp> {
         BlocProvider(create: (_) => MonetizationCubit()),
         BlocProvider(create: (_) => WorkspacesBloc()..add(const LoadWorkspaces())),
         BlocProvider(create: (_) => ActiveWorkspaceCubit()),
+        // App-lifetime so goals/sinking funds survive leaving and
+        // re-entering the Savings page, and so BudgetSheetBloc below can
+        // read its totalSavingsBalance for the emergency-runway indicator.
+        BlocProvider(create: (_) => SavingsBloc()..add(const LoadSavingsGoals())),
         // App-lifetime so WorkspacePage and the receipt scanner's /ocr
         // route share the same active budget's sheet.
-        BlocProvider(create: (_) => BudgetSheetBloc()),
+        BlocProvider(
+          create: (context) => BudgetSheetBloc(savingsBloc: context.read<SavingsBloc>()),
+        ),
       ],
       child: MaterialApp.router(
         title: AppConstants.appName,

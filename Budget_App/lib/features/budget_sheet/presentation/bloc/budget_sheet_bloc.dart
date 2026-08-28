@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../savings/presentation/bloc/savings_bloc.dart';
 import '../../domain/models/expense_category_type.dart';
 import '../../domain/models/expense_entry.dart';
 import '../../domain/models/income_entry.dart';
@@ -10,7 +11,7 @@ import 'budget_sheet_event.dart';
 import 'budget_sheet_state.dart';
 
 class BudgetSheetBloc extends Bloc<BudgetSheetEvent, BudgetSheetState> {
-  BudgetSheetBloc({BudgetCalculator? calculator})
+  BudgetSheetBloc({BudgetCalculator? calculator, this.savingsBloc})
       : _calculator = calculator ?? const BudgetCalculator(),
         super(BudgetSheetState.initial()) {
     on<LoadBudgetSheet>(_onLoad);
@@ -29,7 +30,20 @@ class BudgetSheetBloc extends Bloc<BudgetSheetEvent, BudgetSheetState> {
 
   final BudgetCalculator _calculator;
 
+  /// Optional — when provided, its `totalSavingsBalance` feeds
+  /// `BudgetSummary.emergencyRunwayMonths`. Read fresh on every
+  /// recalculation rather than subscribed to, so a deposit made on the
+  /// Savings page is reflected the next time this sheet changes.
+  final SavingsBloc? savingsBloc;
+
   Future<void> _onLoad(LoadBudgetSheet event, Emitter<BudgetSheetState> emit) async {
+    // Re-entering the same budget (e.g. after visiting Savings/Settings)
+    // must not reseed and discard whatever was added/edited since the
+    // first load — only a genuinely different budget gets fresh data.
+    if (state.status == BudgetSheetStatus.loaded && state.loadedBudgetId == event.budgetId) {
+      return;
+    }
+
     emit(state.copyWith(status: BudgetSheetStatus.loading));
     try {
       final seed = _seedData();
@@ -40,6 +54,7 @@ class BudgetSheetBloc extends Bloc<BudgetSheetEvent, BudgetSheetState> {
             incomes: seed.incomes,
             expenses: seed.expenses,
             liabilities: seed.liabilities,
+            loadedBudgetId: event.budgetId,
           ),
         ),
       );
@@ -162,6 +177,7 @@ class BudgetSheetBloc extends Bloc<BudgetSheetEvent, BudgetSheetState> {
       expenses: newState.expenses,
       liabilities: newState.liabilities,
       allocatedToSavings: newState.allocatedToSavings,
+      totalSavingsBalance: savingsBloc?.state.totalSavingsBalance ?? 0.0,
     );
     return newState.copyWith(summary: summary);
   }

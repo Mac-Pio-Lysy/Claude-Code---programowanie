@@ -30,6 +30,7 @@ class BudgetSheetState extends Equatable {
     required this.allocatedToSavings,
     required this.summary,
     required this.selectedTab,
+    this.loadedBudgetId,
     this.errorMessage,
   });
 
@@ -49,6 +50,7 @@ class BudgetSheetState extends Equatable {
           remainingBalance: 0,
           allocatedToSavings: 0,
           freeCash: 0,
+          totalSavingsBalance: 0,
         ),
         selectedTab: allCategoriesTabId,
       );
@@ -60,6 +62,13 @@ class BudgetSheetState extends Equatable {
   final double allocatedToSavings;
   final BudgetSummary summary;
   final String selectedTab;
+
+  /// Which budget's data is currently loaded — so re-dispatching
+  /// LoadBudgetSheet for the same id (e.g. re-entering WorkspacePage after
+  /// visiting another route) doesn't reseed and discard live edits. See
+  /// BudgetSheetBloc._onLoad.
+  final String? loadedBudgetId;
+
   final String? errorMessage;
 
   /// Expenses matching [selectedTab], or all of them when it's "all".
@@ -77,6 +86,7 @@ class BudgetSheetState extends Equatable {
     double? allocatedToSavings,
     BudgetSummary? summary,
     String? selectedTab,
+    String? loadedBudgetId,
     String? errorMessage,
   }) {
     return BudgetSheetState(
@@ -87,6 +97,7 @@ class BudgetSheetState extends Equatable {
       allocatedToSavings: allocatedToSavings ?? this.allocatedToSavings,
       summary: summary ?? this.summary,
       selectedTab: selectedTab ?? this.selectedTab,
+      loadedBudgetId: loadedBudgetId ?? this.loadedBudgetId,
       errorMessage: errorMessage,
     );
   }
@@ -100,6 +111,7 @@ class BudgetSheetState extends Equatable {
         allocatedToSavings,
         summary,
         selectedTab,
+        loadedBudgetId,
         errorMessage,
       ];
 }
