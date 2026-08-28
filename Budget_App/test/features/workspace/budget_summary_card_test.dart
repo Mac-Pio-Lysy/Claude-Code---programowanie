@@ -14,6 +14,7 @@ const _summary = BudgetSummary(
   remainingBalance: 2250,
   allocatedToSavings: 0,
   freeCash: 2250,
+  totalSavingsBalance: 0,
 );
 
 /// The "privacy view" toggle (AB-UX-2): the eye icon collapses the full

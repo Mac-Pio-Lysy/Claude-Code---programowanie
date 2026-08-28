@@ -1,3 +1,4 @@
+import 'package:budget_app/features/budget_sheet/domain/models/budget_summary.dart';
 import 'package:budget_app/features/budget_sheet/domain/models/expense_category_type.dart';
 import 'package:budget_app/features/budget_sheet/domain/models/expense_entry.dart';
 import 'package:budget_app/features/budget_sheet/domain/models/income_entry.dart';
@@ -171,6 +172,165 @@ void main() {
       expect(summary.totalMandatoryExpenses, 0.0);
       expect(summary.totalExpenses, 180.0);
       expect(summary.remainingBalance, 3820.0);
+    });
+  });
+
+  group('BudgetSummary — emergency runway', () {
+    ExpenseEntry expense(String id, double amount, ExpenseCategoryType type) {
+      return ExpenseEntry(
+        id: id,
+        name: id,
+        amount: amount,
+        categoryType: type,
+        subCategory: 'Test',
+        date: DateTime(2026, 1, 1),
+      );
+    }
+
+    const income = IncomeEntry(
+      id: 'i1',
+      title: 'Pensja',
+      type: IncomeType.uop,
+      grossAmount: 6000,
+      netAmount: 5000,
+    );
+
+    test('divides total savings by fixed costs (mandatory + liabilities)', () {
+      final now = DateTime.now();
+      final summary = calculator.calculateSummary(
+        incomes: [income],
+        expenses: [expense('e1', 1500, ExpenseCategoryType.mandatory)],
+        liabilities: [
+          InstallmentLiability(
+            id: 'l1',
+            title: 'Rata',
+            monthlyAmount: 500,
+            startDate: DateTime(now.year, now.month - 1, 1),
+            endDate: DateTime(now.year, now.month + 5, 1),
+          ),
+        ],
+        totalSavingsBalance: 12000,
+      );
+
+      // fixedMonthlyCosts = 1500 + 500 = 2000 -> 12000 / 2000 = 6 months.
+      expect(summary.fixedMonthlyCosts, 2000.0);
+      expect(summary.emergencyRunwayMonths, 6.0);
+      expect(summary.emergencyRunwayStatus, EmergencyRunwayStatus.healthy);
+    });
+
+    test('zero fixed costs yields an infinite runway rather than dividing by zero', () {
+      final summary = calculator.calculateSummary(
+        incomes: [income],
+        expenses: const [],
+        totalSavingsBalance: 5000,
+      );
+
+      expect(summary.fixedMonthlyCosts, 0.0);
+      expect(summary.emergencyRunwayMonths, double.infinity);
+      expect(summary.emergencyRunwayStatus, EmergencyRunwayStatus.healthy);
+    });
+
+    test('a negative totalSavingsBalance is clamped to zero', () {
+      final summary = calculator.calculateSummary(
+        incomes: [income],
+        expenses: [expense('e1', 1000, ExpenseCategoryType.mandatory)],
+        totalSavingsBalance: -500,
+      );
+
+      expect(summary.totalSavingsBalance, 0.0);
+      expect(summary.emergencyRunwayMonths, 0.0);
+    });
+
+    test('runway status thresholds: healthy >=6, caution 3-6, critical <3', () {
+      BudgetSummary summaryWithSavings(double savings) => calculator.calculateSummary(
+            incomes: [income],
+            expenses: [expense('e1', 1000, ExpenseCategoryType.mandatory)],
+            totalSavingsBalance: savings,
+          );
+
+      expect(summaryWithSavings(6000).emergencyRunwayStatus, EmergencyRunwayStatus.healthy);
+      expect(summaryWithSavings(3000).emergencyRunwayStatus, EmergencyRunwayStatus.caution);
+      expect(summaryWithSavings(5999).emergencyRunwayStatus, EmergencyRunwayStatus.caution);
+      expect(summaryWithSavings(2999).emergencyRunwayStatus, EmergencyRunwayStatus.critical);
+      expect(summaryWithSavings(0).emergencyRunwayStatus, EmergencyRunwayStatus.critical);
+    });
+  });
+
+  group('BudgetSummary — 50/30/20 rule', () {
+    ExpenseEntry expense(String id, double amount, ExpenseCategoryType type) {
+      return ExpenseEntry(
+        id: id,
+        name: id,
+        amount: amount,
+        categoryType: type,
+        subCategory: 'Test',
+        date: DateTime(2026, 1, 1),
+      );
+    }
+
+    test('splits income into mandatory/wants/savings percentages', () {
+      final now = DateTime.now();
+      final summary = calculator.calculateSummary(
+        incomes: const [
+          IncomeEntry(
+            id: 'i1',
+            title: 'Pensja',
+            type: IncomeType.uop,
+            grossAmount: 12000,
+            netAmount: 10000,
+          ),
+        ],
+        expenses: [
+          expense('e1', 4000, ExpenseCategoryType.mandatory), // 40%
+          expense('e2', 2000, ExpenseCategoryType.utility), // 20%
+          expense('e3', 1000, ExpenseCategoryType.wants), // 10%
+        ],
+        liabilities: [
+          InstallmentLiability(
+            id: 'l1',
+            title: 'Rata',
+            monthlyAmount: 1000, // 10% -> mandatory bucket = 50%
+            startDate: DateTime(now.year, now.month - 1, 1),
+            endDate: DateTime(now.year, now.month + 5, 1),
+          ),
+        ],
+        allocatedToSavings: 1500,
+      );
+
+      expect(summary.mandatoryPercentage, 50.0);
+      expect(summary.wantsPercentage, 30.0);
+      expect(summary.savingsPercentage, 20.0); // remainingBalance (2000) / 10000
+      expect(summary.isRule502030Compliant, isTrue);
+    });
+
+    test('flags a split that overspends on wants as non-compliant', () {
+      final summary = calculator.calculateSummary(
+        incomes: const [
+          IncomeEntry(
+            id: 'i1',
+            title: 'Pensja',
+            type: IncomeType.uop,
+            grossAmount: 6000,
+            netAmount: 5000,
+          ),
+        ],
+        expenses: [
+          expense('e1', 1500, ExpenseCategoryType.mandatory), // 30%
+          expense('e2', 2500, ExpenseCategoryType.wants), // 50% -> over the 30% target
+        ],
+      );
+
+      expect(summary.mandatoryPercentage, 30.0);
+      expect(summary.wantsPercentage, 50.0);
+      expect(summary.isRule502030Compliant, isFalse);
+    });
+
+    test('zero income yields zero percentages instead of dividing by zero', () {
+      final summary = calculator.calculateSummary(incomes: const [], expenses: const []);
+
+      expect(summary.mandatoryPercentage, 0.0);
+      expect(summary.wantsPercentage, 0.0);
+      expect(summary.savingsPercentage, 0.0);
     });
   });
 

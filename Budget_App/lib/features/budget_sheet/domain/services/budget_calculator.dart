@@ -15,6 +15,7 @@ class BudgetCalculator {
     required List<ExpenseEntry> expenses,
     List<InstallmentLiability> liabilities = const [],
     double allocatedToSavings = 0.0,
+    double totalSavingsBalance = 0.0,
   }) {
     final totalIncomeNet = _sum(incomes.map((e) => e.netAmount));
 
@@ -43,6 +44,11 @@ class BudgetCalculator {
 
     final freeCash = roundCurrency(remainingBalance - safeAllocatedToSavings);
 
+    // Guard against a negative balance (shouldn't happen upstream, but the
+    // runway math divides by fixed costs and shouldn't ever go negative).
+    final safeTotalSavingsBalance =
+        roundCurrency(totalSavingsBalance < 0 ? 0.0 : totalSavingsBalance);
+
     return BudgetSummary(
       totalIncomeNet: totalIncomeNet,
       totalMandatoryExpenses: totalMandatory,
@@ -53,6 +59,7 @@ class BudgetCalculator {
       remainingBalance: remainingBalance,
       allocatedToSavings: safeAllocatedToSavings,
       freeCash: freeCash,
+      totalSavingsBalance: safeTotalSavingsBalance,
     );
   }
 
