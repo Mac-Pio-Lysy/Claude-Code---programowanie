@@ -20,9 +20,7 @@ abstract final class AppTheme {
       surface: AppColors.pureWhite,
     );
 
-    final textTheme = ThemeData.light()
-        .textTheme
-        .apply(bodyColor: AppColors.textPrimary, displayColor: AppColors.textPrimary);
+    final textTheme = _buildTextTheme(ThemeData.light().textTheme);
 
     return ThemeData(
       useMaterial3: true,
@@ -68,9 +66,57 @@ abstract final class AppTheme {
         indicatorColor: AppColors.primaryIndigo.withValues(alpha: 0.15),
         elevation: 0,
       ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: Colors.transparent,
+        indicatorColor: AppColors.primaryIndigo.withValues(alpha: 0.15),
+        selectedIconTheme: const IconThemeData(color: AppColors.primaryIndigo),
+        unselectedIconTheme: IconThemeData(color: AppColors.textSecondary),
+        selectedLabelTextStyle: textTheme.labelMedium?.copyWith(color: AppColors.primaryIndigo),
+        unselectedLabelTextStyle: textTheme.labelMedium?.copyWith(color: AppColors.textSecondary),
+      ),
       dividerTheme: const DividerThemeData(
         color: AppColors.indigoMist,
       ),
+    );
+  }
+
+  /// Custom type scale layered on Flutter's system font: a clear size
+  /// hierarchy, tighter letter-spacing on the large display/headline
+  /// styles used for headline numbers (e.g. the dashboard balance), and a
+  /// heavier weight on headings/figures than on running text.
+  static TextTheme _buildTextTheme(TextTheme base) {
+    const primary = AppColors.textPrimary;
+
+    return base.copyWith(
+      displayLarge: base.displayLarge
+          ?.copyWith(color: primary, fontWeight: FontWeight.w700, letterSpacing: -0.5, height: 1.1),
+      displayMedium: base.displayMedium
+          ?.copyWith(color: primary, fontWeight: FontWeight.w700, letterSpacing: -0.5, height: 1.15),
+      displaySmall: base.displaySmall
+          ?.copyWith(color: primary, fontWeight: FontWeight.w700, letterSpacing: -0.5, height: 1.15),
+      headlineLarge: base.headlineLarge
+          ?.copyWith(color: primary, fontWeight: FontWeight.w700, letterSpacing: -0.5, height: 1.15),
+      headlineMedium: base.headlineMedium
+          ?.copyWith(color: primary, fontWeight: FontWeight.w700, letterSpacing: -0.5, height: 1.15),
+      headlineSmall: base.headlineSmall
+          ?.copyWith(color: primary, fontWeight: FontWeight.w600, letterSpacing: -0.3, height: 1.2),
+      titleLarge:
+          base.titleLarge?.copyWith(color: primary, fontWeight: FontWeight.w600, height: 1.25),
+      titleMedium:
+          base.titleMedium?.copyWith(color: primary, fontWeight: FontWeight.w600, height: 1.3),
+      titleSmall:
+          base.titleSmall?.copyWith(color: primary, fontWeight: FontWeight.w600, height: 1.3),
+      bodyLarge: base.bodyLarge?.copyWith(color: primary, fontWeight: FontWeight.w500, height: 1.5),
+      bodyMedium:
+          base.bodyMedium?.copyWith(color: primary, fontWeight: FontWeight.w500, height: 1.45),
+      bodySmall:
+          base.bodySmall?.copyWith(color: primary, fontWeight: FontWeight.w500, height: 1.4),
+      labelLarge:
+          base.labelLarge?.copyWith(color: primary, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+      labelMedium: base.labelMedium
+          ?.copyWith(color: primary, fontWeight: FontWeight.w600, letterSpacing: 0.1),
+      labelSmall: base.labelSmall
+          ?.copyWith(color: primary, fontWeight: FontWeight.w500, letterSpacing: 0.2),
     );
   }
 }
