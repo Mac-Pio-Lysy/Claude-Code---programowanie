@@ -5,12 +5,14 @@ import '../../../../core/widgets/ad_banner_placeholder.dart';
 import '../../../../core/widgets/top_level_page_scaffold.dart';
 import '../../../monetization/presentation/cubit/monetization_cubit.dart';
 import '../../../workspace/presentation/pages/workspace_page.dart' show workspaceNavDestinations;
-import '../bloc/savings_bloc.dart';
-import '../bloc/savings_event.dart';
 import '../widgets/add_savings_goal_dialog.dart';
+import '../widgets/add_sinking_fund_dialog.dart';
 import '../widgets/savings_goals_view.dart';
 
-class SavingsPage extends StatelessWidget {
+/// SavingsBloc lives at the app root (see app.dart) so goals/sinking funds
+/// survive leaving and re-entering this page, and so BudgetSheetBloc can
+/// read its balance for the dashboard's emergency-runway indicator.
+class SavingsPage extends StatefulWidget {
   const SavingsPage({
     super.key,
     required this.selectedBottomIndex,
@@ -21,26 +23,39 @@ class SavingsPage extends StatelessWidget {
   final ValueChanged<int> onBottomDestinationSelected;
 
   @override
+  State<SavingsPage> createState() => _SavingsPageState();
+}
+
+class _SavingsPageState extends State<SavingsPage> with SingleTickerProviderStateMixin {
+  late final _tabController = TabController(length: 2, vsync: this);
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => SavingsBloc()..add(const LoadSavingsGoals()),
-      child: Builder(
-        builder: (context) {
-          final shouldShowAds = context.watch<MonetizationCubit>().shouldShowAds;
-          return TopLevelPageScaffold(
-            title: 'Oszczędności',
-            destinations: workspaceNavDestinations,
-            selectedIndex: selectedBottomIndex,
-            onDestinationSelected: onBottomDestinationSelected,
-            adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => showAddSavingsGoalDialog(context),
-              child: const Icon(Icons.add),
-            ),
-            body: const SavingsGoalsView(),
-          );
-        },
+    final shouldShowAds = context.watch<MonetizationCubit>().shouldShowAds;
+
+    return TopLevelPageScaffold(
+      title: 'Oszczędności',
+      destinations: workspaceNavDestinations,
+      selectedIndex: widget.selectedBottomIndex,
+      onDestinationSelected: widget.onBottomDestinationSelected,
+      adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
+      // The active tab decides whether "+" adds a goal or a sinking fund.
+      floatingActionButton: AnimatedBuilder(
+        animation: _tabController,
+        builder: (context, _) => FloatingActionButton(
+          onPressed: () => _tabController.index == 0
+              ? showAddSavingsGoalDialog(context)
+              : showAddSinkingFundDialog(context),
+          child: const Icon(Icons.add),
+        ),
       ),
+      body: SavingsGoalsView(tabController: _tabController),
     );
   }
 }
