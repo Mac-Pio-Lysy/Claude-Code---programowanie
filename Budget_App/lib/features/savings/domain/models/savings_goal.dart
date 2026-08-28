@@ -81,6 +81,25 @@ class SavingsGoal extends Equatable {
     return periods < 1 ? 1 : periods;
   }
 
+  static const _unset = Object();
+
+  SavingsGoal copyWith({
+    String? title,
+    double? targetAmount,
+    double? currentAmount,
+    ContributionInterval? contributionInterval,
+    Object? targetDate = _unset,
+  }) {
+    return SavingsGoal(
+      id: id,
+      title: title ?? this.title,
+      targetAmount: targetAmount ?? this.targetAmount,
+      currentAmount: currentAmount ?? this.currentAmount,
+      contributionInterval: contributionInterval ?? this.contributionInterval,
+      targetDate: identical(targetDate, _unset) ? this.targetDate : targetDate as DateTime?,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,
