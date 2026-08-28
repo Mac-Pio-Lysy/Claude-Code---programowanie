@@ -9,15 +9,10 @@ import '../../../budget_sheet/presentation/bloc/budget_sheet_event.dart';
 import '../../../budget_sheet/presentation/bloc/budget_sheet_state.dart';
 import '../../../budget_sheet/presentation/widgets/category_pill_tabs.dart';
 import '../../../budget_sheet/presentation/widgets/category_sidebar_rail.dart';
+import '../../../budget_sheet/presentation/widgets/charts/analytics_panel_card.dart';
 import '../../../budget_sheet/presentation/widgets/entry_forms.dart';
 import '../../../budget_sheet/presentation/widgets/excel_sheet_grid.dart';
 import '../../../budget_sheet/presentation/widgets/mobile_budget_list.dart';
-import '../../data/repositories/mock_workspace_repository.dart';
-import '../cubit/chart_mode_cubit.dart';
-import '../cubit/workspace_cubit.dart';
-import '../cubit/workspace_state.dart';
-import '../widgets/budget_chart_card.dart';
-import '../widgets/budget_metadata_tiles.dart';
 import '../widgets/budget_summary_card.dart';
 import '../widgets/workspace_top_bar.dart';
 
@@ -66,46 +61,26 @@ class WorkspacePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(
-          create: (_) => WorkspaceCubit(const MockWorkspaceRepository()),
-        ),
-        BlocProvider(
-          create: (_) => BudgetSheetBloc()..add(const LoadBudgetSheet('demo-budget')),
-        ),
-        BlocProvider(create: (_) => ChartModeCubit()),
-      ],
-      child: BlocBuilder<WorkspaceCubit, WorkspaceState>(
-        builder: (context, workspaceState) {
-          if (workspaceState is! WorkspaceLoaded) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return BlocBuilder<BudgetSheetBloc, BudgetSheetState>(
-            builder: (context, sheetState) {
-              return ResponsiveBudgetScaffold(
-                topBar: const WorkspaceTopBar(budgetName: 'Budżet domowy — Sierpień'),
-                summaryCard: BudgetSummaryCard(summary: sheetState.summary),
-                chartSection: BudgetChartCard(
-                  categories: workspaceState.categories,
-                  spendingTrend: workspaceState.spendingTrend,
-                ),
-                metadataTiles: const BudgetMetadataTiles(),
-                categorySidebar: const CategorySidebarRail(),
-                categoryPillTabs: const CategoryPillTabs(),
-                desktopSheetContent: const ExcelSheetGrid(),
-                mobileSheetContent: const MobileBudgetList(),
-                bottomDestinations: workspaceNavDestinations,
-                selectedBottomIndex: selectedBottomIndex,
-                onBottomDestinationSelected: onBottomDestinationSelected,
-                adBanner: const AdBannerPlaceholder(),
-                floatingActionButton: FloatingActionButton(
-                  onPressed: () => showAddEntryChooser(context),
-                  child: const Icon(Icons.add),
-                ),
-              );
-            },
+    return BlocProvider(
+      create: (_) => BudgetSheetBloc()..add(const LoadBudgetSheet('demo-budget')),
+      child: BlocBuilder<BudgetSheetBloc, BudgetSheetState>(
+        builder: (context, sheetState) {
+          return ResponsiveBudgetScaffold(
+            topBar: const WorkspaceTopBar(budgetName: 'Budżet domowy — Sierpień'),
+            summaryCard: BudgetSummaryCard(summary: sheetState.summary),
+            chartSection: AnalyticsPanelCard(summary: sheetState.summary),
+            categorySidebar: const CategorySidebarRail(),
+            categoryPillTabs: const CategoryPillTabs(),
+            desktopSheetContent: const ExcelSheetGrid(),
+            mobileSheetContent: const MobileBudgetList(),
+            bottomDestinations: workspaceNavDestinations,
+            selectedBottomIndex: selectedBottomIndex,
+            onBottomDestinationSelected: onBottomDestinationSelected,
+            adBanner: const AdBannerPlaceholder(),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => showAddEntryChooser(context),
+              child: const Icon(Icons.add),
+            ),
           );
         },
       ),
