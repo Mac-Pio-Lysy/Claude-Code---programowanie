@@ -67,6 +67,9 @@ dependencies:
   # Receipt scanner entry point (feeds external OCR service, per architecture.c4)
   image_picker: ^1.1.2
 
+  # Bank statement CSV import (file selection)
+  file_picker: ^8.1.6
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
