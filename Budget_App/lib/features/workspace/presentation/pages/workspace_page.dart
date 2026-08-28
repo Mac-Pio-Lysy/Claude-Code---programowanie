@@ -72,15 +72,24 @@ class _WorkspacePageState extends State<WorkspacePage> {
   @override
   void initState() {
     super.initState();
-    context.read<ActiveWorkspaceCubit>().setActive(widget.budgetId);
+    _activateBudget(widget.budgetId);
   }
 
   @override
   void didUpdateWidget(covariant WorkspacePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.budgetId != widget.budgetId) {
-      context.read<ActiveWorkspaceCubit>().setActive(widget.budgetId);
+      _activateBudget(widget.budgetId);
     }
+  }
+
+  /// BudgetSheetBloc is app-lifetime (provided above the router) so the
+  /// receipt scanner's `/ocr` route can add expenses to the very same
+  /// instance — so switching budgets here means (re)loading its data
+  /// rather than creating a whole new bloc.
+  void _activateBudget(String budgetId) {
+    context.read<ActiveWorkspaceCubit>().setActive(budgetId);
+    context.read<BudgetSheetBloc>().add(LoadBudgetSheet(budgetId));
   }
 
   void _handleBottomTap(int index) {
@@ -118,33 +127,30 @@ class _WorkspacePageState extends State<WorkspacePage> {
 
     final shouldShowAds = context.watch<MonetizationCubit>().shouldShowAds;
 
-    return BlocProvider(
-      create: (_) => BudgetSheetBloc()..add(LoadBudgetSheet(widget.budgetId)),
-      child: BlocBuilder<BudgetSheetBloc, BudgetSheetState>(
-        builder: (context, sheetState) {
-          return ResponsiveBudgetScaffold(
-            topBar: WorkspaceTopBar(
-              budgetName: workspace.title,
-              onViewSwitch: () => context.go('/workspace'),
-              onBudgetSettingsTap: () => showBudgetSettingsDialog(context, workspace: workspace),
-            ),
-            summaryCard: BudgetSummaryCard(summary: sheetState.summary),
-            chartSection: AnalyticsPanelCard(summary: sheetState.summary),
-            categorySidebar: const CategorySidebarRail(),
-            categoryPillTabs: const CategoryPillTabs(),
-            desktopSheetContent: const ExcelSheetGrid(),
-            mobileSheetContent: const MobileBudgetList(),
-            bottomDestinations: workspaceNavDestinations,
-            selectedBottomIndex: _localTabIndex,
-            onBottomDestinationSelected: _handleBottomTap,
-            adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
-            floatingActionButton: FloatingActionButton(
-              onPressed: () => showAddEntryChooser(context),
-              child: const Icon(Icons.add),
-            ),
-          );
-        },
-      ),
+    return BlocBuilder<BudgetSheetBloc, BudgetSheetState>(
+      builder: (context, sheetState) {
+        return ResponsiveBudgetScaffold(
+          topBar: WorkspaceTopBar(
+            budgetName: workspace.title,
+            onViewSwitch: () => context.go('/workspace'),
+            onBudgetSettingsTap: () => showBudgetSettingsDialog(context, workspace: workspace),
+          ),
+          summaryCard: BudgetSummaryCard(summary: sheetState.summary),
+          chartSection: AnalyticsPanelCard(summary: sheetState.summary),
+          categorySidebar: const CategorySidebarRail(),
+          categoryPillTabs: const CategoryPillTabs(),
+          desktopSheetContent: const ExcelSheetGrid(),
+          mobileSheetContent: const MobileBudgetList(),
+          bottomDestinations: workspaceNavDestinations,
+          selectedBottomIndex: _localTabIndex,
+          onBottomDestinationSelected: _handleBottomTap,
+          adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => showAddEntryChooser(context),
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
     );
   }
 }

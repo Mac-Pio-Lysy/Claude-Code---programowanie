@@ -6,6 +6,7 @@ import '../core/theme/app_theme.dart';
 import '../features/auth/data/repositories/mock_auth_repository.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/bloc/auth_event.dart';
+import '../features/budget_sheet/presentation/bloc/budget_sheet_bloc.dart';
 import '../features/monetization/presentation/cubit/monetization_cubit.dart';
 import '../features/workspace/presentation/bloc/workspaces_bloc.dart';
 import '../features/workspace/presentation/bloc/workspaces_event.dart';
@@ -39,6 +40,9 @@ class _BudgetAppState extends State<BudgetApp> {
         BlocProvider(create: (_) => MonetizationCubit()),
         BlocProvider(create: (_) => WorkspacesBloc()..add(const LoadWorkspaces())),
         BlocProvider(create: (_) => ActiveWorkspaceCubit()),
+        // App-lifetime so WorkspacePage and the receipt scanner's /ocr
+        // route share the same active budget's sheet.
+        BlocProvider(create: (_) => BudgetSheetBloc()),
       ],
       child: MaterialApp.router(
         title: AppConstants.appName,
