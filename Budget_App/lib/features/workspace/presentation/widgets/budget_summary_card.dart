@@ -8,29 +8,76 @@ import '../../../budget_sheet/domain/models/budget_summary.dart';
 /// Headline card: Wpływy - Wydatki = Pozostało, plus what's earmarked for
 /// savings vs. truly free. Sourced live from `BudgetSheetBloc`, so it
 /// updates the instant an entry is added, edited or removed.
-class BudgetSummaryCard extends StatelessWidget {
+///
+/// Collapsible via the eye icon — for a quick, privacy-friendly glance
+/// (e.g. screen-sharing) it can shrink to a single line showing only the
+/// remaining balance.
+class BudgetSummaryCard extends StatefulWidget {
   const BudgetSummaryCard({super.key, required this.summary});
 
   final BudgetSummary summary;
 
   @override
+  State<BudgetSummaryCard> createState() => _BudgetSummaryCardState();
+}
+
+class _BudgetSummaryCardState extends State<BudgetSummaryCard> {
+  bool _isExpanded = true;
+
+  @override
   Widget build(BuildContext context) {
+    final summary = widget.summary;
     final textTheme = Theme.of(context).textTheme;
+    final balanceColor =
+        summary.remainingBalance >= 0 ? AppColors.positive : AppColors.negative;
+
+    if (!_isExpanded) {
+      return GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  style: textTheme.titleMedium,
+                  children: [
+                    const TextSpan(text: 'Pozostało: '),
+                    TextSpan(
+                      text: CurrencyFormatter.format(summary.remainingBalance),
+                      style: TextStyle(color: balanceColor, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              tooltip: 'Pokaż pełne podsumowanie',
+              onPressed: () => setState(() => _isExpanded = true),
+              icon: const Icon(Icons.visibility_outlined),
+            ),
+          ],
+        ),
+      );
+    }
 
     return GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Bilans netto', style: textTheme.labelLarge),
-          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(child: Text('Bilans netto', style: textTheme.labelLarge)),
+              IconButton(
+                tooltip: 'Zwiń do bilansu',
+                onPressed: () => setState(() => _isExpanded = false),
+                icon: const Icon(Icons.visibility_off_outlined),
+              ),
+            ],
+          ),
           Text(
             CurrencyFormatter.format(summary.remainingBalance),
-            style: textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: summary.remainingBalance >= 0
-                  ? AppColors.positive
-                  : AppColors.negative,
-            ),
+            style: textTheme.headlineMedium?.copyWith(color: balanceColor),
           ),
           const SizedBox(height: 16),
           Row(
