@@ -5,11 +5,16 @@ import '../../../../core/widgets/ad_banner_placeholder.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/gradient_background.dart';
 import '../../../monetization/presentation/cubit/monetization_cubit.dart';
+import '../../../receipt_scanner/data/services/mock_ocr_engine.dart';
+import '../../../receipt_scanner/presentation/bloc/receipt_scanner_bloc.dart';
+import '../../../receipt_scanner/presentation/views/receipt_scanner_view.dart';
+import '../../../workspace/presentation/cubit/active_workspace_cubit.dart';
 import '../../../workspace/presentation/pages/workspace_page.dart' show workspaceNavDestinations;
+import '../bloc/budget_sheet_bloc.dart';
 
-/// Entry point for scanning a receipt; captured images are handed to the
-/// external OCR service and the recognized expense is inserted into the
-/// budget sheet (see architecture.c4: ocrScanner -> sheetEngine).
+/// AB-5: scan a receipt (mocked OCR) and import the recognized line items
+/// straight into the currently active budget's sheet — see
+/// architecture.c4's ocrScanner -> sheetEngine flow.
 class OcrScannerPage extends StatelessWidget {
   const OcrScannerPage({
     super.key,
@@ -23,32 +28,24 @@ class OcrScannerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shouldShowAds = context.watch<MonetizationCubit>().shouldShowAds;
+    final activeBudgetId = context.watch<ActiveWorkspaceCubit>().state;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(title: const Text('Skaner paragonów')),
-      bottomNavigationBar: AppBottomNavBar(
-        destinations: workspaceNavDestinations,
-        selectedIndex: selectedBottomIndex,
-        onDestinationSelected: onBottomDestinationSelected,
-        adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
+    return BlocProvider(
+      create: (context) => ReceiptScannerBloc(
+        scannerService: const MockOcrEngine(),
+        budgetSheetBloc: context.read<BudgetSheetBloc>(),
       ),
-      body: GradientBackground(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.document_scanner_outlined, size: 64),
-              const SizedBox(height: 16),
-              const Text('Zeskanuj paragon, aby dodać wydatek'),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text('Otwórz aparat'),
-              ),
-            ],
-          ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(title: const Text('Skaner paragonów')),
+        bottomNavigationBar: AppBottomNavBar(
+          destinations: workspaceNavDestinations,
+          selectedIndex: selectedBottomIndex,
+          onDestinationSelected: onBottomDestinationSelected,
+          adBanner: shouldShowAds ? const AdBannerPlaceholder() : null,
+        ),
+        body: GradientBackground(
+          child: SafeArea(child: ReceiptScannerView(targetBudgetId: activeBudgetId)),
         ),
       ),
     );

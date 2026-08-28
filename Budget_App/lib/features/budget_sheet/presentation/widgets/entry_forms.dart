@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -643,6 +644,14 @@ Future<void> showAddEntryChooser(BuildContext context) {
             onTap: () {
               Navigator.of(sheetContext).pop();
               showLiabilityForm(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.document_scanner_outlined, color: Colors.purple),
+            title: const Text('Skanuj paragon'),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              GoRouter.of(context).push('/ocr');
             },
           ),
         ],

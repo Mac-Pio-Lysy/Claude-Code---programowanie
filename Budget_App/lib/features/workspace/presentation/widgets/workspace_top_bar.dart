@@ -12,6 +12,7 @@ class WorkspaceTopBar extends StatelessWidget {
     required this.budgetName,
     this.onViewSwitch,
     this.onBudgetSettingsTap,
+    this.onScanReceiptTap,
   });
 
   final String budgetName;
@@ -19,6 +20,9 @@ class WorkspaceTopBar extends StatelessWidget {
 
   /// Gear icon next to the budget name — opens BudgetSettingsDialog.
   final VoidCallback? onBudgetSettingsTap;
+
+  /// Scanner icon — opens the AB-5 receipt scanner (`/ocr`).
+  final VoidCallback? onScanReceiptTap;
 
   static const double _logoBreakpoint = 500;
 
@@ -49,6 +53,12 @@ class WorkspaceTopBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (showLogo)
+                IconButton(
+                  tooltip: 'Skanuj paragon',
+                  onPressed: onScanReceiptTap,
+                  icon: const Icon(Icons.document_scanner_outlined),
+                ),
               IconButton(
                 tooltip: 'Ustawienia budżetu',
                 onPressed: onBudgetSettingsTap,
