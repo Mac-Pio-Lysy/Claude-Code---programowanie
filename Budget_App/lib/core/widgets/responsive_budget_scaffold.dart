@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 import 'app_bottom_nav_bar.dart';
 import 'app_nav_destination.dart';
+import 'app_navigation_rail.dart';
 import 'gradient_background.dart';
 
 /// Single-window master-detail shell for the budget workspace.
@@ -108,6 +109,19 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Top-level section nav (Dashboard/Arkusz/Oszczędności/Skaner
+              // OCR/Ustawienia) — the desktop-width equivalent of the
+              // mobile bottom bar, so every section stays reachable once
+              // that bar is gone.
+              SizedBox(
+                width: 96,
+                child: AppNavigationRail(
+                  destinations: bottomDestinations,
+                  selectedIndex: selectedBottomIndex,
+                  onDestinationSelected: onBottomDestinationSelected,
+                ),
+              ),
+              const VerticalDivider(width: 1),
               SizedBox(width: 88, child: categorySidebar),
               const VerticalDivider(width: 1),
               Expanded(

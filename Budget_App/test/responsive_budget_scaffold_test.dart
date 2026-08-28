@@ -35,6 +35,29 @@ void main() {
     expect(find.byType(VerticalDivider), findsWidgets);
   });
 
+  testWidgets(
+      'desktop rail lists every top-level destination, and each one switches the view',
+      (tester) async {
+    await _pumpAtSize(tester, const Size(1200, 900));
+
+    final rail = find.byType(NavigationRail);
+    expect(rail, findsOneWidget);
+    for (final label in ['Dashboard', 'Arkusz', 'Oszczędności', 'Skaner OCR', 'Ustawienia']) {
+      expect(find.descendant(of: rail, matching: find.text(label)), findsOneWidget);
+    }
+
+    // Dashboard/Arkusz share the same master-detail content on desktop, so
+    // switching between them just updates the active index — it must not
+    // navigate away from the budget workspace.
+    await tester.tap(find.descendant(of: rail, matching: find.text('Arkusz')));
+    await tester.pumpAndSettle();
+    expect(find.text('Bilans netto'), findsOneWidget);
+
+    await tester.tap(find.descendant(of: rail, matching: find.text('Oszczędności')));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Oszczędności'), findsOneWidget);
+  });
+
   testWidgets('category pill selection filters the mobile list', (tester) async {
     await _pumpAtSize(tester, const Size(500, 900));
 
