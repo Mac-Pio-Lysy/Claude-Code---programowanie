@@ -25,11 +25,13 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
     required this.metadataTiles,
     required this.categorySidebar,
     required this.categoryPillTabs,
-    required this.sheetContent,
+    required this.desktopSheetContent,
+    required this.mobileSheetContent,
     required this.bottomDestinations,
     required this.selectedBottomIndex,
     required this.onBottomDestinationSelected,
     this.adBanner,
+    this.floatingActionButton,
   });
 
   final Widget topBar;
@@ -44,7 +46,14 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
   /// as [categorySidebar] in a form that fits a narrow screen.
   final Widget categoryPillTabs;
 
-  final Widget sheetContent;
+  /// Detail content for the right column at desktop/tablet widths (e.g. an
+  /// Excel-like sheet grid).
+  final Widget desktopSheetContent;
+
+  /// Detail content stacked below the dashboard on mobile widths (e.g. a
+  /// touch-optimized tile list) — a deliberately different widget, not just
+  /// a reflowed [desktopSheetContent].
+  final Widget mobileSheetContent;
 
   final List<AppNavDestination> bottomDestinations;
   final int selectedBottomIndex;
@@ -53,6 +62,10 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
   /// Ad banner reserved for the very bottom of the screen (mobile only, free
   /// tier). Omit once the user is subscribed to Premium.
   final Widget? adBanner;
+
+  /// Shown only on mobile widths (e.g. a quick "add entry" FAB) — desktop
+  /// uses inline "+" affordances within [desktopSheetContent] instead.
+  final Widget? floatingActionButton;
 
   bool _isDesktop(double width) => width >= AppConstants.desktopBreakpoint;
 
@@ -70,6 +83,7 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
               child: isDesktop ? _buildDesktop(context) : _buildMobile(context),
             ),
           ),
+          floatingActionButton: isDesktop ? null : floatingActionButton,
           bottomNavigationBar: isDesktop
               ? null
               : AppBottomNavBar(
@@ -115,7 +129,7 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
                 flex: 62,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
-                  child: sheetContent,
+                  child: desktopSheetContent,
                 ),
               ),
             ],
@@ -139,7 +153,7 @@ class ResponsiveBudgetScaffold extends StatelessWidget {
               const SizedBox(height: 16),
               categoryPillTabs,
               const SizedBox(height: 16),
-              sheetContent,
+              mobileSheetContent,
             ],
           ),
         ),

@@ -34,14 +34,19 @@ void main() {
     expect(find.byType(VerticalDivider), findsWidgets);
   });
 
-  testWidgets('category pill/rail selection filters the sheet', (tester) async {
+  testWidgets('category pill selection filters the mobile list', (tester) async {
     await _pumpAtSize(tester, const Size(500, 900));
 
     expect(find.text('Czynsz'), findsOneWidget);
+    expect(find.text('Netflix'), findsOneWidget);
+
     await tester.tap(find.text('Mieszkanie').first);
     await tester.pumpAndSettle();
 
+    // "Czynsz" is subCategory Mieszkanie and stays; "Netflix" is Multimedia
+    // and is filtered out. The installment liability is never filtered.
     expect(find.text('Czynsz'), findsOneWidget);
-    expect(find.text('Fundusz awaryjny'), findsNothing);
+    expect(find.text('Netflix'), findsNothing);
+    expect(find.text('Rata za laptopa'), findsOneWidget);
   });
 }

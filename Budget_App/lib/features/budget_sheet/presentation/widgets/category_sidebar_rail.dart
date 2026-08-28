@@ -2,32 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../domain/entities/budget_category.dart';
-import '../cubit/category_filter_cubit.dart';
+import '../bloc/budget_sheet_bloc.dart';
+import '../bloc/budget_sheet_event.dart';
+import 'sheet_tab.dart';
 
 /// Leftmost icon rail (desktop/tablet) for switching the sheet's category
-/// sub-tab: Mieszkanie, Raty/Kredyty, Multimedia, Oszczędności...
+/// sub-tab: Wszystko, Mieszkanie, Raty/Kredyty, Multimedia, Oszczędności.
 class CategorySidebarRail extends StatelessWidget {
-  const CategorySidebarRail({super.key, required this.categories});
-
-  final List<BudgetCategory> categories;
+  const CategorySidebarRail({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final selectedId = context.watch<CategoryFilterCubit>().state;
+    final selectedTab = context.watch<BudgetSheetBloc>().state.selectedTab;
 
     return Column(
       children: [
         const SizedBox(height: 12),
-        for (final category in categories)
+        for (final tab in sheetTabs)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: _RailButton(
-              category: category,
-              selected: category.id == selectedId,
-              onTap: () => context.read<CategoryFilterCubit>().select(
-                    category.id == selectedId ? null : category.id,
-                  ),
+              tab: tab,
+              selected: tab.id == selectedTab,
+              onTap: () =>
+                  context.read<BudgetSheetBloc>().add(SelectCategoryTab(tab.id)),
             ),
           ),
       ],
@@ -37,19 +35,19 @@ class CategorySidebarRail extends StatelessWidget {
 
 class _RailButton extends StatelessWidget {
   const _RailButton({
-    required this.category,
+    required this.tab,
     required this.selected,
     required this.onTap,
   });
 
-  final BudgetCategory category;
+  final SheetTab tab;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: category.label,
+      message: tab.label,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
@@ -63,7 +61,7 @@ class _RailButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(
-            category.icon,
+            tab.icon,
             color: selected ? AppColors.accentBlue : AppColors.textSecondary,
           ),
         ),

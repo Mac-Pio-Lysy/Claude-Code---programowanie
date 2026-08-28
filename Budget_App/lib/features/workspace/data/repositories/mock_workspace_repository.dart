@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/budget_category.dart';
-import '../../domain/entities/budget_summary.dart';
 import '../../domain/repositories/workspace_repository.dart';
 
 /// Static sample data standing in for the real Supabase/Drift-backed
@@ -39,12 +38,6 @@ class MockWorkspaceRepository implements WorkspaceRepository {
       chartColor: Color(0xFF1B9C63),
     ),
   ];
-
-  @override
-  Future<BudgetSummary> getBudgetSummary() async {
-    final expenses = _categories.fold<double>(0, (sum, c) => sum + c.spent);
-    return BudgetSummary(income: 7500, expenses: expenses);
-  }
 
   @override
   Future<List<BudgetCategory>> getCategories() async => _categories;

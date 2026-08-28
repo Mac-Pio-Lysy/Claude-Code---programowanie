@@ -1,11 +1,10 @@
 import '../entities/budget_category.dart';
-import '../entities/budget_summary.dart';
 
-/// Source of the data shown on the workspace dashboard (summary card, chart,
-/// category sidebar). Implemented by the data layer against local cache
-/// and/or the Supabase backend.
+/// Source of the dashboard chart's data. The headline balance itself now
+/// comes from `BudgetSheetBloc` (the single source of truth for income,
+/// expenses and liabilities); this repository only feeds the category
+/// breakdown chart until that chart is wired to live sheet data too.
 abstract interface class WorkspaceRepository {
-  Future<BudgetSummary> getBudgetSummary();
   Future<List<BudgetCategory>> getCategories();
 
   /// Monthly spend trend for the line-chart view, oldest to newest.

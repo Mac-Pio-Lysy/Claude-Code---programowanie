@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../../domain/entities/budget_summary.dart';
+import '../../../budget_sheet/domain/models/budget_summary.dart';
 
-/// Headline card: Wpływy - Wydatki = Pozostało.
+/// Headline card: Wpływy - Wydatki = Pozostało, plus what's earmarked for
+/// savings vs. truly free. Sourced live from `BudgetSheetBloc`, so it
+/// updates the instant an entry is added, edited or removed.
 class BudgetSummaryCard extends StatelessWidget {
   const BudgetSummaryCard({super.key, required this.summary});
 
@@ -22,10 +24,10 @@ class BudgetSummaryCard extends StatelessWidget {
           Text('Bilans netto', style: textTheme.labelLarge),
           const SizedBox(height: 4),
           Text(
-            CurrencyFormatter.format(summary.remaining),
+            CurrencyFormatter.format(summary.remainingBalance),
             style: textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.w700,
-              color: summary.remaining >= 0
+              color: summary.remainingBalance >= 0
                   ? AppColors.positive
                   : AppColors.negative,
             ),
@@ -36,7 +38,7 @@ class BudgetSummaryCard extends StatelessWidget {
               Expanded(
                 child: _Figure(
                   label: 'Wpływy',
-                  value: summary.income,
+                  value: summary.totalIncomeNet,
                   color: AppColors.positive,
                   icon: Icons.arrow_upward_rounded,
                 ),
@@ -45,13 +47,37 @@ class BudgetSummaryCard extends StatelessWidget {
               Expanded(
                 child: _Figure(
                   label: 'Wydatki',
-                  value: summary.expenses,
+                  value: summary.totalExpenses,
                   color: AppColors.negative,
                   icon: Icons.arrow_downward_rounded,
                 ),
               ),
             ],
           ),
+          if (summary.allocatedToSavings > 0) ...[
+            const Divider(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: _Figure(
+                    label: 'Oszczędności',
+                    value: summary.allocatedToSavings,
+                    color: AppColors.accentBlue,
+                    icon: Icons.savings_outlined,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _Figure(
+                    label: 'Wolne środki',
+                    value: summary.freeCash,
+                    color: AppColors.navy,
+                    icon: Icons.account_balance_wallet_outlined,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

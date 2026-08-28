@@ -4,20 +4,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/widgets/ad_banner_placeholder.dart';
 import '../../../../core/widgets/app_nav_destination.dart';
 import '../../../../core/widgets/responsive_budget_scaffold.dart';
-import '../../../budget_sheet/data/repositories/mock_budget_sheet_repository.dart';
-import '../../../budget_sheet/presentation/cubit/budget_sheet_cubit.dart';
-import '../../../budget_sheet/presentation/cubit/budget_sheet_state.dart';
-import '../../../budget_sheet/presentation/widgets/budget_sheet_view.dart';
+import '../../../budget_sheet/presentation/bloc/budget_sheet_bloc.dart';
+import '../../../budget_sheet/presentation/bloc/budget_sheet_event.dart';
+import '../../../budget_sheet/presentation/bloc/budget_sheet_state.dart';
+import '../../../budget_sheet/presentation/widgets/category_pill_tabs.dart';
+import '../../../budget_sheet/presentation/widgets/category_sidebar_rail.dart';
+import '../../../budget_sheet/presentation/widgets/entry_forms.dart';
+import '../../../budget_sheet/presentation/widgets/excel_sheet_grid.dart';
+import '../../../budget_sheet/presentation/widgets/mobile_budget_list.dart';
 import '../../data/repositories/mock_workspace_repository.dart';
-import '../cubit/category_filter_cubit.dart';
 import '../cubit/chart_mode_cubit.dart';
 import '../cubit/workspace_cubit.dart';
 import '../cubit/workspace_state.dart';
 import '../widgets/budget_chart_card.dart';
 import '../widgets/budget_metadata_tiles.dart';
 import '../widgets/budget_summary_card.dart';
-import '../widgets/category_pill_tabs.dart';
-import '../widgets/category_sidebar_rail.dart';
 import '../widgets/workspace_top_bar.dart';
 
 /// Bottom-nav destinations shared across the app's top-level sections.
@@ -71,10 +72,9 @@ class WorkspacePage extends StatelessWidget {
           create: (_) => WorkspaceCubit(const MockWorkspaceRepository()),
         ),
         BlocProvider(
-          create: (_) => BudgetSheetCubit(const MockBudgetSheetRepository()),
+          create: (_) => BudgetSheetBloc()..add(const LoadBudgetSheet('demo-budget')),
         ),
         BlocProvider(create: (_) => ChartModeCubit()),
-        BlocProvider(create: (_) => CategoryFilterCubit()),
       ],
       child: BlocBuilder<WorkspaceCubit, WorkspaceState>(
         builder: (context, workspaceState) {
@@ -82,37 +82,30 @@ class WorkspacePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final selectedCategoryId = context.watch<CategoryFilterCubit>().state;
-
-          return ResponsiveBudgetScaffold(
-            topBar: const WorkspaceTopBar(budgetName: 'Budżet domowy — Sierpień'),
-            summaryCard: BudgetSummaryCard(summary: workspaceState.summary),
-            chartSection: BudgetChartCard(
-              categories: workspaceState.categories,
-              spendingTrend: workspaceState.spendingTrend,
-            ),
-            metadataTiles: const BudgetMetadataTiles(),
-            categorySidebar: CategorySidebarRail(
-              categories: workspaceState.categories,
-            ),
-            categoryPillTabs: CategoryPillTabs(
-              categories: workspaceState.categories,
-            ),
-            sheetContent: BlocBuilder<BudgetSheetCubit, BudgetSheetState>(
-              builder: (context, sheetState) {
-                if (sheetState is! BudgetSheetLoaded) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return BudgetSheetView(
-                  entries: sheetState.entries,
-                  selectedCategoryId: selectedCategoryId,
-                );
-              },
-            ),
-            bottomDestinations: workspaceNavDestinations,
-            selectedBottomIndex: selectedBottomIndex,
-            onBottomDestinationSelected: onBottomDestinationSelected,
-            adBanner: const AdBannerPlaceholder(),
+          return BlocBuilder<BudgetSheetBloc, BudgetSheetState>(
+            builder: (context, sheetState) {
+              return ResponsiveBudgetScaffold(
+                topBar: const WorkspaceTopBar(budgetName: 'Budżet domowy — Sierpień'),
+                summaryCard: BudgetSummaryCard(summary: sheetState.summary),
+                chartSection: BudgetChartCard(
+                  categories: workspaceState.categories,
+                  spendingTrend: workspaceState.spendingTrend,
+                ),
+                metadataTiles: const BudgetMetadataTiles(),
+                categorySidebar: const CategorySidebarRail(),
+                categoryPillTabs: const CategoryPillTabs(),
+                desktopSheetContent: const ExcelSheetGrid(),
+                mobileSheetContent: const MobileBudgetList(),
+                bottomDestinations: workspaceNavDestinations,
+                selectedBottomIndex: selectedBottomIndex,
+                onBottomDestinationSelected: onBottomDestinationSelected,
+                adBanner: const AdBannerPlaceholder(),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () => showAddEntryChooser(context),
+                  child: const Icon(Icons.add),
+                ),
+              );
+            },
           );
         },
       ),

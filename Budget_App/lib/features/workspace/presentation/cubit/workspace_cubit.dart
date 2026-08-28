@@ -12,16 +12,9 @@ class WorkspaceCubit extends Cubit<WorkspaceState> {
 
   Future<void> load() async {
     emit(const WorkspaceLoading());
-    final summary = await _repository.getBudgetSummary();
     final categories = await _repository.getCategories();
     final spendingTrend = await _repository.getSpendingTrend();
 
-    emit(
-      WorkspaceLoaded(
-        summary: summary,
-        categories: categories,
-        spendingTrend: spendingTrend,
-      ),
-    );
+    emit(WorkspaceLoaded(categories: categories, spendingTrend: spendingTrend));
   }
 }
