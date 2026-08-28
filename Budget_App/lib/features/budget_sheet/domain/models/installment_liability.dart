@@ -39,6 +39,21 @@ class InstallmentLiability extends Equatable {
   static int _monthsBetween(DateTime from, DateTime to) =>
       (to.year - from.year) * 12 + (to.month - from.month);
 
+  InstallmentLiability copyWith({
+    String? title,
+    double? monthlyAmount,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    return InstallmentLiability(
+      id: id,
+      title: title ?? this.title,
+      monthlyAmount: monthlyAmount ?? this.monthlyAmount,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+    );
+  }
+
   @override
   List<Object?> get props => [id, title, monthlyAmount, startDate, endDate];
 }

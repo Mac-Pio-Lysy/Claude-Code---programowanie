@@ -24,6 +24,27 @@ class ExpenseEntry extends Equatable {
   final String? comment;
   final DateTime date;
 
+  static const _unset = Object();
+
+  ExpenseEntry copyWith({
+    String? name,
+    double? amount,
+    ExpenseCategoryType? categoryType,
+    String? subCategory,
+    DateTime? date,
+    Object? comment = _unset,
+  }) {
+    return ExpenseEntry(
+      id: id,
+      name: name ?? this.name,
+      amount: amount ?? this.amount,
+      categoryType: categoryType ?? this.categoryType,
+      subCategory: subCategory ?? this.subCategory,
+      date: date ?? this.date,
+      comment: identical(comment, _unset) ? this.comment : comment as String?,
+    );
+  }
+
   @override
   List<Object?> get props =>
       [id, name, amount, categoryType, subCategory, comment, date];

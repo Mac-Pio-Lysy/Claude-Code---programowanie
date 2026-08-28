@@ -79,6 +79,9 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
 
+  # Idiomatic BLoC unit testing (blocTest)
+  bloc_test: ^9.1.7
+
   # Code generation for Drift local database
   build_runner: ^2.4.13
   drift_dev: ^2.22.1
